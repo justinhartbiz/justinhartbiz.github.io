@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLH Salesforce Flow Inventory</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-card: #21262d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --success: #3fb950;
+            --warning: #d29922;
+            --danger: #f85149;
+            --border: #30363d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+        
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .summary-card .number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        .summary-card .label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .summary-card.warning .number { color: var(--warning); }
+        .summary-card.danger .number { color: var(--danger); }
+        .summary-card.success .number { color: var(--success); }
+
+        /* Alert Box */
+        .alert {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .alert h3 { color: var(--danger); margin-bottom: 0.5rem; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .tab {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .tab:hover { border-color: var(--accent); color: var(--text-primary); }
+        .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .tab .count {
+            background: rgba(255,255,255,0.2);
+            padding: 0.1rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        /* Search */
+        .search-box {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        .search-box:focus { outline: none; border-color: var(--accent); }
+
+        /* Table */
+        .table-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--bg-card); color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        tr:hover { background: var(--bg-card); }
+        .flow-name { color: var(--accent); font-weight: 500; }
+        .flow-type {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .flow-type.autolaunched { background: rgba(63, 185, 80, 0.2); color: var(--success); }
+        .flow-type.screen { background: rgba(88, 166, 255, 0.2); color: var(--accent); }
+        .flow-type.workflow { background: rgba(210, 153, 34, 0.2); color: var(--warning); }
+        .flow-type.managed { background: rgba(139, 148, 158, 0.2); color: var(--text-secondary); }
+        .description { color: var(--text-secondary); font-size: 0.9rem; max-width: 400px; }
+
+        /* Category Section */
+        .category-section { display: none; }
+        .category-section.active { display: block; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* Recommendation Box */
+        .recommendation {
+            background: rgba(88, 166, 255, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .recommendation h3 { color: var(--accent); margin-bottom: 0.5rem; }
+        .recommendation ul { margin-left: 1.5rem; margin-top: 0.5rem; }
+        .recommendation li { margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 TLH Salesforce Flow Inventory</h1>
+        <p class="subtitle">Complete automation audit • 301 flows • February 2026</p>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="number">301</div>
+                <div class="label">Total Flows</div>
+            </div>
+            <div class="summary-card warning">
+                <div class="number">175</div>
+                <div class="label">Auto-Launched (Record Triggers)</div>
+            </div>
+            <div class="summary-card">
+                <div class="number">56</div>
+                <div class="label">Screen Flows</div>
+            </div>
+            <div class="summary-card danger">
+                <div class="number">24</div>
+                <div class="label">Process Builders (Legacy)</div>
+            </div>
+            <div class="summary-card success">
+                <div class="number">~46</div>
+                <div class="label">Managed Package Flows</div>
+            </div>
+        </div>
+
+        <!-- Alert -->
+        <div class="alert">
+            <h3>⚠️ Migration Complexity: HIGH</h3>
+            <p>This org has <strong>175 record-triggered flows</strong> and <strong>24 legacy Process Builders</strong> that need careful analysis before any rebuild. Key risks:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <li>Multiple flows may fire on the same object (execution order matters)</li>
+                <li>Process Builders should be migrated to Flows (Salesforce is deprecating them)</li>
+                <li>Left Main / Direct Mail package flows (~30) are tightly integrated</li>
+                <li>Some flows reference hardcoded User IDs (e.g., "assign james temp")</li>
+            </ul>
+        </div>
+
+        <!-- Recommendation -->
+        <div class="recommendation">
+            <h3>💡 Recommendation: Audit Before Rebuild</h3>
+            <p>Starting from scratch would require rebuilding 175+ automations. A phased approach is safer:</p>
+            <ul>
+                <li><strong>Phase 1:</strong> Document all active flows and their triggers</li>
+                <li><strong>Phase 2:</strong> Identify redundant/conflicting flows</li>
+                <li><strong>Phase 3:</strong> Consolidate where possible (many flows do similar things)</li>
+                <li><strong>Phase 4:</strong> Migrate Process Builders to Flows</li>
+                <li><strong>Phase 5:</strong> Clean up test/temp flows (e.g., "test", "assign james temp")</li>
+            </ul>
+        </div>
+
+        <!-- Search -->
+        <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search flows by name or description...">
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-category="all">All Flows <span class="count">301</span></div>
+            <div class="tab" data-category="autolaunched">Auto-Launched <span class="count">175</span></div>
+            <div class="tab" data-category="screen">Screen Flows <span class="count">56</span></div>
+            <div class="tab" data-category="workflow">Process Builders <span class="count">24</span></div>
+            <div class="tab" data-category="managed">Managed Package <span class="count">46</span></div>
+            <div class="tab" data-category="lead">Lead Flows <span class="count">28</span></div>
+            <div class="tab" data-category="account">Account Flows <span class="count">22</span></div>
+            <div class="tab" data-category="opportunity">Opportunity Flows <span class="count">35</span></div>
+            <div class="tab" data-category="cadence">Cadence Flows <span class="count">31</span></div>
+        </div>
+
+        <!-- Flow Table -->
+        <div class="table-container">
+            <table id="flowTable">
+                <thead>
+                    <tr>
+                        <th>Flow Name</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="flowTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            Generated by Railstote 🦉 • TLH Salesforce Audit • February 2026
+        </div>
+    </div>
+
+    <script>
+        const flows = [
+            // AUTO-LAUNCHED FLOWS (Custom)
+            { name: "Account > Referral Contact Update > Update Opportunities", type: "AutoLaunchedFlow", category: "Account", desc: "Syncs referral contact changes to opportunities" },
+            { name: "Account Closed Remove Task", type: "AutoLaunchedFlow", category: "Account", desc: "Removes tasks when account is closed" },
+            { name: "Account Meeting #1 Date/Time Autofill Meeting #1", type: "AutoLaunchedFlow", category: "Account", desc: "Auto-populates meeting fields" },
+            { name: "Account Meeting #1 updated > update Meeting #1 Submission Date", type: "AutoLaunchedFlow", category: "Account", desc: "Tracks meeting submission dates" },
+            { name: "Account Name", type: "AutoLaunchedFlow", category: "Account", desc: "Account naming automation" },
+            { name: "Account Primary Contact", type: "AutoLaunchedFlow", category: "Account", desc: "Manages primary contact relationship" },
+            { name: "Account Status", type: "AutoLaunchedFlow", category: "Account", desc: "Moves Account to Closed Lost if all Opps are Closed Lost" },
+            { name: "Assign Category based on Relationship", type: "AutoLaunchedFlow", category: "Contact", desc: "For referrals - assigns category" },
+            { name: "Assign Existing New Status Leads to Inside Sales 2 on Weekends", type: "AutoLaunchedFlow", category: "Lead", desc: "Weekend lead routing" },
+            { name: "assign james temp", type: "AutoLaunchedFlow", category: "Lead", desc: "⚠️ TEMP - Hardcoded user assignment" },
+            { name: "assign james temp task", type: "AutoLaunchedFlow", category: "Task", desc: "⚠️ TEMP - Hardcoded user assignment" },
+            { name: "Auto Create Opportunities", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Creates opportunities automatically" },
+            { name: "Auto Create Opps with Real Estate", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Creates RE opportunities" },
+            { name: "Cadence TLH - Call #2", type: "AutoLaunchedFlow", category: "Cadence", desc: "TLH cadence automation" },
+            { name: "Call Notes", type: "AutoLaunchedFlow", category: "Activity", desc: "Most recent call description for Leads and Accounts" },
+            { name: "CallRail assign City/County based on area code (SoCal only)", type: "AutoLaunchedFlow", category: "Lead", desc: "Geo-assigns based on phone area code" },
+            { name: "Campaign Notification - Create on the Fly", type: "AutoLaunchedFlow", category: "Campaign", desc: "BolderCRM/360SMS - Campaign notification" },
+            { name: "Campaign Notification - Push Notifications", type: "AutoLaunchedFlow", category: "Campaign", desc: "BolderCRM/360SMS - Push notifications" },
+            { name: "Campaign Notification - Set Name Field", type: "AutoLaunchedFlow", category: "Campaign", desc: "BolderCRM/360SMS - Name field" },
+            { name: "Campaign Order is Created or Not", type: "AutoLaunchedFlow", category: "Campaign", desc: "Campaign order tracking" },
+            { name: "Care Placement Record Type", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Assigns care placement record type on lead conversion" },
+            { name: "Cash Offer", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Automate creation of task to prepare appointment 2 presentation" },
+            { name: "Cash Offer Opportunity Assigner", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Updates cash offer opportunity owner" },
+            { name: "Cash Offer Submitted", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Cash offer submission tracking" },
+            { name: "Cash offer1", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Cash offer automation" },
+            { name: "Clean Phone Numbers", type: "AutoLaunchedFlow", category: "Lead", desc: "Removes non-numerical characters from phones" },
+            { name: "Clean Phone/Mobile Numbers", type: "AutoLaunchedFlow", category: "Contact", desc: "Removes non-numerical characters from phones" },
+            { name: "Close Date 30 Days from Meeting #1 Date", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Sets close date relative to meeting" },
+            { name: "Completed ARV/Appetite Check Email", type: "AutoLaunchedFlow", category: "Email", desc: "ARV completion notification" },
+            { name: "Contact Buyer Cadence", type: "AutoLaunchedFlow", category: "Cadence", desc: "Buyer contact cadence" },
+            { name: "Contact Role - Update Opp info_1", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Contact role syncing" },
+            { name: "Contract Pending Signature Confirmation", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Contract signature tracking" },
+            { name: "Contract Status", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Changes contract status to 'Contract Sent'" },
+            { name: "ConvertB2BtoContact", type: "AutoLaunchedFlow", category: "Contact", desc: "B2B to contact conversion" },
+            { name: "Create Cadences For Direct Mail - Template", type: "AutoLaunchedFlow", category: "Cadence", desc: "Direct mail cadence creation" },
+            { name: "Create Cash Offer Opportunity", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Creates CO opp & adds lookup to lead/account" },
+            { name: "Create Opportunity Task", type: "AutoLaunchedFlow", category: "Task", desc: "Task creation on opportunity" },
+            { name: "Create Task to Pursue Estate Sale once CO is Lost", type: "AutoLaunchedFlow", category: "Task", desc: "Creates ES follow-up task" },
+            { name: "Create Transaction", type: "AutoLaunchedFlow", category: "Transaction", desc: "Transaction creation automation" },
+            { name: "Default Due Date", type: "AutoLaunchedFlow", category: "Task", desc: "Sets task due date to today if null" },
+            { name: "Direct Mail - Stop Cadences For Opportunity", type: "AutoLaunchedFlow", category: "Cadence", desc: "Stops DM cadences on opp" },
+            { name: "Direct Mail - When a Lead is Deleted", type: "AutoLaunchedFlow", category: "Lead", desc: "DM cleanup on lead deletion" },
+            { name: "Drip Campaign Status NO CLOSED LOST", type: "AutoLaunchedFlow", category: "Account", desc: "Updates opps when account status changes" },
+            { name: "Duplicate Account Found (address changed)", type: "AutoLaunchedFlow", category: "Account", desc: "Duplicate detection" },
+            { name: "Duplicate Account Found (on creation)", type: "AutoLaunchedFlow", category: "Account", desc: "Duplicate detection" },
+            { name: "Duplicate Account Timeline to Opportunity Timeline", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Timeline syncing" },
+            { name: "Duplicate Contact Found (key fields updated)", type: "AutoLaunchedFlow", category: "Contact", desc: "Duplicate detection" },
+            { name: "Duplicate Contact Found (on creation)", type: "AutoLaunchedFlow", category: "Contact", desc: "Duplicate detection" },
+            { name: "Email Floor Plan Request", type: "AutoLaunchedFlow", category: "Email", desc: "Floor plan request notification" },
+            { name: "Email IC Prep", type: "AutoLaunchedFlow", category: "Email", desc: "IC prep notification" },
+            { name: "Email is Opened Notification", type: "AutoLaunchedFlow", category: "Email", desc: "Email open tracking" },
+            { name: "Email Message - Track Status Pixels", type: "AutoLaunchedFlow", category: "Email", desc: "Email tracking pixels" },
+            { name: "Email Remove Listing Photos", type: "AutoLaunchedFlow", category: "Email", desc: "Photo removal on closing escrow" },
+            { name: "Email: Closing Escrow", type: "AutoLaunchedFlow", category: "Email", desc: "Closing escrow notification" },
+            { name: "Email: Notify TC that we are clear to close", type: "AutoLaunchedFlow", category: "Email", desc: "TC closing notification" },
+            { name: "Email: Send notification Email", type: "AutoLaunchedFlow", category: "Email", desc: "Open escrow notification to TC" },
+            { name: "Enter Meeting #1 Notes Task for Opportunity Owner on Account", type: "AutoLaunchedFlow", category: "Task", desc: "Creates meeting notes task" },
+            { name: "ES/CO Opp Owner Change > Reflect on Account", type: "AutoLaunchedFlow", category: "Account", desc: "Owner sync between opp and account" },
+            { name: "Estate Sale Opportunity Owner", type: "AutoLaunchedFlow", category: "Opportunity", desc: "ES opp owner management" },
+            { name: "Estate Sale Weekend, Staging, Broom Clean, and Payment Dates", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Date management for estate sales" },
+            { name: "First Touch", type: "AutoLaunchedFlow", category: "Lead", desc: "First touch tracking" },
+            { name: "First Touch Date/Time Stamp - Lead", type: "AutoLaunchedFlow", category: "Lead", desc: "First touch timestamp" },
+            { name: "First Touch Web Submission Email", type: "AutoLaunchedFlow", category: "Email", desc: "Auto first touch email on web lead" },
+            { name: "Follow up - Meeting #1", type: "AutoLaunchedFlow", category: "Account", desc: "Meeting follow-up automation" },
+            { name: "Format Callrail Last Name", type: "AutoLaunchedFlow", category: "Lead", desc: "CallRail name formatting" },
+            { name: "Global Action New Lead 'Description' Field Creates 'Log a Call' Task on Lead", type: "AutoLaunchedFlow", category: "Lead", desc: "Auto-creates call log from lead description" },
+            { name: "IC Decision Email", type: "AutoLaunchedFlow", category: "Email", desc: "IC decision notification" },
+            { name: "IC Log - IC Check & IC Full", type: "AutoLaunchedFlow", category: "Opportunity", desc: "IC logging" },
+            { name: "IC Ready Email", type: "AutoLaunchedFlow", category: "Email", desc: "IC ready notification to Director of Acquisitions" },
+            { name: "IC/DoA Log", type: "AutoLaunchedFlow", category: "Opportunity", desc: "IC/DoA logging" },
+            { name: "La Out of Service", type: "AutoLaunchedFlow", category: "Lead", desc: "LA out-of-service handling" },
+            { name: "Last Renovation Stage Change Date", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Tracks renovation stage changes" },
+            { name: "Lead - Company Name", type: "AutoLaunchedFlow", category: "Lead", desc: "Lead company name automation" },
+            { name: "Lead Converted to Account > Create Cash Offer", type: "AutoLaunchedFlow", category: "Lead", desc: "CO creation on conversion" },
+            { name: "Lead Created - Cadence", type: "AutoLaunchedFlow", category: "Cadence", desc: "Initial cadence assignment" },
+            { name: "Lead Created - Cadence (TLH)", type: "AutoLaunchedFlow", category: "Cadence", desc: "TLH-specific lead cadence" },
+            { name: "Lead Created > Assign Task To Owner & Web Email", type: "AutoLaunchedFlow", category: "Lead", desc: "Lead assignment and email" },
+            { name: "Lead Created Cadence - LM", type: "AutoLaunchedFlow", category: "Cadence", desc: "Left Main lead cadence" },
+            { name: "Lead Created Cadence V5", type: "AutoLaunchedFlow", category: "Cadence", desc: "Lead cadence v5" },
+            { name: "Lead Opportunity Assign", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Opp assignment from lead" },
+            { name: "Lead Priority Task", type: "AutoLaunchedFlow", category: "Lead", desc: "Priority task on lead" },
+            { name: "Lead Set to Unqualified/Is Converted > Complete/Close Tasks", type: "AutoLaunchedFlow", category: "Lead", desc: "Task cleanup on unqualified" },
+            { name: "Lead Source Sync -LM", type: "AutoLaunchedFlow", category: "Lead", desc: "Left Main lead source sync" },
+            { name: "Lead Status Stamping", type: "AutoLaunchedFlow", category: "Lead", desc: "Lead status tracking" },
+            { name: "Lead-Before Insert", type: "AutoLaunchedFlow", category: "Lead", desc: "Pre-insert lead processing" },
+            { name: "LeadCreationUpperCaseStreet", type: "AutoLaunchedFlow", category: "Lead", desc: "Street address formatting" },
+            { name: "Left Main Missed Call & First Call Timestamping", type: "AutoLaunchedFlow", category: "Activity", desc: "Call timestamp tracking" },
+            { name: "Live Loop connect response update", type: "AutoLaunchedFlow", category: "Lead", desc: "Audantic response handling" },
+            { name: "LMR Stop Cadence From Schedule Email", type: "AutoLaunchedFlow", category: "Cadence", desc: "LM cadence stop on email" },
+            { name: "LMR Stop Cadence From Schedule SMS", type: "AutoLaunchedFlow", category: "Cadence", desc: "LM cadence stop on SMS" },
+            { name: "LMR Stop Cadence From Schedule Task", type: "AutoLaunchedFlow", category: "Cadence", desc: "LM cadence stop on task" },
+            { name: "LMR Stop Cadences if last record is deleted", type: "AutoLaunchedFlow", category: "Cadence", desc: "LM cadence cleanup" },
+            { name: "LMR Subflow Stop Cadence From Schedule - V1", type: "AutoLaunchedFlow", category: "Cadence", desc: "LM cadence subflow" },
+            { name: "Log Meeting #1 Notes Task", type: "AutoLaunchedFlow", category: "Task", desc: "Meeting notes task creation" },
+            { name: "Marketing Yelp Source update LeadSource to Yelp #", type: "AutoLaunchedFlow", category: "Lead", desc: "Yelp source tracking" },
+            { name: "Meeting #1 Confirmation Email (No RE)", type: "AutoLaunchedFlow", category: "Email", desc: "Meeting confirmation without RE" },
+            { name: "Meeting #1 Date/Time Autofill Meeting #1", type: "AutoLaunchedFlow", category: "Account", desc: "Meeting date autofill" },
+            { name: "Meeting #1 Email Reminder (No RE)", type: "AutoLaunchedFlow", category: "Email", desc: "Meeting reminder without RE" },
+            { name: "Meeting #1 updated > update Meeting #1 Submission Date", type: "AutoLaunchedFlow", category: "Account", desc: "Meeting submission date sync" },
+            { name: "Meeting #1/R Confirmation Email", type: "AutoLaunchedFlow", category: "Email", desc: "Meeting confirmation email" },
+            { name: "Meeting #1/R Email Reminder (Both.)", type: "AutoLaunchedFlow", category: "Email", desc: "Meeting reminder for both types" },
+            { name: "Meeting #1R Confirmation Email (Yes RE. Different ES & CO Owner)", type: "AutoLaunchedFlow", category: "Email", desc: "Meeting confirmation with different owners" },
+            { name: "Meeting #1R Email Reminder (Yes RE/2 Managers)", type: "AutoLaunchedFlow", category: "Email", desc: "Meeting reminder with 2 managers" },
+            { name: "Meeting #2 Date > Update Opportunity to Stage Meeting #2", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Meeting 2 stage update" },
+            { name: "New Account Contact > Populate UTM/LeadSource from Account Primary Contact", type: "AutoLaunchedFlow", category: "Contact", desc: "UTM/LeadSource sync" },
+            { name: "New Deal > Updated Referral Contact of Opp from Account", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Referral contact sync" },
+            { name: "Opp Stage Change Date Stamp", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Stage change tracking" },
+            { name: "Opportunity - Address", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Address field population" },
+            { name: "Opportunity Long Term Follow Up Cadence", type: "AutoLaunchedFlow", category: "Cadence", desc: "LT follow-up cadence" },
+            { name: "Opportunity Name", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Opp naming automation" },
+            { name: "Opportunity Offer Cash", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Cash offer automation" },
+            { name: "Opportunity Stage set to Pending Signature -> Create Follow Up Task for Contract", type: "AutoLaunchedFlow", category: "Task", desc: "Contract follow-up task" },
+            { name: "Opportunity Update IC Decision", type: "AutoLaunchedFlow", category: "Opportunity", desc: "IC decision update" },
+            { name: "OpportunityEmailUpdated", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Email sync to account" },
+            { name: "Pending Ratings Email to Outside Sales Manager", type: "AutoLaunchedFlow", category: "Email", desc: "Ratings request to OSM" },
+            { name: "Pending Signature Validation & Error Message", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Signature validation" },
+            { name: "Populate Authorized Signer Contact", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Signer contact population" },
+            { name: "Populate Docusign Fields upon Creation Get Account", type: "AutoLaunchedFlow", category: "Opportunity", desc: "DocuSign field population" },
+            { name: "Populate Primary Contact", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Primary contact population" },
+            { name: "Populate Referring Contact", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Referring contact population" },
+            { name: "Primary Contact", type: "AutoLaunchedFlow", category: "Contact", desc: "Primary contact management" },
+            { name: "Primary Contact Opportunity", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Primary contact on opp" },
+            { name: "RE - Create Cash Offer Opportunity", type: "AutoLaunchedFlow", category: "Opportunity", desc: "RE-sourced CO creation" },
+            { name: "Referer Contact Created > Update Category > Potentially Update Related Account Referral Contact", type: "AutoLaunchedFlow", category: "Contact", desc: "Referrer contact sync" },
+            { name: "Related City/Market to Account", type: "AutoLaunchedFlow", category: "Account", desc: "City/Market assignment v3 RE" },
+            { name: "Related City/Market to Lead", type: "AutoLaunchedFlow", category: "Lead", desc: "City/Market assignment" },
+            { name: "Renovation", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Renovation task automation" },
+            { name: "Request ARV/Appetite Check Email", type: "AutoLaunchedFlow", category: "Email", desc: "ARV request notification" },
+            { name: "Reschedule", type: "AutoLaunchedFlow", category: "Account", desc: "Reschedule handling, deletes existing tasks" },
+            { name: "Reset Skip Data Loader Flag", type: "AutoLaunchedFlow", category: "Lead", desc: "Data loader flag reset" },
+            { name: "Reset Skip Data Loader Flag (Account)", type: "AutoLaunchedFlow", category: "Account", desc: "Data loader flag reset" },
+            { name: "Reset Skip Data Loader Flag (Email Message)", type: "AutoLaunchedFlow", category: "Email", desc: "Data loader flag reset" },
+            { name: "Reset Skip Data Loader Flag (Opportunity)", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Data loader flag reset" },
+            { name: "Reset Skip Data Loader Flag (Task)", type: "AutoLaunchedFlow", category: "Task", desc: "Data loader flag reset" },
+            { name: "Set Create_Listing_and_Renovation_Knack_Obj__c checkbox field to True", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Triggers Zap automation" },
+            { name: "Set Unqualified Reason to 'LA out-of-service area'", type: "AutoLaunchedFlow", category: "Lead", desc: "LA unqualified reason" },
+            { name: "Split Last Name into First Name from Web Lead", type: "AutoLaunchedFlow", category: "Lead", desc: "Name field parsing" },
+            { name: "Stage Change > Change Opp Stage on Account", type: "AutoLaunchedFlow", category: "Account", desc: "Stage sync to account" },
+            { name: "Stage Change updates Reno Stage", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Reno stage sync" },
+            { name: "Stage Changed to Closed Won/Lost > Close Date TODAY", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Close date stamping" },
+            { name: "Stamp First Stage Change Date/Time", type: "AutoLaunchedFlow", category: "Opportunity", desc: "First stage change tracking" },
+            { name: "Stamp Opp Stage on Activity Creation", type: "AutoLaunchedFlow", category: "Activity", desc: "Activity stage stamping" },
+            { name: "Stop Cadence - TLH", type: "AutoLaunchedFlow", category: "Cadence", desc: "TLH cadence stop" },
+            { name: "Stop Cadences", type: "AutoLaunchedFlow", category: "Cadence", desc: "Cadence stop flow" },
+            { name: "Stop Cadences Lead", type: "AutoLaunchedFlow", category: "Cadence", desc: "Lead cadence stop" },
+            { name: "Stop Cadences on Opportunity", type: "AutoLaunchedFlow", category: "Cadence", desc: "Opp cadence stop" },
+            { name: "Stop Direct Mail Cadences - For Lead", type: "AutoLaunchedFlow", category: "Cadence", desc: "DM cadence stop for lead" },
+            { name: "Talkdeak Post to Chatter", type: "AutoLaunchedFlow", category: "Activity", desc: "Talkdesk Chatter integration" },
+            { name: "Task Completed > Create New Task", type: "AutoLaunchedFlow", category: "Task", desc: "Task chaining" },
+            { name: "Task Created > Grab Lead/Account Priority > Assign Task Priority", type: "AutoLaunchedFlow", category: "Task", desc: "Priority inheritance" },
+            { name: "Task Due Date = Completed Date", type: "AutoLaunchedFlow", category: "Task", desc: "Due date = completed date sync" },
+            { name: "Task Priority Account", type: "AutoLaunchedFlow", category: "Task", desc: "Account priority to task" },
+            { name: "Task Priority Lead", type: "AutoLaunchedFlow", category: "Task", desc: "Lead priority to task" },
+            { name: "test", type: "AutoLaunchedFlow", category: "Test", desc: "⚠️ TEST - Should be removed" },
+            { name: "Test Record Trigger Flow", type: "AutoLaunchedFlow", category: "Test", desc: "⚠️ TEST - Sends text to spencer" },
+            { name: "TLH - Lead Created Cadence", type: "AutoLaunchedFlow", category: "Cadence", desc: "TLH lead cadence" },
+            { name: "Tracker: IC Decision Date Log Date", type: "AutoLaunchedFlow", category: "Opportunity", desc: "IC decision date tracking" },
+            { name: "Tracking the latest outbound call", type: "AutoLaunchedFlow", category: "Activity", desc: "Outbound call tracking" },
+            { name: "Tracking the latest outbound text", type: "AutoLaunchedFlow", category: "Activity", desc: "Outbound text tracking" },
+            { name: "Unqualified Reason (& no RE) > Real Estate in Play 'No'", type: "AutoLaunchedFlow", category: "Lead", desc: "RE in play flag update" },
+            { name: "Update Account Lookup Cash Offer for Knack Temp", type: "AutoLaunchedFlow", category: "Account", desc: "⚠️ TEMP - Knack sync" },
+            { name: "Update Account Margin", type: "AutoLaunchedFlow", category: "Account", desc: "Margin sync from opp" },
+            { name: "Update Account to Active when in Pursuit", type: "AutoLaunchedFlow", category: "Account", desc: "Status update" },
+            { name: "Update Account/Opportunity Phone/Mobile/Email", type: "AutoLaunchedFlow", category: "Contact", desc: "Contact info sync" },
+            { name: "Update City/Market Field from the Past", type: "AutoLaunchedFlow", category: "Lead", desc: "One-time fix flow" },
+            { name: "Update Dropbox URL Opportunity", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Dropbox URL sync" },
+            { name: "Update Estate Sale Opp & Account Lookup Field on Lead Record once Converted", type: "AutoLaunchedFlow", category: "Lead", desc: "Conversion field population" },
+            { name: "Update Has Cadence when a Cadence has added to Multi Object", type: "AutoLaunchedFlow", category: "Cadence", desc: "Has Cadence flag update" },
+            { name: "Update Has Cadence when a Cadence has stopped from Multi Object", type: "AutoLaunchedFlow", category: "Cadence", desc: "Has Cadence flag update" },
+            { name: "Update Knack with Design Memo for Both Ams and Design Directives", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Knack design memo sync" },
+            { name: "Update Last Stage Change Field", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Stage change tracking for Zapier" },
+            { name: "Update Lead Source & Marketing Info when Lead Lookup is Changed", type: "AutoLaunchedFlow", category: "Account", desc: "Lead source sync" },
+            { name: "Update Lead to show Cadence has been added", type: "AutoLaunchedFlow", category: "Cadence", desc: "Has Cadence update" },
+            { name: "Update Marketing info on Cash Offer Opportunities", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Marketing info sync (WIP)" },
+            { name: "Update Number of Day Since Last Outbound Call Singe Record", type: "AutoLaunchedFlow", category: "Activity", desc: "Days since call tracking" },
+            { name: "Update Number of Day Since Last Outbound Text Singe Record", type: "AutoLaunchedFlow", category: "Activity", desc: "Days since text tracking" },
+            { name: "Update Opportunity Lead Name ID BackTrack", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Lead ID backtracking" },
+            { name: "Update Opportunity Lead Name Ids", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Lead ID sync" },
+            { name: "Update Opportunity Primary Contact", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Primary contact sync" },
+            { name: "Update RE_AM_NonES_SubStage__c Picklist Stage", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Sub-stage picklist update" },
+            { name: "Update Related Opportunity on Legacy Accounts", type: "AutoLaunchedFlow", category: "Account", desc: "Legacy opp sync" },
+            { name: "Update Stage from RE_AM_NonES_SubStage__c Picklist", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Stage from sub-stage" },
+            { name: "Update Summarize Phone Call Last Modified", type: "AutoLaunchedFlow", category: "Activity", desc: "Call summary timestamp" },
+            { name: "Updated Referring Contact Info, Update Opportunity", type: "AutoLaunchedFlow", category: "Opportunity", desc: "Referring contact sync" },
+            { name: "updateVendorSource", type: "AutoLaunchedFlow", category: "Lead", desc: "Vendor source update" },
+            { name: "Updating Task status to completed If Transaction is Closed/Lost", type: "AutoLaunchedFlow", category: "Task", desc: "Task cleanup on closed transaction" },
+            { name: "Vacancy Email", type: "AutoLaunchedFlow", category: "Email", desc: "Vacancy notification 2 days before close" },
+            { name: "Web Lead Chatter Post Notification", type: "AutoLaunchedFlow", category: "Lead", desc: "Web lead Chatter post" },
+            { name: "Web Lead Notification", type: "AutoLaunchedFlow", category: "Lead", desc: "Desktop notification for web leads" },
+            { name: "Website Lead Chatter Post", type: "AutoLaunchedFlow", category: "Lead", desc: "Website lead Chatter" },
+
+            // SCREEN FLOWS
+            { name: "Add Bulk Cadence to Lead", type: "Screen", category: "Cadence", desc: "Bulk add cadence to leads" },
+            { name: "Add Bulk Cadences Multi Object", type: "Screen", category: "Cadence", desc: "Bulk cadence multi-object" },
+            { name: "Create a New Task", type: "Screen", category: "Task", desc: "Task creation screen" },
+            { name: "Create New Transaction", type: "Screen", category: "Transaction", desc: "Transaction creation" },
+            { name: "EditTemplateCadence", type: "Screen", category: "Cadence", desc: "Edit template cadence" },
+            { name: "LMR Get Confg Twnsqr", type: "Screen", category: "Cadence", desc: "LM config screen" },
+            { name: "LMR Sync Confg Twnsqr", type: "Screen", category: "Cadence", desc: "LM sync config" },
+            { name: "Meeting #1 Actions", type: "Screen", category: "Account", desc: "Reschedule/cancel appointment screen" },
+            { name: "NBA - Appointment Attended", type: "Screen", category: "Opportunity", desc: "NBA appointment flow" },
+            { name: "NBA - Cadence Screen Flow", type: "Screen", category: "Cadence", desc: "NBA cadence screen" },
+            { name: "NBA - Call Posting", type: "Screen", category: "Activity", desc: "NBA call recommendation" },
+            { name: "NBA - Call Screen Flow", type: "Screen", category: "Activity", desc: "NBA call screen" },
+            { name: "NBA - Deal Analysis Flow", type: "Screen", category: "Opportunity", desc: "NBA deal analysis" },
+            { name: "NBA - Direct Mail Screen Flow", type: "Screen", category: "Cadence", desc: "NBA direct mail" },
+            { name: "NBA - Document Appointment Flow", type: "Screen", category: "Opportunity", desc: "NBA document appointment" },
+            { name: "NBA - Opportunity Cadence Screen Flow", type: "Screen", category: "Cadence", desc: "NBA opp cadence" },
+            { name: "NBA - Post Appointment QA/QI", type: "Screen", category: "Opportunity", desc: "NBA post-appointment" },
+            { name: "NBA - Prepare Appointment Flow", type: "Screen", category: "Opportunity", desc: "NBA prep appointment" },
+            { name: "NBA - Send SMS to Lead", type: "Screen", category: "Lead", desc: "NBA SMS recommendation" },
+            { name: "NBA - Set Appointment Flow", type: "Screen", category: "Opportunity", desc: "NBA set appointment" },
+            { name: "RetrieveQuickbooks", type: "Screen", category: "Integration", desc: "QuickBooks retrieval" },
+            { name: "Schedule Meeting #1", type: "Screen", category: "Account", desc: "Meeting scheduling" },
+            { name: "Select Sequence Template", type: "Screen", category: "Cadence", desc: "Sequence template selection" },
+            { name: "SelectTemplateCadence", type: "Screen", category: "Cadence", desc: "Template cadence selection" },
+            { name: "Set Appointment Flow- Custom", type: "Screen", category: "Opportunity", desc: "Custom appointment screen" },
+            { name: "Stop Bulk Cadence to MultiObject", type: "Screen", category: "Cadence", desc: "Bulk stop cadence" },
+            { name: "Stop Cadence - Are you sure?", type: "Screen", category: "Cadence", desc: "Stop cadence confirmation" },
+
+            // PROCESS BUILDERS (Legacy Workflow)
+            { name: "Account - New Family Members", type: "Workflow", category: "Account", desc: "⚠️ LEGACY - Migrate to Flow" },
+            { name: "Audantic Lead Status Update", type: "Workflow", category: "Lead", desc: "⚠️ LEGACY - Mark sold leads" },
+            { name: "Audantic Opportunity Status Update", type: "Workflow", category: "Opportunity", desc: "⚠️ LEGACY - Mark sold opps" },
+            { name: "Contact Role - Update Opp info", type: "Workflow", category: "Opportunity", desc: "⚠️ LEGACY - Contact role sync" },
+            { name: "Follow up survey task", type: "Workflow", category: "Task", desc: "⚠️ LEGACY - Survey follow-up" },
+            { name: "IMMEDIATE Lead Follow Up Sequence", type: "Workflow", category: "Lead", desc: "⚠️ LEGACY - DO NOT ADD TIME-DEPENDENT" },
+            { name: "Lead - County Assignment", type: "Workflow", category: "Lead", desc: "⚠️ LEGACY - County assignment" },
+            { name: "Lead - Update to Working on Closed Task", type: "Workflow", category: "Lead", desc: "⚠️ LEGACY - Status update" },
+            { name: "Opportunity - Phone number add", type: "Workflow", category: "Opportunity", desc: "⚠️ LEGACY - Phone population" },
+            { name: "Opportunity Longterm Follow Up", type: "Workflow", category: "Opportunity", desc: "⚠️ LEGACY - LT follow-up" },
+            { name: "Opportunity Motivated Sequence Follow Up", type: "Workflow", category: "Opportunity", desc: "⚠️ LEGACY - Motivated sequence" },
+            { name: "Populate Address On Opportunity and Update Contacted Date From Lead", type: "Workflow", category: "Opportunity", desc: "⚠️ LEGACY - Address population" },
+            { name: "Signed Contract", type: "Workflow", category: "Transaction", desc: "⚠️ LEGACY - Transaction creation" },
+            { name: "Signed Contract V2", type: "Workflow", category: "Transaction", desc: "⚠️ LEGACY - Transaction v2" },
+            { name: "Task - Address add", type: "Workflow", category: "Task", desc: "⚠️ LEGACY - Address on task" },
+            { name: "Task - Assign CallRail Task to KW", type: "Workflow", category: "Task", desc: "⚠️ LEGACY - CallRail assignment" },
+            { name: "Task - Default Due Date", type: "Workflow", category: "Task", desc: "⚠️ LEGACY - Due date default" },
+            { name: "Task Completion on Transaction Cancelled or Lost", type: "Workflow", category: "Task", desc: "⚠️ LEGACY - Task cleanup" },
+            { name: "Task for transactions", type: "Workflow", category: "Transaction", desc: "⚠️ LEGACY - Transaction tasks" },
+            { name: "Update Lead Name and Address", type: "Workflow", category: "Lead", desc: "⚠️ LEGACY - Lead field update" },
+            { name: "update person account field on opportunity", type: "Workflow", category: "Opportunity", desc: "⚠️ LEGACY - Person account sync" },
+            { name: "VP - Opp", type: "Workflow", category: "Opportunity", desc: "⚠️ LEGACY - VP opportunity" },
+
+            // MANAGED PACKAGE FLOWS (Abbreviated)
+            { name: "Add or Modify Service Appointment Attendees", type: "Managed", category: "Appointments", desc: "Field Service - Appointment booking" },
+            { name: "Book Appointment from Invitation", type: "Managed", category: "Appointments", desc: "Field Service - Invitation booking" },
+            { name: "Create Waitlist", type: "Managed", category: "Appointments", desc: "Field Service - Waitlist" },
+            { name: "Inbound New Appointment", type: "Managed", category: "Appointments", desc: "Field Service - New appointment" },
+            { name: "Process Simple Approval", type: "Managed", category: "Approvals", desc: "Standard approvals" },
+            { name: "Request Flow Activation", type: "Managed", category: "Approvals", desc: "Flow activation approval" },
+            { name: "Check Service Plan Eligibility", type: "Managed", category: "Einstein", desc: "Einstein service plan" },
+            { name: "Deploy Data Kit Components", type: "Managed", category: "Data Kit", desc: "SF Data Kit deployment" },
+            { name: "Create Sales Contact Record", type: "Managed", category: "Sales", desc: "Sales automation" },
+            { name: "Create Sales Lead Record", type: "Managed", category: "Sales", desc: "Sales automation" },
+            { name: "Return Calendar Link", type: "Managed", category: "Inbox", desc: "Calendar link generation" },
+            { name: "Create Work Order from Case", type: "Managed", category: "Field Service", desc: "Work order creation" },
+            { name: "Generate Payment Link", type: "Managed", category: "Payments", desc: "Payment link generation" },
+            { name: "CMS: Review Content", type: "Managed", category: "CMS", desc: "Content review workflow" },
+            { name: "CMS: Submit Content for Review", type: "Managed", category: "CMS", desc: "Content submission" },
+            { name: "Chats Routed to Agents and Queues", type: "Managed", category: "Omnichannel", desc: "Chat routing" },
+            { name: "Messages Routed to Agents and Queues", type: "Managed", category: "Omnichannel", desc: "Message routing" },
+            { name: "Voice Calls Routed to Agents and Queues", type: "Managed", category: "Omnichannel", desc: "Voice routing" },
+        ];
+
+        let currentCategory = 'all';
+        
+        function renderFlows(filter = '') {
+            const tbody = document.getElementById('flowTableBody');
+            let filteredFlows = flows;
+            
+            // Category filter
+            if (currentCategory !== 'all') {
+                if (currentCategory === 'autolaunched') {
+                    filteredFlows = flows.filter(f => f.type === 'AutoLaunchedFlow');
+                } else if (currentCategory === 'screen') {
+                    filteredFlows = flows.filter(f => f.type === 'Screen');
+                } else if (currentCategory === 'workflow') {
+                    filteredFlows = flows.filter(f => f.type === 'Workflow');
+                } else if (currentCategory === 'managed') {
+                    filteredFlows = flows.filter(f => f.type === 'Managed');
+                } else if (currentCategory === 'lead') {
+                    filteredFlows = flows.filter(f => f.category === 'Lead');
+                } else if (currentCategory === 'account') {
+                    filteredFlows = flows.filter(f => f.category === 'Account');
+                } else if (currentCategory === 'opportunity') {
+                    filteredFlows = flows.filter(f => f.category === 'Opportunity');
+                } else if (currentCategory === 'cadence') {
+                    filteredFlows = flows.filter(f => f.category === 'Cadence');
+                }
+            }
+            
+            // Search filter
+            if (filter) {
+                const lowerFilter = filter.toLowerCase();
+                filteredFlows = filteredFlows.filter(f => 
+                    f.name.toLowerCase().includes(lowerFilter) || 
+                    f.desc.toLowerCase().includes(lowerFilter) ||
+                    f.category.toLowerCase().includes(lowerFilter)
+                );
+            }
+            
+            tbody.innerHTML = filteredFlows.map(f => `
+                <tr>
+                    <td class="flow-name">${f.name}</td>
+                    <td><span class="flow-type ${f.type.toLowerCase()}">${f.type}</span></td>
+                    <td>${f.category}</td>
+                    <td class="description">${f.desc}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Tab click handler
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentCategory = tab.dataset.category;
+                renderFlows(document.getElementById('searchBox').value);
+            });
+        });
+        
+        // Search handler
+        document.getElementById('searchBox').addEventListener('input', (e) => {
+            renderFlows(e.target.value);
+        });
+        
+        // Initial render
+        renderFlows();
+    </script>
+</body>
+</html>
