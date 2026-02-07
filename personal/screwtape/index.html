@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Covid Screwtape Letters - Project Dashboard</title>
+    <style>
+        :root {
+            --bg-dark: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-hover: #1f2b47;
+            --accent: #e94560;
+            --accent-gold: #d4a853;
+            --text: #eee;
+            --text-muted: #888;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --danger: #f87171;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            font-weight: normal;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+        
+        .epigraph {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent-gold);
+            font-style: italic;
+            color: var(--text-muted);
+        }
+        
+        .epigraph cite {
+            display: block;
+            text-align: right;
+            margin-top: 1rem;
+            color: var(--accent-gold);
+            font-style: normal;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .tab {
+            padding: 1rem 2rem;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            color: var(--text);
+            background: var(--bg-hover);
+        }
+        
+        .tab.active {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 2rem 0;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        h2 {
+            color: var(--accent-gold);
+            font-weight: normal;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(212, 168, 83, 0.3);
+        }
+        
+        h3 {
+            color: var(--text);
+            font-weight: normal;
+            font-size: 1.2rem;
+            margin: 1.5rem 0 1rem;
+        }
+        
+        .chapter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .chapter-card {
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .chapter-card.manuscript {
+            border-left-color: var(--accent-gold);
+        }
+        
+        .chapter-card.rg {
+            border-left-color: var(--success);
+        }
+        
+        .chapter-card.missing {
+            border-left-color: var(--danger);
+            opacity: 0.7;
+        }
+        
+        .chapter-num {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .chapter-title {
+            font-size: 1.1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .chapter-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-manuscript {
+            background: rgba(212, 168, 83, 0.2);
+            color: var(--accent-gold);
+        }
+        
+        .badge-rg {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--success);
+        }
+        
+        .badge-missing {
+            background: rgba(248, 113, 113, 0.2);
+            color: var(--danger);
+        }
+        
+        .source-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        .source-table th,
+        .source-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .source-table th {
+            color: var(--accent-gold);
+            font-weight: normal;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+        
+        .source-table tr:hover {
+            background: var(--bg-hover);
+        }
+        
+        .source-count {
+            background: var(--accent);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+        
+        .style-section {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .style-section h4 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-weight: normal;
+        }
+        
+        .technique-list {
+            list-style: none;
+        }
+        
+        .technique-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .technique-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .quote-box {
+            background: rgba(233, 69, 96, 0.1);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-style: italic;
+        }
+        
+        .quote-box cite {
+            display: block;
+            text-align: right;
+            color: var(--text-muted);
+            font-style: normal;
+            margin-top: 0.5rem;
+        }
+        
+        .vocab-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .vocab-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .vocab-table td:first-child {
+            color: var(--accent);
+            font-weight: bold;
+            width: 30%;
+        }
+        
+        .checklist {
+            list-style: none;
+        }
+        
+        .checklist li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .checklist li::before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            color: var(--accent-gold);
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+        
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--accent);
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+        
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -2rem;
+            top: 0.5rem;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin-left: -4px;
+        }
+        
+        .timeline-date {
+            color: var(--accent-gold);
+            font-size: 0.9rem;
+        }
+        
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .topic-card {
+            background: var(--bg-card);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .topic-name {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .topic-posts {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 3rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>The Covid Screwtape Letters</h1>
+            <p class="subtitle">Project Dashboard — Working Materials</p>
+        </header>
+        
+        <div class="epigraph">
+            "The greatest evil is not now done in those sordid 'dens of crime' that Dickens loved to paint... But it is conceived and ordered in clean, carpeted, warmed and well-lighted offices, by quiet men with white collars and cut fingernails and smooth-shaven cheeks who do not need to raise their voices."
+            <cite>— C.S. Lewis, Preface to The Screwtape Letters</cite>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">10</div>
+                <div class="stat-label">Manuscript Chapters</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">15</div>
+                <div class="stat-label">RG Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">174</div>
+                <div class="stat-label">Source Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">21+</div>
+                <div class="stat-label">Chapter Topics</div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('overview')">Overview</button>
+            <button class="tab" onclick="showTab('chapters')">Chapters</button>
+            <button class="tab" onclick="showTab('sources')">Source Posts</button>
+            <button class="tab" onclick="showTab('style')">Style Guide</button>
+            <button class="tab" onclick="showTab('timeline')">Timeline</button>
+        </div>
+        
+        <!-- OVERVIEW TAB -->
+        <div id="overview" class="tab-content active">
+            <h2>Project Status</h2>
+            
+            <div class="style-section">
+                <h4>Two Distinct Versions Discovered</h4>
+                <p>The manuscript and RG posts are <strong>NOT the same content</strong> — they are entirely different treatments of similar themes.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                    <div>
+                        <h3><span class="badge badge-manuscript">Manuscript</span> Book Version</h3>
+                        <ul style="color: var(--text-muted); margin-left: 1.5rem;">
+                            <li>Formal C.S. Lewis style</li>
+                            <li>Numbered Letters III-XXIII</li>
+                            <li>Theological themes</li>
+                            <li>10 chapters</li>
+                            <li>Sent to Skyhorse Jan 29, 2026</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3><span class="badge badge-rg">RG</span> Substack Series</h3>
+                        <ul style="color: var(--text-muted); margin-left: 1.5rem;">
+                            <li>Contemporary, topical style</li>
+                            <li>Current event references</li>
+                            <li>More casual tone</li>
+                            <li>15 posts (Prologue + 14 parts)</li>
+                            <li>Published on Rational Ground</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <h2>Content Gaps</h2>
+            <div class="style-section">
+                <h4>Topics in Manuscript Only (Not on RG)</h4>
+                <div class="topics-grid">
+                    <div class="topic-card"><span class="badge badge-manuscript">Ch 3</span> The Closing of the Churches</div>
+                    <div class="topic-card"><span class="badge badge-manuscript">Ch 4</span> The Science™</div>
+                    <div class="topic-card"><span class="badge badge-manuscript">Ch 6</span> The Vaccine Salvation</div>
+                    <div class="topic-card"><span class="badge badge-manuscript">Ch 7</span> Papers, Please</div>
+                    <div class="topic-card"><span class="badge badge-manuscript">Ch 8</span> The Unclean Class</div>
+                </div>
+                
+                <h4 style="margin-top: 1.5rem;">Topics on RG Only (Not in Manuscript)</h4>
+                <div class="topics-grid">
+                    <div class="topic-card"><span class="badge badge-rg">RG</span> PCR Tests as Ritual</div>
+                    <div class="topic-card"><span class="badge badge-rg">RG</span> Essential Workers</div>
+                    <div class="topic-card"><span class="badge badge-rg">RG</span> Hospital Theater</div>
+                    <div class="topic-card"><span class="badge badge-rg">RG</span> Natural Immunity Suppression</div>
+                    <div class="topic-card"><span class="badge badge-rg">RG</span> Inflated Death Counts</div>
+                </div>
+                
+                <h4 style="margin-top: 1.5rem;">Potential New Chapters</h4>
+                <div class="topics-grid">
+                    <div class="topic-card"><span class="badge badge-missing">NEW</span> Transmission / Fomite Theater</div>
+                    <div class="topic-card"><span class="badge badge-missing">NEW</span> Outdoor Spread Myth</div>
+                    <div class="topic-card"><span class="badge badge-missing">NEW</span> Vaccine Injury Denial</div>
+                    <div class="topic-card"><span class="badge badge-missing">NEW</span> Nursing Homes / Dying Alone</div>
+                    <div class="topic-card"><span class="badge badge-missing">NEW</span> Early Treatment Suppression</div>
+                    <div class="topic-card"><span class="badge badge-missing">NEW</span> Media Fear Machine</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CHAPTERS TAB -->
+        <div id="chapters" class="tab-content">
+            <h2>Manuscript Chapters (Book Version)</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">Master file: <code>Covid_Screwtape_Letters_Formatted.docx</code> — Sent to Dean Notte at Skyhorse Jan 29, 2026</p>
+            
+            <div class="chapter-grid">
+                <div class="chapter-card manuscript">
+                    <div class="chapter-num">Chapter 1 • Letters III-V</div>
+                    <div class="chapter-title">Two Weeks to Flatten the Curve</div>
+                    <div class="chapter-meta">March 2020</div>
+                </div>
+                <div class="chapter-card manuscript">
+                    <div class="chapter-num">Chapter 2 • Letters VI-VII</div>
+                    <div class="chapter-title">The Mask as Talisman</div>
+                    <div class="chapter-meta">Spring-Summer 2020</div>
+                </div>
+                <div class="chapter-card manuscript">
+                    <div class="chapter-num">Chapter 3 • Letters VIII-IX</div>
+                    <div class="chapter-title">The Closing of the Churches</div>
+                    <div class="chapter-meta">Easter 2020 <span class="badge badge-missing">Not on RG</span></div>
+                </div>
+                <div class="chapter-card manuscript">
+                    <div class="chapter-num">Chapter 4 • Letters X-XI</div>
+                    <div class="chapter-title">The Science™</div>
+                    <div class="chapter-meta">Summer 2020 <span class="badge badge-missing">Not on RG</span></div>
+                </div>
+                <div class="chapter-card manuscript">
+                    <div class="chapter-num">Chapter 5 • Letters XII-XIII</div>
+                    <div class="chapter-title">Social Distance and the Erasure of Touch</div>
+                    <div class="chapter-meta">2020</div>
+                </div>
+                <div class="chapter-card manuscript">
+                    <div class="chapter-num">Chapter 6 • Letters XIV-XV</div>
+                    <div class="chapter-title">The Vaccine Salvation</div>
+                    <div class="chapter-meta">Late 2020 - Early 2021 <span class="badge badge-missing">Not on RG</span></div>
+                </div>
+                <div class="chapter-card manuscript">
+                    <div class="chapter-num">Chapter 7 • Letters XVI-XVII</div>
+                    <div class="chapter-title">Papers, Please</div>
+                    <div class="chapter-meta">2021 <span class="badge badge-missing">Not on RG</span></div>
+                </div>
+                <div class="chapter-card manuscript">
+                    <div class="chapter-num">Chapter 8 • Letters XVIII-XIX</div>
+                    <div class="chapter-title">The Unclean Class</div>
+                    <div class="chapter-meta">2021 <span class="badge badge-missing">Not on RG</span></div>
+                </div>
+                <div class="chapter-card manuscript">
+                    <div class="chapter-num">Chapter 9 • Letters XX-XXI</div>
+                    <div class="chapter-title">The Children's Sacrifice</div>
+                    <div class="chapter-meta">2020-2022</div>
+                </div>
+                <div class="chapter-card manuscript">
+                    <div class="chapter-num">Chapter 10 • Letters XXII-XXIII</div>
+                    <div class="chapter-title">The Perpetual Emergency</div>
+                    <div class="chapter-meta">2022 and Beyond</div>
+                </div>
+            </div>
+            
+            <h2 style="margin-top: 2rem;">RG Substack Series</h2>
+            <div class="chapter-grid">
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Prologue</div>
+                    <div class="chapter-title">Origins & Historical Parallels</div>
+                    <div class="chapter-meta">Gain of function, Milan plague</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 1</div>
+                    <div class="chapter-title">Virus Origins</div>
+                    <div class="chapter-meta">Lab leak, Milan parallels</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 2</div>
+                    <div class="chapter-title">Masks as Control</div>
+                    <div class="chapter-meta">Mask theater</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 3</div>
+                    <div class="chapter-title">Lockdowns</div>
+                    <div class="chapter-meta">Who can suffer most</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 4</div>
+                    <div class="chapter-title">The "New Normal"</div>
+                    <div class="chapter-meta">Remote work, isolation</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 5</div>
+                    <div class="chapter-title">Censorship & Plexiglass</div>
+                    <div class="chapter-meta">Two versions (5a/5b)</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 6</div>
+                    <div class="chapter-title">Quarantine the Healthy!</div>
+                    <div class="chapter-meta">Asymptomatic spread myth</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 7</div>
+                    <div class="chapter-title">Safety in Separation</div>
+                    <div class="chapter-meta">Social distancing</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 8</div>
+                    <div class="chapter-title">Swab, O Sinner</div>
+                    <div class="chapter-meta">PCR tests as ritual</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 9</div>
+                    <div class="chapter-title">Gospel of Essential Saints</div>
+                    <div class="chapter-meta">Essential workers</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 10</div>
+                    <div class="chapter-title">Numerical Necromancy</div>
+                    <div class="chapter-meta">Inflated statistics</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 11</div>
+                    <div class="chapter-title">Gospel of Inflated Death</div>
+                    <div class="chapter-meta">Death count manipulation</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 12</div>
+                    <div class="chapter-title">Hospital Overload Mirage</div>
+                    <div class="chapter-meta">TikTok nurses, empty ERs</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 13</div>
+                    <div class="chapter-title">Heresy of Healing Oneself</div>
+                    <div class="chapter-meta">Natural immunity suppression</div>
+                </div>
+                <div class="chapter-card rg">
+                    <div class="chapter-num">Part 14</div>
+                    <div class="chapter-title">Liturgical Calendar of Variants</div>
+                    <div class="chapter-meta">Variant fear cycle</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SOURCE POSTS TAB -->
+        <div id="sources" class="tab-content">
+            <h2>Source Posts by Topic</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">174 posts from Rational Ground archive mapped to chapter topics</p>
+            
+            <table class="source-table">
+                <thead>
+                    <tr>
+                        <th>Topic</th>
+                        <th>Posts</th>
+                        <th>Strength</th>
+                        <th>Key Sources</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>⭐ Hypocrisy / Rules for Thee</td>
+                        <td><span class="source-count">6+</span></td>
+                        <td>🔥🔥🔥</td>
+                        <td>NYC Covid Czar scandal, 30+ Examples compilation</td>
+                    </tr>
+                    <tr>
+                        <td>🔬 Lab Leak / Origins</td>
+                        <td><span class="source-count">10</span></td>
+                        <td>🔥🔥🔥</td>
+                        <td>Feb 2020 teleconference, Las Vegas biolab</td>
+                    </tr>
+                    <tr>
+                        <td>💉 Vaccines</td>
+                        <td><span class="source-count">10</span></td>
+                        <td>🔥🔥🔥</td>
+                        <td>FDA child death admission, DNA contamination</td>
+                    </tr>
+                    <tr>
+                        <td>🔇 Censorship</td>
+                        <td><span class="source-count">12</span></td>
+                        <td>🔥🔥🔥</td>
+                        <td>CTIL Files, Twitter Files, Missouri v. Biden</td>
+                    </tr>
+                    <tr>
+                        <td>📚 Lockdowns</td>
+                        <td><span class="source-count">9</span></td>
+                        <td>🔥🔥</td>
+                        <td>The Complete Reckoning (150+ studies)</td>
+                    </tr>
+                    <tr>
+                        <td>👶 Children</td>
+                        <td><span class="source-count">11</span></td>
+                        <td>🔥🔥🔥</td>
+                        <td>Learning loss data, Randi Weingarten exposé</td>
+                    </tr>
+                    <tr>
+                        <td>😷 Masks</td>
+                        <td><span class="source-count">10</span></td>
+                        <td>🔥🔥</td>
+                        <td>78 studies compilation, CDC cloth mask admission</td>
+                    </tr>
+                    <tr>
+                        <td>🔬 The Science™</td>
+                        <td><span class="source-count">10</span></td>
+                        <td>🔥🔥</td>
+                        <td>Ultimate Guide to Fauci, Morens testimony</td>
+                    </tr>
+                    <tr>
+                        <td>🏥 Hospital Theater</td>
+                        <td><span class="source-count">2</span></td>
+                        <td>🔥</td>
+                        <td>Ventilator death cover-up</td>
+                    </tr>
+                    <tr>
+                        <td>📊 Inflated Statistics</td>
+                        <td><span class="source-count">3</span></td>
+                        <td>🔥</td>
+                        <td>NY statistics manipulation</td>
+                    </tr>
+                    <tr>
+                        <td>🧬 Natural Immunity</td>
+                        <td><span class="source-count">2</span></td>
+                        <td>🔥</td>
+                        <td>Natural Immunity Cheat Sheet</td>
+                    </tr>
+                    <tr>
+                        <td>🦠 Variants</td>
+                        <td><span class="source-count">5</span></td>
+                        <td>🔥</td>
+                        <td>Omicron reality vs. fear</td>
+                    </tr>
+                    <tr>
+                        <td>⛪ Churches</td>
+                        <td><span class="source-count">2</span></td>
+                        <td>⚠️ Gap</td>
+                        <td>Limited coverage — needs external sources</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- STYLE GUIDE TAB -->
+        <div id="style" class="tab-content">
+            <h2>Screwtape Style Guide — Key Elements</h2>
+            
+            <div class="style-section">
+                <h4>The Inversion Technique</h4>
+                <p>Present everything from the demons' perspective where virtue appears as danger and vice as strategy.</p>
+                <div class="quote-box">
+                    "Do not be deceived, Wormwood. Our cause is never more in danger than when a human, no longer desiring, but still intending, to do our Enemy's will, looks round upon a universe from which every trace of Him seems to have vanished, and asks why he has been forsaken, and still obeys."
+                    <cite>— Lewis on faithful perseverance (presented as Hell's greatest fear)</cite>
+                </div>
+            </div>
+            
+            <div class="style-section">
+                <h4>Voice & Tone</h4>
+                <ul class="technique-list">
+                    <li><strong>Formal but not stiff</strong> — complete sentences, proper grammar</li>
+                    <li><strong>Bureaucratic</strong> — treats souls like business transactions</li>
+                    <li><strong>Condescending</strong> — constantly implies recipient's inadequacy</li>
+                    <li><strong>Menace through politeness</strong> — "I hope, my dear boy..." is ominous</li>
+                </ul>
+            </div>
+            
+            <div class="style-section">
+                <h4>Key Vocabulary</h4>
+                <table class="vocab-table">
+                    <tr><td>The Enemy</td><td>God / Truth / What is actually good</td></tr>
+                    <tr><td>Our Father Below</td><td>Satan / The system of control</td></tr>
+                    <tr><td>The Patient</td><td>The human target</td></tr>
+                    <tr><td>Vermin, creature</td><td>Contemptuous terms for humans</td></tr>
+                    <tr><td>Food</td><td>Damned souls</td></tr>
+                    <tr><td>The Lowerarchy</td><td>Hell's bureaucracy (CDC, WHO, NIH)</td></tr>
+                </table>
+            </div>
+            
+            <div class="style-section">
+                <h4>The Gradual Slope</h4>
+                <div class="quote-box">
+                    "Indeed the safest road to Hell is the gradual one—the gentle slope, soft underfoot, without sudden turnings, without milestones, without signposts."
+                    <cite>— The core principle: small corruptions over dramatic falls</cite>
+                </div>
+            </div>
+            
+            <div class="style-section">
+                <h4>COVID Screwtape Mappings</h4>
+                <table class="vocab-table">
+                    <tr><td>The Church</td><td>Public health authorities</td></tr>
+                    <tr><td>Prayer</td><td>Critical thinking, questioning</td></tr>
+                    <tr><td>The materialist friend</td><td>Media, fact-checkers</td></tr>
+                    <tr><td>The war (WWII)</td><td>The pandemic</td></tr>
+                    <tr><td>Air raids</td><td>Case counts, variant scares</td></tr>
+                    <tr><td>Salvation</td><td>Awakening, resistance</td></tr>
+                    <tr><td>Damnation</td><td>Permanent compliance</td></tr>
+                </table>
+            </div>
+            
+            <div class="style-section">
+                <h4>Writing Checklist</h4>
+                <ul class="checklist">
+                    <li>Opens with "My dear [Name]" salutation</li>
+                    <li>Formal sign-off ("Your affectionate uncle...")</li>
+                    <li>All moral values are inverted</li>
+                    <li>Concrete examples over abstract philosophy</li>
+                    <li>At least one genuinely witty observation</li>
+                    <li>At least one moment of genuine menace</li>
+                    <li>Passes the "flip test" — reversing values yields orthodox wisdom</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- TIMELINE TAB -->
+        <div id="timeline" class="tab-content">
+            <h2>Project Timeline</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">Jan 19, 2026</div>
+                    <div>Initial pitch sent to Dean Notte at Skyhorse Publishing</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">Jan 29, 2026</div>
+                    <div>Full manuscript sent (<code>Covid_Screwtape_Letters_Formatted.docx</code>)</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">Feb 7, 2026</div>
+                    <div>Complete inventory of all Screwtape materials</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">Feb 7, 2026</div>
+                    <div>174 source posts categorized across 21 chapter topics</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">Feb 7, 2026</div>
+                    <div>Forensic style guide completed (22KB reference document)</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">Next</div>
+                    <div>Follow up with Dean Notte (9 days since manuscript sent)</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">Pending</div>
+                    <div>Decide on final chapter structure and begin rewrite</div>
+                </div>
+            </div>
+            
+            <h2 style="margin-top: 2rem;">Alternative Publishers</h2>
+            <div class="style-section">
+                <p>If Skyhorse passes, top alternatives (accept proposals without agents):</p>
+                <ul class="technique-list">
+                    <li><strong>Post Hill Press</strong> — S&S distribution, embraces controversial conservative voices</li>
+                    <li><strong>Republic Book Publishers</strong> — Founded by Al Regnery, accepts direct proposals</li>
+                    <li><strong>Encounter Books</strong> — "Smart conservative nonfiction," would appreciate intellectual Screwtape framing</li>
+                    <li><strong>Defiance Press</strong> — Accepts proposals without agents</li>
+                </ul>
+            </div>
+        </div>
+        
+        <footer>
+            <p>The Covid Screwtape Letters — Project Dashboard</p>
+            <p>Last Updated: February 7, 2026</p>
+        </footer>
+    </div>
+    
+    <script>
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
