@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hartificial Intelligence — AI Automation ROI Calculator & Proposal Generator</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2332;
+    --border: #1e293b;
+    --accent: #3b82f6;
+    --accent2: #8b5cf6;
+    --accent3: #06b6d4;
+    --green: #10b981;
+    --red: #ef4444;
+    --orange: #f59e0b;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  
+  /* Animated background */
+  .bg-grid {
+    position:fixed; top:0; left:0; width:100%; height:100%; z-index:0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(59,130,246,0.08) 1px, transparent 0);
+    background-size: 40px 40px;
+    animation: gridPulse 8s ease-in-out infinite;
+  }
+  @keyframes gridPulse { 0%,100%{opacity:.3} 50%{opacity:.6} }
+  
+  .container { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:20px; }
+  
+  /* Header */
+  .header {
+    text-align:center; padding:40px 20px 30px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
+    border-radius:16px; border:1px solid var(--border); margin-bottom:30px;
+  }
+  .header .logo { font-size:48px; margin-bottom:10px; }
+  .header h1 { font-size:28px; font-weight:800; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .header p { color:var(--text2); margin-top:8px; font-size:15px; }
+  .header .tagline { font-size:18px; color:var(--accent3); font-weight:600; margin-top:12px; }
+  
+  /* Tabs */
+  .tabs { display:flex; gap:4px; margin-bottom:24px; flex-wrap:wrap; }
+  .tab {
+    padding:10px 18px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600;
+    background:var(--surface); border:1px solid var(--border); color:var(--text2); transition:all .2s;
+  }
+  .tab:hover { border-color:var(--accent); color:var(--text); }
+  .tab.active { background:var(--accent); border-color:var(--accent); color:white; }
+  
+  .panel { display:none; }
+  .panel.active { display:block; }
+  
+  /* Cards */
+  .card {
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:16px;
+  }
+  .card h2 { font-size:20px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+  .card h3 { font-size:16px; font-weight:600; margin:16px 0 8px; color:var(--accent3); }
+  
+  /* Form elements */
+  .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group label { font-size:13px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+    padding:10px 14px; color:var(--text); font-size:14px; transition:border .2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline:none; border-color:var(--accent);
+  }
+  .form-group textarea { min-height:80px; resize:vertical; font-family:inherit; }
+  
+  /* Checkboxes */
+  .checkbox-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:8px; margin:12px 0; }
+  .checkbox-item {
+    display:flex; align-items:center; gap:8px; padding:8px 12px;
+    background:var(--surface2); border-radius:8px; cursor:pointer; border:1px solid var(--border);
+    transition:all .2s; font-size:13px;
+  }
+  .checkbox-item:hover { border-color:var(--accent); }
+  .checkbox-item input { accent-color:var(--accent); }
+  .checkbox-item.checked { border-color:var(--accent); background:rgba(59,130,246,0.1); }
+  
+  /* Buttons */
+  .btn {
+    padding:12px 24px; border-radius:8px; font-weight:700; font-size:14px;
+    cursor:pointer; border:none; transition:all .2s; display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; }
+  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(59,130,246,0.3); }
+  .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+  .btn-secondary:hover { border-color:var(--accent); }
+  .btn-green { background:var(--green); color:white; }
+  
+  /* Stats */
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin:16px 0; }
+  .stat-card {
+    background:var(--surface2); border-radius:10px; padding:16px; text-align:center;
+    border:1px solid var(--border);
+  }
+  .stat-card .value { font-size:28px; font-weight:800; }
+  .stat-card .label { font-size:11px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+  .stat-card.green .value { color:var(--green); }
+  .stat-card.blue .value { color:var(--accent); }
+  .stat-card.purple .value { color:var(--accent2); }
+  .stat-card.orange .value { color:var(--orange); }
+  .stat-card.red .value { color:var(--red); }
+  
+  /* Results */
+  .result-section {
+    background:linear-gradient(135deg, rgba(16,185,129,0.05), rgba(59,130,246,0.05));
+    border:1px solid rgba(16,185,129,0.2); border-radius:12px; padding:24px; margin-top:20px;
+  }
+  
+  /* Pricing tiers */
+  .pricing-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:16px 0; }
+  .pricing-card {
+    background:var(--surface2); border:2px solid var(--border); border-radius:12px; padding:24px; position:relative;
+  }
+  .pricing-card.featured { border-color:var(--accent); }
+  .pricing-card.featured::before {
+    content:'MOST POPULAR'; position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+    background:var(--accent); color:white; padding:4px 12px; border-radius:12px; font-size:10px; font-weight:700; letter-spacing:1px;
+  }
+  .pricing-card h3 { font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; }
+  .pricing-card .price { font-size:32px; font-weight:800; color:var(--accent); margin:12px 0; }
+  .pricing-card .price span { font-size:14px; color:var(--text2); font-weight:400; }
+  .pricing-card ul { list-style:none; }
+  .pricing-card li { padding:6px 0; font-size:13px; color:var(--text2); display:flex; align-items:center; gap:8px; }
+  .pricing-card li::before { content:'✓'; color:var(--green); font-weight:700; }
+  
+  /* Timeline */
+  .timeline { position:relative; padding-left:30px; }
+  .timeline::before { content:''; position:absolute; left:10px; top:0; bottom:0; width:2px; background:var(--border); }
+  .timeline-item { position:relative; margin-bottom:20px; }
+  .timeline-item::before {
+    content:''; position:absolute; left:-24px; top:6px; width:12px; height:12px;
+    background:var(--accent); border-radius:50%; border:2px solid var(--bg);
+  }
+  .timeline-item h4 { font-size:14px; font-weight:700; color:var(--accent3); }
+  .timeline-item p { font-size:13px; color:var(--text2); margin-top:4px; }
+  
+  /* Case study */
+  .case-study {
+    background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(6,182,212,0.08));
+    border:1px solid rgba(139,92,246,0.2); border-radius:12px; padding:20px; margin:12px 0;
+  }
+  .case-study h4 { color:var(--accent2); font-size:15px; margin-bottom:8px; }
+  .case-study .metric { display:inline-block; background:var(--surface); padding:4px 10px; border-radius:6px; font-size:12px; font-weight:600; margin:2px 4px 2px 0; }
+  
+  /* Proposal output */
+  .proposal-output {
+    background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:24px;
+    font-family:'Georgia', serif; line-height:1.7; display:none;
+  }
+  .proposal-output.visible { display:block; }
+  .proposal-output h2 { font-family:Inter, sans-serif; border-bottom:2px solid var(--accent); padding-bottom:8px; margin-bottom:16px; }
+  .proposal-output .highlight { background:rgba(59,130,246,0.1); border-left:3px solid var(--accent); padding:12px 16px; margin:12px 0; border-radius:0 8px 8px 0; }
+  
+  /* Copy button */
+  .copy-btn {
+    position:absolute; top:12px; right:12px; background:var(--surface); border:1px solid var(--border);
+    color:var(--text2); padding:6px 12px; border-radius:6px; cursor:pointer; font-size:11px;
+    transition:all .2s;
+  }
+  .copy-btn:hover { border-color:var(--accent); color:var(--text); }
+  
+  /* ROI Chart */
+  .chart-container { position:relative; height:300px; margin:20px 0; }
+  .bar-chart { display:flex; align-items:flex-end; justify-content:space-around; height:250px; padding:0 20px; border-bottom:2px solid var(--border); }
+  .bar-group { display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; }
+  .bar {
+    width:60px; border-radius:6px 6px 0 0; transition:height .8s ease; position:relative;
+    min-height:4px;
+  }
+  .bar .bar-label { position:absolute; top:-24px; left:50%; transform:translateX(-50%); font-size:11px; font-weight:700; white-space:nowrap; }
+  .bar-name { font-size:11px; color:var(--text2); text-align:center; margin-top:8px; }
+  
+  /* Proof section */
+  .proof-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px; }
+  .proof-card {
+    background:var(--surface2); border-radius:10px; padding:16px; border-left:3px solid var(--accent);
+  }
+  .proof-card .number { font-size:24px; font-weight:800; color:var(--green); }
+  .proof-card .desc { font-size:13px; color:var(--text2); margin-top:4px; }
+  
+  /* Responsive */
+  @media(max-width:768px) {
+    .header h1 { font-size:22px; }
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+    .pricing-grid { grid-template-columns:1fr; }
+    .form-grid { grid-template-columns:1fr; }
+    .bar { width:40px; }
+  }
+  
+  /* Print */
+  @media print {
+    .bg-grid, .tabs { display:none; }
+    .panel { display:block !important; page-break-inside:avoid; }
+    body { background:white; color:black; }
+    .card { border:1px solid #ddd; }
+  }
+  
+  /* Animations */
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .animate-in { animation: fadeIn 0.4s ease-out; }
+  
+  .video-pipeline {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; margin:16px 0;
+  }
+  .pipeline-step {
+    background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px;
+    text-align:center; position:relative;
+  }
+  .pipeline-step::after {
+    content:'→'; position:absolute; right:-14px; top:50%; transform:translateY(-50%);
+    color:var(--accent); font-weight:700; font-size:18px;
+  }
+  .pipeline-step:last-child::after { display:none; }
+  .pipeline-step .icon { font-size:24px; margin-bottom:6px; }
+  .pipeline-step .step-name { font-size:11px; font-weight:600; color:var(--text2); text-transform:uppercase; }
+  .pipeline-step .step-detail { font-size:12px; color:var(--text); margin-top:4px; }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+  
+  <div class="header">
+    <div class="logo">⚡🧠</div>
+    <h1>Hartificial Intelligence</h1>
+    <p>AI Automation Consulting — Proposal Generator & ROI Calculator</p>
+    <div class="tagline">"Your business runs on people. Let AI handle the rest."</div>
+    <div style="margin-top:16px;">
+      <a href="mailto:justinhart.biz@gmail.com?subject=AI%20Consulting%20Inquiry" class="btn btn-primary" style="text-decoration:none;">📧 Get in Touch</a>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="calculator">💰 ROI Calculator</div>
+    <div class="tab" data-tab="proposal">📄 Proposal Builder</div>
+    <div class="tab" data-tab="proof">🎯 Proof of Concept</div>
+    <div class="tab" data-tab="video">🎬 Video Pipeline</div>
+    <div class="tab" data-tab="pricing">💎 Packages</div>
+    <div class="tab" data-tab="cases">📊 Case Studies</div>
+    <div class="tab" data-tab="inbound">🎤 INBOUND 2026</div>
+    <div class="tab" data-tab="compete">⚔️ Why Us vs Them</div>
+  </div>
+
+  <!-- TAB 1: ROI Calculator -->
+  <div class="panel active" id="calculator">
+    <div class="card animate-in">
+      <h2>💰 AI Automation ROI Calculator</h2>
+      <p style="color:var(--text2);margin-bottom:20px;">Input your business metrics to see projected savings from AI agent deployment.</p>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Industry</label>
+          <select id="industry" onchange="updateDefaults()">
+            <option value="political">Political Campaign / PAC</option>
+            <option value="nonprofit">Nonprofit / Charity</option>
+            <option value="realestate">Real Estate</option>
+            <option value="agency">Marketing Agency</option>
+            <option value="ecommerce">E-Commerce</option>
+            <option value="saas">SaaS / Tech</option>
+            <option value="church">Church / Ministry</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Team Size</label>
+          <input type="number" id="teamSize" value="8" min="1" max="500">
+        </div>
+        <div class="form-group">
+          <label>Avg Salary ($/yr)</label>
+          <input type="number" id="avgSalary" value="65000" min="20000" max="300000" step="5000">
+        </div>
+        <div class="form-group">
+          <label>Monthly Marketing Spend ($)</label>
+          <input type="number" id="marketingSpend" value="15000" min="0" step="1000">
+        </div>
+        <div class="form-group">
+          <label>Hours/week on repetitive tasks (per person)</label>
+          <input type="number" id="repHours" value="12" min="1" max="40">
+        </div>
+        <div class="form-group">
+          <label>Current monthly content pieces produced</label>
+          <input type="number" id="contentPieces" value="8" min="0" max="500">
+        </div>
+      </div>
+
+      <h3>Which operations could benefit from AI?</h3>
+      <div class="checkbox-grid" id="automations">
+        <label class="checkbox-item"><input type="checkbox" checked data-hours="6" data-label="Content Creation"> Content Creation & Copywriting</label>
+        <label class="checkbox-item"><input type="checkbox" checked data-hours="4" data-label="Email Management"> Email Triage & Response</label>
+        <label class="checkbox-item"><input type="checkbox" checked data-hours="5" data-label="Data Analysis"> Data Analysis & Reporting</label>
+        <label class="checkbox-item"><input type="checkbox" data-hours="8" data-label="Lead Nurturing"> Lead Nurturing & Follow-up</label>
+        <label class="checkbox-item"><input type="checkbox" data-hours="3" data-label="Social Media"> Social Media Management</label>
+        <label class="checkbox-item"><input type="checkbox" data-hours="4" data-label="CRM Updates"> CRM Data Entry & Updates</label>
+        <label class="checkbox-item"><input type="checkbox" data-hours="6" data-label="Creative Testing"> Creative Testing & Optimization</label>
+        <label class="checkbox-item"><input type="checkbox" data-hours="3" data-label="Video Production"> Video Content Production</label>
+        <label class="checkbox-item"><input type="checkbox" data-hours="5" data-label="Compliance Review"> Compliance & Quality Review</label>
+        <label class="checkbox-item"><input type="checkbox" data-hours="4" data-label="Calendar/Scheduling"> Calendar & Meeting Prep</label>
+        <label class="checkbox-item"><input type="checkbox" data-hours="7" data-label="Research"> Market Research & Competitive Intel</label>
+        <label class="checkbox-item"><input type="checkbox" data-hours="3" data-label="Customer Service"> Customer Service / Donor Relations</label>
+      </div>
+
+      <div class="form-group" style="margin:12px 0;">
+        <label>Estimate Style</label>
+        <select id="estimateStyle">
+          <option value="conservative">🟢 Conservative (prove it first)</option>
+          <option value="moderate" selected>🟡 Moderate (realistic expectations)</option>
+          <option value="aggressive">🔴 Aggressive (best-case scenario)</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" onclick="calculateROI()">⚡ Calculate ROI</button>
+
+      <div class="result-section" id="roiResults" style="display:none;">
+        <h2 style="color:var(--green);">📊 Your AI Automation ROI</h2>
+        <div class="stats-row">
+          <div class="stat-card green"><div class="value" id="annualSavings">$0</div><div class="label">Annual Savings</div></div>
+          <div class="stat-card blue"><div class="value" id="hoursReclaimed">0</div><div class="label">Hours/Month Reclaimed</div></div>
+          <div class="stat-card purple"><div class="value" id="roiMultiple">0x</div><div class="label">ROI Multiple (Year 1)</div></div>
+          <div class="stat-card orange"><div class="value" id="contentLift">0%</div><div class="label">Content Output Lift</div></div>
+        </div>
+        
+        <div class="chart-container">
+          <h3 style="text-align:center;margin-bottom:12px;">Annual Cost Comparison</h3>
+          <div class="bar-chart" id="costChart"></div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <h3>🎯 Recommended Automations (by impact)</h3>
+          <div id="automationRecs"></div>
+        </div>
+        
+        <div style="margin-top:16px; text-align:center;">
+          <button class="btn btn-primary" onclick="switchTab('proposal')">📄 Generate Full Proposal →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Proposal Builder -->
+  <div class="panel" id="proposal">
+    <div class="card animate-in">
+      <h2>📄 Custom Proposal Generator</h2>
+      <p style="color:var(--text2);margin-bottom:20px;">Fill in prospect details to generate a ready-to-send AI consulting proposal.</p>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Company Name</label>
+          <input type="text" id="companyName" placeholder="Acme PAC">
+        </div>
+        <div class="form-group">
+          <label>Contact Name</label>
+          <input type="text" id="contactName" placeholder="John Smith">
+        </div>
+        <div class="form-group">
+          <label>Their Biggest Pain Point</label>
+          <select id="painPoint">
+            <option value="time">Not enough time — team is stretched thin</option>
+            <option value="content">Can't produce enough content</option>
+            <option value="data">Drowning in data, no insights</option>
+            <option value="leads">Leads falling through the cracks</option>
+            <option value="cost">Overhead too high, need efficiency</option>
+            <option value="scale">Ready to scale but can't hire fast enough</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Their Annual Revenue (approx)</label>
+          <select id="revenue">
+            <option value="500000">$250K – $500K</option>
+            <option value="1000000" selected>$500K – $2M</option>
+            <option value="5000000">$2M – $10M</option>
+            <option value="20000000">$10M – $50M</option>
+            <option value="100000000">$50M+</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:12px;">
+        <label>Additional Context / Notes</label>
+        <textarea id="additionalNotes" placeholder="Any specifics about their business, tools they use, upcoming events, etc."></textarea>
+      </div>
+      
+      <button class="btn btn-primary" onclick="generateProposal()" style="margin-top:16px;">⚡ Generate Proposal</button>
+      
+      <div class="proposal-output" id="proposalOutput">
+        <div style="position:relative;">
+          <button class="copy-btn" onclick="copyProposal()">📋 Copy to Clipboard</button>
+        </div>
+        <div id="proposalContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Proof of Concept -->
+  <div class="panel" id="proof">
+    <div class="card animate-in">
+      <h2>🎯 Proof: Week 1 Results (Real Data)</h2>
+      <p style="color:var(--text2);margin-bottom:20px;">These are actual results from the first 7 days of AI agent deployment for a political fundraising & real estate operation.</p>
+
+      <div class="stats-row">
+        <div class="stat-card green"><div class="value">47+</div><div class="label">Missions Completed</div></div>
+        <div class="stat-card blue"><div class="value">14</div><div class="label">Tools Integrated</div></div>
+        <div class="stat-card purple"><div class="value">5→1.5</div><div class="label">Hrs/Day Compressed</div></div>
+        <div class="stat-card orange"><div class="value">4</div><div class="label">Domains Served</div></div>
+      </div>
+
+      <h3>What Got Done (Week 1)</h3>
+      <div class="proof-grid">
+        <div class="proof-card">
+          <div class="number">500+</div>
+          <div class="desc">Political SMS/MMS creatives analyzed — winning patterns identified, benchmarks established (yield, CTR, archetype performance)</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">14</div>
+          <div class="desc">Creatives written, scored, and deployed to production dashboard in a single day (multi-model shootout → winner selection → input)</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">474</div>
+          <div class="desc">Leads analyzed from CRM export — 39 retry candidates identified with priority tiers, owner assignments, and Salesforce links</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">$10.8B</div>
+          <div class="desc">Political ad market (2026) researched + FEC vendor competitive intelligence built — identified #1 competitor and market positioning gaps</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">3.5 hrs</div>
+          <div class="desc">Daily time savings on creative production alone — from ideation through compliance check to dashboard entry, fully automated</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">Full Pipeline</div>
+          <div class="desc">YouTube → transcript → blog post → Substack publish → X promo → HeyGen avatar video → vertical crop — end-to-end automated</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">$557K</div>
+          <div class="desc">FEC spending analysis revealed vendor's #4 position at NRSC — competitive intel previously requiring expensive consultants</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">2 Exec Docs</div>
+          <div class="desc">Full AdWords funnel analysis + lead cadence redesign proposal — data from Salesforce + Google Ads, ready for Thursday board meeting</div>
+        </div>
+      </div>
+
+      <div class="case-study" style="margin-top:20px;">
+        <h4>💡 The Headline Number</h4>
+        <p style="color:var(--text);font-size:15px;">A single operator + AI agent replaced the equivalent output of <strong style="color:var(--green);">2.5 full-time employees</strong> across creative production, data analysis, CRM management, content publishing, and competitive intelligence — in the <em>first week</em> of deployment.</p>
+        <div style="margin-top:12px;">
+          <span class="metric" style="color:var(--green);">💰 Est. value: $180K+/yr in labor</span>
+          <span class="metric" style="color:var(--accent);">⏱️ Time compressed: 70%</span>
+          <span class="metric" style="color:var(--accent2);">📈 Content output: 4x increase</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: Video Pipeline -->
+  <div class="panel" id="video">
+    <div class="card animate-in">
+      <h2>🎬 AI Video Content Pipeline</h2>
+      <p style="color:var(--text2);margin-bottom:20px;">Proven pipeline: Turn any text source into professional vertical video content at ~$5/video (vs $500-$5,000 traditional production).</p>
+      
+      <div class="video-pipeline">
+        <div class="pipeline-step">
+          <div class="icon">📝</div>
+          <div class="step-name">Source</div>
+          <div class="step-detail">Blog, transcript, sermon, article</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="icon">✂️</div>
+          <div class="step-name">Script Split</div>
+          <div class="step-detail">AI segments into 30-60s clips</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="icon">🤖</div>
+          <div class="step-name">Avatar Gen</div>
+          <div class="step-detail">HeyGen API → talking head</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="icon">🎞️</div>
+          <div class="step-name">Post-Process</div>
+          <div class="step-detail">ffmpeg crop → 9:16 vertical</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="icon">📱</div>
+          <div class="step-name">Distribute</div>
+          <div class="step-detail">Reels, Shorts, TikTok, X</div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card green"><div class="value">$5</div><div class="label">Cost Per Video</div></div>
+        <div class="stat-card red"><div class="value">$2,500</div><div class="label">Traditional Cost</div></div>
+        <div class="stat-card blue"><div class="value">500x</div><div class="label">Cost Reduction</div></div>
+        <div class="stat-card purple"><div class="value">< 5 min</div><div class="label">Production Time</div></div>
+      </div>
+
+      <h3>Market Opportunity</h3>
+      <div class="stats-row">
+        <div class="stat-card orange"><div class="value">$10.8B</div><div class="label">2026 Political Ad Spend</div></div>
+        <div class="stat-card blue"><div class="value">20%+</div><div class="label">YoY Growth</div></div>
+        <div class="stat-card green"><div class="value">90%+</div><div class="label">Gross Margin</div></div>
+        <div class="stat-card purple"><div class="value">∞</div><div class="label">Scalability</div></div>
+      </div>
+
+      <h3>Use Cases (Priced by Client Type)</h3>
+      <div class="proof-grid">
+        <div class="proof-card">
+          <div class="number">🏛️ Political</div>
+          <div class="desc"><strong>$2K-5K/mo:</strong> Daily fundraising videos, attack clips, GOTV content. 20-50 vertical videos/month from existing blog/email content.</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">⛪ Churches</div>
+          <div class="desc"><strong>$1K-3K/mo:</strong> Sermon clips, devotional series, event promos. Turn 1 Sunday sermon into 10+ social clips automatically.</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">🐕 Nonprofits</div>
+          <div class="desc"><strong>$1.5K-4K/mo:</strong> Donor appeal videos, impact stories, campaign updates. Emotional content at scale without production crews.</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">🏠 Real Estate</div>
+          <div class="desc"><strong>$500-2K/mo:</strong> Market update videos, agent intros, listing highlights. Stand out in a sea of static posts.</div>
+        </div>
+      </div>
+
+      <div class="case-study" style="border-color:rgba(245,158,11,0.3);">
+        <h4>📝 Honest COGS Breakdown</h4>
+        <p style="color:var(--text2);font-size:13px;">The $5/video covers HeyGen API credits + compute. Fully loaded costs including operator time (~4 min/video for QA), subscription amortization, and revisions bring real COGS to <strong style="color:var(--orange);">$15-25/video</strong>. At $125-250/video charged to clients, that's still <strong style="color:var(--green);">80-90% gross margin</strong>. We believe in honest numbers — the margins speak for themselves without inflation.</p>
+      </div>
+
+      <div class="case-study">
+        <h4>✅ Proven: First AI Avatar Video</h4>
+        <p style="color:var(--text);">Source: Jay Bhattacharya "Vindication" blog post → Script split → HeyGen API (avatar eec9bc74) → ffmpeg vertical crop → <strong>36.5 second vertical video</strong>. Total time from blog to finished video: <strong style="color:var(--green);">under 4 minutes</strong>. Client reaction: <em>"the idea is bonkers good."</em></p>
+      </div>
+
+      <h3>Revenue Projections</h3>
+      <div class="form-grid" style="margin-bottom:16px;">
+        <div class="form-group">
+          <label>Number of Clients</label>
+          <input type="number" id="videoClients" value="10" min="1" max="100" onchange="calcVideoRev()">
+        </div>
+        <div class="form-group">
+          <label>Avg Monthly Retainer ($)</label>
+          <input type="number" id="videoRetainer" value="2500" min="500" max="10000" step="500" onchange="calcVideoRev()">
+        </div>
+        <div class="form-group">
+          <label>Avg Videos/Client/Month</label>
+          <input type="number" id="videosPerClient" value="20" min="5" max="100" onchange="calcVideoRev()">
+        </div>
+      </div>
+      <div class="stats-row" id="videoRevStats">
+        <div class="stat-card green"><div class="value" id="videoMRR">$25,000</div><div class="label">Monthly Revenue</div></div>
+        <div class="stat-card red"><div class="value" id="videoCOGS">$1,000</div><div class="label">Monthly COGS</div></div>
+        <div class="stat-card blue"><div class="value" id="videoProfit">$24,000</div><div class="label">Monthly Profit</div></div>
+        <div class="stat-card purple"><div class="value" id="videoMargin">96%</div><div class="label">Gross Margin</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: Packages -->
+  <div class="panel" id="pricing">
+    <div class="card animate-in">
+      <h2>💎 AI Consulting Packages</h2>
+      <p style="color:var(--text2);margin-bottom:20px;">Three engagement tiers based on complexity and scope of AI agent deployment.</p>
+      
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3>🔍 Recon</h3>
+          <p style="color:var(--text2);font-size:13px;">AI Readiness Audit</p>
+          <div class="price">$2,500<span> one-time</span></div>
+          <ul>
+            <li>2-hour deep-dive on current workflows</li>
+            <li>Identify top 5 automation opportunities</li>
+            <li>ROI projection for each opportunity</li>
+            <li>Tool & platform recommendations</li>
+            <li>30-page custom report + action plan</li>
+            <li>1 follow-up consultation (30 min)</li>
+          </ul>
+          <p style="margin-top:12px;font-size:12px;color:var(--text3);">Best for: Businesses curious about AI but unsure where to start</p>
+        </div>
+        
+        <div class="pricing-card featured">
+          <h3>⚡ Operator</h3>
+          <p style="color:var(--text2);font-size:13px;">Deploy & Optimize</p>
+          <div class="price">$5,000<span>/month</span></div>
+          <ul>
+            <li>Everything in Recon</li>
+            <li>Deploy AI agent(s) to your workflows</li>
+            <li>Custom prompt engineering & tool integration</li>
+            <li>Weekly optimization reviews</li>
+            <li>Content pipeline setup (blog → video → social)</li>
+            <li>CRM/Salesforce automation</li>
+            <li>Monthly performance report</li>
+            <li>Slack/Teams support channel</li>
+          </ul>
+          <p style="margin-top:12px;font-size:12px;color:var(--text3);">Best for: Teams ready to deploy AI and see results in 30 days</p>
+        </div>
+        
+        <div class="pricing-card">
+          <h3>🚀 War Room</h3>
+          <p style="color:var(--text2);font-size:13px;">Full AI Transformation</p>
+          <div class="price">$12,000<span>/month</span></div>
+          <ul>
+            <li>Everything in Operator</li>
+            <li>Dedicated AI agent with custom personality</li>
+            <li>Multi-channel deployment (SMS, email, social, CRM)</li>
+            <li>Real-time analytics dashboard</li>
+            <li>AI video content pipeline (50+ videos/mo)</li>
+            <li>Competitive intelligence automation</li>
+            <li>FEC/compliance monitoring (political clients)</li>
+            <li>Direct access to Justin Hart</li>
+            <li>Quarterly strategy review</li>
+          </ul>
+          <p style="margin-top:12px;font-size:12px;color:var(--text3);">Best for: Political campaigns, PACs, and organizations with $1M+ annual budgets</p>
+        </div>
+      </div>
+
+      <div class="case-study" style="margin-top:20px;">
+        <h4>💡 The Math for Operator ($5K/mo)</h4>
+        <p style="color:var(--text);">Replace 2-3 FTE hours of work daily × 22 working days = <strong>44-66 hours/month</strong> reclaimed. At $50/hr loaded cost, that's <strong style="color:var(--green);">$2,200-$3,300/mo in direct labor savings</strong> — plus the value of content produced, leads recovered, and insights generated that simply wouldn't exist otherwise. <strong>Net ROI: 2-4x in month one.</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 6: Case Studies -->
+  <div class="panel" id="cases">
+    <div class="card animate-in">
+      <h2>📊 Case Studies</h2>
+      
+      <div class="case-study">
+        <h4>🏛️ Case Study #1: National Political Committee — Creative Operations</h4>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:8px;">Direct-response SMS/MMS fundraising for a major national political committee</p>
+        <p style="color:var(--text);">
+          <strong>Challenge:</strong> Producing 10-20 SMS/MMS creatives daily across multiple clients and segments, each requiring unique hooks, compliance review, and A/B test variants. Manual process: 5-6 hours/day.
+        </p>
+        <p style="color:var(--text);margin-top:8px;">
+          <strong>Solution:</strong> AI agent with multi-model creative shootouts (Claude vs GPT vs Gemini), automated compliance checking, winner scoring against 500+ creative benchmark database, and direct dashboard input.
+        </p>
+        <div style="margin-top:12px;">
+          <span class="metric" style="color:var(--green);">⏱️ 5-6 hrs → 1-2 hrs/day</span>
+          <span class="metric" style="color:var(--accent);">📊 500+ creatives benchmarked</span>
+          <span class="metric" style="color:var(--accent2);">🎯 MMS yield: 2.3x over SMS</span>
+          <span class="metric" style="color:var(--orange);">💡 Multi-voice narrative: 3.7x yield premium</span>
+        </div>
+      </div>
+      
+      <div class="case-study">
+        <h4>🏠 Case Study #2: Real Estate Pipeline — Lead Recovery & Funnel Analysis</h4>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:8px;">Senior transition / estate sale company with multi-county operations</p>
+        <p style="color:var(--text);">
+          <strong>Challenge:</strong> 474 leads analyzed — 322 marked "Unqualified" but no retry system. OC county spending $10K+ per win (3x worse than SD). No visibility into why one locale dramatically underperformed.
+        </p>
+        <p style="color:var(--text);margin-top:8px;">
+          <strong>Solution:</strong> AI agent cross-referenced Salesforce leads + Google Ads spend data + opportunity outcomes. Identified 39 retry candidates with priority tiers. Full funnel analysis revealed the bottleneck was primarily an account executive performance issue in OC — not the ad channels themselves.
+        </p>
+        <div style="margin-top:12px;">
+          <span class="metric" style="color:var(--green);">💰 39 leads recovered (est. $50-150K revenue)</span>
+          <span class="metric" style="color:var(--accent);">📊 Full funnel: Ads → Leads → Opps → Wins</span>
+          <span class="metric" style="color:var(--yellow);">🔍 Root cause: AE performance gap in OC (not ad spend)</span>
+          <span class="metric" style="color:var(--accent2);">📋 2 exec-ready proposals for board</span>
+        </div>
+      </div>
+
+      <div class="case-study">
+        <h4>📱 Case Study #3: Content Pipeline — Blog to Vertical Video</h4>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:8px;">Automated content repurposing across text, social, and video channels</p>
+        <p style="color:var(--text);">
+          <strong>Challenge:</strong> Creating multi-format content (blog + social + video) from a single source typically requires a writer, social media manager, video editor, and 2-3 days of production time.
+        </p>
+        <p style="color:var(--text);margin-top:8px;">
+          <strong>Solution:</strong> End-to-end automated pipeline: YouTube transcript → long-form blog (in author's voice) → Substack publish → X promo thread → HeyGen avatar video → ffmpeg vertical crop → ready for Reels/Shorts/TikTok.
+        </p>
+        <div style="margin-top:12px;">
+          <span class="metric" style="color:var(--green);">⏱️ 2-3 days → under 20 minutes</span>
+          <span class="metric" style="color:var(--accent);">📹 $5/video vs $2,500 traditional</span>
+          <span class="metric" style="color:var(--accent2);">🔄 1 source → 5+ content pieces</span>
+          <span class="metric" style="color:var(--orange);">🎯 4x content output increase</span>
+        </div>
+      </div>
+
+      <div class="case-study">
+        <h4>🔍 Case Study #4: Competitive Intelligence — FEC Analysis</h4>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:8px;">Vendor market share analysis from federal election filings</p>
+        <p style="color:var(--text);">
+          <strong>Challenge:</strong> Understanding competitive positioning required expensive consultants or manual FEC filing analysis — typically a $15-25K engagement from a political consulting firm.
+        </p>
+        <p style="color:var(--text);margin-top:8px;">
+          <strong>Solution:</strong> AI agent automated FEC API queries, cross-referenced vendor payments, and built an interactive dashboard showing vendor market share, spend trends, and competitive positioning.
+        </p>
+        <div style="margin-top:12px;">
+          <span class="metric" style="color:var(--green);">💰 $0 cost vs $15-25K consulting</span>
+          <span class="metric" style="color:var(--accent);">📊 Live dashboard with real FEC data</span>
+          <span class="metric" style="color:var(--accent2);">🎯 Identified #1 competitor + gaps</span>
+          <span class="metric" style="color:var(--orange);">⏱️ Built in 2 hours</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 7: INBOUND 2026 -->
+  <div class="panel" id="inbound">
+    <div class="card animate-in">
+      <h2>🎤 INBOUND 2026 — Session Proposal</h2>
+      <p style="color:var(--text2);margin-bottom:8px;">CFP Deadline: <strong style="color:var(--red);">February 18, 2026</strong> (14 days from today)</p>
+      
+      <div class="case-study" style="margin-bottom:20px;">
+        <h4>⚡ Proposed Session: "I Replaced 2.5 Employees With an AI Agent in 7 Days — Here's Exactly How"</h4>
+        <p style="color:var(--text);font-size:15px;margin-top:8px;">
+          A no-BS case study of deploying an AI agent across four business domains simultaneously: political fundraising creative, real estate lead management, content publishing, and competitive intelligence. Real numbers. Real workflows. Real mistakes. Attendees leave with a framework they can deploy Monday morning.
+        </p>
+      </div>
+
+      <h3>Session Details</h3>
+      <div class="proof-grid">
+        <div class="proof-card">
+          <div class="number">Format</div>
+          <div class="desc"><strong>Breakout Session (45 min)</strong> — 25 min presentation, 10 min live demo, 10 min Q&A. Could also work as Lightning Talk (15 min) for higher acceptance odds.</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">Track</div>
+          <div class="desc"><strong>AI & Automation</strong> (primary) or <strong>Marketing Operations</strong> (secondary). Fits both — practical AI deployment for marketers, not theory.</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">Audience</div>
+          <div class="desc">Marketing directors, ops managers, agency owners, solo operators, and anyone who's bought an AI subscription but hasn't seen real ROI yet.</div>
+        </div>
+        <div class="proof-card">
+          <div class="number">Differentiator</div>
+          <div class="desc">Most AI talks are vendor pitches or theoretical. This is a <strong>live operator showing his dashboard</strong> — CRM queries, content pipelines, creative generation, competitive intel — happening in real time.</div>
+        </div>
+      </div>
+
+      <h3>Talk Outline</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <h4>0:00 — The Setup (3 min)</h4>
+          <p>"I run creative for a political fundraising platform, oversee marketing for a real estate company, publish on Substack, and manage social media. I have 9 kids. Something had to give." Hook with the personal story.</p>
+        </div>
+        <div class="timeline-item">
+          <h4>0:03 — The Experiment (5 min)</h4>
+          <p>What I deployed: AI agent connected to Salesforce, Gmail, Twitter, Substack, HeyGen, browser automation. The tech stack in plain English. Total setup time: ~4 hours.</p>
+        </div>
+        <div class="timeline-item">
+          <h4>0:08 — The Results (7 min)</h4>
+          <p>Week 1 by the numbers: 47+ tasks automated, 3.5 hours/day saved, 4x content output, $180K+/yr equivalent value. Show the receipts — real dashboards, real data.</p>
+        </div>
+        <div class="timeline-item">
+          <h4>0:15 — The Failures (5 min)</h4>
+          <p>What went wrong: accidental tweets, misrouted messages, compliance near-misses, the email integration that burned through API tokens. This is the section everyone remembers.</p>
+        </div>
+        <div class="timeline-item">
+          <h4>0:20 — The Framework (5 min)</h4>
+          <p>The "3-Layer Agent Stack": (1) Read & React (email, notifications, monitoring), (2) Create & Deploy (content, creative, reports), (3) Analyze & Decide (data synthesis, recommendations). How to think about what to automate first.</p>
+        </div>
+        <div class="timeline-item">
+          <h4>0:25 — Live Demo (10 min)</h4>
+          <p>Real-time: "Watch me generate a fundraising creative, score it against 500 benchmarks, and deploy it — in 90 seconds." Then: blog → video pipeline live. Then: Salesforce lead analysis query.</p>
+        </div>
+        <div class="timeline-item">
+          <h4>0:35 — Q&A + Your Monday Plan (10 min)</h4>
+          <p>Hand out the "Monday Morning AI Deployment Checklist" (1-page PDF). Answer questions. Offer follow-up office hours.</p>
+        </div>
+      </div>
+
+      <h3>Speaker Bio (Draft)</h3>
+      <div class="case-study">
+        <p style="color:var(--text);"><strong>Justin Hart</strong> is the Head of Creative at DonorBureau, where he runs high-volume SMS/MMS fundraising for national political committees. He's also the fractional CMO for a real estate company and founder of Hartificial Intelligence, an AI consulting practice focused on deploying AI agents for marketing operations. In his first week of AI agent deployment, he compressed 5-6 hours of daily work into 90 minutes while quadrupling content output. He lives in San Diego with his wife and nine kids, which is honestly the main reason he needed an AI agent.</p>
+      </div>
+
+      <div style="margin-top:20px;">
+        <h3>Submission Checklist</h3>
+        <div style="display:grid;gap:8px;">
+          <label class="checkbox-item"><input type="checkbox"> Session title (≤75 chars)</label>
+          <label class="checkbox-item"><input type="checkbox"> Abstract (≤300 words)</label>
+          <label class="checkbox-item"><input type="checkbox"> 3 key takeaways for attendees</label>
+          <label class="checkbox-item"><input type="checkbox"> Speaker bio + headshot</label>
+          <label class="checkbox-item"><input type="checkbox"> Social proof (X following, Substack subscribers, speaking clips)</label>
+          <label class="checkbox-item"><input type="checkbox"> Video pitch (1-2 min recommended)</label>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" onclick="generateInboundPitch()" style="margin-top:16px;">⚡ Generate Full CFP Submission</button>
+      <div class="proposal-output" id="inboundOutput">
+        <div style="position:relative;">
+          <button class="copy-btn" onclick="copyInbound()">📋 Copy to Clipboard</button>
+        </div>
+        <div id="inboundContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 8: Why Us vs Them -->
+  <div class="panel" id="compete">
+    <div class="card animate-in">
+      <h2>⚔️ Hartificial Intelligence vs. The Alternatives</h2>
+      <p style="color:var(--text2);margin-bottom:20px;">Why an AI operator beats traditional options — with real numbers.</p>
+
+      <div style="overflow-x:auto;">
+        <div style="display:grid;grid-template-columns:200px repeat(4,1fr);gap:2px;min-width:800px;">
+          <!-- Header -->
+          <div style="padding:12px;background:var(--surface2);border-radius:8px 0 0 0;font-weight:700;font-size:13px;color:var(--text3);">CAPABILITY</div>
+          <div style="padding:12px;background:rgba(59,130,246,0.15);text-align:center;font-weight:700;font-size:13px;border-radius:0 0 0 0;">⚡ Hartificial<br>Intelligence</div>
+          <div style="padding:12px;background:var(--surface2);text-align:center;font-weight:700;font-size:13px;">🏢 Traditional<br>Agency</div>
+          <div style="padding:12px;background:var(--surface2);text-align:center;font-weight:700;font-size:13px;">👤 In-House<br>Hire</div>
+          <div style="padding:12px;background:var(--surface2);text-align:center;font-weight:700;font-size:13px;border-radius:0 8px 0 0;">🤖 DIY<br>AI Tools</div>
+
+          <!-- Rows -->
+          <div style="padding:10px 12px;background:var(--surface);font-size:12px;font-weight:600;">Monthly Cost</div>
+          <div style="padding:10px;background:rgba(59,130,246,0.08);text-align:center;font-size:13px;font-weight:700;color:var(--green);">$5K-12K</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">$15K-50K</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">$5K-8K + benefits</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">$200-500 + time</div>
+
+          <div style="padding:10px 12px;background:var(--surface);font-size:12px;font-weight:600;">Time to Deploy</div>
+          <div style="padding:10px;background:rgba(59,130,246,0.08);text-align:center;font-size:13px;font-weight:700;color:var(--green);">7 days</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">4-8 weeks</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">2-4 weeks (hiring)</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">Months of learning</div>
+
+          <div style="padding:10px 12px;background:var(--surface);font-size:12px;font-weight:600;">Hours Covered/Day</div>
+          <div style="padding:10px;background:rgba(59,130,246,0.08);text-align:center;font-size:13px;font-weight:700;color:var(--green);">24/7</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">Business hours</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">8 hrs/day</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">Your spare time</div>
+
+          <div style="padding:10px 12px;background:var(--surface);font-size:12px;font-weight:600;">Content Output</div>
+          <div style="padding:10px;background:rgba(59,130,246,0.08);text-align:center;font-size:13px;font-weight:700;color:var(--green);">50-200+ pcs/mo</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">10-30/mo</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">15-40/mo</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">Variable</div>
+
+          <div style="padding:10px 12px;background:var(--surface);font-size:12px;font-weight:600;">CRM/Data Integration</div>
+          <div style="padding:10px;background:rgba(59,130,246,0.08);text-align:center;font-size:13px;font-weight:700;color:var(--green);">✅ Native</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">❌ Separate cost</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">⚠️ Training needed</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">❌ Manual</div>
+
+          <div style="padding:10px 12px;background:var(--surface);font-size:12px;font-weight:600;">Video Production</div>
+          <div style="padding:10px;background:rgba(59,130,246,0.08);text-align:center;font-size:13px;font-weight:700;color:var(--green);">✅ $5/video</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">$500-5K/video</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">❌ Not their job</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">⚠️ Limited</div>
+
+          <div style="padding:10px 12px;background:var(--surface);font-size:12px;font-weight:600;">Competitive Intel</div>
+          <div style="padding:10px;background:rgba(59,130,246,0.08);text-align:center;font-size:13px;font-weight:700;color:var(--green);">✅ Automated</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">$15-25K engagement</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">⚠️ Manual research</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">❌ Not realistic</div>
+
+          <div style="padding:10px 12px;background:var(--surface);font-size:12px;font-weight:600;border-radius:0 0 0 8px;">Scales Without Hiring</div>
+          <div style="padding:10px;background:rgba(59,130,246,0.08);text-align:center;font-size:13px;font-weight:700;color:var(--green);border-radius:0;">✅ Infinitely</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">❌ Linear cost</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);">❌ Need more hires</div>
+          <div style="padding:10px;background:var(--surface);text-align:center;font-size:13px;color:var(--text2);border-radius:0 0 8px 0;">⚠️ Your time limit</div>
+        </div>
+      </div>
+
+      <div class="case-study" style="margin-top:20px;">
+        <h4>💡 The "DIY Trap"</h4>
+        <p style="color:var(--text);">Most businesses try the DIY path first: buy ChatGPT Plus, watch YouTube tutorials, and get excited for 2 weeks. Then reality hits — prompt engineering is a skill, integrations require code, and maintaining AI workflows is a job in itself. You end up spending <strong style="color:var(--red);">more time managing the AI than the AI saves you</strong>. The Operator tier eliminates this entirely: we deploy, we maintain, you get results.</p>
+      </div>
+
+      <div class="case-study">
+        <h4>🎯 The "Agency Bloat" Problem</h4>
+        <p style="color:var(--text);">Agencies charge $15-50K/month because they staff account managers, creative directors, strategists, and analysts. An AI agent does 80% of what those people do at a fraction of the cost. We're not replacing agencies entirely — we're <strong style="color:var(--green);">making a single operator as productive as a 5-person team</strong>. That's the pitch: hire one person + deploy our AI agent = full marketing department.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+});
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+// Checkbox styling
+document.querySelectorAll('.checkbox-item input').forEach(cb => {
+  cb.addEventListener('change', () => {
+    cb.closest('.checkbox-item').classList.toggle('checked', cb.checked);
+  });
+  if(cb.checked) cb.closest('.checkbox-item').classList.add('checked');
+});
+
+// Update defaults based on industry
+function updateDefaults() {
+  const industry = document.getElementById('industry').value;
+  const defaults = {
+    political: { team:8, salary:65000, marketing:15000, hours:12, content:8 },
+    nonprofit: { team:6, salary:50000, marketing:8000, hours:10, content:5 },
+    realestate: { team:4, salary:55000, marketing:12000, hours:8, content:4 },
+    agency: { team:12, salary:70000, marketing:5000, hours:15, content:20 },
+    ecommerce: { team:10, salary:60000, marketing:25000, hours:14, content:15 },
+    saas: { team:15, salary:85000, marketing:20000, hours:12, content:12 },
+    church: { team:3, salary:45000, marketing:2000, hours:8, content:3 },
+    other: { team:8, salary:60000, marketing:10000, hours:10, content:6 }
+  };
+  const d = defaults[industry] || defaults.other;
+  document.getElementById('teamSize').value = d.team;
+  document.getElementById('avgSalary').value = d.salary;
+  document.getElementById('marketingSpend').value = d.marketing;
+  document.getElementById('repHours').value = d.hours;
+  document.getElementById('contentPieces').value = d.content;
+}
+
+// ROI Calculator
+function calculateROI() {
+  const teamSize = +document.getElementById('teamSize').value;
+  const salary = +document.getElementById('avgSalary').value;
+  const marketing = +document.getElementById('marketingSpend').value;
+  const repHours = +document.getElementById('repHours').value;
+  const content = +document.getElementById('contentPieces').value;
+  
+  const checkedAutomations = [];
+  document.querySelectorAll('#automations input:checked').forEach(cb => {
+    checkedAutomations.push({ label: cb.dataset.label, hours: +cb.dataset.hours });
+  });
+  
+  const style = document.getElementById('estimateStyle').value;
+  const styleMultiplier = { conservative: 0.5, moderate: 0.75, aggressive: 1.0 }[style];
+  const styleLabel = { conservative: '(Conservative)', moderate: '(Moderate)', aggressive: '(Aggressive)' }[style];
+  
+  const hourlyRate = salary / 2080;
+  const totalRepHoursMonth = repHours * teamSize * 4.33;
+  const baseCoverage = Math.min(0.60, checkedAutomations.length * 0.06);
+  const automationCoverage = baseCoverage * styleMultiplier;
+  const hoursReclaimed = Math.round(totalRepHoursMonth * automationCoverage);
+  const laborSavings = hoursReclaimed * hourlyRate;
+  const contentMultiplier = 1 + (checkedAutomations.length * 0.25 * styleMultiplier);
+  const newContentPieces = Math.round(content * contentMultiplier);
+  const contentLift = Math.round((contentMultiplier - 1) * 100);
+  
+  // Marketing efficiency (conservative: 8%, moderate: 14%, aggressive: 22%)
+  const mktEffRates = { conservative: 0.08, moderate: 0.14, aggressive: 0.22 };
+  const marketingEfficiency = marketing * mktEffRates[style];
+  const annualSavings = (laborSavings + marketingEfficiency) * 12;
+  
+  // Cost of AI consulting (Operator tier)
+  const aiCost = 5000 * 12;
+  const roi = annualSavings / aiCost;
+  
+  document.getElementById('annualSavings').textContent = '$' + Math.round(annualSavings).toLocaleString();
+  document.getElementById('hoursReclaimed').textContent = hoursReclaimed.toLocaleString();
+  document.getElementById('roiMultiple').textContent = roi.toFixed(1) + 'x';
+  document.getElementById('contentLift').textContent = contentLift + '%';
+  
+  // Bar chart
+  const chartEl = document.getElementById('costChart');
+  const currentCost = (salary * teamSize) + (marketing * 12);
+  const aiEnhancedCost = currentCost - annualSavings + aiCost;
+  const maxCost = Math.max(currentCost, aiEnhancedCost) * 1.1;
+  
+  chartEl.innerHTML = `
+    <div class="bar-group">
+      <div class="bar" style="height:${(currentCost/maxCost)*220}px;background:linear-gradient(var(--red),#dc2626);">
+        <div class="bar-label" style="color:var(--red);">$${Math.round(currentCost/1000)}K</div>
+      </div>
+      <div class="bar-name">Current Annual<br>Operating Cost</div>
+    </div>
+    <div class="bar-group">
+      <div class="bar" style="height:${(aiEnhancedCost/maxCost)*220}px;background:linear-gradient(var(--green),#059669);">
+        <div class="bar-label" style="color:var(--green);">$${Math.round(aiEnhancedCost/1000)}K</div>
+      </div>
+      <div class="bar-name">With AI Agent<br>(incl. consulting)</div>
+    </div>
+    <div class="bar-group">
+      <div class="bar" style="height:${(annualSavings/maxCost)*220}px;background:linear-gradient(var(--accent),var(--accent2));">
+        <div class="bar-label" style="color:var(--accent);">$${Math.round(annualSavings/1000)}K</div>
+      </div>
+      <div class="bar-name">Net Annual<br>Savings</div>
+    </div>
+  `;
+  
+  // Automation recommendations
+  const recsEl = document.getElementById('automationRecs');
+  const sorted = checkedAutomations.sort((a,b) => b.hours - a.hours);
+  recsEl.innerHTML = sorted.map((a, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface2);border-radius:8px;margin:6px 0;">
+      <div style="width:28px;height:28px;background:${i<3?'var(--green)':'var(--accent)'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;flex-shrink:0;">${i+1}</div>
+      <div>
+        <div style="font-weight:600;font-size:14px;">${a.label}</div>
+        <div style="font-size:12px;color:var(--text2);">Est. ${a.hours} hrs/week recoverable per person → <strong style="color:var(--green);">$${Math.round(a.hours * 4.33 * hourlyRate * teamSize * 0.6).toLocaleString()}/mo savings</strong></div>
+      </div>
+    </div>
+  `).join('');
+  
+  document.getElementById('roiResults').style.display = 'block';
+  document.getElementById('roiResults').scrollIntoView({ behavior:'smooth' });
+}
+
+// Proposal Generator
+function generateProposal() {
+  const company = document.getElementById('companyName').value || 'Your Organization';
+  const contact = document.getElementById('contactName').value || 'there';
+  const pain = document.getElementById('painPoint').value;
+  const revenue = +document.getElementById('revenue').value;
+  const notes = document.getElementById('additionalNotes').value;
+  const industry = document.getElementById('industry').value;
+  
+  const painLabels = {
+    time: "team capacity and time management",
+    content: "content production volume and quality",
+    data: "data analysis and actionable insights",
+    leads: "lead management and conversion",
+    cost: "operational efficiency and overhead reduction",
+    scale: "scaling operations without proportional headcount growth"
+  };
+  
+  const tierRec = revenue >= 5000000 ? 'War Room ($12,000/mo)' : revenue >= 1000000 ? 'Operator ($5,000/mo)' : 'Recon ($2,500 one-time) → Operator';
+  const savingsEst = revenue >= 5000000 ? '$200K-500K' : revenue >= 1000000 ? '$80K-200K' : '$30K-80K';
+  
+  const industrySpecific = {
+    political: "In the 2026 cycle, political ad spending is projected at $10.8B — 20% higher than 2022. Organizations that deploy AI for creative production, compliance monitoring, and donor analytics will have a decisive advantage in speed and cost-efficiency.",
+    nonprofit: "Nonprofits are uniquely positioned to benefit from AI — donor communications, grant writing, impact reporting, and event promotion are all high-volume, pattern-based tasks where AI delivers 3-5x output increases at a fraction of the cost.",
+    realestate: "Real estate firms with AI-powered lead nurturing see 2-3x higher conversion rates. Automated follow-up sequences, market analysis, and content production eliminate the #1 failure point: leads that go cold because agents are too busy.",
+    agency: "Agencies using AI for creative production are shipping 4-10x more variations while cutting production costs by 60-80%. The margin improvement alone typically covers the investment in month one.",
+    ecommerce: "E-commerce businesses leveraging AI for product descriptions, ad creative, customer service, and inventory analysis are seeing 15-25% improvements in marketing efficiency and significant reductions in customer acquisition cost.",
+    saas: "SaaS companies deploying AI agents for content marketing, customer onboarding, support documentation, and churn prediction are reducing time-to-value by 40-60% while scaling content output dramatically.",
+    church: "Churches and ministries are discovering that AI can multiply their reach without multiplying their staff. Sermon-to-social pipelines, automated devotional content, and personalized follow-up turn one Sunday message into a week of engagement.",
+    other: "Organizations across industries are discovering that AI agents don't just save time — they create capabilities that didn't exist before. The question isn't whether to adopt AI, but how fast."
+  };
+
+  const html = `
+    <h2>AI Automation Proposal for ${company}</h2>
+    
+    <p>Dear ${contact},</p>
+    
+    <p>Thank you for your interest in exploring AI automation for ${company}. Based on our initial assessment, I've identified significant opportunities to address your primary concern around <strong>${painLabels[pain]}</strong>.</p>
+    
+    <div class="highlight">
+      <strong>Industry Context:</strong> ${industrySpecific[industry] || industrySpecific.other}
+    </div>
+
+    <h3>📊 The Opportunity</h3>
+    <p>Based on organizations of your size and industry, AI agent deployment typically delivers:</p>
+    <ul style="padding-left:20px;margin:12px 0;color:var(--text2);">
+      <li><strong style="color:var(--green);">${savingsEst}/year</strong> in combined labor savings and efficiency gains</li>
+      <li><strong style="color:var(--accent);">60-75%</strong> reduction in time spent on repetitive operational tasks</li>
+      <li><strong style="color:var(--accent2);">3-5x</strong> increase in content and creative output</li>
+      <li><strong style="color:var(--orange);">ROI positive within 30-60 days</strong> of deployment</li>
+    </ul>
+
+    <h3>🎯 Recommended Approach</h3>
+    <p>Based on your revenue scale and needs, I recommend starting with the <strong>${tierRec}</strong> engagement:</p>
+    
+    <div class="highlight">
+      <strong>Phase 1 (Weeks 1-2):</strong> Audit current workflows, identify top 5 automation targets, set up AI agent infrastructure<br>
+      <strong>Phase 2 (Weeks 3-4):</strong> Deploy first automations, establish baselines, train team on AI-augmented workflows<br>
+      <strong>Phase 3 (Ongoing):</strong> Optimize, expand coverage, measure ROI, add new capabilities monthly
+    </div>
+
+    ${notes ? `<h3>📝 Specific to Your Situation</h3><p style="color:var(--text2);">${notes}</p>` : ''}
+
+    <h3>🏆 Why Hartificial Intelligence</h3>
+    <ul style="padding-left:20px;margin:12px 0;color:var(--text2);">
+      <li><strong>Battle-tested:</strong> Currently deployed across political fundraising ($10.8B market), real estate, and content operations</li>
+      <li><strong>Multi-model expertise:</strong> We use Claude, GPT, and Gemini strategically — not one-size-fits-all</li>
+      <li><strong>Full-stack deployment:</strong> From CRM automation to video production to competitive intelligence</li>
+      <li><strong>Proven ROI:</strong> Week 1 deployment replaced 2.5 FTE equivalent output across 4 business domains</li>
+      <li><strong>Operator, not consultant:</strong> I don't advise — I build, deploy, and optimize</li>
+    </ul>
+
+    <h3>⏭️ Next Steps</h3>
+    <ol style="padding-left:20px;margin:12px 0;color:var(--text2);">
+      <li>Schedule a 30-minute discovery call to deep-dive into your specific workflows</li>
+      <li>I'll prepare a custom automation roadmap with projected ROI</li>
+      <li>If the numbers make sense, we deploy within 7 days of signing</li>
+    </ol>
+    
+    <p style="margin-top:20px;">Looking forward to showing you what's possible.</p>
+    <p><strong>Justin Hart</strong><br>Hartificial Intelligence<br>justinhart.biz@gmail.com</p>
+  `;
+  
+  document.getElementById('proposalContent').innerHTML = html;
+  document.getElementById('proposalOutput').classList.add('visible');
+  document.getElementById('proposalOutput').scrollIntoView({ behavior:'smooth' });
+}
+
+function copyProposal() {
+  const text = document.getElementById('proposalContent').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy to Clipboard', 2000);
+  });
+}
+
+// Video revenue calculator
+function calcVideoRev() {
+  const clients = +document.getElementById('videoClients').value;
+  const retainer = +document.getElementById('videoRetainer').value;
+  const vids = +document.getElementById('videosPerClient').value;
+  const mrr = clients * retainer;
+  const cogs = clients * vids * 5; // $5/video
+  const profit = mrr - cogs;
+  const margin = Math.round((profit / mrr) * 100);
+  document.getElementById('videoMRR').textContent = '$' + mrr.toLocaleString();
+  document.getElementById('videoCOGS').textContent = '$' + cogs.toLocaleString();
+  document.getElementById('videoProfit').textContent = '$' + profit.toLocaleString();
+  document.getElementById('videoMargin').textContent = margin + '%';
+}
+
+// INBOUND 2026 CFP Generator
+function generateInboundPitch() {
+  const html = `
+    <h2>INBOUND 2026 — Session Submission</h2>
+    
+    <h3>Session Title</h3>
+    <p><strong>"I Replaced 2.5 Employees With an AI Agent in 7 Days — Here's How"</strong></p>
+    <p style="color:var(--text3);font-size:12px;">(72 characters — under 75 limit)</p>
+    
+    <h3>Abstract</h3>
+    <p>What happens when you give a solo operator an AI agent with access to their CRM, email, social media, content platform, and analytics? In January 2026, I found out.</p>
+    
+    <p>I'm the Head of Creative for a political fundraising platform, fractional CMO for a real estate company, and a content creator with a Substack. I was spending 5-6 hours a day on repetitive operational work: writing SMS/MMS creative, analyzing lead data, managing social engagement, producing blog content, and tracking competitors. I deployed an AI agent connected to Salesforce, Gmail, Twitter/X, Substack, HeyGen, and browser automation.</p>
+    
+    <p>In seven days, the agent completed 47+ operational missions across four business domains. It analyzed 500+ fundraising creatives and identified winning patterns. It cross-referenced 474 CRM leads with Google Ads data to pinpoint a regional account executive bottleneck that explained a 3x cost-per-win gap between counties. It published blog posts, managed social engagement, and generated vertical video content at $5/video (vs. $2,500 traditional). My daily operational time dropped from 5.5 hours to 1.5 hours.</p>
+    
+    <p>This session walks through exactly how it worked — the setup (4 hours), the wins (measurable), and the failures (educational). Attendees will leave with a practical "3-Layer Agent Stack" framework and a Monday morning deployment checklist.</p>
+    <p style="color:var(--text3);font-size:12px;">(247 words — under 300 limit)</p>
+    
+    <h3>Three Key Takeaways</h3>
+    <ol style="padding-left:20px;margin:12px 0;color:var(--text2);">
+      <li><strong>The 3-Layer Agent Stack:</strong> A framework for deciding what to automate first — Read & React (monitoring), Create & Deploy (content/creative), Analyze & Decide (data synthesis) — with real examples from political fundraising, real estate, and content marketing.</li>
+      <li><strong>Real ROI Numbers:</strong> Actual cost comparisons, time savings, and output metrics from a 7-day deployment across four business domains — including what went wrong and what nearly went very wrong.</li>
+      <li><strong>Your Monday Morning Checklist:</strong> A practical 1-page guide to deploying your first AI agent this week — which tools to connect first, which tasks to automate, and which to definitely keep human.</li>
+    </ol>
+    
+    <h3>Speaker Bio</h3>
+    <p>Justin Hart is the Head of Creative at DonorBureau, where he designs high-volume SMS/MMS fundraising campaigns for national political committees including the NRSC, NCPD, and RNC. He's also the fractional CMO for True Legacy Homes and founder of Hartificial Intelligence, an AI consulting practice. In his first week of AI agent deployment, he compressed 5-6 hours of daily operational work into 90 minutes while quadrupling content output across four business domains. He writes about AI, markets, and culture at CovidReason on Substack. He lives in San Diego with his wife and nine kids.</p>
+  `;
+  
+  document.getElementById('inboundContent').innerHTML = html;
+  document.getElementById('inboundOutput').classList.add('visible');
+  document.getElementById('inboundOutput').scrollIntoView({ behavior:'smooth' });
+}
+
+function copyInbound() {
+  const text = document.getElementById('inboundContent').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelectorAll('.copy-btn')[1];
+    if(btn) { btn.textContent = '✅ Copied!'; setTimeout(() => btn.textContent = '📋 Copy to Clipboard', 2000); }
+  });
+}
+
+// Init
+calcVideoRev();
+</script>
+</body>
+</html>
