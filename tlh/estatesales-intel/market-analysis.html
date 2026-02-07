@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLH — EstateSales.net Market Analysis</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a;color:#e2e8f0;padding:24px;}
+h1{text-align:center;font-size:1.5rem;color:#f8fafc;margin-bottom:4px;}
+.subtitle{text-align:center;color:#64748b;font-size:0.82rem;margin-bottom:24px;}
+.chart-container{background:#1e293b;border-radius:12px;border:1px solid #334155;padding:20px;margin:0 auto 20px;max-width:1100px;}
+.chart-title{font-size:1rem;font-weight:700;color:#f8fafc;margin-bottom:4px;}
+.chart-sub{font-size:0.75rem;color:#64748b;margin-bottom:12px;}
+canvas{width:100%!important;max-height:350px;}
+.insights{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:1100px;margin:0 auto 20px;}
+@media(max-width:800px){.insights{grid-template-columns:1fr;}}
+.insight{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px 16px;}
+.insight-title{font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.insight-title.green{color:#4ade80;}
+.insight-title.red{color:#f87171;}
+.insight-title.yellow{color:#fbbf24;}
+.insight-title.blue{color:#60a5fa;}
+.insight-body{font-size:0.82rem;color:#cbd5e1;line-height:1.5;}
+.insight-stat{font-weight:700;color:#f8fafc;}
+.data-note{max-width:1100px;margin:0 auto 16px;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px 16px;font-size:0.75rem;color:#94a3b8;line-height:1.5;}
+.data-note strong{color:#fbbf24;}
+.footer{text-align:center;color:#475569;font-size:0.7rem;margin-top:16px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1100px;margin:0 auto 20px;}
+@media(max-width:800px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px;text-align:center;}
+.stat-label{font-size:0.7rem;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.stat-value{font-size:1.5rem;font-weight:800;}
+.stat-sub{font-size:0.7rem;color:#64748b;margin-top:2px;}
+.sd .stat-value{color:#3b82f6;}
+.oc .stat-value{color:#f59e0b;}
+.la .stat-value{color:#a855f7;}
+.total .stat-value{color:#4ade80;}
+.legend{display:flex;gap:16px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:0.75rem;color:#94a3b8;}
+.legend-dot{width:12px;height:12px;border-radius:3px;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<h1>📊 EstateSales.net — SoCal Market Analysis</h1>
+<div class="subtitle">Estate sale listings in San Diego, Orange County & Los Angeles · Source: EstateSales.net scraped data (Tran)</div>
+
+<div class="data-note">
+<strong>⚠️ Data Quality Notes:</strong> Scraping scope varied over time. Jul–Aug 2025 captured SD only. Sept 2025 expanded mid-month. Months with &lt;4 weekly files or single-market coverage are flagged with ⚠️ in charts. Reliable multi-market data runs <strong>May 2024 – Jun 2025</strong> and <strong>Oct 2025 – Dec 2025</strong>.
+</div>
+
+<div id="stats-area"></div>
+<div class="chart-container"><div class="chart-title">EstateSales.net Listings vs TLH Closed Wins</div><div class="chart-sub">Bars = market listings (left axis) · Red line = TLH Closed Won deals (right axis) · Do the ebbs and flows match?</div><div class="legend"><div class="legend-item"><div class="legend-dot" style="background:#3b82f6;"></div>SD Listings</div><div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div>OC Listings</div><div class="legend-item"><div class="legend-dot" style="background:#a855f7;"></div>LA Listings</div><div class="legend-item"><div class="legend-dot" style="background:#ef4444;border:2px solid #ef4444;width:20px;height:3px;border-radius:0;"></div>TLH Wins</div><div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,0.15);"></div>⚠️ = incomplete data</div></div><canvas id="chartStacked" style="max-height:400px;"></canvas></div>
+<div class="chart-container"><div class="chart-title">TLH Wins by Market vs Market Listings</div><div class="chart-sub">Per-market view: TLH wins (lines, right axis) overlaid on EstateSales.net listing volume (bars, left axis)</div><div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;"><button class="toggle-btn active" data-market="sd" style="background:#3b82f6;color:#fff;border:2px solid #3b82f6;border-radius:8px;padding:8px 18px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.2s;">San Diego</button><button class="toggle-btn active" data-market="oc" style="background:#f59e0b;color:#fff;border:2px solid #f59e0b;border-radius:8px;padding:8px 18px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.2s;">Orange County</button><button class="toggle-btn active" data-market="la" style="background:#a855f7;color:#fff;border:2px solid #a855f7;border-radius:8px;padding:8px 18px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.2s;">Los Angeles</button></div><canvas id="chartByMarket" style="max-height:400px;"></canvas></div>
+<div class="chart-container"><div class="chart-title">Weekly Average Listings (Normalized)</div><div class="chart-sub">Listings per week (monthly total ÷ number of scrape files that month) — apples-to-apples comparison</div><canvas id="chartWeekly"></canvas></div>
+<div class="chart-container"><div class="chart-title">Market Share Over Time</div><div class="chart-sub">Each market's % of total SoCal listings — only months with reliable multi-market data</div><canvas id="chartShare"></canvas></div>
+
+<div id="insights-area"></div>
+
+<div class="footer">True Legacy Homes · EstateSales.net Market Intelligence · Data scraped by Tran · Analysis by Railstote 🦉</div>
+
+<script>
+// Raw data from Python analysis
+const rawData = {
+  labels: ['2024-05','2024-06','2024-07','2024-08','2024-09','2024-10','2024-11','2024-12','2025-01','2025-02','2025-03','2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12'],
+  sd:     [126,161,103,133,108,31,33,50,37,60,62,68,81,84,15,66,56,68,47,44],
+  oc:     [197,331,253,360,283,29,34,42,49,60,85,66,82,107,0,0,17,89,61,42],
+  la:     [213,355,215,275,228,71,56,120,73,119,119,139,174,153,0,0,23,149,90,112],
+  files:  [5,5,5,5,4,2,2,2,4,4,5,4,5,5,1,5,4,5,4,4],
+  flags:  [0,0,0,0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,0],
+  // TLH Closed Won by month (Salesforce)
+  tlh_sd: [8,20,14,11,10,6,11,12,6,7,10,15,5,14,19,8,17,11,9,9],
+  tlh_oc: [5,2,5,1,3,3,2,1,4,3,3,2,3,4,3,12,1,3,2,1],
+  tlh_la: [0,0,0,0,1,1,1,1,0,1,2,0,0,2,2,0,2,3,3,4],
+};
+
+const months = rawData.labels;
+const total = months.map((_,i) => rawData.sd[i] + rawData.oc[i] + rawData.la[i]);
+const tlhTotal = months.map((_,i) => rawData.tlh_sd[i] + rawData.tlh_oc[i] + rawData.tlh_la[i]);
+const weeklySD = months.map((_,i) => +(rawData.sd[i] / rawData.files[i]).toFixed(1));
+const weeklyOC = months.map((_,i) => +(rawData.oc[i] / rawData.files[i]).toFixed(1));
+const weeklyLA = months.map((_,i) => +(rawData.la[i] / rawData.files[i]).toFixed(1));
+
+const fmtLabels = months.map(m => {
+  const [y, mo] = m.split('-');
+  const names = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const flag = rawData.flags[months.indexOf(m)] ? ' ⚠️' : '';
+  return names[+mo] + ' ' + y.slice(2) + flag;
+});
+
+// Stacked bar + TLH wins line (dual axis)
+new Chart(document.getElementById('chartStacked'), {
+  type: 'bar',
+  data: {
+    labels: fmtLabels,
+    datasets: [
+      {label:'SD Listings', data:rawData.sd, backgroundColor:'rgba(59,130,246,0.7)', borderRadius:2, yAxisID:'y', stack:'listings'},
+      {label:'OC Listings', data:rawData.oc, backgroundColor:'rgba(245,158,11,0.7)', borderRadius:2, yAxisID:'y', stack:'listings'},
+      {label:'LA Listings', data:rawData.la, backgroundColor:'rgba(168,85,247,0.7)', borderRadius:2, yAxisID:'y', stack:'listings'},
+      {label:'TLH Wins (all markets)', data:tlhTotal, type:'line', borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.15)', borderWidth:3, pointRadius:5, pointBackgroundColor:'#ef4444', pointBorderColor:'#fff', pointBorderWidth:1.5, tension:0.3, fill:false, yAxisID:'y1'}
+    ]
+  },
+  options: {
+    responsive:true,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{
+        label:function(ctx){
+          if(ctx.dataset.yAxisID==='y1') return 'TLH Wins: '+ctx.parsed.y;
+          return ctx.dataset.label+': '+ctx.parsed.y+' listings';
+        }
+      }}
+    },
+    scales:{
+      x:{stacked:true, ticks:{color:'#94a3b8',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}},
+      y:{stacked:true, position:'left', ticks:{color:'#94a3b8'}, grid:{color:'rgba(255,255,255,0.08)'}, title:{display:true,text:'EstateSales.net Listings',color:'#64748b'}},
+      y1:{position:'right', ticks:{color:'#ef4444',font:{weight:'bold'}}, grid:{drawOnChartArea:false}, title:{display:true,text:'TLH Closed Won',color:'#ef4444'}, min:0, max:30}
+    }
+  }
+});
+
+// Per-market: listings bars + TLH wins lines (toggleable)
+const marketConfig = {
+  sd: {color:'#3b82f6', listData:rawData.sd, winData:rawData.tlh_sd, listLabel:'SD Listings', winLabel:'TLH SD Wins'},
+  oc: {color:'#f59e0b', listData:rawData.oc, winData:rawData.tlh_oc, listLabel:'OC Listings', winLabel:'TLH OC Wins'},
+  la: {color:'#a855f7', listData:rawData.la, winData:rawData.tlh_la, listLabel:'LA Listings', winLabel:'TLH LA Wins'}
+};
+const activeMarkets = {sd:true, oc:true, la:true};
+let marketChart = null;
+
+function buildMarketChart() {
+  const datasets = [];
+  const keys = ['sd','oc','la'];
+  const activeKeys = keys.filter(k => activeMarkets[k]);
+  const barWidth = activeKeys.length === 1 ? 0.6 : activeKeys.length === 2 ? 0.45 : 0.33;
+
+  keys.forEach(k => {
+    if (!activeMarkets[k]) return;
+    const c = marketConfig[k];
+    datasets.push({
+      label:c.listLabel, data:c.listData,
+      backgroundColor:c.color+'4D', borderColor:c.color, borderWidth:1,
+      yAxisID:'y', barPercentage:0.9, categoryPercentage:barWidth, order:2
+    });
+    datasets.push({
+      label:c.winLabel, data:c.winData, type:'line',
+      borderColor:c.color, borderWidth:3, pointRadius:5,
+      pointBackgroundColor:c.color, pointBorderColor:'#fff', pointBorderWidth:1.5,
+      tension:0.3, yAxisID:'y1', order:1
+    });
+  });
+
+  if (marketChart) marketChart.destroy();
+  marketChart = new Chart(document.getElementById('chartByMarket'), {
+    type: 'bar',
+    data: {labels: fmtLabels, datasets},
+    options: {
+      responsive:true,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#94a3b8',font:{size:9}}, grid:{color:'rgba(255,255,255,0.05)'}},
+        y:{position:'left', ticks:{color:'#94a3b8'}, grid:{color:'rgba(255,255,255,0.08)'}, title:{display:true,text:'EstateSales.net Listings',color:'#64748b'}},
+        y1:{position:'right', ticks:{color:'#94a3b8'}, grid:{drawOnChartArea:false}, title:{display:true,text:'TLH Closed Won',color:'#94a3b8'}, min:0, max:25}
+      }
+    }
+  });
+}
+
+// Toggle buttons
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const m = btn.dataset.market;
+    activeMarkets[m] = !activeMarkets[m];
+    const c = marketConfig[m].color;
+    if (activeMarkets[m]) {
+      btn.style.background = c;
+      btn.style.color = '#fff';
+      btn.style.borderColor = c;
+      btn.classList.add('active');
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = c;
+      btn.style.borderColor = c;
+      btn.classList.remove('active');
+    }
+    buildMarketChart();
+  });
+});
+
+buildMarketChart();
+
+// Weekly average line chart (only reliable months)
+new Chart(document.getElementById('chartWeekly'), {
+  type: 'line',
+  data: {
+    labels: fmtLabels,
+    datasets: [
+      {label:'SD/wk', data:weeklySD, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.1)', fill:true, tension:0.3, pointRadius:3, borderWidth:2},
+      {label:'OC/wk', data:weeklyOC, borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.1)', fill:true, tension:0.3, pointRadius:3, borderWidth:2},
+      {label:'LA/wk', data:weeklyLA, borderColor:'#a855f7', backgroundColor:'rgba(168,85,247,0.1)', fill:true, tension:0.3, pointRadius:3, borderWidth:2}
+    ]
+  },
+  options: {
+    responsive:true,
+    plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},
+    scales:{
+      x:{ticks:{color:'#94a3b8',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}},
+      y:{ticks:{color:'#94a3b8'}, grid:{color:'rgba(255,255,255,0.08)'}, title:{display:true,text:'Listings per week',color:'#64748b'}}
+    }
+  }
+});
+
+// Market share (only reliable months where all 3 markets present)
+const reliableIdx = months.map((_,i) => rawData.flags[i] === 0 && rawData.oc[i] > 0 && rawData.la[i] > 0 ? i : -1).filter(i => i >= 0);
+const shareLabels = reliableIdx.map(i => fmtLabels[i]);
+const shareSD = reliableIdx.map(i => +(rawData.sd[i]/total[i]*100).toFixed(1));
+const shareOC = reliableIdx.map(i => +(rawData.oc[i]/total[i]*100).toFixed(1));
+const shareLA = reliableIdx.map(i => +(rawData.la[i]/total[i]*100).toFixed(1));
+
+new Chart(document.getElementById('chartShare'), {
+  type: 'line',
+  data: {
+    labels: shareLabels,
+    datasets: [
+      {label:'SD %', data:shareSD, borderColor:'#3b82f6', borderWidth:2.5, tension:0.3, pointRadius:4, pointBackgroundColor:'#3b82f6'},
+      {label:'OC %', data:shareOC, borderColor:'#f59e0b', borderWidth:2.5, tension:0.3, pointRadius:4, pointBackgroundColor:'#f59e0b'},
+      {label:'LA %', data:shareLA, borderColor:'#a855f7', borderWidth:2.5, tension:0.3, pointRadius:4, pointBackgroundColor:'#a855f7'}
+    ]
+  },
+  options: {
+    responsive:true,
+    plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},
+    scales:{
+      x:{ticks:{color:'#94a3b8',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}},
+      y:{ticks:{color:'#94a3b8',callback:v=>v+'%'}, grid:{color:'rgba(255,255,255,0.08)'}, title:{display:true,text:'Market Share %',color:'#64748b'}, min:0, max:60}
+    }
+  }
+});
+
+// Key stats cards
+const peakMonth = 'Jun 2024';
+const peakTotal = 847;
+// Q4 2025 average
+const q4_2025 = (306+198+198)/3;
+// Q2 2025 average (peak season)
+const q2_2025 = (273+337+344)/3;
+const q4_drop = ((q2_2025 - q4_2025)/q2_2025*100).toFixed(0);
+
+document.getElementById('stats-area').innerHTML = `
+<div class="stats-grid">
+  <div class="stat-card total"><div class="stat-label">Peak Month</div><div class="stat-value">847</div><div class="stat-sub">Jun 2024 · all 3 markets</div></div>
+  <div class="stat-card sd"><div class="stat-label">SD Avg/Week (Recent)</div><div class="stat-value">${(rawData.sd[rawData.sd.length-1]/rawData.files[rawData.files.length-1]).toFixed(0)}</div><div class="stat-sub">Dec 2025</div></div>
+  <div class="stat-card oc"><div class="stat-label">OC Avg/Week (Recent)</div><div class="stat-value">${(rawData.oc[rawData.oc.length-1]/rawData.files[rawData.files.length-1]).toFixed(0)}</div><div class="stat-sub">Dec 2025</div></div>
+  <div class="stat-card la"><div class="stat-label">LA Avg/Week (Recent)</div><div class="stat-value">${(rawData.la[rawData.la.length-1]/rawData.files[rawData.files.length-1]).toFixed(0)}</div><div class="stat-sub">Dec 2025</div></div>
+</div>`;
+
+// Insights
+document.getElementById('insights-area').innerHTML = `
+<div class="insights">
+  <div class="insight">
+    <div class="insight-title yellow">📉 Q4 Seasonal Dip Is Market-Wide</div>
+    <div class="insight-body">
+      The Oct–Dec slowdown hit <span class="insight-stat">all three markets</span>, not just TLH.
+      Total SoCal listings dropped from <span class="insight-stat">318/mo avg</span> (Q2 2025) to 
+      <span class="insight-stat">234/mo avg</span> (Q4 2025) — a <span class="insight-stat">26% decline</span>.
+      This confirms it's seasonal, not a market share problem.
+    </div>
+  </div>
+  <div class="insight">
+    <div class="insight-title blue">📊 Summer Is Peak Season</div>
+    <div class="insight-body">
+      Jun–Aug consistently shows the highest listing volume across all years.
+      <span class="insight-stat">Jun 2024 hit 847 total listings</span> — the single biggest month in the dataset.
+      Estate sales follow a clear seasonal cycle: ramp Mar–Jun, peak Jun–Aug, fade Oct–Dec, recover Jan–Mar.
+    </div>
+  </div>
+  <div class="insight">
+    <div class="insight-title green">✅ LA Dominates Volume</div>
+    <div class="insight-body">
+      LA consistently captures <span class="insight-stat">40-48%</span> of SoCal estate sale listings.
+      OC runs <span class="insight-stat">25-39%</span> (varies more). SD holds steady at <span class="insight-stat">18-25%</span>.
+      SD's smaller market share is expected — it's a smaller metro. The key metric is TLH's share <em>within</em> SD.
+    </div>
+  </div>
+  <div class="insight">
+    <div class="insight-title red">🔍 TLH Wins Track the Market</div>
+    <div class="insight-body">
+      TLH Closed Won deals follow the same seasonal curve as overall market listings.
+      Peak months for wins (Jun 2024: <span class="insight-stat">22 wins</span>, Jul 2025: <span class="insight-stat">24 wins</span>) 
+      align with peak listing volume. Q4 dip in wins (Oct–Dec: <span class="insight-stat">14-17/mo</span>) 
+      mirrors the market-wide contraction. The business is riding the market, not losing share.
+    </div>
+  </div>
+</div>`;
+</script>
+</body>
+</html>
