@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLH Salesforce Optimization Plan</title>
+    <style>
+        :root { --navy: #1e3a5f; --teal: #00a5a5; --red: #e74c3c; --orange: #f39c12; --green: #27ae60; --light: #f8f9fa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; background: var(--light); }
+        .hero { background: linear-gradient(135deg, var(--navy), #2d5a87); color: white; padding: 3rem 2rem; text-align: center; }
+        .hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .stats { display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem; flex-wrap: wrap; }
+        .stat { text-align: center; }
+        .stat .num { font-size: 2rem; font-weight: 700; }
+        .stat .label { font-size: 0.8rem; opacity: 0.8; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+        section { background: white; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        h2 { color: var(--navy); border-bottom: 2px solid var(--teal); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        h3 { color: var(--navy); margin: 1.5rem 0 0.75rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+        th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--light); color: var(--navy); }
+        .priority { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .priority.high { background: #ffebee; color: var(--red); }
+        .priority.medium { background: #fff3e0; color: var(--orange); }
+        .priority.low { background: #e8f5e9; color: var(--green); }
+        .issue-card { border-left: 4px solid var(--red); padding: 1rem; margin: 1rem 0; background: #fff5f5; border-radius: 0 8px 8px 0; }
+        .issue-card.warning { border-color: var(--orange); background: #fffbf0; }
+        .issue-card.info { border-color: var(--teal); background: #f0fafa; }
+        .issue-card h4 { color: var(--navy); margin-bottom: 0.5rem; }
+        .checklist { list-style: none; margin: 1rem 0; }
+        .checklist li { padding: 0.5rem 0; padding-left: 1.5rem; position: relative; border-bottom: 1px solid #eee; }
+        .checklist li::before { content: "☐"; position: absolute; left: 0; color: var(--teal); }
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 1rem 0; }
+        .metric { background: var(--light); padding: 1rem; border-radius: 8px; text-align: center; }
+        .metric .value { font-size: 1.5rem; font-weight: 700; color: var(--navy); }
+        .metric .label { font-size: 0.8rem; color: #666; }
+        .links { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+        .link-btn { display: inline-block; padding: 0.5rem 1rem; background: var(--navy); color: white; text-decoration: none; border-radius: 6px; font-size: 0.85rem; }
+        .link-btn:hover { background: #2d5a87; }
+        footer { text-align: center; padding: 2rem; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>⚡ Salesforce Optimization Plan</h1>
+        <p>Based on comprehensive audit — February 2026</p>
+        <div class="stats">
+            <div class="stat"><div class="num">183</div><div class="label">Active Flows</div></div>
+            <div class="stat"><div class="num">43</div><div class="label">Apex Triggers</div></div>
+            <div class="stat"><div class="num">47</div><div class="label">Validation Rules</div></div>
+            <div class="stat"><div class="num">94</div><div class="label">Permission Sets</div></div>
+            <div class="stat"><div class="num">11%</div><div class="label">Storage Used</div></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <section>
+            <h2>🔴 High Priority: Flow Consolidation</h2>
+            <p>183 active flows creates execution complexity and potential for conflicts. Some flows do similar things and could be merged.</p>
+            
+            <div class="issue-card">
+                <h4>Issue: Redundant Lead Flows</h4>
+                <p>Multiple flows trigger on Lead insert/update doing related work. Risk of race conditions and order-of-execution issues.</p>
+                <p><strong>Flows to review:</strong></p>
+                <ul style="margin: 0.5rem 0 0 1.5rem; font-size: 0.9rem;">
+                    <li>Lead Created > Assign Task To Owner & Web Email</li>
+                    <li>Lead Opportunity Assign</li>
+                    <li>Lead Priority Task</li>
+                    <li>Web Lead Chatter Post Notification</li>
+                    <li>Web Lead Notification</li>
+                </ul>
+            </div>
+
+            <div class="issue-card warning">
+                <h4>Issue: Cadence Stop Flows</h4>
+                <p>6 separate flows handle stopping cadences across different objects. Could be consolidated into one polymorphic flow.</p>
+                <ul style="margin: 0.5rem 0 0 1.5rem; font-size: 0.9rem;">
+                    <li>Stop Cadences / Stop Cadences Lead / Stop Cadences on Opportunity</li>
+                    <li>Stop Direct Mail Cadences - For Lead</li>
+                    <li>Direct Mail - Stop Cadences For Opportunity</li>
+                </ul>
+            </div>
+
+            <h3>Recommended Actions</h3>
+            <ul class="checklist">
+                <li>Audit all Lead-triggered flows and map execution order</li>
+                <li>Consolidate cadence-stop logic into single flow with object-aware branching</li>
+                <li>Document flow dependencies and interaction patterns</li>
+                <li>Deactivate any deprecated flows (test in sandbox first)</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>🟠 Medium Priority: Trigger Optimization</h2>
+            <p>43 active triggers with potential for conflicts. Multiple triggers on same object execute in non-deterministic order.</p>
+
+            <div class="issue-card warning">
+                <h4>Multiple Opportunity Triggers</h4>
+                <p>4 triggers on Opportunity object:</p>
+                <ul style="margin: 0.5rem 0 0 1.5rem; font-size: 0.9rem;">
+                    <li>OpportunityTrigger (AI, AU, BI, BU)</li>
+                    <li>OpportunitySyncWebhookTrigger (AI, AU, AD)</li>
+                    <li>OpportunityGeocodingTrigger (AU)</li>
+                    <li>GSP_D_Opportunity (All events)</li>
+                </ul>
+                <p style="margin-top: 0.5rem;"><strong>Risk:</strong> Order of execution not guaranteed. Could cause data inconsistency.</p>
+            </div>
+
+            <div class="issue-card warning">
+                <h4>Multiple Lead Triggers</h4>
+                <p>6 triggers on Lead object handling overlapping concerns.</p>
+            </div>
+
+            <h3>Recommended Actions</h3>
+            <ul class="checklist">
+                <li>Implement trigger framework pattern (one trigger per object dispatches to handlers)</li>
+                <li>Consolidate Opportunity triggers into single entry point</li>
+                <li>Consolidate Lead triggers into single entry point</li>
+                <li>Add execution order control via static variables</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>🟠 Medium Priority: Permission Set Cleanup</h2>
+            <p>94 permission sets is excessive. Many are likely unused or redundant.</p>
+
+            <div class="metric-grid">
+                <div class="metric"><div class="value">94</div><div class="label">Total Permission Sets</div></div>
+                <div class="metric"><div class="value">~30</div><div class="label">LeftMain Package</div></div>
+                <div class="metric"><div class="value">~15</div><div class="label">DocuSign</div></div>
+                <div class="metric"><div class="value">~10</div><div class="label">Rollup Helper</div></div>
+            </div>
+
+            <h3>Recommended Actions</h3>
+            <ul class="checklist">
+                <li>Run Permission Set assignment report — identify sets with 0 users</li>
+                <li>Group related permission sets into Permission Set Groups</li>
+                <li>Document which permission sets are required for each role</li>
+                <li>Remove or archive unused permission sets</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>🟢 Quick Wins</h2>
+            
+            <table>
+                <tr>
+                    <th>Action</th>
+                    <th>Impact</th>
+                    <th>Effort</th>
+                </tr>
+                <tr>
+                    <td>Deactivate inactive record types (Business Account Lead, Homeowner Account)</td>
+                    <td>Cleaner UI</td>
+                    <td>15 min</td>
+                </tr>
+                <tr>
+                    <td>Archive old email templates (pre-2024)</td>
+                    <td>Easier template selection</td>
+                    <td>30 min</td>
+                </tr>
+                <tr>
+                    <td>Review scheduled flow "assign james temp" — appears to be temporary</td>
+                    <td>Remove tech debt</td>
+                    <td>10 min</td>
+                </tr>
+                <tr>
+                    <td>Consolidate duplicate direct mail cadence flows</td>
+                    <td>Simpler automation</td>
+                    <td>2 hrs</td>
+                </tr>
+                <tr>
+                    <td>Add error handling to webhook triggers</td>
+                    <td>Better reliability</td>
+                    <td>4 hrs</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>📊 Data Quality Review</h2>
+            
+            <div class="issue-card info">
+                <h4>Validation Rules: Strong Coverage</h4>
+                <p>47 validation rules enforce data quality across Lead, Opportunity, Account. Well-structured around record types and stages.</p>
+            </div>
+
+            <h3>Potential Gaps</h3>
+            <ul class="checklist">
+                <li>Add validation: Opportunity Close Date cannot be in the past for open opps</li>
+                <li>Add validation: Primary Contact required before stage = "Meeting #1 Set"</li>
+                <li>Review: "Temporary_no_Thursday_1Rs" — is this still needed?</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>🔗 Integration Health</h2>
+            
+            <table>
+                <tr>
+                    <th>Integration</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                </tr>
+                <tr>
+                    <td>LeftMain CRM</td>
+                    <td><span class="priority low">✓ Active</span></td>
+                    <td>Core platform — monitor for package updates</td>
+                </tr>
+                <tr>
+                    <td>DocuSign</td>
+                    <td><span class="priority low">✓ Active</span></td>
+                    <td>Contract signing workflow</td>
+                </tr>
+                <tr>
+                    <td>RingCentral</td>
+                    <td><span class="priority low">✓ Active</span></td>
+                    <td>Phone system</td>
+                </tr>
+                <tr>
+                    <td>PropertySalesAI/Audantic</td>
+                    <td><span class="priority medium">⚠ Review</span></td>
+                    <td>Multiple webhook triggers — verify error handling</td>
+                </tr>
+                <tr>
+                    <td>Fireflies.ai</td>
+                    <td><span class="priority low">✓ Active</span></td>
+                    <td>Meeting transcription</td>
+                </tr>
+                <tr>
+                    <td>CallRail</td>
+                    <td><span class="priority low">✓ Active</span></td>
+                    <td>Call tracking</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>📅 Phased Implementation</h2>
+            
+            <table>
+                <tr>
+                    <th>Phase</th>
+                    <th>Timeline</th>
+                    <th>Focus</th>
+                </tr>
+                <tr>
+                    <td><strong>Phase 1: Audit & Document</strong></td>
+                    <td>Week 1-2</td>
+                    <td>Map all flow/trigger interactions, document execution order, identify quick wins</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2: Quick Wins</strong></td>
+                    <td>Week 3</td>
+                    <td>Deactivate unused record types, archive old templates, remove temp flows</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 3: Flow Consolidation</strong></td>
+                    <td>Week 4-6</td>
+                    <td>Merge redundant Lead flows, consolidate cadence-stop logic</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 4: Trigger Framework</strong></td>
+                    <td>Week 7-8</td>
+                    <td>Implement single-trigger-per-object pattern</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 5: Permission Cleanup</strong></td>
+                    <td>Week 9-10</td>
+                    <td>Audit permission sets, create groups, remove unused</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>🔗 Related Resources</h2>
+            <div class="links">
+                <a href="/tlh/tlh-salesforce/" class="link-btn">Full Salesforce Audit</a>
+                <a href="/tlh/tlh-salesforce/dashboard-objects.html" class="link-btn">Object Explorer</a>
+                <a href="/tlh/tlh-salesforce/dashboard-sales-process.html" class="link-btn">Sales Process</a>
+                <a href="/tlh/tlh-salesforce/dashboard-automation.html" class="link-btn">Automation Map</a>
+                <a href="/tlh/tlh-salesforce/dashboard-erd.html" class="link-btn">ERD Diagram</a>
+                <a href="/tlh/salesforce-mls-spec/" class="link-btn">MLS Integration Spec</a>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>TLH Salesforce Optimization Plan — February 2026</p>
+        <p><a href="/tlh/">← Back to TLH Projects</a></p>
+    </footer>
+</body>
+</html>
