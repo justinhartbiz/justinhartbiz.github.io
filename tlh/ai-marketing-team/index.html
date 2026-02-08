@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLH AI Marketing Team — Architecture</title>
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --secondary: #2d5a87;
+            --accent: #00a5a5;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --text: #333;
+            --muted: #6c757d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--light);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .hero h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+        .hero .subtitle { font-size: 1.25rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+        .goal-box {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: -3rem auto 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--accent);
+            font-size: 1.1rem;
+        }
+
+        section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        section h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        section h3 {
+            color: var(--secondary);
+            margin: 1.5rem 0 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: var(--light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .architecture-diagram {
+            background: #1a1a2e;
+            color: #0f0;
+            padding: 2rem;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+
+        .agent-card {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--accent);
+        }
+
+        .agent-card h4 {
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .agent-card .replaces {
+            background: #fff3cd;
+            color: #856404;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .agent-card ul {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .agent-card li { margin: 0.25rem 0; }
+
+        .phase-timeline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .phase-card {
+            background: white;
+            border: 2px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .phase-card h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .phase-card .weeks {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .phase-card ul {
+            list-style: none;
+        }
+
+        .phase-card li {
+            padding: 0.25rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .phase-card li::before {
+            content: "□";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        .savings-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .savings-grid { grid-template-columns: 1fr; }
+        }
+
+        .savings-card {
+            background: var(--light);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .savings-card.highlight {
+            background: linear-gradient(135deg, var(--accent) 0%, #008080 100%);
+            color: white;
+        }
+
+        .savings-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .savings-card.highlight .value { color: white; }
+
+        .savings-card .label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .savings-card.highlight .label { color: rgba(255,255,255,0.9); }
+
+        .approval-table tr.yes td:first-child { color: var(--success); font-weight: 600; }
+        .approval-table tr.no td:first-child { color: var(--muted); }
+
+        .benefits-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        .benefit-item .icon {
+            font-size: 1.5rem;
+        }
+
+        .questions-box {
+            background: #e3f2fd;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .questions-box h4 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .questions-box ol {
+            margin-left: 1.5rem;
+        }
+
+        .questions-box li {
+            margin: 0.5rem 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.have { background: #d4edda; color: #155724; }
+        .status-badge.unknown { background: #fff3cd; color: #856404; }
+        .status-badge.pending { background: #cce5ff; color: #004085; }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+        }
+
+        footer a { color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🤖 TLH AI Marketing Team</h1>
+        <p class="subtitle">Architecture for replacing/augmenting Brett + Debbie functions with AI agents</p>
+    </div>
+
+    <div class="container">
+        <div class="goal-box">
+            <strong>Goal:</strong> Replace/augment Brett + Debbie's marketing functions with AI agents while Justin retains CMO strategy oversight and SDR management. <strong>Estimated savings: $5-8K/month.</strong>
+        </div>
+
+        <section>
+            <h2>Current Team Structure</h2>
+            <table>
+                <tr>
+                    <th>Role</th>
+                    <th>Person</th>
+                    <th>Type</th>
+                    <th>Core Functions</th>
+                </tr>
+                <tr>
+                    <td><strong>CMO</strong></td>
+                    <td>Justin</td>
+                    <td>Part-time W-2</td>
+                    <td>Strategy, SDR oversight, high-level direction</td>
+                </tr>
+                <tr>
+                    <td><strong>Marketing Ops</strong></td>
+                    <td>Brett</td>
+                    <td>1099 Remote</td>
+                    <td>Website, email, blog/SEO, UX/UI, SF architecture</td>
+                </tr>
+                <tr>
+                    <td><strong>Design/Social</strong></td>
+                    <td>Debbie</td>
+                    <td>Outsourced (PH)</td>
+                    <td>Social posts, estate sale listings, reviews, QA, design</td>
+                </tr>
+                <tr>
+                    <td><strong>Ads</strong></td>
+                    <td>Jason</td>
+                    <td>3rd Party Vendor</td>
+                    <td>Google Ads management, budget allocation</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>Proposed AI Agent Architecture</h2>
+            <div class="architecture-diagram">┌─────────────────────────────────────────────────────────────────────────┐
+│                         JUSTIN (CMO)                                    │
+│                   Strategy · SDR Oversight · Approvals                  │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    🦉 TLH ORCHESTRATOR AGENT                            │
+│                       (Main OpenClaw Session)                           │
+│                                                                         │
+│  • Dispatch tasks to specialist agents                                  │
+│  • Aggregate weekly reports                                             │
+│  • Human escalation for approvals                                       │
+│  • Coordinate cross-agent workflows                                     │
+└─────────────────────────────────────────────────────────────────────────┘
+          │                    │                    │                    │
+          ▼                    ▼                    ▼                    ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│  📝 CONTENT     │  │  📣 SOCIAL      │  │  🏠 LISTINGS    │  │  📊 ANALYTICS   │
+│  AGENT          │  │  AGENT          │  │  AGENT          │  │  AGENT          │
+│                 │  │                 │  │                 │  │                 │
+│ • Blog posts    │  │ • Schedule      │  │ • Estate sale   │  │ • SF reports    │
+│ • SEO scoring   │  │ • Estate sales  │  │   page creation │  │ • Lead funnel   │
+│ • Email copy    │  │ • Brand posts   │  │ • Multi-platform│  │ • Attribution   │
+│ • LP creation   │  │ • Engagement    │  │   syndication   │  │ • Weekly rollup │
+│                 │  │ • Review mgmt   │  │ • Photo QA      │  │ • CPA tracking  │
+└─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘
+                                    │
+                                    ▼
+                     ┌─────────────────────────────┐
+                     │     🔧 SYSTEMS ACCESS       │
+                     │  Salesforce · WordPress     │
+                     │  Social · Email · Listings  │
+                     └─────────────────────────────┘</div>
+        </section>
+
+        <section>
+            <h2>Agent Specifications</h2>
+
+            <div class="agent-card">
+                <h4>🦉 TLH Orchestrator (Main Session)</h4>
+                <span class="replaces">Coordinator — New Role</span>
+                <p><strong>Functions:</strong></p>
+                <ul>
+                    <li>Morning briefing (what's due today, what's blocked)</li>
+                    <li>Weekly marketing report compilation</li>
+                    <li>Escalation to Justin for approvals</li>
+                    <li>Dispatch tasks to sub-agents</li>
+                    <li>Monitor agent outputs for quality</li>
+                </ul>
+                <p style="margin-top: 1rem;"><strong>Cadence:</strong> 30min heartbeat · 8 AM daily briefing · Friday weekly rollup</p>
+            </div>
+
+            <div class="agent-card">
+                <h4>📝 Content Agent</h4>
+                <span class="replaces">Replaces: Brett's blog/SEO/email</span>
+                <p><strong>Functions:</strong></p>
+                <ul>
+                    <li>Write blog posts (target 90%+ SEO score)</li>
+                    <li>Create landing page copy</li>
+                    <li>Estate sale shopper email creation</li>
+                    <li>Content calendar management</li>
+                    <li>SEO keyword research and optimization</li>
+                </ul>
+                <p style="margin-top: 1rem;"><strong>Cadence:</strong> 1-2 blog posts/week · Email per estate sale · Monthly theme planning</p>
+            </div>
+
+            <div class="agent-card">
+                <h4>📣 Social Agent</h4>
+                <span class="replaces">Replaces: Debbie's social media</span>
+                <p><strong>Functions:</strong></p>
+                <ul>
+                    <li>Create and schedule social posts</li>
+                    <li>Estate sale announcements across platforms</li>
+                    <li>Brand awareness content</li>
+                    <li>Monitor and respond to reviews</li>
+                    <li>Engagement tracking</li>
+                </ul>
+                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Daily review check · Per-sale announcements · 3-5 brand posts/week</p>
+            </div>
+
+            <div class="agent-card">
+                <h4>🏠 Listings Agent</h4>
+                <span class="replaces">Replaces: Debbie's listing creation</span>
+                <p><strong>Functions:</strong></p>
+                <ul>
+                    <li>Create estate sale pages on TLH website</li>
+                    <li>Syndicate to EstateSales.net, EstateSales.org, etc.</li>
+                    <li>Photo review and flagging</li>
+                    <li>Listing QA (accuracy, completeness)</li>
+                    <li>Last-minute update monitoring</li>
+                </ul>
+                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Per estate sale · Daily monitoring · Weekly QA audit</p>
+            </div>
+
+            <div class="agent-card">
+                <h4>📊 Analytics Agent</h4>
+                <span class="replaces">Replaces: Brett's reporting + manual analysis</span>
+                <p><strong>Functions:</strong></p>
+                <ul>
+                    <li>Salesforce lead/opp reporting</li>
+                    <li>Marketing attribution tracking</li>
+                    <li>CPA and conversion analysis</li>
+                    <li>Weekly performance dashboard</li>
+                    <li>Anomaly detection and alerts</li>
+                </ul>
+                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Daily lead check · Weekly full report · Monthly deep-dive</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Cost/Benefit Analysis</h2>
+            
+            <div class="savings-grid">
+                <div class="savings-card">
+                    <div class="value">$5.5-8.5K</div>
+                    <div class="label">Current Monthly Cost<br>(Brett + Debbie)</div>
+                </div>
+                <div class="savings-card">
+                    <div class="value">$300-700</div>
+                    <div class="label">AI Agent Cost<br>(APIs + Tools)</div>
+                </div>
+                <div class="savings-card highlight">
+                    <div class="value">$5-8K</div>
+                    <div class="label">Monthly Savings</div>
+                </div>
+            </div>
+
+            <h3>Beyond Cost Savings</h3>
+            <div class="benefits-list">
+                <div class="benefit-item">
+                    <span class="icon">🌙</span>
+                    <span>24/7 operation (no timezone constraints)</span>
+                </div>
+                <div class="benefit-item">
+                    <span class="icon">⚡</span>
+                    <span>Faster turnaround (minutes vs. hours/days)</span>
+                </div>
+                <div class="benefit-item">
+                    <span class="icon">✓</span>
+                    <span>Consistent quality (no training curve)</span>
+                </div>
+                <div class="benefit-item">
+                    <span class="icon">📈</span>
+                    <span>Scalable (same agents for new markets)</span>
+                </div>
+                <div class="benefit-item">
+                    <span class="icon">📋</span>
+                    <span>Full attribution and logging</span>
+                </div>
+                <div class="benefit-item">
+                    <span class="icon">🔄</span>
+                    <span>Instant pivots (no retraining)</span>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Human-in-the-Loop Points</h2>
+            <table class="approval-table">
+                <tr>
+                    <th>Action</th>
+                    <th>Approval Required?</th>
+                    <th>Notes</th>
+                </tr>
+                <tr class="yes">
+                    <td>✅ Blog post publish</td>
+                    <td>Yes</td>
+                    <td>Justin reviews before live</td>
+                </tr>
+                <tr class="no">
+                    <td>Social post (brand)</td>
+                    <td>Optional</td>
+                    <td>Can auto-post with templates</td>
+                </tr>
+                <tr class="no">
+                    <td>Social post (estate sale)</td>
+                    <td>No</td>
+                    <td>Templated, auto-publish</td>
+                </tr>
+                <tr class="yes">
+                    <td>✅ Email send</td>
+                    <td>Yes</td>
+                    <td>Review before large sends</td>
+                </tr>
+                <tr class="yes">
+                    <td>✅ Review response</td>
+                    <td>Yes</td>
+                    <td>Sensitive — human review</td>
+                </tr>
+                <tr class="no">
+                    <td>Listing creation</td>
+                    <td>No</td>
+                    <td>Templated, auto-publish</td>
+                </tr>
+                <tr class="no">
+                    <td>Report delivery</td>
+                    <td>No</td>
+                    <td>Automated to Justin</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>Systems Access Required</h2>
+            <table>
+                <tr>
+                    <th>System</th>
+                    <th>Status</th>
+                    <th>Needed For</th>
+                    <th>Access Method</th>
+                </tr>
+                <tr>
+                    <td>Salesforce</td>
+                    <td><span class="status-badge have">✅ Have</span></td>
+                    <td>All agents</td>
+                    <td>sf CLI / API</td>
+                </tr>
+                <tr>
+                    <td>WordPress</td>
+                    <td><span class="status-badge unknown">❓ Unknown</span></td>
+                    <td>Content, Listings</td>
+                    <td>REST API</td>
+                </tr>
+                <tr>
+                    <td>Google Ads</td>
+                    <td><span class="status-badge pending">⏳ Jason controls</span></td>
+                    <td>Analytics</td>
+                    <td>API or shared access</td>
+                </tr>
+                <tr>
+                    <td>Google Analytics</td>
+                    <td><span class="status-badge unknown">❓ Unknown</span></td>
+                    <td>Analytics</td>
+                    <td>API credentials</td>
+                </tr>
+                <tr>
+                    <td>Mailchimp/Email</td>
+                    <td><span class="status-badge unknown">❓ Unknown</span></td>
+                    <td>Content</td>
+                    <td>API</td>
+                </tr>
+                <tr>
+                    <td>EstateSales.net</td>
+                    <td><span class="status-badge unknown">❓ Unknown</span></td>
+                    <td>Listings</td>
+                    <td>Browser automation</td>
+                </tr>
+                <tr>
+                    <td>Social (FB/IG)</td>
+                    <td><span class="status-badge unknown">❓ Unknown</span></td>
+                    <td>Social</td>
+                    <td>Buffer or native APIs</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>Implementation Phases</h2>
+            <div class="phase-timeline">
+                <div class="phase-card">
+                    <h4>Phase 1: Foundation</h4>
+                    <p class="weeks">Weeks 1-2</p>
+                    <ul>
+                        <li>Audit current tool access</li>
+                        <li>Set up API credentials</li>
+                        <li>Create agent workspace</li>
+                        <li>Build Analytics Agent first</li>
+                    </ul>
+                </div>
+                <div class="phase-card">
+                    <h4>Phase 2: Content Engine</h4>
+                    <p class="weeks">Weeks 3-4</p>
+                    <ul>
+                        <li>Deploy Content Agent</li>
+                        <li>WordPress access setup</li>
+                        <li>Blog workflow + approvals</li>
+                        <li>Email templates</li>
+                    </ul>
+                </div>
+                <div class="phase-card">
+                    <h4>Phase 3: Social & Listings</h4>
+                    <p class="weeks">Weeks 5-6</p>
+                    <ul>
+                        <li>Deploy Social Agent</li>
+                        <li>Deploy Listings Agent</li>
+                        <li>Multi-platform workflow</li>
+                        <li>Review monitoring</li>
+                    </ul>
+                </div>
+                <div class="phase-card">
+                    <h4>Phase 4: Full Automation</h4>
+                    <p class="weeks">Weeks 7-8</p>
+                    <ul>
+                        <li>Integrate under Orchestrator</li>
+                        <li>Tune cadences/handoffs</li>
+                        <li>Escalation paths</li>
+                        <li>Documentation</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Questions to Answer</h2>
+            <div class="questions-box">
+                <h4>🤔 Need answers to proceed:</h4>
+                <ol>
+                    <li><strong>WordPress access:</strong> Do we have REST API credentials? Who manages the site technically?</li>
+                    <li><strong>Email platform:</strong> Mailchimp, Salesforce Marketing Cloud, or something else?</li>
+                    <li><strong>Social scheduling:</strong> Currently using Buffer/Hootsuite/Later, or posting manually?</li>
+                    <li><strong>EstateSales.net:</strong> How are listings currently posted? Manual or integration?</li>
+                    <li><strong>Review platforms:</strong> Which ones matter most? Google, Yelp, Facebook, others?</li>
+                    <li><strong>Jason's ad data:</strong> Can we get API access to Google Ads, or does he provide reports?</li>
+                    <li><strong>Photo storage:</strong> Where do estate sale photos live? Dropbox, Google Drive, on-site?</li>
+                    <li><strong>Approval workflow:</strong> Preferred channel — iMessage, Slack, Telegram, email?</li>
+                </ol>
+            </div>
+        </section>
+
+        <section>
+            <h2>Next Steps</h2>
+            <ol style="margin-left: 1.5rem; font-size: 1.1rem;">
+                <li style="margin: 0.75rem 0;"><strong>Immediate:</strong> Answer the questions above</li>
+                <li style="margin: 0.75rem 0;"><strong>This week:</strong> Audit system access, get credentials</li>
+                <li style="margin: 0.75rem 0;"><strong>Next week:</strong> Deploy Analytics Agent (prove value fast)</li>
+                <li style="margin: 0.75rem 0;"><strong>Ongoing:</strong> Phase rollout per timeline above</li>
+            </ol>
+        </section>
+    </div>
+
+    <footer>
+        <p>TLH AI Marketing Team Architecture · February 2026</p>
+        <p><a href="/tlh/">← Back to TLH Projects</a></p>
+    </footer>
+</body>
+</html>
