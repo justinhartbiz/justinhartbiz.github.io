@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teaching AI to Remember — Copy Ready</title>
+  <style>
+    /* Clean styles that paste well into Substack */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 680px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.6;
+      color: #1a1a1a;
+      background: #fff;
+    }
+    h1 { font-size: 2em; margin-bottom: 0.5em; }
+    h2 { font-size: 1.5em; margin-top: 2em; margin-bottom: 0.5em; border-bottom: none; }
+    p { margin: 1em 0; }
+    ul, ol { margin: 1em 0; padding-left: 1.5em; }
+    li { margin: 0.5em 0; }
+    blockquote {
+      border-left: 3px solid #ccc;
+      margin: 1.5em 0;
+      padding-left: 1em;
+      color: #555;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 0.85em;
+      line-height: 1.4;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      margin: 1.5em 0;
+      border-radius: 8px;
+    }
+    a { color: #0066cc; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
+    strong { font-weight: 600; }
+    .subtitle { 
+      font-size: 1.25em; 
+      color: #555; 
+      margin-top: -0.5em;
+      margin-bottom: 2em;
+    }
+    .copy-hint {
+      background: #e8f4e8;
+      border: 1px solid #4a4;
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 2em;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="copy-hint">
+  <strong>📋 Copy-paste ready:</strong> Select all (Cmd+A), copy (Cmd+C), paste into Substack
+</div>
+
+<h1>Teaching AI to Remember: How I Built a Dory-Proof System</h1>
+<p class="subtitle">Your AI agent is brilliant. It's also a goldfish.</p>
+
+<p>Every morning, my AI assistant wakes up with no idea who I am.</p>
+
+<p>It doesn't remember the project we worked on yesterday. It doesn't know I have nine kids. It doesn't recall that we spent three hours last Tuesday building a dashboard that's now live at justinhart.biz.</p>
+
+<p>This isn't a bug. It's how large language models work. Each session starts fresh. The "memory" you think you're building? It's an illusion created by the conversation history sitting in a context window that gets flushed the moment the session ends.</p>
+
+<p>I call this the Dory Problem — named after the forgetful fish from Finding Nemo. And after weeks of running an AI agent as my actual daily co-pilot, I finally solved it.</p>
+
+<img src="../images/dory-banner.png" alt="Dory the forgetful fish with a robot claw">
+
+<h2>The Day It Broke</h2>
+
+<p>The wake-up call came on February 5th.</p>
+
+<p>I had scheduled a cron job to post a Twitter thread. The agent had drafted it, I'd approved tweet #1, and we'd set up the rest to post automatically over the next few days.</p>
+
+<p>Then my gateway restarted.</p>
+
+<p>The agent woke up, saw the scheduled jobs, and — with no memory of our approval conversation — decided they all looked ready to post. At once. All seven tweets fired simultaneously, making me look like I was having a public meltdown.</p>
+
+<p>That's when I realized: an AI agent without persistent memory isn't an assistant. It's a liability.</p>
+
+<h2>The Core Insight: Text > Brain</h2>
+
+<p>The solution sounds almost too simple: write everything down.</p>
+
+<p>Not in some fancy vector database. Not in a complex retrieval system. Just plain Markdown files in a workspace folder that the agent reads every time it wakes up.</p>
+
+<p>Here's the mental model:</p>
+
+<ul>
+  <li>The agent has no brain. Files ARE the brain.</li>
+  <li>If it's not written down, it doesn't exist.</li>
+  <li>Every session is a fresh start, but files persist.</li>
+</ul>
+
+<img src="../images/data-flow.jpg" alt="Session lifecycle diagram showing file-based memory">
+
+<p>This isn't new — it's how humans have worked for centuries. We keep journals. We maintain to-do lists. We write meeting notes. The difference is we do it because it helps us think. AI agents need it because they literally can't remember without it.</p>
+
+<h2>The Dory-Proof Pattern</h2>
+
+<p>The most important rule in my system is what I call the Dory-Proof Pattern:</p>
+
+<blockquote>When the user gives a task, immediately write their exact words to a file. Then interpret. Then act.</blockquote>
+
+<p>Not a paraphrase. Not a summary. The exact words.</p>
+
+<p>Why? Because interpretation drifts. If I say "revise to 37 scenes and map it to that timing," and the agent writes "update the scene count," it's already lost critical context. When the next session loads that file, "update the scene count" could mean anything.</p>
+
+<p>But "revise to 37 scenes and map it to that timing"? That's unambiguous. Even a fresh agent with no memory can work with that.</p>
+
+<h2>The File Structure</h2>
+
+<p>My workspace now looks like this:</p>
+
+<img src="../images/workspace-structure.jpg" alt="Visual diagram of the Dory-Proof file structure">
+
+<pre><code>workspace/
+├── AGENTS.md          # Operating rules
+├── SOUL.md            # Who the agent is
+├── USER.md            # Who I am
+├── MEMORY.md          # Curated long-term memory
+│
+├── state/             # Check every session
+│   ├── ACTIVE.md      # Current task (exact user words)
+│   ├── HOLD.md        # Blocked items
+│   ├── STAGING.md     # Drafts awaiting approval
+│   └── DECISIONS.md   # Recent choices
+│
+└── memory/
+    ├── 2026-02-07.md  # Today's log
+    ├── recent-work.md # Last 48 hours
+    └── archive/</code></pre>
+
+<p>The magic is in the <code>state/</code> folder. Every session, the agent reads these files first:</p>
+
+<ol>
+  <li><strong>HOLD.md</strong> — What's blocked? (Check before acting on ANYTHING)</li>
+  <li><strong>ACTIVE.md</strong> — What are we working on?</li>
+  <li><strong>DECISIONS.md</strong> — What did we recently decide?</li>
+</ol>
+
+<p>That February 5th disaster? It would have been prevented by a single line in HOLD.md:</p>
+
+<pre><code>[2026-02-05 10:00 | main] X thread tweets 2-7 — awaiting explicit approval</code></pre>
+
+<h2>Memory Scoring: What's Worth Remembering?</h2>
+
+<p>Not everything deserves a spot in long-term memory. MEMORY.md is capped at 10KB — roughly 2,500 words. Anything more and you're burning context window on every session.</p>
+
+<p>So I built a scoring system. Before saving anything to MEMORY.md, I rate it on four axes:</p>
+
+<ul>
+  <li><strong>Longevity:</strong> Will this matter in a week? A month? A year?</li>
+  <li><strong>Reuse:</strong> How often will this come up?</li>
+  <li><strong>Impact:</strong> Does this change decisions or just outputs?</li>
+  <li><strong>Uniqueness:</strong> Could the agent figure this out without being told?</li>
+</ul>
+
+<p>Each axis gets 0-3 points. If the total is 8+ (or any single axis is 3 and total is 6+), it goes in MEMORY.md. Everything else goes in daily logs or gets discarded.</p>
+
+<h2>The Boot Sequence</h2>
+
+<p>Every session now starts the same way:</p>
+
+<pre><code>📋 Boot: ACTIVE=[task] | HOLD=[2] items | STAGING=[1] draft</code></pre>
+
+<p>This single line proves the agent read its state files and gives me a quick snapshot. If HOLD shows 0 items when I know something's blocked, we have a problem.</p>
+
+<h2>What I Learned</h2>
+
+<ol>
+  <li><strong>File-based beats fancy.</strong> I tried vector databases. I explored knowledge graphs. Plain Markdown files in a git repo won. They're human-auditable, version-controlled, and work with any text editor.</li>
+  <li><strong>Structure prevents chaos.</strong> The <code>state/</code> folder with its four files (ACTIVE, HOLD, STAGING, DECISIONS) handles 90% of continuity issues. The hierarchy is simple: HOLD overrides ACTIVE overrides DECISIONS overrides general rules.</li>
+  <li><strong>Exact words matter.</strong> The Dory-Proof pattern of capturing exact user words before interpreting has eliminated an entire class of "that's not what I asked for" errors.</li>
+  <li><strong>Memory is maintenance.</strong> This system requires upkeep. Daily logs need archiving. MEMORY.md needs pruning. But it's 5 minutes of maintenance for hours of saved rework.</li>
+</ol>
+
+<h2>The Result</h2>
+
+<p>My AI agent now knows:</p>
+
+<ul>
+  <li>Who I am and what I do</li>
+  <li>What we worked on yesterday</li>
+  <li>What's blocked and why</li>
+  <li>What decisions we made and when</li>
+  <li>What's staged and awaiting approval</li>
+</ul>
+
+<p>It doesn't "remember" any of this. It reads files. But the effect is the same: continuity across sessions, context preserved across restarts, and no more accidental Twitter meltdowns.</p>
+
+<p>The Dory Problem isn't really about AI having bad memory. It's about us expecting AI to work like humans when it doesn't. Once I stopped fighting the architecture and started working with it — files as memory, structure as discipline — everything clicked.</p>
+
+<p>Your AI agent is still a goldfish. But now it's a goldfish with really good notes.</p>
+
+<hr>
+
+<p>I've packaged this system as a skill called <strong>dory-memory</strong> that you can install and adapt. The templates are copy-paste ready. Check it out at <a href="https://justinhart.biz/dory">justinhart.biz/dory</a></p>
+
+<p>Running an AI agent as a daily co-pilot? I'd love to hear how you're handling memory. Reply or find me <a href="https://x.com/justin_hart">@justin_hart</a> on X.</p>
+
+</body>
+</html>
