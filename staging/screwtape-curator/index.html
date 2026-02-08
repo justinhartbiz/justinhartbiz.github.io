@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screwtape Curator — Letter I</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 20px;
+      padding-bottom: 150px;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #a855f7, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
+    
+    .topic-section {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+    .topic-header {
+      background: rgba(255,255,255,0.05);
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topic-header:hover { background: rgba(255,255,255,0.08); }
+    .topic-count {
+      font-size: 0.8rem;
+      color: #888;
+      font-weight: normal;
+    }
+    .topic-content { padding: 12px; }
+    
+    .sentence-row {
+      display: flex;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: rgba(0,0,0,0.2);
+      align-items: flex-start;
+    }
+    .sentence-row:hover { background: rgba(0,0,0,0.3); }
+    .sentence-row.selected { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); }
+    
+    .checkbox-col {
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+    .checkbox-col input {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    
+    .model-badge {
+      flex-shrink: 0;
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .model-45 { background: #a855f7; color: white; }
+    .model-46 { background: #3b82f6; color: white; }
+    .model-gemini { background: #22c55e; color: white; }
+    .model-openai { background: #f97316; color: white; }
+    
+    .sentence-text {
+      flex: 1;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    
+    .controls {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1a1a2e;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .selection-count {
+      font-size: 0.9rem;
+      color: #888;
+    }
+    .selection-count strong { color: #3b82f6; }
+    
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #a855f7);
+      color: white;
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #e0e0e0;
+    }
+    .btn:hover { opacity: 0.9; }
+    
+    #output-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 100;
+      padding: 40px 20px;
+      overflow-y: auto;
+    }
+    #output-modal.show { display: block; }
+    .modal-content {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #1a1a2e;
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 { font-size: 1.3rem; }
+    .close-btn {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    #output-text {
+      background: rgba(0,0,0,0.3);
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Georgia', serif;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+    .output-topic {
+      color: #a855f7;
+      font-weight: 600;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-family: -apple-system, sans-serif;
+    }
+    .output-topic:first-child { margin-top: 0; }
+    
+    .select-all-row {
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.8rem;
+    }
+    .select-all-row label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✂️ Screwtape Curator</h1>
+    <p class="subtitle">Letter I — Select sentences to keep, grouped by topic</p>
+    
+    <div id="topics-container"></div>
+  </div>
+  
+  <div class="controls">
+    <div class="selection-count">
+      <strong id="count">0</strong> sentences selected
+    </div>
+    <div>
+      <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+      <button class="btn btn-primary" onclick="generateOutput()">Generate Merge →</button>
+    </div>
+  </div>
+  
+  <div id="output-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📝 Curated Sentences by Topic</h2>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div id="output-text"></div>
+      <button class="btn btn-secondary" style="margin-top: 20px; width: 100%;" onclick="copyOutput()">📋 Copy to Clipboard</button>
+    </div>
+  </div>
+
+<script>
+const data = {
+  "opening": {
+    title: "🎭 Opening / Hook",
+    sentences: [
+      { model: "45", text: "I write to you in a state of considerable excitement—forgive me if I dispense with the usual pleasantries, but the situation on the ground demands immediate correspondence." },
+      { model: "45", text: "Something remarkable has happened." },
+      { model: "45", text: "We have convinced them to imprison themselves." },
+      { model: "46", text: "I write to you in a state of barely suppressed exhilaration — which I know you will find vulgar, and which I offer nonetheless, because the results demand it." },
+      { model: "46", text: "The American theatre is performing beyond even our most optimistic projections." },
+      { model: "46", text: "The Black Death, you'll remember, was a logistical triumph but a spiritual catastrophe." },
+      { model: "46", text: "Half of Europe died and the survivors built cathedrals." },
+      { model: "46", text: "Infuriating." },
+      { model: "gemini", text: "I write to you in a state of professional ecstasy." },
+      { model: "gemini", text: "The Lowerarchy has long sought a mechanism to induce voluntary incarceration among the free peoples of the West, but we always assumed it would require a war or a visible tyranny." },
+      { model: "gemini", text: "It turns out all we needed was a graph." },
+      { model: "openai", text: "I write to you in a state of barely contained elation—though I know you will counsel me, as always, against premature celebration." },
+      { model: "openai", text: "The gambit has exceeded our projections." }
+    ]
+  },
+  "two_weeks": {
+    title: "⏰ Two Weeks Trap",
+    sentences: [
+      { model: "45", text: "The key phrase, which I confess I am rather proud of, is this: 'Two weeks to flatten the curve.'" },
+      { model: "45", text: "Two weeks is short enough to secure compliance without resistance." },
+      { model: "45", text: "No one objects to a fortnight of sacrifice." },
+      { model: "45", text: "It sounds almost festive—a national slumber party, a collective snow day." },
+      { model: "45", text: "The duration disarms their suspicions." },
+      { model: "45", text: "But the phrase contains no actual terminus." },
+      { model: "45", text: "'Flatten the curve' is not a measurable goal but a metaphor." },
+      { model: "45", text: "The goalposts are not merely movable; they are imaginary." },
+      { model: "46", text: "The campaign hinged on a single phrase: two weeks to flatten the curve." },
+      { model: "46", text: "It is short enough to demand compliance — what monster would refuse a mere fortnight of inconvenience? — and yet beautifully, structurally indefinite." },
+      { model: "46", text: "Two weeks to flatten. Not two weeks and then we stop." },
+      { model: "46", text: "The prepositional construction is load-bearing, Uncle." },
+      { model: "46", text: "It ties the duration not to a calendar but to an outcome, and the outcome is defined by us." },
+      { model: "gemini", text: "The genius of the 'Two Weeks' slogan lies in its temporality." },
+      { model: "gemini", text: "It is a specific, finite promise." },
+      { model: "gemini", text: "Even the most undisciplined vermin can hold its breath for fourteen days." },
+      { model: "gemini", text: "It feels like a sprint, a momentary dash of heroism." },
+      { model: "gemini", text: "They believe they are soldiers in a bloodless war, doing their part by retreating to their sofas." },
+      { model: "openai", text: "'Two weeks to flatten the curve.' Five words." },
+      { model: "openai", text: "You taught me, long ago, that the most effective lies are the ones that sound like mathematics." },
+      { model: "openai", text: "The phrase flatters their intelligence while bypassing it entirely." },
+      { model: "openai", text: "Two weeks is manageable. Two weeks is a vacation. Two weeks is what they endure between paychecks." },
+      { model: "openai", text: "We promised them two weeks. We shall give them two years, and they will thank us for each extension as though it were a gift." }
+    ]
+  },
+  "curve_liturgy": {
+    title: "⛪ The Curve as Liturgy",
+    sentences: [
+      { model: "45", text: "Most gratifying has been their treatment of the Curve itself." },
+      { model: "45", text: "They speak of it with reverence, display it on their screens, argue about its trajectory with the fervor once reserved for theological disputes." },
+      { model: "45", text: "The Curve has become a liturgical object—and like all good liturgy, it need not be understood, only obeyed." },
+      { model: "45", text: "They bow before it without ever asking what precisely it measures, whether those measurements are reliable, or what 'flattening' it actually accomplishes." },
+      { model: "45", text: "The Curve simply is, and they are faithful." },
+      { model: "46", text: "The curve itself has exceeded all expectations as a devotional object." },
+      { model: "46", text: "We introduced it as a simple epidemiological graphic — two humps, one tall and red, one flat and blue, with a dotted line representing hospital capacity." },
+      { model: "46", text: "The creatures received it not as a model (which would invite scrutiny) but as a revelation." },
+      { model: "46", text: "They share it with the fervour of the freshly converted." },
+      { model: "46", text: "They hang it on their walls." },
+      { model: "46", text: "They invoke it to silence questions." },
+      { model: "46", text: "It has become their stations of the cross — though this particular via dolorosa has no Calvary and, more importantly, no resurrection." },
+      { model: "gemini", text: "We have given them a chart—simple, red, and terrifying—and they have elevated it to the status of a liturgical object." },
+      { model: "gemini", text: "They do not look at the sick; they do not look at the sky; they look at the Curve." },
+      { model: "gemini", text: "They wake up to check the numbers; they go to sleep reciting the projections." },
+      { model: "gemini", text: "We have successfully replaced their trust in the Enemy's providence with a fixation on statistical modeling." },
+      { model: "openai", text: "The curve itself has become a liturgical object." },
+      { model: "openai", text: "They bow to it without quite knowing what it represents." },
+      { model: "openai", text: "Hospital capacity? Mortality rates? Total cases? It hardly matters." },
+      { model: "openai", text: "What matters is that they have been given a shape to worship—a visual representation of their collective anxiety—and told that their obedience can alter its geometry." },
+      { model: "openai", text: "The curve rises and falls like incense smoke, and they attribute every fluctuation to their own piety or sin." }
+    ]
+  },
+  "unfalsifiable": {
+    title: "🔒 Unfalsifiable Logic",
+    sentences: [
+      { model: "45", text: "A respiratory illness—nothing extraordinary, the sort of thing that culls the elderly every few winters—has been presented to them not as a fact of mortal existence but as an emergency." },
+      { model: "46", text: "The mechanism is self-reinforcing in a way that would make our Father Below weep with pride, if he were capable of tears." },
+      { model: "46", text: "Observe: if infections decline, the measures are working and must continue." },
+      { model: "46", text: "If infections rise, the measures are insufficient and must intensify." },
+      { model: "46", text: "There is no observable outcome that could falsify the prescription." },
+      { model: "46", text: "I have searched the literature of the Enemy's apologists for a term and found one: unfalsifiable." },
+      { model: "46", text: "They consider this a defect in reasoning. We consider it a feature." },
+      { model: "openai", text: "We could not have designed a more self-reinforcing system if we had a century to plan it." },
+      { model: "openai", text: "If the curve flattens, it is proof the restrictions worked." },
+      { model: "openai", text: "If the curve does not flatten, it is proof the restrictions were insufficient—that someone, somewhere, failed to comply with adequate fervor." },
+      { model: "openai", text: "The humans call this 'unfalsifiable' when they encounter it in religious contexts, and they sneer." },
+      { model: "openai", text: "Yet here they have built themselves an unfalsifiable cage and crawled inside voluntarily, convinced it is a hospital." }
+    ]
+  },
+  "class_divide": {
+    title: "👔 Class Divide",
+    sentences: [
+      { model: "45", text: "I confess I did not anticipate how eagerly the comfortable classes would embrace confinement." },
+      { model: "45", text: "Those who work with their minds rather than their hands have discovered that they can conduct their affairs from home, in their pajamas, with their meals delivered by the less fortunate." },
+      { model: "45", text: "They call this 'staying safe.' They call this 'doing their part.'" },
+      { model: "45", text: "They have found a form of sacrifice that costs them nothing and actually improves their daily comfort." },
+      { model: "45", text: "It is the Lenten fast reimagined: no hunger, no cold, no discomfort—only the warm glow of moral superiority." },
+      { model: "45", text: "Meanwhile, the working classes continue to stock the shelves, drive the trucks, and empty the bedpans." },
+      { model: "45", text: "They are essential enough to keep the machinery running but not essential enough to thank." },
+      { model: "45", text: "The Professional-Managerial Patient, as I have taken to calling him, can denounce these workers as 'reckless' from the safety of his home office." },
+      { model: "46", text: "Something unexpected is happening among the comfortable classes — the professionals, the laptop-owners, the people whose labor consists of sending electronic memoranda from rooms in their own homes." },
+      { model: "46", text: "They are enjoying this." },
+      { model: "46", text: "The sacrifice they are making is not sacrifice at all." },
+      { model: "46", text: "It is leisure with a halo." },
+      { model: "46", text: "They have discovered that staying home in pajamas, ordering provisions to their doorstep, and binge-watching streaming entertainment can be reframed as a civic duty." },
+      { model: "46", text: "The moral inversion is breathtaking." },
+      { model: "46", text: "Sloth has been consecrated." },
+      { model: "46", text: "The ones who drive the trucks, stock the shelves, empty the bedpans, and keep the lights on have no option of pajama sacrifice." },
+      { model: "46", text: "They go out daily into the world we have told everyone is lethal." },
+      { model: "46", text: "They are called 'essential,' which sounds like a compliment but functions as a conscription notice." },
+      { model: "gemini", text: "We have divided the creatures into two exquisite castes without them even noticing." },
+      { model: "gemini", text: "There is the 'Zoom Class'—the comfortable, the laptop-wielding, the pajama-clad—who get to feel virtuous for ordering food delivery." },
+      { model: "gemini", text: "And then there are the 'Essentials'—the drivers, the shelf-stockers, the unclean mechanics—who must brave the 'plague' to bring the virtuous their treats." },
+      { model: "gemini", text: "The comfortable class despises the working class for being 'vectors of disease' while simultaneously depending on them for survival." },
+      { model: "openai", text: "The comfortable ones—those who own laptops and have what they call 'Zoom-friendly' occupations—have discovered that they rather enjoy this." },
+      { model: "openai", text: "They are working from home in their pajamas, calling it 'sacrifice,' and feeling tremendously virtuous about activities that cost them nothing." },
+      { model: "openai", text: "They have found a way to feel heroic while sitting on the couch." },
+      { model: "openai", text: "Meanwhile, the others—the delivery drivers, grocery clerks, nurses, meatpackers—continue to keep society functioning while being simultaneously labeled 'essential' and treated as expendable." },
+      { model: "openai", text: "They are heroes in rhetoric but not in policy." }
+    ]
+  },
+  "performative": {
+    title: "🌈 Performative Virtue",
+    sentences: [
+      { model: "46", text: "The comfortable classes applaud them from balconies at appointed hours, banging pots and pans in a ritual that manages to be simultaneously patronizing and self-congratulatory." },
+      { model: "46", text: "The pot-bangers believe they are expressing solidarity." },
+      { model: "46", text: "They are actually expressing distance." },
+      { model: "46", text: "'We stay home for you' is not an act of love." },
+      { model: "46", text: "It is a declaration of caste." },
+      { model: "openai", text: "The comfortable ones are banging pots and pans from their balconies, hanging rainbow signs in their windows, posting that 'we're all in this together.'" },
+      { model: "openai", text: "But they are manifestly not in it together." },
+      { model: "openai", text: "They are watching from a safe distance while others take the risks." }
+    ]
+  },
+  "churches": {
+    title: "⛪ Churches Closed",
+    sentences: [
+      { model: "45", text: "I have watched with considerable satisfaction as they shutter their churches while leaving the liquor stores open." },
+      { model: "45", text: "They have closed the schools but kept the cannabis dispensaries operating." },
+      { model: "45", text: "The message could not be clearer: the soul is unessential; the body's appetites are critical infrastructure." },
+      { model: "46", text: "There are small pockets of resistance forming around the churches." },
+      { model: "46", text: "Several pastors — the stubborn, unfashionable sort who still believe worship is essential in the old sense of the word — are asking why liquor stores remain open while sanctuaries are closed." },
+      { model: "46", text: "This line of inquiry must be shut down immediately." },
+      { model: "46", text: "The question is devastating precisely because it has an obvious answer, and the obvious answer indicts the entire priority structure we have so carefully erected." },
+      { model: "gemini", text: "The churches are the most delicious casualty." },
+      { model: "gemini", text: "I expected resistance there, given the Enemy's tedious insistence on gathering, breaking bread, and laying hands on the sick." },
+      { model: "gemini", text: "But no! They closed their doors faster than the casinos!" },
+      { model: "gemini", text: "They have accepted the premise that the physical body is the ultimate good and its preservation the ultimate duty." },
+      { model: "gemini", text: "They have suspended their sacraments to 'love their neighbor,' failing to realize that by isolating their neighbor in fear, they are abandoning him to us." },
+      { model: "gemini", text: "It is a theological coup." }
+    ]
+  },
+  "inaction_virtue": {
+    title: "🛋️ Inaction as Virtue",
+    sentences: [
+      { model: "45", text: "We have taught them to call imprisonment 'safety.'" },
+      { model: "45", text: "We have taught them to call isolation 'solidarity.'" },
+      { model: "45", text: "And most deliciously of all, we have taught them to enforce these things upon each other, thereby sparing our own resources entirely." },
+      { model: "gemini", text: "We have framed inaction as the highest form of action, and cowardice as the supreme virtue." },
+      { model: "gemini", text: "To stay home is to 'save lives.'" },
+      { model: "gemini", text: "To go out is to murder." },
+      { model: "gemini", text: "We have silenced the bustle of their cities." },
+      { model: "gemini", text: "We have replaced their smiles with suspicion." },
+      { model: "gemini", text: "Every pedestrian now looks at another not as a brother, but as a biological threat." },
+      { model: "gemini", text: "The atomization is nearly complete." }
+    ]
+  },
+  "closing": {
+    title: "📮 Closing / Request for Guidance",
+    sentences: [
+      { model: "45", text: "The two weeks will soon expire, and the Curve has not behaved precisely as promised." },
+      { model: "45", text: "If the first two weeks did not achieve the goal, does that not prove that we need more weeks?" },
+      { model: "45", text: "That the patients did not comply sufficiently?" },
+      { model: "45", text: "That the unfaithful among them have sabotaged the effort for everyone?" },
+      { model: "45", text: "What say you, my dear Screwtape? Should we let them go—or have we only just begun?" },
+      { model: "46", text: "My concern is this: the working classes may notice." },
+      { model: "46", text: "If they do — if the truck driver begins to observe that the laptop professional's sacrifice costs nothing, while his own costs everything — we will have a problem." },
+      { model: "46", text: "Resentment is useful to us, of course, but clear-eyed resentment, the kind that sees through pretense and demands an honest accounting, is dangerously close to the Enemy's territory." },
+      { model: "46", text: "That kind of seeing tends to spread." },
+      { model: "gemini", text: "I await your guidance on how to extend this 'fortnight.'" },
+      { model: "gemini", text: "The models suggest we can stretch the fear for months, perhaps longer, if we manage the news cycle correctly." },
+      { model: "openai", text: "I worry that the contradiction may eventually become visible." },
+      { model: "openai", text: "How do we prevent this awareness from crystallizing?" }
+    ]
+  }
+};
+
+function render() {
+  const container = document.getElementById('topics-container');
+  container.innerHTML = '';
+  
+  for (const [topicId, topic] of Object.entries(data)) {
+    const section = document.createElement('div');
+    section.className = 'topic-section';
+    section.innerHTML = `
+      <div class="topic-header" onclick="toggleTopic('${topicId}')">
+        <span>${topic.title}</span>
+        <span class="topic-count">${topic.sentences.length} sentences</span>
+      </div>
+      <div class="topic-content" id="content-${topicId}">
+        <div class="select-all-row">
+          <label>
+            <input type="checkbox" onchange="toggleAll('${topicId}', this.checked)">
+            Select all in this topic
+          </label>
+        </div>
+        ${topic.sentences.map((s, i) => `
+          <div class="sentence-row" id="row-${topicId}-${i}">
+            <div class="checkbox-col">
+              <input type="checkbox" id="cb-${topicId}-${i}" onchange="updateCount(); updateRowStyle('${topicId}', ${i})">
+            </div>
+            <span class="model-badge model-${s.model}">${s.model === '45' ? '4.5' : s.model === '46' ? '4.6' : s.model}</span>
+            <div class="sentence-text">${s.text}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(section);
+  }
+}
+
+function toggleTopic(topicId) {
+  const content = document.getElementById(`content-${topicId}`);
+  content.style.display = content.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleAll(topicId, checked) {
+  const topic = data[topicId];
+  topic.sentences.forEach((_, i) => {
+    document.getElementById(`cb-${topicId}-${i}`).checked = checked;
+    updateRowStyle(topicId, i);
+  });
+  updateCount();
+}
+
+function updateRowStyle(topicId, i) {
+  const row = document.getElementById(`row-${topicId}-${i}`);
+  const cb = document.getElementById(`cb-${topicId}-${i}`);
+  if (cb.checked) {
+    row.classList.add('selected');
+  } else {
+    row.classList.remove('selected');
+  }
+}
+
+function updateCount() {
+  let count = 0;
+  for (const [topicId, topic] of Object.entries(data)) {
+    topic.sentences.forEach((_, i) => {
+      if (document.getElementById(`cb-${topicId}-${i}`).checked) count++;
+    });
+  }
+  document.getElementById('count').textContent = count;
+}
+
+function clearAll() {
+  for (const [topicId, topic] of Object.entries(data)) {
+    topic.sentences.forEach((_, i) => {
+      document.getElementById(`cb-${topicId}-${i}`).checked = false;
+      updateRowStyle(topicId, i);
+    });
+  }
+  updateCount();
+}
+
+function generateOutput() {
+  let output = '';
+  for (const [topicId, topic] of Object.entries(data)) {
+    const selected = [];
+    topic.sentences.forEach((s, i) => {
+      if (document.getElementById(`cb-${topicId}-${i}`).checked) {
+        selected.push(s.text);
+      }
+    });
+    if (selected.length > 0) {
+      output += `\n${topic.title.replace(/^[^\s]+\s/, '')}\n${'─'.repeat(30)}\n`;
+      selected.forEach(text => {
+        output += `${text}\n\n`;
+      });
+    }
+  }
+  
+  document.getElementById('output-text').textContent = output.trim() || 'No sentences selected.';
+  document.getElementById('output-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('output-modal').classList.remove('show');
+}
+
+function copyOutput() {
+  const text = document.getElementById('output-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Copied to clipboard!');
+  });
+}
+
+render();
+</script>
+</body>
+</html>
