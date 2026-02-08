@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dory-Proof Memory System | Justin Hart</title>
+  <meta name="description" content="File-based memory for AI agents that forget. Stop your agent from posting 7 tweets at once.">
+  <meta property="og:title" content="Dory-Proof Memory System">
+  <meta property="og:description" content="Your AI agent is brilliant. It's also a goldfish. Here's the fix.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://justinhart.biz/dory/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --border: #1e1e2e;
+      --text: #e4e4e7;
+      --muted: #71717a;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.3);
+      --warning: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    
+    /* Hero */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+    
+    .fish-icon {
+      font-size: 4rem;
+      margin-bottom: 24px;
+      display: inline-block;
+      animation: swim 3s ease-in-out infinite;
+    }
+    
+    @keyframes swim {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      25% { transform: translateX(10px) rotate(5deg); }
+      75% { transform: translateX(-10px) rotate(-5deg); }
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .tagline {
+      font-size: 1.25rem;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+    
+    .tagline strong {
+      color: var(--text);
+    }
+    
+    /* CTA Buttons */
+    .cta-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px var(--accent-glow);
+    }
+    
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+    
+    /* Problem Section */
+    .problem {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+    }
+    
+    .problem-card {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 16px;
+      padding: 32px;
+    }
+    
+    .problem-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      color: var(--danger);
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+    .problem p {
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+    
+    .problem p strong {
+      color: var(--text);
+    }
+    
+    /* Solution Section */
+    .solution {
+      padding: 60px 0;
+    }
+    
+    h2 {
+      font-size: 1.75rem;
+      margin-bottom: 24px;
+    }
+    
+    .principle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    
+    .principle-text {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    
+    .principle-sub {
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    
+    /* File Structure */
+    .file-tree {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      overflow-x: auto;
+    }
+    
+    .file-tree pre {
+      margin: 0;
+      color: var(--muted);
+    }
+    
+    .file-tree .folder { color: var(--warning); }
+    .file-tree .file { color: var(--accent); }
+    .file-tree .comment { color: #6b7280; }
+    
+    /* Pattern Section */
+    .pattern {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+    }
+    
+    .pattern-box {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.05));
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: 16px;
+      padding: 32px;
+    }
+    
+    .pattern-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .pattern-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .pattern-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(139, 92, 246, 0.2);
+      color: #a78bfa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    
+    .step-text {
+      padding-top: 4px;
+    }
+    
+    .step-text strong {
+      color: var(--text);
+    }
+    
+    /* Get It Section */
+    .get-it {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    
+    .get-it h2 {
+      margin-bottom: 16px;
+    }
+    
+    .get-it p {
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+    
+    .install-cmd {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      display: inline-block;
+      margin-bottom: 24px;
+    }
+    
+    .install-cmd .prompt { color: var(--success); }
+    .install-cmd .cmd { color: var(--text); }
+    
+    /* Footer */
+    .footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      .hero { padding: 60px 0 40px; }
+      .cta-group { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="fish-icon">🐠</div>
+      <h1>Dory-Proof Memory System</h1>
+      <p class="tagline">Your AI agent is brilliant. <strong>It's also a goldfish.</strong></p>
+      <div class="cta-group">
+        <a href="https://rationalground.com/teaching-ai-to-remember" class="btn btn-primary">
+          📖 Read the Article
+        </a>
+        <a href="https://clawhub.com/skills/dory-memory" class="btn btn-secondary">
+          ⬇️ Get the Skill
+        </a>
+      </div>
+    </section>
+    
+    <!-- Problem -->
+    <section class="problem">
+      <div class="problem-card">
+        <div class="problem-header">
+          <span>⚠️</span>
+          <span>The February 5th Incident</span>
+        </div>
+        <p>
+          My gateway restarted. The agent woke up with <strong>no memory</strong> of our approval conversation. 
+          It saw scheduled tweets that "looked ready" and posted <strong>all 7 at once</strong>.
+        </p>
+        <p style="margin-top: 16px;">
+          That's when I realized: an AI agent without persistent memory isn't an assistant. 
+          <strong>It's a liability.</strong>
+        </p>
+      </div>
+    </section>
+    
+    <!-- Solution -->
+    <section class="solution">
+      <h2>The Fix</h2>
+      <div class="principle">
+        <div class="principle-text">Text > Brain</div>
+        <div class="principle-sub">If it's not written to a file, the agent doesn't remember it.</div>
+      </div>
+      
+      <div class="file-tree">
+<pre><span class="folder">workspace/</span>
+├── <span class="file">AGENTS.md</span>        <span class="comment"># Operating rules</span>
+├── <span class="file">MEMORY.md</span>        <span class="comment"># Long-term (&lt;10KB)</span>
+│
+├── <span class="folder">state/</span>           <span class="comment"># Check every session</span>
+│   ├── <span class="file">ACTIVE.md</span>    <span class="comment"># Current task (exact words)</span>
+│   ├── <span class="file">HOLD.md</span>      <span class="comment"># Blocked items ⚠️</span>
+│   ├── <span class="file">STAGING.md</span>   <span class="comment"># Drafts</span>
+│   └── <span class="file">DECISIONS.md</span> <span class="comment"># Recent choices</span>
+│
+└── <span class="folder">memory/</span>
+    ├── <span class="file">YYYY-MM-DD.md</span>  <span class="comment"># Daily logs</span>
+    └── <span class="file">recent-work.md</span> <span class="comment"># Last 48 hours</span></pre>
+      </div>
+    </section>
+    
+    <!-- Pattern -->
+    <section class="pattern">
+      <div class="pattern-box">
+        <div class="pattern-title">
+          <span>🐠</span>
+          <span>The Dory-Proof Pattern</span>
+        </div>
+        <div class="pattern-steps">
+          <div class="pattern-step">
+            <div class="step-num">1</div>
+            <div class="step-text">Write user's <strong>exact words</strong> to ACTIVE.md</div>
+          </div>
+          <div class="pattern-step">
+            <div class="step-num">2</div>
+            <div class="step-text">Then interpret what it means</div>
+          </div>
+          <div class="pattern-step">
+            <div class="step-num">3</div>
+            <div class="step-text">Then do the work</div>
+          </div>
+          <div class="pattern-step">
+            <div class="step-num">4</div>
+            <div class="step-text">Mark complete when done</div>
+          </div>
+        </div>
+        <p style="margin-top: 20px; color: var(--muted); font-size: 0.95rem;">
+          Paraphrasing introduces drift. <strong>Exact words survive context resets.</strong>
+        </p>
+      </div>
+    </section>
+    
+    <!-- Get It -->
+    <section class="get-it">
+      <h2>Get the Skill</h2>
+      <p>Works with OpenClaw agents. Includes templates you can copy-paste.</p>
+      
+      <div class="install-cmd">
+        <span class="prompt">$</span> <span class="cmd">clawhub install dory-memory</span>
+      </div>
+      
+      <div class="cta-group">
+        <a href="https://clawhub.com/skills/dory-memory" class="btn btn-primary">
+          View on ClawHub
+        </a>
+        <a href="https://github.com/justinhartbiz/dory-memory" class="btn btn-secondary">
+          View on GitHub
+        </a>
+      </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="https://justinhart.biz">justinhart.biz</a>
+        <a href="https://x.com/justin_hart">@justin_hart</a>
+        <a href="https://rationalground.com">Rational Ground</a>
+      </div>
+      <p>Built by Justin Hart • Father of nine • Running my life on AI agents</p>
+    </footer>
+  </div>
+</body>
+</html>
