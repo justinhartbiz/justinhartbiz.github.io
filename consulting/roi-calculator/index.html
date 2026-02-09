@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Efficiency ROI Calculator | Justin Hart</title>
+    <meta name="description" content="Calculate how much time and money AI agents can save your business. Free ROI calculator from Justin Hart.">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --accent-glow: #60a5fa;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --card: #1e293b;
+            --border: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--primary);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-glow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+
+        .proof-banner {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .proof-stat {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--success);
+        }
+
+        .proof-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title .icon { font-size: 1.5rem; }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input, select {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .slider-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .slider-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: var(--border);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .result-card.highlight {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+
+        .result-value.green { color: var(--success); }
+        .result-value.blue { color: var(--accent); }
+        .result-value.gold { color: var(--warning); }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .roi-bar {
+            height: 32px;
+            background: var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            margin: 1rem 0;
+        }
+
+        .roi-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--success) 100%);
+            border-radius: 16px;
+            transition: width 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 1rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            min-width: 60px;
+        }
+
+        .recommendation {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
+            border: 2px solid var(--success);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .rec-tier {
+            font-size: 0.9rem;
+            color: var(--success);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .rec-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .rec-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin: 1rem 0;
+        }
+
+        .rec-desc {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-glow) 100%);
+            color: white;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .tier-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .tier-card {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: border-color 0.2s, transform 0.2s;
+            cursor: pointer;
+        }
+
+        .tier-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .tier-card.selected {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .tier-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .tier-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .tier-time {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+
+        footer a { color: var(--accent); }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.75rem; }
+            .proof-stat { font-size: 2.25rem; }
+            .result-value { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Efficiency ROI Calculator</h1>
+            <p class="tagline">See exactly how much time and money AI agents can save your business</p>
+        </header>
+
+        <div class="proof-banner">
+            <div class="proof-stat">70% Time Saved</div>
+            <div class="proof-label">My actual results: 5-6 hours/day compressed to 1-2 hours using AI agents</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span class="icon">👤</span> Your Current Workflow</div>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="role">Your Role</label>
+                    <select id="role">
+                        <option value="executive">Executive / Founder</option>
+                        <option value="manager">Manager / Director</option>
+                        <option value="marketing">Marketing Lead</option>
+                        <option value="sales">Sales / BD</option>
+                        <option value="operations">Operations</option>
+                        <option value="creative">Creative / Content</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="hourlyValue">Value of Your Hour ($)</label>
+                    <input type="number" id="hourlyValue" value="150" min="25" max="1000" step="25">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span class="icon">⏱️</span> Hours Spent on Repetitive Tasks (Weekly)</div>
+            
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Email, scheduling, admin</label>
+                    <span class="slider-value" id="adminVal">5</span> hrs
+                </div>
+                <input type="range" id="adminHours" min="0" max="20" value="5">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Research & analysis</label>
+                    <span class="slider-value" id="researchVal">4</span> hrs
+                </div>
+                <input type="range" id="researchHours" min="0" max="20" value="4">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Content creation & writing</label>
+                    <span class="slider-value" id="contentVal">6</span> hrs
+                </div>
+                <input type="range" id="contentHours" min="0" max="20" value="6">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Data entry & reporting</label>
+                    <span class="slider-value" id="dataVal">3</span> hrs
+                </div>
+                <input type="range" id="dataHours" min="0" max="20" value="3">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Other automatable work</label>
+                    <span class="slider-value" id="otherVal">2</span> hrs
+                </div>
+                <input type="range" id="otherHours" min="0" max="20" value="2">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span class="icon">📊</span> Your Results</div>
+            
+            <div class="results-grid">
+                <div class="result-card">
+                    <div class="result-value blue" id="currentHours">20</div>
+                    <div class="result-label">Current Hours/Week</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-value green" id="savedHours">14</div>
+                    <div class="result-label">Hours Saved/Week</div>
+                </div>
+                <div class="result-card highlight">
+                    <div class="result-value green" id="savedMoney">$2,100</div>
+                    <div class="result-label">Weekly Value</div>
+                </div>
+                <div class="result-card highlight">
+                    <div class="result-value gold" id="annualSavings">$109,200</div>
+                    <div class="result-label">Annual Savings</div>
+                </div>
+            </div>
+
+            <label>Time Reclaimed</label>
+            <div class="roi-bar">
+                <div class="roi-fill" id="roiFill" style="width: 70%;">70%</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span class="icon">🎯</span> Recommended Engagement</div>
+            
+            <div class="recommendation" id="recommendation">
+                <div class="rec-tier">Best fit for your workflow</div>
+                <div class="rec-title" id="recTitle">Full Agent Build</div>
+                <div class="rec-price" id="recPrice">$15,000</div>
+                <div class="rec-desc" id="recDesc">Complete workflow automation with custom AI agents for your highest-value tasks. Includes discovery, build, training, and 30-day support.</div>
+                <div style="margin-bottom: 1rem;">
+                    <span class="result-value green" id="recROI">7.3x</span>
+                    <span class="result-label"> ROI in Year 1</span>
+                </div>
+                <a href="mailto:justinhart.biz@gmail.com?subject=AI%20Efficiency%20Consultation" class="cta-button">Get Started →</a>
+            </div>
+
+            <div class="tier-cards">
+                <div class="tier-card" data-tier="audit">
+                    <div class="tier-name">Efficiency Audit</div>
+                    <div class="tier-price">$2,500</div>
+                    <div class="tier-time">1 week</div>
+                </div>
+                <div class="tier-card" data-tier="sprint">
+                    <div class="tier-name">Quick Win Sprint</div>
+                    <div class="tier-price">$5,000</div>
+                    <div class="tier-time">2 weeks</div>
+                </div>
+                <div class="tier-card selected" data-tier="full">
+                    <div class="tier-name">Full Agent Build</div>
+                    <div class="tier-price">$15,000</div>
+                    <div class="tier-time">4-8 weeks</div>
+                </div>
+                <div class="tier-card" data-tier="retainer">
+                    <div class="tier-name">Monthly Retainer</div>
+                    <div class="tier-price">$3,000/mo</div>
+                    <div class="tier-time">Ongoing</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Built by <a href="https://justinhart.biz">Justin Hart</a> — AI Efficiency Consulting</p>
+            <p style="margin-top: 0.5rem; font-size: 0.85rem;">Compressed 5-6 hours/day to 1-2 hours using AI agents. Let me show you how.</p>
+        </footer>
+    </div>
+
+    <script>
+        const sliders = ['admin', 'research', 'content', 'data', 'other'];
+        const efficiencyRates = {
+            admin: 0.80,      // 80% reduction possible
+            research: 0.75,   // 75% reduction
+            content: 0.65,    // 65% reduction
+            data: 0.90,       // 90% reduction
+            other: 0.60       // 60% reduction
+        };
+
+        const tiers = {
+            audit: { name: 'Efficiency Audit', price: 2500, desc: 'Discovery + roadmap + quick win recommendations. Perfect for understanding your automation potential.' },
+            sprint: { name: 'Quick Win Sprint', price: 5000, desc: '2-week implementation of 1-2 high-impact automations. Fast results, clear deliverables.' },
+            full: { name: 'Full Agent Build', price: 15000, desc: 'Complete workflow automation with custom AI agents. Includes discovery, build, training, and 30-day support.' },
+            retainer: { name: 'Monthly Retainer', price: 3000, desc: 'Ongoing optimization, new automations, and priority support. Your AI efficiency partner.', isMonthly: true }
+        };
+
+        function updateSliderDisplay(name) {
+            const slider = document.getElementById(name + 'Hours');
+            const display = document.getElementById(name + 'Val');
+            display.textContent = slider.value;
+        }
+
+        function calculate() {
+            const hourlyValue = parseFloat(document.getElementById('hourlyValue').value) || 150;
+            
+            let totalHours = 0;
+            let savedHours = 0;
+
+            sliders.forEach(name => {
+                const hours = parseInt(document.getElementById(name + 'Hours').value) || 0;
+                totalHours += hours;
+                savedHours += hours * efficiencyRates[name];
+            });
+
+            savedHours = Math.round(savedHours * 10) / 10;
+            const percentSaved = totalHours > 0 ? Math.round((savedHours / totalHours) * 100) : 0;
+            const weeklyValue = savedHours * hourlyValue;
+            const annualValue = weeklyValue * 52;
+
+            // Update display
+            document.getElementById('currentHours').textContent = totalHours;
+            document.getElementById('savedHours').textContent = savedHours.toFixed(1);
+            document.getElementById('savedMoney').textContent = '$' + weeklyValue.toLocaleString();
+            document.getElementById('annualSavings').textContent = '$' + annualValue.toLocaleString();
+
+            const roiFill = document.getElementById('roiFill');
+            roiFill.style.width = Math.min(percentSaved, 100) + '%';
+            roiFill.textContent = percentSaved + '%';
+
+            // Recommend tier based on savings
+            let recommendedTier = 'audit';
+            if (annualValue > 100000) recommendedTier = 'full';
+            else if (annualValue > 50000) recommendedTier = 'sprint';
+            else if (annualValue > 25000) recommendedTier = 'audit';
+
+            updateRecommendation(recommendedTier, annualValue);
+        }
+
+        function updateRecommendation(tierKey, annualValue) {
+            const tier = tiers[tierKey];
+            document.getElementById('recTitle').textContent = tier.name;
+            document.getElementById('recPrice').textContent = tier.isMonthly ? '$' + tier.price.toLocaleString() + '/mo' : '$' + tier.price.toLocaleString();
+            document.getElementById('recDesc').textContent = tier.desc;
+
+            const investment = tier.isMonthly ? tier.price * 12 : tier.price;
+            const roi = annualValue / investment;
+            document.getElementById('recROI').textContent = roi.toFixed(1) + 'x';
+
+            // Update tier card selection
+            document.querySelectorAll('.tier-card').forEach(card => {
+                card.classList.remove('selected');
+                if (card.dataset.tier === tierKey) card.classList.add('selected');
+            });
+        }
+
+        // Initialize
+        sliders.forEach(name => {
+            const slider = document.getElementById(name + 'Hours');
+            slider.addEventListener('input', () => {
+                updateSliderDisplay(name);
+                calculate();
+            });
+            updateSliderDisplay(name);
+        });
+
+        document.getElementById('hourlyValue').addEventListener('input', calculate);
+        document.getElementById('role').addEventListener('change', calculate);
+
+        // Tier card clicks
+        document.querySelectorAll('.tier-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const annualValue = parseFloat(document.getElementById('annualSavings').textContent.replace(/[$,]/g, ''));
+                updateRecommendation(card.dataset.tier, annualValue);
+            });
+        });
+
+        calculate();
+    </script>
+</body>
+</html>
