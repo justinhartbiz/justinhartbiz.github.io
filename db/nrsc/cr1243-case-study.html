@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NRSC Cr-1243 Case Study — The Don Jr. Survey</title>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e17;--card:#111827;--border:#1e293b;--accent:#ef4444;--accent2:#f59e0b;--accent3:#3b82f6;--accent4:#10b981;--text:#e2e8f0;--muted:#94a3b8;--glow:rgba(239,68,68,.15)}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6;overflow-x:hidden}
+.container{max-width:1400px;margin:0 auto;padding:0 24px}
+
+/* Hero */
+.hero{padding:80px 0 60px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 50% 50%,rgba(239,68,68,.06) 0%,transparent 50%);pointer-events:none}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--accent),#b91c1c);color:#fff;padding:6px 20px;border-radius:100px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px}
+.hero h1{font-size:clamp(2.5rem,5vw,4rem);font-weight:800;background:linear-gradient(135deg,#fff 0%,#cbd5e1 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.hero .subtitle{font-size:1.25rem;color:var(--muted);margin-bottom:48px}
+.creative-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px 40px;max-width:700px;margin:0 auto 48px;text-align:left;font-family:'Courier New',monospace;font-size:15px;line-height:1.8;color:#cbd5e1;position:relative}
+.creative-box::before{content:'SMS CREATIVE';position:absolute;top:-12px;left:24px;background:var(--bg);padding:0 12px;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent)}
+.creative-box .var{color:var(--accent2);font-weight:700}
+.creative-box .link{color:var(--accent3);text-decoration:underline}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;margin-bottom:60px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 24px;text-align:center;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.stat-card:hover{transform:translateY(-4px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.stat-card .number{font-size:2.25rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-card .label{font-size:13px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+
+/* Sections */
+.section{margin-bottom:60px}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.section-header h2{font-size:1.5rem;font-weight:700}
+.section-header .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;overflow:hidden}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:900px){.card-grid{grid-template-columns:1fr}}
+
+/* Insights */
+.insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.insight{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;overflow:hidden}
+.insight::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px}
+.insight:nth-child(1)::before{background:var(--accent)}
+.insight:nth-child(2)::before{background:var(--accent2)}
+.insight:nth-child(3)::before{background:var(--accent3)}
+.insight:nth-child(4)::before{background:var(--accent4)}
+.insight h3{font-size:1rem;font-weight:700;margin-bottom:8px}
+.insight p{font-size:14px;color:var(--muted);line-height:1.7}
+.insight .highlight{color:var(--accent2);font-weight:700}
+
+/* Export button */
+.export-btn{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,var(--accent),#b91c1c);color:#fff;border:none;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;z-index:100;box-shadow:0 4px 24px rgba(239,68,68,.3);transition:transform .2s}
+.export-btn:hover{transform:scale(1.05)}
+
+/* Nav tabs */
+.tab-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.tab{padding:8px 20px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.tab.active,.tab:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Phase labels */
+.phase-label{display:inline-block;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:1px;margin-right:8px}
+.phase-1{background:rgba(59,130,246,.15);color:#60a5fa}
+.phase-2{background:rgba(239,68,68,.15);color:#f87171}
+.phase-3{background:rgba(245,158,11,.15);color:#fbbf24}
+.phase-4{background:rgba(16,185,129,.15);color:#34d399}
+
+/* Timeline narrative */
+.narrative{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:32px}
+.narr-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
+.narr-card .big{font-size:1.75rem;font-weight:800;margin-bottom:4px}
+.narr-card .desc{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.narr-card.red .big{color:#f87171}
+.narr-card.amber .big{color:#fbbf24}
+.narr-card.blue .big{color:#60a5fa}
+.narr-card.green .big{color:#34d399}
+
+footer{text-align:center;padding:40px 0;color:var(--muted);font-size:13px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">NRSC Case Study</div>
+  <h1>The Don Jr. Survey</h1>
+  <p class="subtitle">How a single SMS creative generated $880K in 122 days</p>
+  
+  <div class="creative-box">
+    There's something we haven't told you yet, <span class="var">[firstname|Friend]</span>. This is Donald Trump Jr.<br><br>
+    Completing our survey is crucial >> <span class="link">[link]</span><br><br>
+    We need 1500 more responses to finalize our data in <span class="var">[zipcode|your area]</span>.<br><br>
+    Confirm your Republican Voting Status >> <span class="link">[link]</span>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="number">$880,762</div><div class="label">Total Revenue</div></div>
+    <div class="stat-card"><div class="number">34.5M</div><div class="label">Total Sends</div></div>
+    <div class="stat-card"><div class="number">16,067</div><div class="label">Total Donors</div></div>
+    <div class="stat-card"><div class="number">$0.0255</div><div class="label">Yield / Send</div></div>
+    <div class="stat-card"><div class="number">349</div><div class="label">Deployments</div></div>
+    <div class="stat-card"><div class="number">122</div><div class="label">Days Active</div></div>
+  </div>
+</section>
+
+<!-- TIMELINE NARRATIVE -->
+<section class="section">
+  <div class="section-header"><div class="dot"></div><h2>The Story in Four Phases</h2></div>
+  <div class="narrative">
+    <div class="narr-card blue">
+      <div class="big">$40.7K</div>
+      <div class="desc">Phase 1: Soft Launch<br>Jun 25–28 · 4 days</div>
+    </div>
+    <div class="narr-card red">
+      <div class="big">$792.2K</div>
+      <div class="desc">Phase 2: The Explosion<br>Jul 18–25 · 8 days</div>
+    </div>
+    <div class="narr-card amber">
+      <div class="big">$1.6K</div>
+      <div class="desc">Phase 3: Cool Down<br>Jul 29–Aug 12 · 15 days</div>
+    </div>
+    <div class="narr-card green">
+      <div class="big">$46.3K</div>
+      <div class="desc">Phase 4: Revival<br>Sep 10–Oct 25 · 46 days</div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE CHART -->
+<section class="section">
+  <div class="section-header"><div class="dot"></div><h2>Deployment Timeline</h2></div>
+  <div class="tab-row">
+    <button class="tab active" onclick="switchTimeline('revenue')">Revenue</button>
+    <button class="tab" onclick="switchTimeline('volume')">Volume</button>
+    <button class="tab" onclick="switchTimeline('donors')">Donors</button>
+  </div>
+  <div class="card" id="timeline-card">
+    <div id="timeline-chart"></div>
+  </div>
+</section>
+
+<!-- LIST DISTRIBUTION + DECILE -->
+<section class="section">
+  <div class="card-grid">
+    <div>
+      <div class="section-header"><div class="dot"></div><h2>Revenue by List</h2></div>
+      <div class="card"><div id="treemap-chart"></div></div>
+    </div>
+    <div>
+      <div class="section-header"><div class="dot"></div><h2>Decile Performance</h2></div>
+      <div class="card"><div id="decile-chart"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- LIST OWNER BREAKDOWN -->
+<section class="section">
+  <div class="section-header"><div class="dot"></div><h2>List Owner Breakdown</h2></div>
+  <div class="card-grid">
+    <div class="card"><div id="owner-pie-chart"></div></div>
+    <div class="card"><div id="owner-bar-chart"></div></div>
+  </div>
+</section>
+
+<!-- SEND COUNT BY DATE -->
+<section class="section">
+  <div class="section-header"><div class="dot"></div><h2>Deployment Density</h2></div>
+  <div class="card"><div id="sends-chart"></div></div>
+</section>
+
+<!-- INSIGHTS -->
+<section class="section">
+  <div class="section-header"><div class="dot"></div><h2>Key Insights</h2></div>
+  <div class="insight-grid">
+    <div class="insight">
+      <h3>🎯 Why It Worked</h3>
+      <p>Three elements in perfect combination: <span class="highlight">Donald Trump Jr.'s voice</span> as a trusted messenger, a <span class="highlight">survey hook</span> that created urgency without asking for money, and <span class="highlight">[zipcode] localization</span> that made it feel personal. The "something we haven't told you yet" opener drove massive curiosity clicks.</p>
+    </div>
+    <div class="insight">
+      <h3>💥 The July Explosion</h3>
+      <p>July 18–25 produced <span class="highlight">$792K of the $880K total (90%)</span>. July 19 alone: <span class="highlight">12.7M sends, 103 deployments, $403K revenue</span> — the single highest-grossing day. This coincided with the RNC Convention week, creating perfect timing alignment.</p>
+    </div>
+    <div class="insight">
+      <h3>📊 The Cascade Strategy</h3>
+      <p>Started with high-decile DB lists (Decile 10), proved ROI, then <span class="highlight">cascaded to lower deciles and external lists</span>. L2 Right Leaning carried <span class="highlight">$541K (61%)</span> of all revenue across 22.5M sends. The creative worked at every tier — even Decile 1 was profitable at scale.</p>
+    </div>
+    <div class="insight">
+      <h3>🏢 Vendor Diversity</h3>
+      <p>Deployed across <span class="highlight">12 different list owners</span> including DonorBureau (core), Beyond Direct, DonorDemocracy, CMDI, ListWise, Jack Daly, and more. Beyond Direct alone contributed <span class="highlight">$13.7K</span> with no tracked send volume — pure attribution revenue.</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<button class="export-btn" onclick="exportPNG()">📸 Export as PNG</button>
+
+<footer>
+  <div class="container">
+    NRSC Cr-1243 Case Study · Creative active June 25 – October 25, 2024 · Generated by DonorBureau Analytics
+  </div>
+</footer>
+
+<script>
+// === DATA ===
+const timeline = [
+  {date:'2024-06-25',volume:554599,donors:514,revenue:23624.97,sends:18},
+  {date:'2024-06-26',volume:489717,donors:235,revenue:12177.24,sends:12},
+  {date:'2024-06-27',volume:58301,donors:33,revenue:1451.00,sends:4},
+  {date:'2024-06-28',volume:169598,donors:76,revenue:3457.00,sends:4},
+  {date:'2024-07-18',volume:989336,donors:874,revenue:54580.64,sends:22},
+  {date:'2024-07-19',volume:12710923,donors:7267,revenue:403139.36,sends:103},
+  {date:'2024-07-20',volume:4958594,donors:1947,revenue:104712.08,sends:27},
+  {date:'2024-07-21',volume:838986,donors:404,revenue:21018.00,sends:10},
+  {date:'2024-07-22',volume:1414196,donors:772,revenue:42713.03,sends:21},
+  {date:'2024-07-23',volume:1887226,donors:804,revenue:44283.14,sends:26},
+  {date:'2024-07-24',volume:534338,donors:269,revenue:12983.51,sends:14},
+  {date:'2024-07-25',volume:7379126,donors:1919,revenue:108752.04,sends:50},
+  {date:'2024-07-29',volume:4907,donors:16,revenue:720.00,sends:1},
+  {date:'2024-07-31',volume:19957,donors:6,revenue:395.00,sends:1},
+  {date:'2024-08-02',volume:12383,donors:6,revenue:296.25,sends:1},
+  {date:'2024-08-12',volume:20037,donors:6,revenue:182.11,sends:1},
+  {date:'2024-09-10',volume:49085,donors:96,revenue:4022.00,sends:4},
+  {date:'2024-09-12',volume:71729,donors:37,revenue:2046.00,sends:2},
+  {date:'2024-09-13',volume:284625,donors:74,revenue:3969.00,sends:1},
+  {date:'2024-09-14',volume:99819,donors:22,revenue:1206.00,sends:1},
+  {date:'2024-09-15',volume:542752,donors:194,revenue:10844.00,sends:4},
+  {date:'2024-09-16',volume:129788,donors:38,revenue:2061.24,sends:2},
+  {date:'2024-09-18',volume:727672,donors:226,revenue:11910.00,sends:6},
+  {date:'2024-09-19',volume:433863,donors:126,revenue:6421.86,sends:4},
+  {date:'2024-10-24',volume:86254,donors:94,revenue:3372.00,sends:9},
+  {date:'2024-10-25',volume:76179,donors:12,revenue:425.00,sends:1}
+];
+
+const byList = [
+  {owner:'DonorBureau',list:'L2 Right Leaning',revenue:541397.90,volume:22549573},
+  {owner:'DonorBureau',list:'DB Responders',revenue:213405.46,volume:8162024},
+  {owner:'DonorBureau',list:'DB Donors',revenue:34734.75,volume:328836},
+  {owner:'DonorBureau',list:'Client Clickers',revenue:33296.52,volume:981957},
+  {owner:'DB Special',list:'Generic L2',revenue:18517.14,volume:1140470},
+  {owner:'DB Special',list:'L2 Indep. Leaning',revenue:13670.44,volume:836204},
+  {owner:'Beyond Direct',list:'Beyond Direct 1',revenue:7084.46,volume:0},
+  {owner:'DB Special',list:'L2 Commercial',revenue:6509.00,volume:305860},
+  {owner:'DonorDemocracy',list:'DigitalDonors',revenue:4314.00,volume:147831},
+  {owner:'Beyond Direct',list:'2nd Test BD',revenue:1982.80,volume:0},
+  {owner:'Beyond Direct',list:'4th Test BD',revenue:1515.00,volume:0},
+  {owner:'Beyond Direct',list:'8th Test BD',revenue:1410.00,volume:0},
+  {owner:'Beyond Direct',list:'3rd Test BD',revenue:1394.00,volume:0},
+  {owner:'ListWise LLC',list:'ListWise Master',revenue:440.00,volume:27935},
+  {owner:'Jack Daly',list:'Little Boy',revenue:287.00,volume:17681},
+  {owner:'Beyond Direct',list:'7th test BD',revenue:276.00,volume:0},
+  {owner:'AMLC',list:'AMLC Donor List',revenue:135.00,volume:9942},
+  {owner:'Beyond Direct',list:'6th BD Test',revenue:108.00,volume:0},
+  {owner:'CMDI',list:'Cowboy Current',revenue:100.00,volume:8397},
+  {owner:'Others',list:'Other Lists',revenue:155.00,volume:0}
+];
+
+// Simplified decile data — grouped
+const deciles = [
+  {name:'Millitile 999-990',revenue:40455.53,volume:1496387},
+  {name:'Millitile 989-950',revenue:21013.00,volume:934284},
+  {name:'Millitile 949-920',revenue:22969.74,volume:618310},
+  {name:'Millitile 919-900',revenue:19924.30,volume:473046},
+  {name:'Millitile 899-870',revenue:26231.00,volume:717502},
+  {name:'Millitile 899-850',revenue:17312.00,volume:1202322},
+  {name:'Millitile 869-840',revenue:7690.00,volume:299382},
+  {name:'Millitile 839-800',revenue:29922.00,volume:944421},
+  {name:'Millitile 799-700',revenue:73272.08,volume:2516201},
+  {name:'Millitile 699-600',revenue:33553.83,volume:1297830},
+  {name:'Millitile 599-500',revenue:58930.69,volume:2488620},
+  {name:'Millitile 499-400',revenue:39460.37,volume:2422353},
+  {name:'Millitile 399-300',revenue:24024.76,volume:1907243},
+  {name:'Millitile 299-200',revenue:15473.41,volume:1607784},
+  {name:'Decile 10',revenue:69021.37,volume:1807021},
+  {name:'Decile 9',revenue:57337.54,volume:1796143},
+  {name:'Decile 8',revenue:25612.36,volume:1115086},
+  {name:'Decile 7',revenue:25981.00,volume:1069773},
+  {name:'Decile 6',revenue:13413.69,volume:476815},
+  {name:'Decile 5',revenue:14256.00,volume:408886},
+  {name:'Decile 4',revenue:14751.00,volume:567086},
+  {name:'Decile 3',revenue:12668.00,volume:617021},
+  {name:'Decile 2',revenue:10903.00,volume:465438},
+  {name:'Decile 1',revenue:2432.00,volume:139806},
+];
+
+// Color for phase
+function phaseColor(d) {
+  if (d <= '2024-06-30') return '#3b82f6';
+  if (d <= '2024-07-28') return '#ef4444';
+  if (d <= '2024-08-31') return '#f59e0b';
+  return '#10b981';
+}
+
+// === CHARTS ===
+const darkTheme = {
+  chart:{background:'transparent',foreColor:'#94a3b8'},
+  tooltip:{theme:'dark'},
+  grid:{borderColor:'#1e293b'}
+};
+
+// Timeline
+let timelineChart;
+function buildTimeline(metric='revenue') {
+  const labels = {revenue:'Revenue ($)',volume:'Send Volume',donors:'Donors'};
+  const fmt = metric === 'revenue' ? v=>'$'+v.toLocaleString() : v=>v.toLocaleString();
+  const colors = timeline.map(t => phaseColor(t.date));
+  
+  const opts = {
+    ...darkTheme,
+    chart:{type:'bar',height:420,background:'transparent',foreColor:'#94a3b8',toolbar:{show:true,tools:{download:true,zoom:true,pan:true,reset:true}}},
+    series:[{name:labels[metric],data:timeline.map(t=>t[metric])}],
+    xaxis:{categories:timeline.map(t=>t.date),labels:{rotate:-45,style:{fontSize:'11px'}},axisBorder:{color:'#1e293b'}},
+    yaxis:{labels:{formatter:fmt}},
+    plotOptions:{bar:{columnWidth:'80%',distributed:true,borderRadius:4}},
+    colors:colors,
+    grid:{borderColor:'#1e293b',strokeDashArray:3},
+    tooltip:{theme:'dark',y:{formatter:fmt},x:{formatter:v=>v}},
+    legend:{show:false},
+    annotations:{
+      xaxis:[{
+        x:'2024-07-19',borderColor:'#ef4444',strokeDashArray:0,
+        label:{text:'PEAK: Jul 19 — $403K',style:{color:'#fff',background:'#ef4444',fontSize:'12px',fontWeight:700,padding:{left:8,right:8,top:4,bottom:4}}}
+      }]
+    }
+  };
+  
+  if (timelineChart) timelineChart.destroy();
+  timelineChart = new ApexCharts(document.querySelector('#timeline-chart'), opts);
+  timelineChart.render();
+}
+
+function switchTimeline(m) {
+  document.querySelectorAll('.tab-row .tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  buildTimeline(m);
+}
+
+buildTimeline('revenue');
+
+// Treemap
+const treemapData = byList.filter(l=>l.revenue>100).map(l=>({x:l.list,y:Math.round(l.revenue)}));
+new ApexCharts(document.querySelector('#treemap-chart'), {
+  ...darkTheme,
+  chart:{type:'treemap',height:420,background:'transparent',foreColor:'#94a3b8',toolbar:{show:false}},
+  series:[{data:treemapData}],
+  plotOptions:{treemap:{distributed:true,enableShades:false,colorScale:{ranges:[
+    {from:0,to:5000,color:'#1e3a5f'},
+    {from:5001,to:20000,color:'#1d4ed8'},
+    {from:20001,to:50000,color:'#f59e0b'},
+    {from:50001,to:100000,color:'#ef4444'},
+    {from:100001,to:600000,color:'#dc2626'}
+  ]}}},
+  tooltip:{theme:'dark',y:{formatter:v=>'$'+v.toLocaleString()}},
+  dataLabels:{style:{fontSize:'13px',fontWeight:700}}
+}).render();
+
+// Decile chart — top 16 by revenue
+const topDeciles = deciles.sort((a,b)=>b.revenue-a.revenue).slice(0,16);
+new ApexCharts(document.querySelector('#decile-chart'), {
+  ...darkTheme,
+  chart:{type:'bar',height:420,background:'transparent',foreColor:'#94a3b8',toolbar:{show:false}},
+  series:[{name:'Revenue',data:topDeciles.map(d=>Math.round(d.revenue))}],
+  xaxis:{categories:topDeciles.map(d=>d.name.replace('Millitile ','M').replace('Decile ','D')),labels:{rotate:-45,style:{fontSize:'10px'}}},
+  yaxis:{labels:{formatter:v=>'$'+(v/1000).toFixed(0)+'K'}},
+  plotOptions:{bar:{columnWidth:'75%',borderRadius:4,colors:{ranges:[
+    {from:60000,to:80000,color:'#ef4444'},
+    {from:40000,to:59999,color:'#f59e0b'},
+    {from:20000,to:39999,color:'#3b82f6'},
+    {from:0,to:19999,color:'#1e3a5f'}
+  ]}}},
+  colors:['#3b82f6'],
+  tooltip:{theme:'dark',y:{formatter:v=>'$'+v.toLocaleString()}},
+  grid:{borderColor:'#1e293b',strokeDashArray:3}
+}).render();
+
+// Owner pie
+const ownerRevenue = {};
+byList.forEach(l => { ownerRevenue[l.owner] = (ownerRevenue[l.owner]||0) + l.revenue; });
+const ownerNames = Object.keys(ownerRevenue).sort((a,b)=>ownerRevenue[b]-ownerRevenue[a]);
+new ApexCharts(document.querySelector('#owner-pie-chart'), {
+  ...darkTheme,
+  chart:{type:'donut',height:380,background:'transparent',foreColor:'#94a3b8'},
+  series:ownerNames.map(n=>Math.round(ownerRevenue[n])),
+  labels:ownerNames,
+  colors:['#ef4444','#f59e0b','#3b82f6','#10b981','#8b5cf6','#ec4899','#06b6d4','#84cc16'],
+  plotOptions:{pie:{donut:{size:'60%',labels:{show:true,total:{show:true,label:'Total Revenue',formatter:()=>'$880,762'}}}}},
+  tooltip:{theme:'dark',y:{formatter:v=>'$'+v.toLocaleString()}},
+  legend:{position:'bottom',fontSize:'12px'}
+}).render();
+
+// Owner bar — yield
+const ownerVolume = {};
+byList.forEach(l => { ownerVolume[l.owner] = (ownerVolume[l.owner]||0) + l.volume; });
+const ownerYield = ownerNames.filter(n=>ownerVolume[n]>0).map(n=>({
+  name:n,
+  yield: ownerRevenue[n]/ownerVolume[n]
+})).sort((a,b)=>b.yield-a.yield);
+
+new ApexCharts(document.querySelector('#owner-bar-chart'), {
+  ...darkTheme,
+  chart:{type:'bar',height:380,background:'transparent',foreColor:'#94a3b8',toolbar:{show:false}},
+  series:[{name:'$/Send',data:ownerYield.map(o=>parseFloat((o.yield*100).toFixed(2)))}],
+  xaxis:{categories:ownerYield.map(o=>o.name),labels:{style:{fontSize:'11px'}}},
+  yaxis:{title:{text:'Cents per Send'},labels:{formatter:v=>v.toFixed(1)+'¢'}},
+  plotOptions:{bar:{horizontal:true,borderRadius:4,barHeight:'70%'}},
+  colors:['#10b981'],
+  tooltip:{theme:'dark',y:{formatter:v=>v.toFixed(2)+'¢ per send'}},
+  grid:{borderColor:'#1e293b',strokeDashArray:3}
+}).render();
+
+// Sends per day
+new ApexCharts(document.querySelector('#sends-chart'), {
+  ...darkTheme,
+  chart:{type:'area',height:300,background:'transparent',foreColor:'#94a3b8',toolbar:{show:false},sparkline:{enabled:false}},
+  series:[{name:'Deployments',data:timeline.map(t=>t.sends)}],
+  xaxis:{categories:timeline.map(t=>t.date),labels:{rotate:-45,style:{fontSize:'10px'}}},
+  yaxis:{labels:{formatter:v=>v}},
+  colors:['#8b5cf6'],
+  fill:{type:'gradient',gradient:{shadeIntensity:1,opacityFrom:.4,opacityTo:.05}},
+  stroke:{curve:'smooth',width:3},
+  tooltip:{theme:'dark'},
+  grid:{borderColor:'#1e293b',strokeDashArray:3},
+  annotations:{points:[{x:'2024-07-19',y:103,marker:{size:8,fillColor:'#ef4444',strokeColor:'#fff',strokeWidth:2},label:{text:'103 sends',style:{color:'#fff',background:'#ef4444',fontSize:'12px',fontWeight:700}}}]}
+}).render();
+
+// Export
+function exportPNG() {
+  const btn = document.querySelector('.export-btn');
+  btn.textContent = '⏳ Capturing...';
+  html2canvas(document.body, {backgroundColor:'#0a0e17',scale:2}).then(canvas => {
+    const link = document.createElement('a');
+    link.download = 'cr1243-case-study.png';
+    link.href = canvas.toDataURL();
+    link.click();
+    btn.textContent = '📸 Export as PNG';
+  });
+}
+</script>
+
+</body>
+</html>
