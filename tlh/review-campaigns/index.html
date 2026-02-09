@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Campaign Dashboard — TLH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1e3a5f;
+            --teal: #00a5a5;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #1a1a2e;
+            --muted: #6c757d;
+            --success: #2e7d32;
+            --warning: #ef6c00;
+            --danger: #dc3545;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--navy) 0%, #0f2744 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .back-link:hover {
+            color: var(--navy);
+        }
+        
+        .section {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        
+        .section h2 {
+            color: var(--navy);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section h2 .icon {
+            font-size: 1.5rem;
+        }
+        
+        /* Campaign Cards */
+        .campaigns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .campaign-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--teal);
+            position: relative;
+        }
+        
+        .campaign-card.urgent {
+            border-left-color: var(--danger);
+        }
+        
+        .campaign-card.optimize {
+            border-left-color: var(--success);
+        }
+        
+        .campaign-card h3 {
+            font-size: 1.4rem;
+            color: var(--navy);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .campaign-card .region-label {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .campaign-card.urgent .region-label {
+            background: #ffebee;
+            color: var(--danger);
+        }
+        
+        .campaign-card.optimize .region-label {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+        
+        .campaign-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 20px 0;
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 16px 8px;
+            background: var(--bg);
+            border-radius: 10px;
+        }
+        
+        .stat-box .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--navy);
+        }
+        
+        .stat-box .value.zero {
+            color: var(--danger);
+        }
+        
+        .stat-box .value.good {
+            color: var(--success);
+        }
+        
+        .stat-box .label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--teal), #00c4c4);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-fill.danger {
+            background: linear-gradient(90deg, var(--danger), #ff6b6b);
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        
+        .campaign-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .campaign-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: var(--bg);
+            color: var(--navy);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .campaign-link:hover {
+            background: var(--navy);
+            color: white;
+        }
+        
+        .campaign-link.primary {
+            background: var(--teal);
+            color: white;
+        }
+        
+        .campaign-link.primary:hover {
+            background: #008b8b;
+        }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e0e0e0;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 24px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            background: var(--teal);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--teal);
+        }
+        
+        .timeline-item.active::before {
+            background: var(--success);
+            box-shadow: 0 0 0 2px var(--success);
+        }
+        
+        .timeline-date {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        
+        .timeline-title {
+            font-weight: 600;
+            color: var(--navy);
+        }
+        
+        .timeline-desc {
+            font-size: 0.9rem;
+            color: var(--text);
+            margin-top: 4px;
+        }
+        
+        /* Key Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, var(--navy), #2a4a70);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .metric-card .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+        
+        .metric-card .source {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 8px;
+        }
+        
+        /* Tips */
+        .tips-list {
+            list-style: none;
+        }
+        
+        .tips-list li {
+            padding: 14px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .tips-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .tips-list .icon {
+            font-size: 1.2rem;
+        }
+        
+        .tips-list strong {
+            color: var(--navy);
+        }
+        
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #e8f5e9;
+            color: var(--success);
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+        
+        .badge.urgent {
+            background: #ffebee;
+            color: var(--danger);
+        }
+        
+        .badge.pending {
+            background: #fff3e0;
+            color: var(--warning);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+        
+        footer a {
+            color: var(--navy);
+        }
+        
+        @media (max-width: 600px) {
+            .campaigns-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .campaign-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .stat-box .value {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Review Campaign Dashboard</h1>
+        <p>Tracking Google review campaigns for LA and OC regions</p>
+    </div>
+    
+    <div class="container">
+        <a href="../" class="back-link">← Back to TLH Projects</a>
+        
+        <!-- Campaign Cards -->
+        <div class="campaigns-grid">
+            <!-- LA Campaign -->
+            <div class="campaign-card urgent">
+                <h3>
+                    Los Angeles
+                    <span class="region-label">Urgent</span>
+                </h3>
+                <p style="color: var(--muted); margin-bottom: 16px;">Building from zero — first review campaign sent</p>
+                
+                <div class="campaign-stats">
+                    <div class="stat-box">
+                        <div class="value">17</div>
+                        <div class="label">Emails Sent</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value zero">0</div>
+                        <div class="label">Current Reviews</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value">20</div>
+                        <div class="label">30-Day Target</div>
+                    </div>
+                </div>
+                
+                <div class="progress-label">
+                    <span>Progress to target</span>
+                    <span>0 / 20 (0%)</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill danger" style="width: 0%;"></div>
+                </div>
+                
+                <div class="campaign-links">
+                    <a href="https://search.google.com/local/writereview?placeid=ChIJg_7rTCO3woARNOU7PKkvFKA" target="_blank" class="campaign-link primary">⭐ Review Link</a>
+                    <a href="https://business.google.com/dashboard" target="_blank" class="campaign-link">📊 GBP Dashboard</a>
+                </div>
+            </div>
+            
+            <!-- OC Campaign -->
+            <div class="campaign-card optimize">
+                <h3>
+                    Orange County
+                    <span class="region-label">Optimize</span>
+                </h3>
+                <p style="color: var(--muted); margin-bottom: 16px;">Strong base — scaling with systematic outreach</p>
+                
+                <div class="campaign-stats">
+                    <div class="stat-box">
+                        <div class="value">14</div>
+                        <div class="label">Emails Sent</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value good">109</div>
+                        <div class="label">Current Reviews</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value">150</div>
+                        <div class="label">90-Day Target</div>
+                    </div>
+                </div>
+                
+                <div class="progress-label">
+                    <span>Progress to target</span>
+                    <span>109 / 150 (73%)</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 73%;"></div>
+                </div>
+                
+                <div class="campaign-links">
+                    <a href="https://search.google.com/local/writereview?placeid=ChIJBXQwHxDfzRoRHMwHcBvLfjA" target="_blank" class="campaign-link primary">⭐ Review Link</a>
+                    <a href="https://business.google.com/dashboard" target="_blank" class="campaign-link">📊 GBP Dashboard</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Campaign Timeline -->
+        <div class="section">
+            <h2><span class="icon">📅</span> Campaign Timeline</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item active">
+                    <div class="timeline-date">February 9, 2026 — 1:30 PM PST</div>
+                    <div class="timeline-title">LA Campaign Launched <span class="badge">Sent</span></div>
+                    <div class="timeline-desc">17 review request emails sent to past LA estate sale clients via Salesforce automation. Sent from Jonathan Sotelo's Org-Wide Email.</div>
+                </div>
+                <div class="timeline-item active">
+                    <div class="timeline-date">February 9, 2026 — 1:35 PM PST</div>
+                    <div class="timeline-title">OC Campaign Launched <span class="badge">Sent</span></div>
+                    <div class="timeline-desc">14 review request emails sent to past OC estate sale clients. Building on existing 109-review base.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">February 12-14, 2026</div>
+                    <div class="timeline-title">Expected First Reviews <span class="badge pending">Pending</span></div>
+                    <div class="timeline-desc">Research shows 3-5 days post-email is optimal review timing. HBR study: Day 5-13 is when customers are most likely to act.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">February 16, 2026</div>
+                    <div class="timeline-title">Follow-Up Campaign</div>
+                    <div class="timeline-desc">Gentle reminder to non-responders (1 week post-initial send).</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">March 9, 2026</div>
+                    <div class="timeline-title">30-Day Review</div>
+                    <div class="timeline-desc">Assess results: LA target is 20 reviews. OC should be at 120+.</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Key Research Metrics -->
+        <div class="section">
+            <h2><span class="icon">📈</span> Key Metrics (From Research)</h2>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="value">5-8%</div>
+                    <div class="label">Expected conversion</div>
+                    <div class="source">SMS/Email follow-ups</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value">Day 5-13</div>
+                    <div class="label">Optimal timing</div>
+                    <div class="source">HBR Research</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value">520%</div>
+                    <div class="label">More calls w/ 100+ photos</div>
+                    <div class="source">Google GBP Stats</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value"><24hr</div>
+                    <div class="label">Response time goal</div>
+                    <div class="source">For all reviews</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conversion Expectations -->
+        <div class="section">
+            <h2><span class="icon">🎯</span> Conversion Expectations</h2>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: var(--bg);">
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0;">Region</th>
+                        <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0;">Emails Sent</th>
+                        <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0;">5% Conv.</th>
+                        <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0;">8% Conv.</th>
+                        <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0;">Target</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #eee;"><strong>Los Angeles</strong></td>
+                        <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">17</td>
+                        <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">~1 review</td>
+                        <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">1-2 reviews</td>
+                        <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">20 (30 days)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #eee;"><strong>Orange County</strong></td>
+                        <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">14</td>
+                        <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">~1 review</td>
+                        <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">1-2 reviews</td>
+                        <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">150 (90 days)</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p style="margin-top: 20px; color: var(--muted); font-size: 0.9rem;">
+                <strong>Note:</strong> Email campaigns alone won't hit targets. Need to combine with: personal outreach (Paul calls), QR cards at sales, and shopper SMS opt-in program.
+            </p>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="section">
+            <h2><span class="icon">⚡</span> Next Actions</h2>
+            
+            <ul class="tips-list">
+                <li>
+                    <span class="icon">📞</span>
+                    <div>
+                        <strong>Paul Personal Outreach (LA)</strong><br>
+                        Call/text 10-15 recent LA clients personally. Expected: 3-5 reviews from warm asks.
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">🎴</span>
+                    <div>
+                        <strong>QR Cards at Next Sales</strong><br>
+                        Print review request cards with QR codes. Hand to happy shoppers at checkout.
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">💬</span>
+                    <div>
+                        <strong>Respond to All Reviews</strong><br>
+                        When reviews come in, respond within 24 hours. Personal, not templated.
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">📧</span>
+                    <div>
+                        <strong>Follow-Up in 7 Days</strong><br>
+                        Send gentle reminder to non-responders around Feb 16.
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">📊</span>
+                    <div>
+                        <strong>Check GBP Daily</strong><br>
+                        Monitor incoming reviews and respond promptly. Track conversion rate.
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Links -->
+        <div class="section">
+            <h2><span class="icon">🔗</span> Quick Links</h2>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                <a href="../review-automation/" class="campaign-link">📧 Review Automation System</a>
+                <a href="../gbp-strategy/" class="campaign-link">📋 GBP Strategy Guide</a>
+                <a href="https://search.google.com/local/writereview?placeid=ChIJg_7rTCO3woARNOU7PKkvFKA" target="_blank" class="campaign-link">⭐ LA Review Link</a>
+                <a href="https://search.google.com/local/writereview?placeid=ChIJBXQwHxDfzRoRHMwHcBvLfjA" target="_blank" class="campaign-link">⭐ OC Review Link</a>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>TLH Projects · Campaign launched Feb 9, 2026 · <a href="../">Back to Dashboard</a></p>
+    </footer>
+</body>
+</html>
