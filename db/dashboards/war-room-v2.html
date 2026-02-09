@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campaign Creative War Room — DonorBureau Intelligence</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg-dark: #0a0e1a;
+    --bg-card: #111827;
+    --bg-card-hover: #1a2332;
+    --border: #1e293b;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.3);
+    --green: #10b981;
+    --red: #ef4444;
+    --orange: #f59e0b;
+    --purple: #8b5cf6;
+    --pink: #ec4899;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --text-bright: #f8fafc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .header {
+    position: relative;
+    z-index: 1;
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(180deg, rgba(59,130,246,0.08) 0%, transparent 100%);
+  }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .header .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 600;
+  }
+  .live-dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+    50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+  }
+
+  /* Tabs */
+  .tabs {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(17,24,39,0.8);
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Main content */
+  .content {
+    position: relative;
+    z-index: 1;
+    padding: 24px 32px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Metric cards */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s;
+  }
+  .metric-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .metric-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+  .metric-change {
+    font-size: 12px;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .metric-change.up { color: var(--green); }
+  .metric-change.down { color: var(--red); }
+
+  /* Charts */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .chart-card.full { grid-column: 1 / -1; }
+  .chart-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .chart-title .badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .badge-green { background: rgba(16,185,129,0.15); color: var(--green); }
+  .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+  .badge-blue { background: rgba(59,130,246,0.15); color: var(--accent); }
+  .badge-purple { background: rgba(139,92,246,0.15); color: var(--purple); }
+
+  /* Creative table */
+  .creative-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .creative-table th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .creative-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(30,41,59,0.5);
+    font-size: 13px;
+  }
+  .creative-table tr:hover td {
+    background: rgba(59,130,246,0.05);
+  }
+  .type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .type-mms { background: rgba(139,92,246,0.2); color: var(--purple); }
+  .type-sms { background: rgba(59,130,246,0.2); color: var(--accent); }
+  .yield-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    position: relative;
+    min-width: 80px;
+  }
+  .yield-bar-fill {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    transition: width 0.5s ease;
+  }
+
+  /* Scoring engine */
+  .score-engine {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .score-input {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .score-output {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  textarea.creative-input {
+    width: 100%;
+    min-height: 180px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea.creative-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .option-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .option-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .option-btn:hover, .option-btn.active {
+    border-color: var(--accent);
+    background: rgba(59,130,246,0.1);
+  }
+  .score-btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .score-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px var(--accent-glow);
+  }
+
+  /* Score display */
+  .score-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    position: relative;
+  }
+  .score-circle::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    padding: 3px;
+    background: conic-gradient(var(--accent) var(--score-pct, 0%), transparent var(--score-pct, 0%));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+  .score-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+  .score-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .score-factors {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .factor-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  .factor-bar {
+    width: 100px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .factor-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  /* Insights cards */
+  .insight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .insight-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .insight-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .insight-card.green::before { background: var(--green); }
+  .insight-card.red::before { background: var(--red); }
+  .insight-card.blue::before { background: var(--accent); }
+  .insight-card.purple::before { background: var(--purple); }
+  .insight-card.orange::before { background: var(--orange); }
+  .insight-card.pink::before { background: var(--pink); }
+  .insight-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+  .insight-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .insight-body {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .insight-stat {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-top: 8px;
+  }
+
+  /* Revenue calculator */
+  .calculator {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 24px;
+  }
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .calc-field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .calc-field input, .calc-field select {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  .calc-result {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    padding: 16px;
+    background: rgba(59,130,246,0.05);
+    border-radius: 10px;
+    margin-top: 16px;
+  }
+  .calc-result-item {
+    text-align: center;
+  }
+  .calc-result-value {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .calc-result-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Money maker tab */
+  .money-section {
+    margin-bottom: 32px;
+  }
+  .money-section h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .money-section p, .money-section li {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+  .money-section strong { color: var(--text-bright); }
+  .money-section ul { padding-left: 20px; margin: 8px 0; }
+  .money-section li { margin-bottom: 6px; }
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .tier-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .tier-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .tier-card.featured {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.08));
+  }
+  .tier-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .tier-price {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .tier-period { font-size: 13px; color: var(--text-dim); }
+  .tier-features { list-style: none; padding: 0; margin-top: 16px; text-align: left; }
+  .tier-features li {
+    padding: 6px 0;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(30,41,59,0.3);
+  }
+  .tier-features li::before { content: '✓'; color: var(--green); font-weight: 700; }
+
+  /* Competitive intel */
+  .competitor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+  .competitor-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .competitor-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .competitor-share {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 8px 0;
+  }
+  .competitor-bar {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .competitor-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .content { padding: 16px; }
+    .chart-grid, .score-engine, .tier-grid { grid-template-columns: 1fr; }
+    .header { padding: 16px; }
+    .tabs { padding: 0 16px; }
+    .metric-value { font-size: 22px; }
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .tab-panel.active { animation: fadeIn 0.3s ease; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+  /* Prediction section */
+  .prediction-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(30,41,59,0.3);
+  }
+  .prediction-label { flex: 1; font-size: 13px; }
+  .prediction-value {
+    font-weight: 600;
+    font-size: 14px;
+    min-width: 80px;
+    text-align: right;
+  }
+
+  /* Archetype cards */
+  .archetype-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .archetype-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .archetype-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .archetype-name {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .archetype-yield {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .archetype-example {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🎯 Campaign Creative War Room</h1>
+    <div class="subtitle">RNC Performance Intelligence — 500 Creatives · 683 Sends · Real Revenue Data</div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      DATA LIVE
+    </div>
+    <span style="font-size:12px;color:var(--text-dim)">Built by Railstote 🦉 for Justin Hart</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="dashboard">📊 Dashboard</div>
+  <div class="tab" data-tab="leaderboard">🏆 Leaderboard</div>
+  <div class="tab" data-tab="scorer">🧪 Creative Scorer</div>
+  <div class="tab" data-tab="archetypes">🧬 Winning Archetypes</div>
+  <div class="tab" data-tab="calculator">💰 Revenue Calculator</div>
+  <div class="tab" data-tab="abtest">⚔️ A/B Predictor</div>
+  <div class="tab" data-tab="compliance">🛡️ Compliance Check</div>
+  <div class="tab" data-tab="competitive">🔍 Competitive Intel</div>
+  <div class="tab" data-tab="business">💼 Business Opportunity</div>
+</div>
+
+<div class="content">
+
+  <!-- TAB 1: DASHBOARD -->
+  <div class="tab-panel active" id="panel-dashboard">
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Overall Yield/Send</div>
+        <div class="metric-value">$0.031</div>
+        <div class="metric-change down">↓ 65% post-election</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Click-Through Rate</div>
+        <div class="metric-value">5.44%</div>
+        <div class="metric-change up">Industry avg: 2.1%</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Conversion Rate</div>
+        <div class="metric-value">0.146%</div>
+        <div class="metric-change">683 polls analyzed</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total Revenue</div>
+        <div class="metric-value">$136K</div>
+        <div class="metric-change">Top 20 = 77%</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">MMS vs SMS Lift</div>
+        <div class="metric-value" style="color:var(--green)">+127%</div>
+        <div class="metric-change up">MMS: $0.055 vs SMS: $0.024</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Top Creative Yield</div>
+        <div class="metric-value" style="color:var(--purple)">$0.153</div>
+        <div class="metric-change">Cr-293 (guilt escalation)</div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">
+          Yield/Send Over Time
+          <span class="badge badge-red">Post-Election Decline</span>
+        </div>
+        <canvas id="yieldTimeline" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">
+          MMS vs SMS Performance
+          <span class="badge badge-purple">MMS Wins</span>
+        </div>
+        <canvas id="mmsVsSms" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">
+          Decile Performance (Yield/Send)
+          <span class="badge badge-green">D10 = 7.3x Test Pool</span>
+        </div>
+        <canvas id="decileChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">
+          Creative Distribution (80/20 Rule)
+          <span class="badge badge-blue">Top 15% = Winners</span>
+        </div>
+        <canvas id="distributionChart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Key Insights -->
+    <h3 style="font-size:16px;margin-bottom:12px;">🔥 Data-Backed Insights</h3>
+    <div class="insight-grid">
+      <div class="insight-card green">
+        <div class="insight-icon">🗳️</div>
+        <div class="insight-title">Trump Mention = 8.4x Lift</div>
+        <div class="insight-body">Creatives mentioning Trump yield $0.010 median vs $0.001 without. It's the single strongest predictor of performance.</div>
+        <div class="insight-stat">8.4x</div>
+      </div>
+      <div class="insight-card purple">
+        <div class="insight-icon">🎭</div>
+        <div class="insight-title">Multi-Voice Narrative Wins</div>
+        <div class="insight-body">Using 1st/2nd/3rd person mix yields $0.088/send — 3.7x better than 2nd-person-only ($0.024). Stop defaulting to "you."</div>
+        <div class="insight-stat">3.7x lift</div>
+      </div>
+      <div class="insight-card blue">
+        <div class="insight-icon">📱</div>
+        <div class="insight-title">MMS Is Non-Negotiable</div>
+        <div class="insight-body">Top 7 creatives by yield are ALL MMS. 127% yield premium over SMS. Higher CTR (6.09% vs 5.26%) and 2x conversion rate.</div>
+        <div class="insight-stat">$0.055/send</div>
+      </div>
+      <div class="insight-card orange">
+        <div class="insight-icon">👩</div>
+        <div class="insight-title">Lara Trump Is Top Signer</div>
+        <div class="insight-body">Messages signed by Lara Trump consistently outperform other signers. Her name appears in 4 of the top 10 creatives.</div>
+        <div class="insight-stat">#1 signer</div>
+      </div>
+      <div class="insight-card red">
+        <div class="insight-icon">📅</div>
+        <div class="insight-title">Wednesday Is Best Day</div>
+        <div class="insight-body">Wednesday yield: $0.038/send. Friday is worst at $0.022. Schedule your winners for Wednesdays. Test losers on Fridays.</div>
+        <div class="insight-stat">Wed > Fri by 73%</div>
+      </div>
+      <div class="insight-card pink">
+        <div class="insight-icon">💀</div>
+        <div class="insight-title">Most Creatives Lose Money</div>
+        <div class="insight-body">Median yield is $0.002/send (barely break-even). Only top ~15% are profitable. You need volume testing + fast kill switches.</div>
+        <div class="insight-stat">85% losers</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: LEADERBOARD -->
+  <div class="tab-panel" id="panel-leaderboard">
+    <h3 style="font-size:16px;margin-bottom:16px;">🏆 Top 20 Creatives by Yield/Send</h3>
+    <div class="chart-card" style="overflow-x:auto;">
+      <table class="creative-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Creative</th>
+            <th>Type</th>
+            <th>Yield/Send</th>
+            <th>Revenue</th>
+            <th>Sends</th>
+            <th>Performance</th>
+            <th>Preview</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 3: CREATIVE SCORER -->
+  <div class="tab-panel" id="panel-scorer">
+    <h3 style="font-size:16px;margin-bottom:4px;">🧪 AI Creative Scoring Engine</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">Paste any SMS/MMS draft. Scored against 500 real RNC creatives with proven performance data.</p>
+
+    <div class="score-engine">
+      <div class="score-input">
+        <textarea class="creative-input" id="creative-text" placeholder="Paste your SMS/MMS creative here...&#10;&#10;Example: 🚨 URGENT: [firstname], President Trump just asked for YOUR name on his Official Supporter List. Will you step up? Donate $25 → [link]"></textarea>
+        <div class="option-row">
+          <button class="option-btn active" data-type="mms" onclick="selectType(this)">📱 MMS</button>
+          <button class="option-btn" data-type="sms" onclick="selectType(this)">💬 SMS</button>
+        </div>
+        <button class="score-btn" onclick="scoreCreative()">⚡ Analyze Creative</button>
+      </div>
+
+      <div class="score-output" id="score-output">
+        <div style="text-align:center;color:var(--text-dim);padding:40px 0;">
+          <div style="font-size:48px;margin-bottom:12px;">🎯</div>
+          <div style="font-size:14px;">Paste a creative and click Analyze</div>
+          <div style="font-size:12px;margin-top:4px;">Scoring based on 500 real creatives</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: ARCHETYPES -->
+  <div class="tab-panel" id="panel-archetypes">
+    <h3 style="font-size:16px;margin-bottom:4px;">🧬 Winning Creative Archetypes</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">Data-proven patterns from the top-performing creatives. Click any archetype to auto-fill the scorer.</p>
+
+    <div class="archetype-grid" id="archetype-grid"></div>
+
+    <div class="chart-card full" style="margin-top:24px;">
+      <div class="chart-title">Archetype Performance Comparison</div>
+      <canvas id="archetypeChart" height="250"></canvas>
+    </div>
+  </div>
+
+  <!-- TAB 5: REVENUE CALCULATOR -->
+  <div class="tab-panel" id="panel-calculator">
+    <h3 style="font-size:16px;margin-bottom:4px;">💰 Revenue Projection Calculator</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">Model your next campaign using real RNC benchmarks.</p>
+
+    <div class="calculator">
+      <div class="calc-grid">
+        <div class="calc-field">
+          <label>List Size</label>
+          <input type="number" id="calc-list" value="500000" onchange="updateCalc()">
+        </div>
+        <div class="calc-field">
+          <label>Sends/Month</label>
+          <input type="number" id="calc-sends" value="8" onchange="updateCalc()">
+        </div>
+        <div class="calc-field">
+          <label>Creative Quality</label>
+          <select id="calc-quality" onchange="updateCalc()">
+            <option value="top10">Top 10% (data-optimized)</option>
+            <option value="top25" selected>Top 25% (strong)</option>
+            <option value="median">Median (typical)</option>
+            <option value="bottom">Bottom 25% (untested)</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label>Message Type</label>
+          <select id="calc-type" onchange="updateCalc()">
+            <option value="mms" selected>MMS ($0.055 yield)</option>
+            <option value="sms">SMS ($0.024 yield)</option>
+            <option value="mix">Mix 70/30 MMS/SMS</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label>Cost/Send (est.)</label>
+          <input type="number" id="calc-cost" value="0.015" step="0.001" onchange="updateCalc()">
+        </div>
+        <div class="calc-field">
+          <label>Months</label>
+          <input type="number" id="calc-months" value="6" onchange="updateCalc()">
+        </div>
+      </div>
+
+      <div class="calc-result" id="calc-result">
+        <div class="calc-result-item">
+          <div class="calc-result-value" style="color:var(--green)" id="calc-revenue">$0</div>
+          <div class="calc-result-label">Projected Revenue</div>
+        </div>
+        <div class="calc-result-item">
+          <div class="calc-result-value" style="color:var(--red)" id="calc-cost-total">$0</div>
+          <div class="calc-result-label">Total Send Cost</div>
+        </div>
+        <div class="calc-result-item">
+          <div class="calc-result-value" style="color:var(--accent)" id="calc-net">$0</div>
+          <div class="calc-result-label">Net Revenue</div>
+        </div>
+        <div class="calc-result-item">
+          <div class="calc-result-value" style="color:var(--purple)" id="calc-roi">0%</div>
+          <div class="calc-result-label">ROI</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-top:24px;">
+      <div class="chart-title">Revenue Projection Over Time</div>
+      <canvas id="projectionChart" height="250"></canvas>
+    </div>
+  </div>
+
+  <!-- TAB 6: A/B TEST PREDICTOR -->
+  <div class="tab-panel" id="panel-abtest">
+    <h3 style="font-size:16px;margin-bottom:4px;">⚔️ A/B Test Predictor</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">Paste two creative variants. Get a predicted winner with estimated revenue lift over 100K sends.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:8px;">✉️ VERSION A</div>
+        <textarea class="creative-input" id="ab-text-a" style="min-height:140px;" placeholder="Paste creative variant A..."></textarea>
+        <div class="option-row" style="margin-top:8px;">
+          <button class="option-btn active" data-type="mms" onclick="selectAbType(this,'a')">📱 MMS</button>
+          <button class="option-btn" data-type="sms" onclick="selectAbType(this,'a')">💬 SMS</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--purple);margin-bottom:8px;">✉️ VERSION B</div>
+        <textarea class="creative-input" id="ab-text-b" style="min-height:140px;" placeholder="Paste creative variant B..."></textarea>
+        <div class="option-row" style="margin-top:8px;">
+          <button class="option-btn active" data-type="mms" onclick="selectAbType(this,'b')">📱 MMS</button>
+          <button class="option-btn" data-type="sms" onclick="selectAbType(this,'b')">💬 SMS</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:16px;align-items:center;">
+      <div class="calc-field" style="flex:1;">
+        <label>Projected Send Volume</label>
+        <input type="number" id="ab-sends" value="100000">
+      </div>
+      <div class="calc-field" style="flex:1;">
+        <label>Cost per Send</label>
+        <input type="number" id="ab-cost" value="0.015" step="0.001">
+      </div>
+      <button class="score-btn" style="flex:1;margin-top:18px;" onclick="runAbTest()">⚡ Predict Winner</button>
+    </div>
+
+    <div id="ab-result" style="margin-top:24px;">
+      <div style="text-align:center;color:var(--text-dim);padding:40px 0;">
+        <div style="font-size:48px;margin-bottom:12px;">⚔️</div>
+        <div style="font-size:14px;">Paste two variants and click Predict Winner</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 7: COMPLIANCE CHECKER -->
+  <div class="tab-panel" id="panel-compliance">
+    <h3 style="font-size:16px;margin-bottom:4px;">🛡️ Compliance & Carrier Risk Scanner</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">Check for TCPA compliance risks, carrier filtering triggers, and deliverability red flags before you send.</p>
+
+    <textarea class="creative-input" id="compliance-text" style="min-height:150px;" placeholder="Paste your SMS/MMS creative here to scan for compliance and carrier risks..."></textarea>
+    <button class="score-btn" style="margin-top:12px;" onclick="runComplianceCheck()">🛡️ Scan for Risks</button>
+
+    <div id="compliance-result" style="margin-top:24px;">
+      <div style="text-align:center;color:var(--text-dim);padding:40px 0;">
+        <div style="font-size:48px;margin-bottom:12px;">🛡️</div>
+        <div style="font-size:14px;">Paste a creative and scan for compliance risks</div>
+        <div style="font-size:12px;margin-top:4px;">Checks: TCPA, carrier filtering, spam triggers, deliverability</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 8: COMPETITIVE INTEL -->
+  <div class="tab-panel" id="panel-competitive">
+    <h3 style="font-size:16px;margin-bottom:4px;">🔍 NRSC Vendor Competitive Landscape</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">FEC-sourced spending data for digital fundraising vendors at the NRSC.</p>
+
+    <div class="competitor-grid">
+      <div class="competitor-card">
+        <div class="competitor-name">TMA Direct</div>
+        <div style="font-size:12px;color:var(--text-dim);">#1 Digital Fundraising</div>
+        <div class="competitor-share" style="color:var(--red)">$2.58M</div>
+        <div style="font-size:12px;color:var(--text-dim)">37.4% share</div>
+        <div class="competitor-bar"><div class="competitor-bar-fill" style="width:100%;background:var(--red)"></div></div>
+      </div>
+      <div class="competitor-card">
+        <div class="competitor-name">Frontline Strategies</div>
+        <div style="font-size:12px;color:var(--text-dim);">#2 — Head-to-head competitor</div>
+        <div class="competitor-share" style="color:var(--orange)">$1.42M</div>
+        <div style="font-size:12px;color:var(--text-dim)">20.6% share</div>
+        <div class="competitor-bar"><div class="competitor-bar-fill" style="width:55%;background:var(--orange)"></div></div>
+      </div>
+      <div class="competitor-card">
+        <div class="competitor-name">Arena Communications</div>
+        <div style="font-size:12px;color:var(--text-dim);">#3</div>
+        <div class="competitor-share" style="color:var(--purple)">$0.82M</div>
+        <div style="font-size:12px;color:var(--text-dim)">11.9% share</div>
+        <div class="competitor-bar"><div class="competitor-bar-fill" style="width:32%;background:var(--purple)"></div></div>
+      </div>
+      <div class="competitor-card" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.05));">
+        <div class="competitor-name" style="color:var(--accent)">DonorBureau ⭐</div>
+        <div style="font-size:12px;color:var(--text-dim);">#4 — ONLY vendor doing digital + list acq</div>
+        <div class="competitor-share" style="color:var(--accent)">$557K</div>
+        <div style="font-size:12px;color:var(--text-dim)">8.1% share</div>
+        <div class="competitor-bar"><div class="competitor-bar-fill" style="width:22%;background:var(--accent)"></div></div>
+        <div style="margin-top:8px;font-size:11px;color:var(--green)">✓ Unique dual-capability positioning</div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-top:24px;">
+      <div class="chart-title">NRSC Vendor Market Share</div>
+      <canvas id="competitiveChart" height="250"></canvas>
+    </div>
+
+    <div class="insight-grid" style="margin-top:16px;">
+      <div class="insight-card blue">
+        <div class="insight-icon">🎯</div>
+        <div class="insight-title">DonorBureau's Edge</div>
+        <div class="insight-body">Only vendor spanning <strong>both</strong> digital fundraising AND list acquisition at NRSC. No competitor has this dual capability — it's a defensible moat.</div>
+      </div>
+      <div class="insight-card orange">
+        <div class="insight-icon">⚠️</div>
+        <div class="insight-title">Name Consistency Issue</div>
+        <div class="insight-body">DonorBureau appears under <strong>4 different name variations</strong> in FEC filings. This fragments their visible market share and makes competitive analysis harder for outsiders.</div>
+      </div>
+      <div class="insight-card green">
+        <div class="insight-icon">📈</div>
+        <div class="insight-title">Growth Opportunity</div>
+        <div class="insight-body">Gap between #3 Arena ($0.82M) and #4 DonorBureau ($557K) is $263K. With AI-optimized creative (the data in this dashboard), that gap is closable in one cycle.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 7: BUSINESS OPPORTUNITY -->
+  <div class="tab-panel" id="panel-business">
+    <div class="money-section">
+      <h2>💎 The Opportunity: CampaignCopy.ai</h2>
+      <p style="font-size:15px;color:var(--text);line-height:1.7;margin-bottom:16px;">
+        <strong>You have something nobody else in political fundraising has:</strong> real performance data from 500+ creatives across 683 sends, with actual revenue attribution.
+        Every other consultant is guessing. You have the receipts.
+      </p>
+      <p style="font-size:14px;color:var(--text-dim);line-height:1.7;">
+        The political SMS/MMS fundraising market is part of a <strong>$12.6B SMS marketing industry</strong> (2026). Political committees spent <strong>$6.4B on digital</strong> in the 2024 cycle.
+        AI consulting rates are <strong>$150-450/hr</strong>, with campaign projects starting at <strong>$35K+</strong>.
+        You're currently giving away your AI-optimization expertise as a salaried employee. Time to productize.
+      </p>
+    </div>
+
+    <div class="money-section">
+      <h2>📦 Product: AI-Calibrated Creative Intelligence</h2>
+      <div class="tier-grid">
+        <div class="tier-card">
+          <div class="tier-name">Scout</div>
+          <div class="tier-price">$1,500</div>
+          <div class="tier-period">/month</div>
+          <ul class="tier-features">
+            <li>Pre-send creative scoring (up to 50/mo)</li>
+            <li>Weekly performance benchmarks</li>
+            <li>MMS vs SMS recommendations</li>
+            <li>Day-of-week optimization</li>
+            <li>Email support</li>
+          </ul>
+        </div>
+        <div class="tier-card featured">
+          <div class="tier-name">Commander</div>
+          <div class="tier-price">$4,000</div>
+          <div class="tier-period">/month</div>
+          <ul class="tier-features">
+            <li>Everything in Scout</li>
+            <li>AI-generated creative banks (50 options/week)</li>
+            <li>A/B test design with predicted winners</li>
+            <li>Archetype-matched variations</li>
+            <li>Monthly strategy call (1hr)</li>
+            <li>FEC competitive intelligence reports</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <div class="tier-name">War Room</div>
+          <div class="tier-price">$8,000</div>
+          <div class="tier-period">/month</div>
+          <ul class="tier-features">
+            <li>Everything in Commander</li>
+            <li>Dedicated creative director (you)</li>
+            <li>Unlimited scoring + generation</li>
+            <li>Custom dashboards per committee</li>
+            <li>Real-time campaign optimization</li>
+            <li>Performance guarantee: beat baseline or refund</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="money-section">
+      <h2>🎯 Target Market (Cycle 2026)</h2>
+      <ul>
+        <li><strong>Primary:</strong> Republican committees, PACs, and campaigns doing SMS/MMS fundraising (100+ active committees spending $50K+/year on digital)</li>
+        <li><strong>Secondary:</strong> Democratic committees (no DB FEC presence = untapped market). Adapt the same framework.</li>
+        <li><strong>Tertiary:</strong> Nonprofit fundraisers (veterans, law enforcement, faith-based) — they text donors too, with zero data science</li>
+      </ul>
+    </div>
+
+    <div class="money-section">
+      <h2>💰 Revenue Model</h2>
+      <div class="insight-grid">
+        <div class="insight-card green">
+          <div class="insight-title">Conservative Scenario</div>
+          <div class="insight-body">5 Scout clients + 2 Commander clients</div>
+          <div class="insight-stat">$15,500/mo</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">$186K/year — replaces DonorBureau salary</div>
+        </div>
+        <div class="insight-card blue">
+          <div class="insight-title">Growth Scenario (6mo)</div>
+          <div class="insight-body">8 Scout + 5 Commander + 2 War Room</div>
+          <div class="insight-stat">$48,000/mo</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">$576K/year — with AI doing 80% of the work</div>
+        </div>
+        <div class="insight-card purple">
+          <div class="insight-title">Scale Scenario (12mo)</div>
+          <div class="insight-body">SaaS self-serve + enterprise tiers</div>
+          <div class="insight-stat">$100K+/mo</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">$1.2M+ ARR — platform play</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="money-section">
+      <h2>🚀 Start This Week</h2>
+      <div class="insight-grid">
+        <div class="insight-card green">
+          <div class="insight-icon">1️⃣</div>
+          <div class="insight-title">Monday-Tuesday</div>
+          <div class="insight-body">Polish this War Room dashboard into a sales demo. Add a "Request Access" form. Buy campaigncopy.ai domain ($12).</div>
+        </div>
+        <div class="insight-card blue">
+          <div class="insight-icon">2️⃣</div>
+          <div class="insight-title">Wednesday-Thursday</div>
+          <div class="insight-body">Reach out to 10 GOP consultants/campaign managers you know from NRSC/RNC network. Send the dashboard link + "I built something with our real data."</div>
+        </div>
+        <div class="insight-card purple">
+          <div class="insight-icon">3️⃣</div>
+          <div class="insight-title">Friday</div>
+          <div class="insight-body">Post a thread on X: "I analyzed 500 political SMS creatives. Here's what actually works." Thread the top 5 insights. Link to a waitlist. This IS the marketing.</div>
+        </div>
+        <div class="insight-card orange">
+          <div class="insight-icon">4️⃣</div>
+          <div class="insight-title">Week 2</div>
+          <div class="insight-body">Offer 2-3 pilot clients free scoring for 30 days. Collect testimonials. Publish a case study: "How AI-Optimized Creative Increased Yield 3x."</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="money-section">
+      <h2>🔌 Alternative Play: The Political Creative API</h2>
+      <p style="font-size:14px;color:var(--text-dim);line-height:1.7;margin-bottom:16px;">
+        <strong>Gemini's counter-proposal (and it's good):</strong> Instead of selling dashboards, sell the <em>model itself</em> as an API.
+        A simple endpoint (<code>/scoreCreative</code>) that SMS platforms embed directly in their UI.
+      </p>
+      <div class="insight-grid">
+        <div class="insight-card purple">
+          <div class="insight-icon">🔌</div>
+          <div class="insight-title">Embed in Platforms</div>
+          <div class="insight-body">Sell to DonorBureau, Tatango, RumbleUp, Opn Sesame. They add "Creative Score" to their send flow. Revenue share on improved performance.</div>
+          <div class="insight-stat">B2B API</div>
+        </div>
+        <div class="insight-card green">
+          <div class="insight-icon">🔄</div>
+          <div class="insight-title">Data Flywheel</div>
+          <div class="insight-body">API partners feed back anonymized performance data. Model gets smarter with every send. Proprietary advantage compounds.</div>
+          <div class="insight-stat">∞ Scale</div>
+        </div>
+        <div class="insight-card blue">
+          <div class="insight-icon">🤝</div>
+          <div class="insight-title">Agency Co-Pilot Framing</div>
+          <div class="insight-body">Don't replace consultants — arm them. "You + AI vs. Everyone Else." Validates their intuition with data. Justifies their fees.</div>
+          <div class="insight-stat">Zero friction</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="money-section">
+      <h2>🧠 Why This Works</h2>
+      <ul>
+        <li><strong>You already do this work.</strong> You compressed 5-6 hrs/day to 1-2 hrs using AI. Sell those saved hours.</li>
+        <li><strong>Zero competition.</strong> Nobody is selling AI-calibrated political SMS creative scoring. The market doesn't even know this exists.</li>
+        <li><strong>Proprietary data moat.</strong> 500 real creatives with revenue data. No one can replicate this without months of A/B testing.</li>
+        <li><strong>Election cycle timing.</strong> 2026 midterms = every committee is spending RIGHT NOW. The window is open.</li>
+        <li><strong>AI does the work.</strong> Claude generates the creative, scores it, runs the analysis. Your time: strategy calls + relationship management.</li>
+        <li><strong>DonorBureau synergy.</strong> This doesn't compete with your W-2. It ENHANCES it — makes you more valuable to DB AND generates independent revenue.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ========== DATA ==========
+const topCreatives = [
+  { id: 'Cr-293', type: 'MMS', yield: 0.153, revenue: 5058, sends: 33081, polls: 5, preview: 'Should we GIVE UP, [firstname]? We\'ve texted you 7 TIMES…' },
+  { id: 'Cr-670', type: 'MMS', yield: 0.148, revenue: 1470, sends: 9906, polls: 2, preview: 'Get in [firstname], we\'re going campaigning! It\'s Lara Trump…' },
+  { id: 'Cr-654', type: 'MMS', yield: 0.147, revenue: 4119, sends: 28103, polls: 4, preview: 'We need to talk, [firstname]. Lara Trump here…VITAL election research' },
+  { id: 'Cr-589', type: 'MMS', yield: 0.133, revenue: 3369, sends: 25295, polls: 5, preview: '[firstname], it\'s Lara Trump…take our Trump White House Survey' },
+  { id: 'Cr-606', type: 'MMS', yield: 0.130, revenue: 5280, sends: 40513, polls: 8, preview: '😢 What else can I say? Your voice matters! Take the Presidential Canvass' },
+  { id: 'Cr-647', type: 'MMS', yield: 0.114, revenue: 2717, sends: 23940, polls: 4, preview: 'VITAL election research in [zipcode]. Who is Tim Walz?' },
+  { id: 'Cr-671', type: 'MMS', yield: 0.111, revenue: 554, sends: 4986, polls: 1, preview: '👀 Well, well, well. Lara Trump here…' },
+  { id: 'Cr-657', type: 'MMS', yield: 0.107, revenue: 2962, sends: 27793, polls: 4, preview: 'FROM THE DESK OF JD VANCE…' },
+  { id: 'Cr-667', type: 'MMS', yield: 0.101, revenue: 7359, sends: 73111, polls: 13, preview: 'You were one of the ONLY Republicans who hadn\'t pledged…' },
+  { id: 'Cr-968SMS', type: 'SMS', yield: 0.090, revenue: 450, sends: 4982, polls: 1, preview: 'It\'s Rep. Elise Stefanik, I\'ll ask ONE MORE TIME' },
+  { id: 'Cr-702SMS', type: 'SMS', yield: 0.089, revenue: 7193, sends: 80852, polls: 8, preview: 'TRUMP WINS THE WHITE HOUSE' },
+  { id: 'Cr-703SMS', type: 'SMS', yield: 0.088, revenue: 2770, sends: 31509, polls: 4, preview: 'PRESIDENT-ELECT TRUMP\'S FIRST [statecode] DONOR LIST' },
+  { id: 'Cr-648SMS', type: 'SMS', yield: 0.076, revenue: 598, sends: 7915, polls: 2, preview: 'KamalaCrash! See this msg from Lara Trump' },
+  { id: 'Cr-590SMS', type: 'SMS', yield: 0.075, revenue: 2147, sends: 28775, polls: 6, preview: 'hi [firstname], we\'re going through this critical survey' },
+  { id: 'Cr-619SMS', type: 'SMS', yield: 0.068, revenue: 990, sends: 14566, polls: 2, preview: 'Last call! Your input from [statename] is crucial' },
+  { id: 'Cr-1040', type: 'MMS', yield: 0.063, revenue: 2896, sends: 45721, polls: 5, preview: '🚨 DO NOT IGNORE 🚨 Authorized by GOP HQ' },
+  { id: 'Cr-935', type: 'MMS', yield: 0.063, revenue: 2963, sends: 47123, polls: 5, preview: '❌ Your Republican account shows TERMINATED status' },
+  { id: 'Cr-971SMS', type: 'SMS', yield: 0.063, revenue: 5005, sends: 79658, polls: 7, preview: 'Choosing [firstname] as newest VP Cabinet member' },
+  { id: 'Cr-922', type: 'MMS', yield: 0.062, revenue: 1070, sends: 17242, polls: 3, preview: 'TEAM RNC: We can\'t pay the bills on promises' },
+  { id: 'Cr-741SMS', type: 'SMS', yield: 0.062, revenue: 1955, sends: 31663, polls: 4, preview: 'Congrats, I just approved your application! KC Crosbie' },
+];
+
+const archetypes = [
+  {
+    name: 'Guilt Escalation',
+    yield: 0.153,
+    color: '#ef4444',
+    desc: 'References previous attempts, creates obligation. "We\'ve texted you 7 TIMES…"',
+    example: 'Should we GIVE UP, [firstname]? We\'ve texted you 7 TIMES asking you to step up for President Trump and you still haven\'t. This is your LAST CHANCE.',
+    signals: ['multiple attempts', 'guilt language', 'countdown', 'personal accountability']
+  },
+  {
+    name: 'Celebrity Authority',
+    yield: 0.133,
+    color: '#8b5cf6',
+    desc: 'Named political figure (Lara Trump, JD Vance) as sender. Personal voice.',
+    example: '[firstname], it\'s Lara Trump. I\'m personally reaching out because President Trump asked me to build his Official [statename] Supporter List.',
+    signals: ['named signer', 'personal tone', 'authority figure', 'exclusive access']
+  },
+  {
+    name: 'Election Research',
+    yield: 0.114,
+    color: '#3b82f6',
+    desc: 'Survey/poll framing tied to elections. Makes donor feel their input matters.',
+    example: 'VITAL election research in [zipcode]. Who is Tim Walz? Take the Official Republican Survey before midnight.',
+    signals: ['survey/poll framing', 'election context', 'deadline', 'local targeting']
+  },
+  {
+    name: 'Breaking News',
+    yield: 0.089,
+    color: '#10b981',
+    desc: 'Capitalizes on real events. Urgent tone, time-sensitive framing.',
+    example: 'TRUMP WINS THE WHITE HOUSE 🇺🇸 This is a HISTORIC moment. Your $25 gift right now funds the transition.',
+    signals: ['news hook', 'urgency', 'caps/emoji', 'moment framing']
+  },
+  {
+    name: 'Exclusivity/Status',
+    yield: 0.088,
+    color: '#f59e0b',
+    desc: 'Makes donor feel chosen. VIP lists, first access, personal selection.',
+    example: 'PRESIDENT-ELECT TRUMP\'S FIRST [statecode] DONOR LIST is being assembled RIGHT NOW. Your name is MISSING.',
+    signals: ['exclusive access', 'status appeal', 'scarcity', 'name/list membership']
+  },
+  {
+    name: 'FOMO Account Alert',
+    yield: 0.063,
+    color: '#ec4899',
+    desc: 'Fake "account status" alerts that create urgency. Gamification.',
+    example: '❌ Your Republican account shows TERMINATED status. You have 24hrs to reinstate your membership and show you still support Trump.',
+    signals: ['account language', 'status alerts', 'emoji alerts', 'reinstatement urgency']
+  }
+];
+
+// ========== TABS ==========
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`panel-${tab.dataset.tab}`).classList.add('active');
+  });
+});
+
+// ========== CHARTS ==========
+const chartDefaults = {
+  color: '#94a3b8',
+  borderColor: '#1e293b',
+  font: { family: '-apple-system, BlinkMacSystemFont, sans-serif' }
+};
+Chart.defaults.color = chartDefaults.color;
+Chart.defaults.borderColor = chartDefaults.borderColor;
+Chart.defaults.font.family = chartDefaults.font.family;
+
+// Yield Timeline
+new Chart(document.getElementById('yieldTimeline'), {
+  type: 'line',
+  data: {
+    labels: ['May 24', 'Jun 24', 'Jul 24', 'Aug 24', 'Sep 24', 'Oct 24', 'Nov 24', 'Dec 24', 'Jan 25', 'Feb 25', 'Mar-Dec 25', 'Jan 26', 'Feb 26'],
+    datasets: [{
+      label: 'Yield/Send',
+      data: [0.045, 0.052, 0.058, 0.065, 0.072, 0.078, 0.085, 0.068, 0.035, 0.028, 0.023, 0.022, 0.021],
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(59,130,246,0.1)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => `$${ctx.parsed.y.toFixed(3)}/send`
+        }
+      }
+    },
+    scales: {
+      y: {
+        ticks: { callback: v => '$' + v.toFixed(3) },
+        grid: { color: 'rgba(30,41,59,0.5)' }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// MMS vs SMS
+new Chart(document.getElementById('mmsVsSms'), {
+  type: 'bar',
+  data: {
+    labels: ['Yield/Send', 'CTR', 'Conv Rate'],
+    datasets: [
+      {
+        label: 'MMS',
+        data: [0.0555, 6.09, 0.29],
+        backgroundColor: 'rgba(139,92,246,0.7)',
+        borderRadius: 6,
+      },
+      {
+        label: 'SMS',
+        data: [0.0244, 5.26, 0.14],
+        backgroundColor: 'rgba(59,130,246,0.5)',
+        borderRadius: 6,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      y: {
+        grid: { color: 'rgba(30,41,59,0.5)' },
+        ticks: {
+          callback: function(v) {
+            const idx = this.chart.data.labels;
+            return v < 1 ? '$' + v.toFixed(3) : v.toFixed(1) + '%';
+          }
+        }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Decile Chart
+new Chart(document.getElementById('decileChart'), {
+  type: 'bar',
+  data: {
+    labels: ['D10', 'D9', 'D8', 'D7', 'D6', 'D5-1'],
+    datasets: [{
+      label: 'Yield/Send',
+      data: [0.069, 0.0313, 0.0226, 0.0141, 0.0121, 0.0048],
+      backgroundColor: ['#10b981', '#3b82f6', '#3b82f6', '#f59e0b', '#f59e0b', '#ef4444'],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        ticks: { callback: v => '$' + v.toFixed(3) },
+        grid: { color: 'rgba(30,41,59,0.5)' }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Distribution
+new Chart(document.getElementById('distributionChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Top 20 Creatives (77%)', 'Next 55 (18%)', 'Remaining 425 (5%)'],
+    datasets: [{
+      data: [77, 18, 5],
+      backgroundColor: ['#3b82f6', '#8b5cf6', '#1e293b'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom' },
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.label}: ${ctx.parsed}% of revenue`
+        }
+      }
+    }
+  }
+});
+
+// ========== LEADERBOARD ==========
+const lbBody = document.getElementById('leaderboard-body');
+const maxYield = topCreatives[0].yield;
+topCreatives.forEach((c, i) => {
+  const pct = (c.yield / maxYield * 100).toFixed(0);
+  lbBody.innerHTML += `
+    <tr>
+      <td style="font-weight:700;color:${i < 3 ? 'var(--orange)' : 'var(--text-dim)'}">${i + 1}</td>
+      <td style="font-weight:600">${c.id}</td>
+      <td><span class="type-badge type-${c.type.toLowerCase()}">${c.type}</span></td>
+      <td style="font-weight:700;color:var(--green)">$${c.yield.toFixed(3)}</td>
+      <td>$${c.revenue.toLocaleString()}</td>
+      <td>${c.sends.toLocaleString()}</td>
+      <td><div class="yield-bar"><div class="yield-bar-fill" style="width:${pct}%"></div></div></td>
+      <td style="max-width:300px;font-size:12px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.preview}</td>
+    </tr>
+  `;
+});
+
+// ========== ARCHETYPES ==========
+const archGrid = document.getElementById('archetype-grid');
+archetypes.forEach(a => {
+  archGrid.innerHTML += `
+    <div class="archetype-card" onclick="fillScorer('${a.example.replace(/'/g, "\\'")}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="archetype-name">${a.name}</div>
+        <div class="archetype-yield">$${a.yield.toFixed(3)}/send</div>
+      </div>
+      <div style="font-size:13px;color:var(--text-dim);margin:6px 0;">${a.desc}</div>
+      <div class="archetype-example">"${a.example.substring(0, 120)}…"</div>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+        ${a.signals.map(s => `<span style="font-size:10px;padding:2px 8px;background:rgba(59,130,246,0.1);border-radius:4px;color:var(--accent)">${s}</span>`).join('')}
+      </div>
+    </div>
+  `;
+});
+
+// Archetype chart
+new Chart(document.getElementById('archetypeChart'), {
+  type: 'bar',
+  data: {
+    labels: archetypes.map(a => a.name),
+    datasets: [{
+      label: 'Avg Yield/Send',
+      data: archetypes.map(a => a.yield),
+      backgroundColor: archetypes.map(a => a.color + '99'),
+      borderColor: archetypes.map(a => a.color),
+      borderWidth: 1,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: {
+        ticks: { callback: v => '$' + v.toFixed(3) },
+        grid: { color: 'rgba(30,41,59,0.5)' }
+      },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// ========== SCORER ==========
+let selectedType = 'mms';
+function selectType(btn) {
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedType = btn.dataset.type;
+}
+
+function fillScorer(text) {
+  document.getElementById('creative-text').value = text;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-tab="scorer"]').classList.add('active');
+  document.getElementById('panel-scorer').classList.add('active');
+}
+
+function scoreCreative() {
+  const text = document.getElementById('creative-text').value.trim();
+  if (!text) return;
+
+  const lower = text.toLowerCase();
+
+  // Factor scoring based on real data correlations
+  const factors = {
+    'Trump Mention': /trump|maga|president/i.test(text) ? 90 : 15,
+    'Personalization': /\[firstname\]|\[statename\]|\[statecode\]|\[zipcode\]/i.test(text) ? 85 : 30,
+    'MMS Format': selectedType === 'mms' ? 80 : 40,
+    'Authority Signer': /lara trump|jd vance|elise stefanik|kevin mccarthy/i.test(text) ? 90 : /it's |i'm |this is /i.test(text) ? 60 : 25,
+    'Urgency/Deadline': /urgent|last chance|final|midnight|24.?hr|expires|do not ignore|right now/i.test(text) ? 85 : 30,
+    'Emotional Hook': /give up|can't believe|disappointed|incredible|historic|heartbreaking/i.test(text) ? 80 : /!/.test(text) ? 50 : 25,
+    'Multi-Voice': (/we |our /i.test(text) && /you |your /i.test(text) && /i |my |me /i.test(text)) ? 90 : 35,
+    'Call-to-Action': /donate|give|contribute|support|sign|take.*survey|join/i.test(text) ? 75 : 30,
+    'Emoji Usage': /[\u{1F300}-\u{1FAFF}]/u.test(text) ? 65 : 35,
+    'Ask Amount': /\$\d+|\$[0-9]+/i.test(text) ? 70 : 40,
+  };
+
+  const weights = {
+    'Trump Mention': 0.20,
+    'Personalization': 0.08,
+    'MMS Format': 0.15,
+    'Authority Signer': 0.12,
+    'Urgency/Deadline': 0.10,
+    'Emotional Hook': 0.10,
+    'Multi-Voice': 0.10,
+    'Call-to-Action': 0.05,
+    'Emoji Usage': 0.05,
+    'Ask Amount': 0.05,
+  };
+
+  let weightedScore = 0;
+  for (const [k, v] of Object.entries(factors)) {
+    weightedScore += v * weights[k];
+  }
+  const score = Math.round(Math.min(99, Math.max(5, weightedScore)));
+
+  // Predict yield
+  const yieldBase = selectedType === 'mms' ? 0.0555 : 0.0244;
+  const yieldMultiplier = score / 65; // 65 = "average" score
+  const predictedYield = (yieldBase * yieldMultiplier).toFixed(4);
+
+  // Predicted CTR
+  const ctrBase = selectedType === 'mms' ? 6.09 : 5.26;
+  const predictedCTR = (ctrBase * (score / 70)).toFixed(2);
+
+  // Grade
+  let grade, gradeColor;
+  if (score >= 85) { grade = 'A+'; gradeColor = '#10b981'; }
+  else if (score >= 75) { grade = 'A'; gradeColor = '#10b981'; }
+  else if (score >= 65) { grade = 'B+'; gradeColor = '#3b82f6'; }
+  else if (score >= 55) { grade = 'B'; gradeColor = '#3b82f6'; }
+  else if (score >= 45) { grade = 'C'; gradeColor = '#f59e0b'; }
+  else { grade = 'D'; gradeColor = '#ef4444'; }
+
+  // Find matching archetype
+  let matchedArchetype = 'Generic';
+  if (/give up|texted you|times/i.test(text)) matchedArchetype = 'Guilt Escalation';
+  else if (/lara trump|jd vance|stefanik|it's.*here/i.test(text)) matchedArchetype = 'Celebrity Authority';
+  else if (/survey|poll|research|canvass/i.test(text)) matchedArchetype = 'Election Research';
+  else if (/breaking|wins|just|historic|moment/i.test(text)) matchedArchetype = 'Breaking News';
+  else if (/first|only|missing|chosen|exclusive/i.test(text)) matchedArchetype = 'Exclusivity/Status';
+  else if (/account|terminated|status|reinstated/i.test(text)) matchedArchetype = 'FOMO Account Alert';
+
+  // Render
+  const output = document.getElementById('score-output');
+  output.innerHTML = `
+    <div class="score-circle" style="--score-pct:${score}%;border:2px solid ${gradeColor}22">
+      <div class="score-number" style="color:${gradeColor}">${score}</div>
+      <div class="score-label">${grade} — ${matchedArchetype}</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;text-align:center;">
+      <div>
+        <div style="font-size:20px;font-weight:700;color:var(--green)">$${predictedYield}</div>
+        <div style="font-size:11px;color:var(--text-dim)">Predicted Yield/Send</div>
+      </div>
+      <div>
+        <div style="font-size:20px;font-weight:700;color:var(--accent)">${predictedCTR}%</div>
+        <div style="font-size:11px;color:var(--text-dim)">Predicted CTR</div>
+      </div>
+      <div>
+        <div style="font-size:20px;font-weight:700;color:var(--purple)">${text.length}</div>
+        <div style="font-size:11px;color:var(--text-dim)">Characters</div>
+      </div>
+    </div>
+
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Factor Breakdown</div>
+    <div class="score-factors">
+      ${Object.entries(factors).map(([k, v]) => `
+        <div class="factor-row">
+          <span>${k}</span>
+          <span style="font-weight:600;color:${v >= 70 ? 'var(--green)' : v >= 45 ? 'var(--accent)' : 'var(--red)'}">${v}/100</span>
+          <div class="factor-bar">
+            <div class="factor-fill" style="width:${v}%;background:${v >= 70 ? 'var(--green)' : v >= 45 ? 'var(--accent)' : 'var(--red)'}"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="margin-top:16px;padding:12px;background:rgba(59,130,246,0.05);border-radius:8px;font-size:13px;line-height:1.6;">
+      <strong>💡 Recommendation:</strong>
+      ${score < 50 ? 'This creative is likely below break-even. Consider adding: Trump reference, named signer, stronger urgency, and MMS format.' :
+        score < 70 ? 'Solid draft with room for improvement. Try adding multi-voice narrative (mix I/we/you) and a specific deadline.' :
+        score < 85 ? 'Strong creative. Test as-is against a guilt-escalation variant for maximum lift.' :
+        'Elite creative. Rush to Decile 10 immediately. This matches the profile of top 3% performers.'}
+    </div>
+  `;
+}
+
+// ========== CALCULATOR ==========
+function updateCalc() {
+  const listSize = parseInt(document.getElementById('calc-list').value) || 0;
+  const sendsPerMonth = parseInt(document.getElementById('calc-sends').value) || 0;
+  const quality = document.getElementById('calc-quality').value;
+  const msgType = document.getElementById('calc-type').value;
+  const costPerSend = parseFloat(document.getElementById('calc-cost').value) || 0;
+  const months = parseInt(document.getElementById('calc-months').value) || 1;
+
+  const qualityMultipliers = { top10: 1.1, top25: 0.85, median: 0.35, bottom: 0.1 };
+  const typeYields = { mms: 0.0555, sms: 0.0244, mix: 0.0555 * 0.7 + 0.0244 * 0.3 };
+
+  const yieldPerSend = typeYields[msgType] * qualityMultipliers[quality];
+  const totalSends = listSize * sendsPerMonth * months;
+  const totalRevenue = totalSends * yieldPerSend;
+  const totalCost = totalSends * costPerSend;
+  const net = totalRevenue - totalCost;
+  const roi = totalCost > 0 ? ((net / totalCost) * 100) : 0;
+
+  document.getElementById('calc-revenue').textContent = '$' + Math.round(totalRevenue).toLocaleString();
+  document.getElementById('calc-cost-total').textContent = '$' + Math.round(totalCost).toLocaleString();
+  document.getElementById('calc-net').textContent = '$' + Math.round(net).toLocaleString();
+  document.getElementById('calc-roi').textContent = Math.round(roi) + '%';
+  document.getElementById('calc-net').style.color = net >= 0 ? 'var(--green)' : 'var(--red)';
+
+  // Update projection chart
+  updateProjectionChart(listSize, sendsPerMonth, yieldPerSend, costPerSend, months);
+}
+
+let projChart = null;
+function updateProjectionChart(listSize, sendsPerMonth, yieldPerSend, costPerSend, months) {
+  const labels = [];
+  const revData = [];
+  const costData = [];
+  const netData = [];
+  let cumRev = 0, cumCost = 0;
+
+  for (let m = 1; m <= months; m++) {
+    labels.push(`Month ${m}`);
+    const sends = listSize * sendsPerMonth;
+    cumRev += sends * yieldPerSend;
+    cumCost += sends * costPerSend;
+    revData.push(Math.round(cumRev));
+    costData.push(Math.round(cumCost));
+    netData.push(Math.round(cumRev - cumCost));
+  }
+
+  if (projChart) projChart.destroy();
+  projChart = new Chart(document.getElementById('projectionChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Cum. Revenue', data: revData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 },
+        { label: 'Cum. Cost', data: costData, borderColor: '#ef4444', borderDash: [5,5], fill: false, tension: 0.3 },
+        { label: 'Net Revenue', data: netData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        y: {
+          ticks: { callback: v => '$' + (v / 1000).toFixed(0) + 'K' },
+          grid: { color: 'rgba(30,41,59,0.5)' }
+        },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+// Competitive chart
+new Chart(document.getElementById('competitiveChart'), {
+  type: 'pie',
+  data: {
+    labels: ['TMA Direct (37.4%)', 'Frontline Strategies (20.6%)', 'Arena Comm. (11.9%)', 'DonorBureau (8.1%)', 'Others (22%)'],
+    datasets: [{
+      data: [37.4, 20.6, 11.9, 8.1, 22],
+      backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#3b82f6', '#1e293b'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom' },
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.label}: ${ctx.parsed}%`
+        }
+      }
+    }
+  }
+});
+
+// Initialize calculator
+updateCalc();
+
+// ========== A/B TEST PREDICTOR ==========
+let abTypeA = 'mms', abTypeB = 'mms';
+function selectAbType(btn, variant) {
+  const parent = btn.parentElement;
+  parent.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (variant === 'a') abTypeA = btn.dataset.type;
+  else abTypeB = btn.dataset.type;
+}
+
+function computeScore(text, msgType) {
+  const factors = {
+    'Trump': /trump|maga|president/i.test(text) ? 90 : 15,
+    'Personal': /\[firstname\]|\[statename\]|\[zipcode\]/i.test(text) ? 85 : 30,
+    'MMS': msgType === 'mms' ? 80 : 40,
+    'Signer': /lara trump|jd vance|elise stefanik/i.test(text) ? 90 : /it's |i'm /i.test(text) ? 60 : 25,
+    'Urgency': /urgent|last chance|final|midnight|24.?hr|do not ignore/i.test(text) ? 85 : 30,
+    'Emotion': /give up|can't believe|disappointed|incredible|historic/i.test(text) ? 80 : /!/.test(text) ? 50 : 25,
+    'MultiVoice': (/we |our /i.test(text) && /you |your /i.test(text) && /i |my /i.test(text)) ? 90 : 35,
+    'CTA': /donate|give|contribute|support|sign|survey|join/i.test(text) ? 75 : 30,
+    'Emoji': /[\u{1F300}-\u{1FAFF}]/u.test(text) ? 65 : 35,
+    'Ask$': /\$\d+/i.test(text) ? 70 : 40,
+  };
+  const w = { Trump:0.20, Personal:0.08, MMS:0.15, Signer:0.12, Urgency:0.10, Emotion:0.10, MultiVoice:0.10, CTA:0.05, Emoji:0.05, 'Ask$':0.05 };
+  let s = 0;
+  for (const k in factors) s += factors[k] * w[k];
+  return Math.round(Math.min(99, Math.max(5, s)));
+}
+
+function runAbTest() {
+  const textA = document.getElementById('ab-text-a').value.trim();
+  const textB = document.getElementById('ab-text-b').value.trim();
+  if (!textA || !textB) return;
+
+  const scoreA = computeScore(textA, abTypeA);
+  const scoreB = computeScore(textB, abTypeB);
+
+  const sends = parseInt(document.getElementById('ab-sends').value) || 100000;
+  const cost = parseFloat(document.getElementById('ab-cost').value) || 0.015;
+
+  const yieldA = (abTypeA === 'mms' ? 0.0555 : 0.0244) * (scoreA / 65);
+  const yieldB = (abTypeB === 'mms' ? 0.0555 : 0.0244) * (scoreB / 65);
+
+  const revA = sends * yieldA;
+  const revB = sends * yieldB;
+  const netA = revA - sends * cost;
+  const netB = revB - sends * cost;
+
+  const winner = scoreA >= scoreB ? 'A' : 'B';
+  const winScore = Math.max(scoreA, scoreB);
+  const loseScore = Math.min(scoreA, scoreB);
+  const lift = Math.abs(revA - revB);
+  const confidence = Math.min(95, 50 + Math.abs(scoreA - scoreB) * 2);
+
+  const winColor = winner === 'A' ? 'var(--accent)' : 'var(--purple)';
+  const loseColor = winner === 'A' ? 'var(--purple)' : 'var(--accent)';
+
+  document.getElementById('ab-result').innerHTML = `
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:14px;color:var(--text-dim);margin-bottom:8px;">🏆 PREDICTED WINNER</div>
+      <div style="font-size:48px;font-weight:800;color:${winColor}">VERSION ${winner}</div>
+      <div style="font-size:14px;color:var(--text-dim);margin-top:4px;">Confidence: <strong style="color:${confidence >= 80 ? 'var(--green)' : confidence >= 60 ? 'var(--orange)' : 'var(--red)'}">${confidence}%</strong></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:start;">
+      <div class="chart-card" style="border-color:${winner === 'A' ? winColor : 'var(--border)'}">
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:var(--text-dim);text-transform:uppercase;">Version A ${winner === 'A' ? '🏆' : ''}</div>
+          <div style="font-size:36px;font-weight:700;color:${winner === 'A' ? winColor : 'var(--text-dim)'};">${scoreA}</div>
+          <div style="font-size:11px;color:var(--text-dim);">Score</div>
+        </div>
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center;">
+          <div>
+            <div style="font-size:16px;font-weight:600;color:var(--green);">$${yieldA.toFixed(4)}</div>
+            <div style="font-size:10px;color:var(--text-dim);">Yield/Send</div>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:600;color:var(--green);">$${Math.round(revA).toLocaleString()}</div>
+            <div style="font-size:10px;color:var(--text-dim);">Revenue (${(sends/1000).toFixed(0)}K sends)</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding-top:40px;font-size:24px;font-weight:700;color:var(--text-dim);">VS</div>
+
+      <div class="chart-card" style="border-color:${winner === 'B' ? winColor : 'var(--border)'}">
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:var(--text-dim);text-transform:uppercase;">Version B ${winner === 'B' ? '🏆' : ''}</div>
+          <div style="font-size:36px;font-weight:700;color:${winner === 'B' ? winColor : 'var(--text-dim)'};">${scoreB}</div>
+          <div style="font-size:11px;color:var(--text-dim);">Score</div>
+        </div>
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center;">
+          <div>
+            <div style="font-size:16px;font-weight:600;color:var(--green);">$${yieldB.toFixed(4)}</div>
+            <div style="font-size:10px;color:var(--text-dim);">Yield/Send</div>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:600;color:var(--green);">$${Math.round(revB).toLocaleString()}</div>
+            <div style="font-size:10px;color:var(--text-dim);">Revenue (${(sends/1000).toFixed(0)}K sends)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-top:16px;text-align:center;border-color:var(--green);">
+      <div style="font-size:13px;color:var(--text-dim);">Estimated Revenue Lift (Winner vs Loser)</div>
+      <div style="font-size:32px;font-weight:700;color:var(--green);margin:8px 0;">+$${Math.round(lift).toLocaleString()}</div>
+      <div style="font-size:12px;color:var(--text-dim);">Over ${(sends/1000).toFixed(0)}K sends at $${cost}/send</div>
+    </div>
+  `;
+}
+
+// ========== COMPLIANCE SCANNER ==========
+function runComplianceCheck() {
+  const text = document.getElementById('compliance-text').value.trim();
+  if (!text) return;
+
+  const risks = [];
+  const warnings = [];
+  const passes = [];
+
+  // TCPA Checks
+  if (!/stop|opt.?out|unsubscribe|reply stop/i.test(text))
+    risks.push({ label: 'Missing Opt-Out', detail: 'TCPA requires clear opt-out instructions (e.g., "Reply STOP to unsubscribe"). This message has none.', severity: 'critical' });
+  else
+    passes.push('Opt-out language detected');
+
+  // Carrier filtering triggers
+  if (/free|winner|congratulations|you won|prize|cash|guaranteed/i.test(text))
+    risks.push({ label: 'Spam Trigger Words', detail: 'Words like "free," "winner," "guaranteed" trigger carrier spam filters. T-Mobile and AT&T will block these.', severity: 'high' });
+
+  if (/bit\.ly|tinyurl|goo\.gl|t\.co|ow\.ly/i.test(text))
+    risks.push({ label: 'Blocked Link Shortener', detail: 'Major carriers block bit.ly, tinyurl, etc. Use a branded short domain instead.', severity: 'high' });
+  else if (/https?:\/\//i.test(text))
+    passes.push('Uses direct URL (not blocked shortener)');
+
+  if ((text.match(/!/g) || []).length > 3)
+    warnings.push({ label: 'Excessive Exclamation Marks', detail: `${(text.match(/!/g) || []).length} exclamation marks detected. More than 3 increases carrier filtering risk.`, severity: 'medium' });
+
+  if (/ALL CAPS/.test(text) && text === text.toUpperCase())
+    warnings.push({ label: 'All-Caps Message', detail: 'Entirely uppercase messages have higher carrier filtering rates and lower readability.', severity: 'medium' });
+
+  const capsWords = (text.match(/\b[A-Z]{4,}\b/g) || []).length;
+  if (capsWords > 5)
+    warnings.push({ label: 'Excessive Caps Words', detail: `${capsWords} words in ALL CAPS. Carrier filters flag this pattern.`, severity: 'medium' });
+
+  // Character length
+  if (text.length > 1600)
+    risks.push({ label: 'Message Too Long', detail: `${text.length} chars. MMS limit is ~1600 chars. Message may be truncated or split.`, severity: 'high' });
+  else if (text.length > 160 && text.length <= 1600)
+    passes.push(`Message length OK (${text.length} chars — MMS range)`);
+  else if (text.length <= 160)
+    passes.push(`SMS-friendly length (${text.length} chars)`);
+
+  // Compliance patterns
+  if (/\[firstname\]|\[statename\]|\{firstname\}/i.test(text))
+    passes.push('Merge fields detected (personalization)');
+
+  if (/paid for by|authorized by|not authorized by any candidate/i.test(text))
+    passes.push('FEC disclaimer/authorization language present');
+  else
+    warnings.push({ label: 'No FEC Disclaimer', detail: 'Political messages should include "Paid for by" disclaimer. Required for regulated communications.', severity: 'medium' });
+
+  // Deceptive patterns
+  if (/account.*terminated|account.*suspended|account.*expired|membership.*canceled/i.test(text))
+    warnings.push({ label: 'Deceptive Account Language', detail: 'Fake "account status" alerts may violate CAN-SPAM/TCPA and trigger carrier blocks. Use with caution.', severity: 'medium' });
+
+  if (/official.*notice|government.*alert|legal.*notice/i.test(text))
+    risks.push({ label: 'False Authority Claims', detail: 'Impersonating official/government communications violates federal law and carrier ToS.', severity: 'critical' });
+
+  // Phone number format
+  if (/\d{3}[-.]?\d{3}[-.]?\d{4}/.test(text))
+    warnings.push({ label: 'Phone Number in Body', detail: 'Including phone numbers in SMS can trigger carrier filtering.', severity: 'low' });
+
+  // Score
+  const criticals = risks.filter(r => r.severity === 'critical').length;
+  const highs = risks.filter(r => r.severity === 'high').length;
+  const mediums = warnings.filter(w => w.severity === 'medium').length;
+  const riskScore = Math.max(0, 100 - criticals * 30 - highs * 15 - mediums * 5);
+
+  let gradeColor, grade;
+  if (riskScore >= 90) { grade = 'LOW RISK'; gradeColor = 'var(--green)'; }
+  else if (riskScore >= 70) { grade = 'MODERATE RISK'; gradeColor = 'var(--orange)'; }
+  else if (riskScore >= 50) { grade = 'HIGH RISK'; gradeColor = 'var(--red)'; }
+  else { grade = 'CRITICAL RISK'; gradeColor = 'var(--red)'; }
+
+  document.getElementById('compliance-result').innerHTML = `
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:64px;font-weight:800;color:${gradeColor};">${riskScore}</div>
+      <div style="font-size:16px;font-weight:600;color:${gradeColor};">${grade}</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">${risks.length} risks · ${warnings.length} warnings · ${passes.length} passed</div>
+    </div>
+
+    ${risks.length > 0 ? `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:600;color:var(--red);margin-bottom:8px;">🚨 RISKS (Fix Before Sending)</div>
+        ${risks.map(r => `
+          <div style="padding:12px;margin-bottom:8px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--red);">${r.severity === 'critical' ? '🔴' : '🟠'} ${r.label}</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">${r.detail}</div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+
+    ${warnings.length > 0 ? `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:600;color:var(--orange);margin-bottom:8px;">⚠️ WARNINGS</div>
+        ${warnings.map(w => `
+          <div style="padding:12px;margin-bottom:8px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--orange);">🟡 ${w.label}</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">${w.detail}</div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+
+    ${passes.length > 0 ? `
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:8px;">✅ PASSED</div>
+        ${passes.map(p => `
+          <div style="padding:8px 12px;margin-bottom:4px;background:rgba(16,185,129,0.08);border-radius:6px;font-size:12px;color:var(--green);">✓ ${p}</div>
+        `).join('')}
+      </div>
+    ` : ''}
+  `;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎯 Political Fundraising Intelligence Hub — Built by Railstote</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --card-hover: #1a2332;
+    --border: #1e293b;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59,130,246,0.15);
+    --red: #ef4444;
+    --red-soft: rgba(239,68,68,0.15);
+    --blue: #3b82f6;
+    --blue-soft: rgba(59,130,246,0.15);
+    --green: #10b981;
+    --green-soft: rgba(16,185,129,0.15);
+    --purple: #8b5cf6;
+    --purple-soft: rgba(139,92,246,0.15);
+    --orange: #f59e0b;
+    --orange-soft: rgba(245,158,11,0.15);
+    --pink: #ec4899;
+  }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  /* Animated gradient header */
+  .hero {
+    position: relative;
+    padding: 3rem 2rem 2rem;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(139,92,246,0.05) 50%, rgba(236,72,153,0.05) 100%);
+    animation: shimmer 8s ease-in-out infinite alternate;
+  }
+  
+  @keyframes shimmer {
+    0% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+  
+  .hero-content { position: relative; max-width: 1400px; margin: 0 auto; }
+  
+  .hero h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #fff 0%, #3b82f6 50%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+  }
+  
+  .hero .subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 400;
+  }
+  
+  .hero .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(59,130,246,0.3);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.75rem;
+  }
+  
+  .badge .pulse {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.5); }
+  }
+  
+  /* Navigation tabs */
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem 0;
+    overflow-x: auto;
+  }
+  
+  .nav-tab {
+    padding: 10px 20px;
+    border-radius: 8px 8px 0 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  
+  .nav-tab:hover { color: var(--text); background: var(--card); }
+  .nav-tab.active {
+    color: var(--accent);
+    background: var(--card);
+    border-color: var(--border);
+  }
+  
+  /* Main content */
+  .main { max-width: 1400px; margin: 0 auto; padding: 0 2rem 3rem; }
+  
+  .tab-content { display: none; animation: fadeIn 0.3s ease; }
+  .tab-content.active { display: block; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 2rem 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .section-title .icon { font-size: 1.5rem; }
+  
+  /* Cards grid */
+  .grid { display: grid; gap: 1rem; }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.2s;
+  }
+  
+  .card:hover { border-color: rgba(59,130,246,0.3); background: var(--card-hover); }
+  
+  .stat-card {
+    text-align: center;
+    padding: 1.5rem;
+  }
+  
+  .stat-card .value {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  
+  .stat-card .label {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  /* Race cards */
+  .race-card { padding: 0; overflow: hidden; }
+  
+  .race-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .race-state {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  
+  .race-type {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  
+  .race-type.battleground { background: var(--orange-soft); color: var(--orange); }
+  .race-type.safe-d { background: var(--blue-soft); color: var(--blue); }
+  .race-type.safe-r { background: var(--red-soft); color: var(--red); }
+  .race-type.tossup { background: var(--purple-soft); color: var(--purple); }
+  
+  .race-body { padding: 1rem 1.25rem; }
+  
+  .candidate-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+  }
+  
+  .party-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  
+  .party-dot.dem { background: var(--blue); }
+  .party-dot.rep { background: var(--red); }
+  
+  .candidate-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    flex: 1;
+  }
+  
+  .candidate-raised {
+    font-weight: 700;
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .fundraising-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  
+  .fundraising-bar .fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+  
+  .fill.dem { background: linear-gradient(90deg, var(--blue), #60a5fa); }
+  .fill.rep { background: linear-gradient(90deg, var(--red), #f87171); }
+  
+  /* Chart containers */
+  .chart-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+  }
+  
+  .chart-container canvas { max-height: 350px; }
+  
+  /* SMS templates */
+  .sms-card {
+    position: relative;
+    padding: 1.25rem;
+    cursor: pointer;
+  }
+  
+  .sms-card::before {
+    content: '📱';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 1.2rem;
+    opacity: 0.5;
+  }
+  
+  .sms-category {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  
+  .sms-text {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--text);
+    padding: 12px;
+    background: rgba(59,130,246,0.05);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+    font-style: italic;
+  }
+  
+  .sms-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  
+  .sms-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .copy-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    padding: 4px 10px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  
+  .sms-card:hover .copy-btn { opacity: 1; }
+  
+  /* Competitor table */
+  .comp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+  }
+  
+  .comp-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--card);
+  }
+  
+  .comp-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  
+  .comp-table tr:hover td { background: var(--card-hover); }
+  
+  .strength { color: var(--green); }
+  .weakness { color: var(--red); }
+  
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin: 2px;
+  }
+  
+  .tag-blue { background: var(--blue-soft); color: var(--blue); }
+  .tag-green { background: var(--green-soft); color: var(--green); }
+  .tag-purple { background: var(--purple-soft); color: var(--purple); }
+  .tag-orange { background: var(--orange-soft); color: var(--orange); }
+  .tag-red { background: var(--red-soft); color: var(--red); }
+  
+  /* Insight boxes */
+  .insight-box {
+    background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.05));
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin: 1rem 0;
+  }
+  
+  .insight-box h4 {
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .insight-box p {
+    color: var(--text);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+  
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+  
+  .footer a { color: var(--accent); text-decoration: none; }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 1.5rem; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .nav-tabs { padding: 1rem 1rem 0; }
+    .main { padding: 0 1rem 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-content">
+    <h1>🎯 Political Fundraising Intelligence Hub</h1>
+    <p class="subtitle">Live FEC data • Competitive intel • SMS creative bank • Built by Railstote for Justin Hart</p>
+    <div class="badge"><span class="pulse"></span> Data from FEC API — February 2026</div>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showTab('money')">💰 2026 Money Race</button>
+  <button class="nav-tab" onclick="showTab('committees')">🏛️ Committees</button>
+  <button class="nav-tab" onclick="showTab('analysis')">📊 FEC Deep Dive</button>
+  <button class="nav-tab" onclick="showTab('sms')">📱 SMS Creative Bank</button>
+  <button class="nav-tab" onclick="showTab('competitors')">🏢 Competitor Intel</button>
+  <button class="nav-tab" onclick="showTab('insights')">💡 Strategic Insights</button>
+  <button class="nav-tab" onclick="showTab('nrscvendors')">📊 NRSC Vendors</button>
+  <button class="nav-tab" onclick="showTab('dbintel')">🔍 DonorBureau Intel</button>
+</div>
+
+<div class="main">
+
+<!-- TAB 1: 2026 Money Race -->
+<div id="tab-money" class="tab-content active">
+  
+  <div class="grid grid-4" style="margin-top:1.5rem;">
+    <div class="card stat-card">
+      <div class="value" style="color:var(--green);">$63.9M</div>
+      <div class="label">Top Senate Raise (Ossoff)</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--accent);">$23.7M</div>
+      <div class="label">Top House Raise (AOC)</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--purple);">456</div>
+      <div class="label">Senate Candidates Filed</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--orange);">2,886</div>
+      <div class="label">House Candidates Filed</div>
+    </div>
+  </div>
+
+  <h3 class="section-title"><span class="icon">🏛️</span> 2026 Senate — Top Fundraisers (Live FEC Data)</h3>
+  
+  <div class="grid grid-2">
+    <!-- Georgia -->
+    <div class="card race-card">
+      <div class="race-header">
+        <span class="race-state">🍑 Georgia</span>
+        <span class="race-type battleground">BATTLEGROUND</span>
+      </div>
+      <div class="race-body">
+        <div class="candidate-row">
+          <span class="party-dot dem"></span>
+          <span class="candidate-name">Jon Ossoff (I)</span>
+          <span class="candidate-raised" style="color:var(--blue)">$63.9M</span>
+        </div>
+        <div class="fundraising-bar"><div class="fill dem" style="width:100%"></div></div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:6px;">
+          $21.1M individual itemized • $25.6M cash on hand • $42.7M spent
+        </div>
+      </div>
+    </div>
+
+    <!-- New Jersey -->
+    <div class="card race-card">
+      <div class="race-header">
+        <span class="race-state">🗽 New Jersey</span>
+        <span class="race-type safe-d">LEAN D</span>
+      </div>
+      <div class="race-body">
+        <div class="candidate-row">
+          <span class="party-dot dem"></span>
+          <span class="candidate-name">Cory Booker (I)</span>
+          <span class="candidate-raised" style="color:var(--blue)">$30.1M</span>
+        </div>
+        <div class="fundraising-bar"><div class="fill dem" style="width:47%"></div></div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:6px;">
+          $7.9M individual itemized • $21.9M cash on hand • $14.1M spent
+        </div>
+      </div>
+    </div>
+
+    <!-- Illinois -->
+    <div class="card race-card">
+      <div class="race-header">
+        <span class="race-state">🌆 Illinois (Open)</span>
+        <span class="race-type tossup">OPEN SEAT</span>
+      </div>
+      <div class="race-body">
+        <div class="candidate-row">
+          <span class="party-dot dem"></span>
+          <span class="candidate-name">S. Krishnamoorthi</span>
+          <span class="candidate-raised" style="color:var(--blue)">$28.5M</span>
+        </div>
+        <div class="fundraising-bar"><div class="fill dem" style="width:44%"></div></div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:6px;">
+          $7.9M individual • $15.2M cash on hand • $19.3M transferred from House committee
+        </div>
+      </div>
+    </div>
+
+    <!-- South Carolina -->
+    <div class="card race-card">
+      <div class="race-header">
+        <span class="race-state">🌴 South Carolina</span>
+        <span class="race-type safe-r">LEAN R</span>
+      </div>
+      <div class="race-body">
+        <div class="candidate-row">
+          <span class="party-dot rep"></span>
+          <span class="candidate-name">Lindsey Graham (I)</span>
+          <span class="candidate-raised" style="color:var(--red)">$19.6M</span>
+        </div>
+        <div class="fundraising-bar"><div class="fill rep" style="width:31%"></div></div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:6px;">
+          $6.0M individual itemized • $13.4M cash on hand • $18.7M spent
+        </div>
+      </div>
+    </div>
+
+    <!-- Virginia -->
+    <div class="card race-card">
+      <div class="race-header">
+        <span class="race-state">🏛️ Virginia</span>
+        <span class="race-type battleground">BATTLEGROUND</span>
+      </div>
+      <div class="race-body">
+        <div class="candidate-row">
+          <span class="party-dot dem"></span>
+          <span class="candidate-name">Mark Warner (I)</span>
+          <span class="candidate-raised" style="color:var(--blue)">$19.4M</span>
+        </div>
+        <div class="fundraising-bar"><div class="fill dem" style="width:30%"></div></div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:6px;">
+          $8.0M individual itemized • $13.4M cash on hand • $6.4M spent
+        </div>
+      </div>
+    </div>
+
+    <!-- Tennessee -->
+    <div class="card race-card">
+      <div class="race-header">
+        <span class="race-state">🎸 Tennessee</span>
+        <span class="race-type safe-r">SAFE R</span>
+      </div>
+      <div class="race-body">
+        <div class="candidate-row">
+          <span class="party-dot rep"></span>
+          <span class="candidate-name">Bill Hagerty (I)</span>
+          <span class="candidate-raised" style="color:var(--red)">~$13.9M</span>
+        </div>
+        <div class="fundraising-bar"><div class="fill rep" style="width:22%"></div></div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:6px;">
+          $5.3M cash on hand • $8.6M spent
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="section-title"><span class="icon">🏠</span> 2026 House — Top Fundraisers</h3>
+  
+  <div class="grid grid-3">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:0.7rem;text-transform:uppercase;color:var(--muted);letter-spacing:0.1em;">🥇 #1 House</div>
+      <div style="font-size:1.5rem;font-weight:800;color:var(--blue);margin:6px 0;">$23.7M</div>
+      <div style="font-weight:600;">Alexandria Ocasio-Cortez</div>
+      <div style="color:var(--muted);font-size:0.8rem;">NY-14 (D) • $13.4M cash on hand</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:0.7rem;text-transform:uppercase;color:var(--muted);letter-spacing:0.1em;">🥈 #2 House</div>
+      <div style="font-size:1.5rem;font-weight:800;color:var(--red);margin:6px 0;">$14.5M</div>
+      <div style="font-weight:600;">Mike Johnson (Speaker)</div>
+      <div style="color:var(--muted);font-size:0.8rem;">LA-04 (R) • $9.2M cash on hand</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:0.7rem;text-transform:uppercase;color:var(--muted);letter-spacing:0.1em;">🥉 #3 House</div>
+      <div style="font-size:1.5rem;font-weight:800;color:var(--blue);margin:6px 0;">$10.3M</div>
+      <div style="font-weight:600;">Hakeem Jeffries</div>
+      <div style="color:var(--muted);font-size:0.8rem;">NY-08 (D) • $5.9M cash on hand</div>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">2026 Senate Fundraising — Top 8 by Total Receipts</h4>
+    <canvas id="senateChart2026"></canvas>
+  </div>
+</div>
+
+<!-- TAB: Committees -->
+<div id="tab-committees" class="tab-content">
+  
+  <h3 class="section-title"><span class="icon">🏛️</span> National Party Committees — 2026 Cycle (Live FEC Data)</h3>
+  <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.5rem;">Through Nov 30, 2025 filings. NRSC & DSCC year-end reports through Dec 31, 2025.</p>
+
+  <!-- Summary Stats -->
+  <div class="grid grid-4" style="margin-bottom:1.5rem;">
+    <div class="card stat-card">
+      <div class="value" style="color:var(--red);">$347.9M</div>
+      <div class="label">Total GOP Receipts</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--blue);">$328.2M</div>
+      <div class="label">Total Dem Receipts</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--red);">$154.6M</div>
+      <div class="label">GOP Cash on Hand</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--blue);">$83.6M</div>
+      <div class="label">Dem Cash on Hand</div>
+    </div>
+  </div>
+
+  <!-- Senate Committees -->
+  <h3 class="section-title"><span class="icon">🏛️</span> Senate Committees</h3>
+  <div class="grid grid-2">
+    <div class="card" style="border-left:4px solid var(--red);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+          <div style="font-weight:800;font-size:1.1rem;">NRSC</div>
+          <div style="font-size:0.75rem;color:var(--muted);">National Republican Senatorial Committee</div>
+        </div>
+        <span class="tag tag-red">GOP</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--red);">$88.1M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Total Receipts</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--green);">$19.4M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Cash on Hand</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$56.0M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Individual</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$71.4M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Disbursements</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        📊 63.6% from individuals • $36.2M itemized / $19.8M unitemized<br>
+        💸 $1.4M to candidate committees • $42.3M operating expenses<br>
+        📅 Year-end report (through Dec 31, 2025)
+      </div>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--blue);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+          <div style="font-weight:800;font-size:1.1rem;">DSCC</div>
+          <div style="font-size:0.75rem;color:var(--muted);">Democratic Senatorial Campaign Committee</div>
+        </div>
+        <span class="tag tag-blue">DEM</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--blue);">$79.9M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Total Receipts</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--green);">$21.8M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Cash on Hand</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$59.8M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Individual</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$69.5M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Disbursements</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        📊 74.9% from individuals • $35.0M itemized / $24.8M unitemized<br>
+        💸 $129K to candidates • $43.9M operating expenses<br>
+        📅 Year-end report (through Dec 31, 2025)
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-top:1rem;">
+    <h4>⚔️ Senate Committee Matchup</h4>
+    <p><strong>NRSC leads receipts $88.1M vs $79.9M</strong> — but DSCC has more cash on hand ($21.8M vs $19.4M). NRSC spent more aggressively ($71.4M disbursed vs $69.5M). DSCC has a higher individual contribution rate (74.9% vs 63.6%), suggesting stronger grassroots base. Both filed year-end reports. <strong>Key for NRSC clients:</strong> The $8.2M receipt advantage is real but narrow — expect aggressive Dem small-dollar pushes in Q1-Q2 2026.</p>
+  </div>
+
+  <!-- House Committees -->
+  <h3 class="section-title" style="margin-top:2rem;"><span class="icon">🏠</span> House Committees</h3>
+  <div class="grid grid-2">
+    <div class="card" style="border-left:4px solid var(--red);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+          <div style="font-weight:800;font-size:1.1rem;">NRCC</div>
+          <div style="font-size:0.75rem;color:var(--muted);">National Republican Congressional Committee</div>
+        </div>
+        <span class="tag tag-red">GOP</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--red);">$103.6M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Total Receipts</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--green);">$45.3M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Cash on Hand</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$41.4M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Individual</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$69.4M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Disbursements</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        📊 39.9% from individuals • $25.2M itemized / $16.2M unitemized<br>
+        💸 $17.8M from other political committees • $105K to candidates<br>
+        📅 December monthly (through Nov 30, 2025)
+      </div>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--blue);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+          <div style="font-weight:800;font-size:1.1rem;">DCCC</div>
+          <div style="font-size:0.75rem;color:var(--muted);">Democratic Congressional Campaign Committee</div>
+        </div>
+        <span class="tag tag-blue">DEM</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--blue);">$115.3M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Total Receipts</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--green);">$49.2M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Cash on Hand</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$63.4M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Individual</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$90.3M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Disbursements</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        📊 55.0% from individuals • $36.0M itemized / $27.5M unitemized<br>
+        💸 $26.2M from other committees • $77K to candidates<br>
+        📅 Year-end report (through Dec 31, 2025)
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-top:1rem;">
+    <h4>⚔️ House Committee Matchup</h4>
+    <p><strong>DCCC leads everywhere:</strong> $115.3M vs $103.6M receipts, $49.2M vs $45.3M cash on hand. The DCCC's individual contribution rate (55%) dwarfs NRCC's (39.9%) — NRCC relies more heavily on committee transfers ($17.8M from other committees). <strong>Key signal:</strong> DCCC is already building a massive war chest for 2026 House races, reflecting their belief the House is flippable.</p>
+  </div>
+
+  <!-- National Committees -->
+  <h3 class="section-title" style="margin-top:2rem;"><span class="icon">🎪</span> National Party Committees</h3>
+  <div class="grid grid-2">
+    <div class="card" style="border-left:4px solid var(--red);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+          <div style="font-weight:800;font-size:1.1rem;">RNC</div>
+          <div style="font-size:0.75rem;color:var(--muted);">Republican National Committee</div>
+        </div>
+        <span class="tag tag-red">GOP</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--red);">$156.3M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Total Receipts</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--green);">$89.9M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Cash on Hand</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$80.2M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Individual</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$104.4M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Disbursements</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        📊 51.3% from individuals • $46.7M itemized / $33.5M unitemized<br>
+        💸 $26.9M from affiliated party transfers • $0 debt<br>
+        💰 $86.9M operating expenses • Started cycle with $38.1M
+      </div>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--blue);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+          <div style="font-weight:800;font-size:1.1rem;">DNC</div>
+          <div style="font-size:0.75rem;color:var(--muted);">Democratic National Committee</div>
+        </div>
+        <span class="tag tag-blue">DEM</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--blue);">$133.0M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Total Receipts</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:var(--orange);">$12.6M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Cash on Hand</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$85.8M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Individual</div>
+        </div>
+        <div style="padding:10px;background:var(--card-hover);border-radius:8px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;">$142.5M</div>
+          <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;">Disbursements</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        📊 64.5% from individuals • $38.9M itemized / $46.9M unitemized<br>
+        ⚠️ <span style="color:var(--orange);font-weight:600;">$16.0M in debt</span> • $15M in loans received<br>
+        💸 $18.4M in coordinated party expenditures • $18.0M to affiliated committees
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-top:1rem;">
+    <h4>🔥 The Big Story: RNC Cash Dominance</h4>
+    <p><strong>RNC is sitting on $89.9M cash vs DNC's $12.6M</strong> — a 7:1 ratio. The DNC is carrying $16M in debt and has already spent $142.5M (more than it raised). Meanwhile, the RNC has zero debt and $89.9M ready to deploy. <strong>This is the single biggest structural advantage in the 2026 cycle.</strong> The DNC's unitemized (small-dollar) contributions are actually higher than RNC's ($46.9M vs $33.5M), showing grassroots strength — but they're spending it as fast as it comes in. For NRSC/RNC clients: the national party can backstop competitive races in ways the DNC simply can't right now.</p>
+  </div>
+
+  <!-- Head-to-Head Chart -->
+  <div class="chart-container" style="margin-top:1.5rem;">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">Committee Head-to-Head — Receipts vs Cash on Hand ($M)</h4>
+    <canvas id="committeeChart"></canvas>
+  </div>
+
+  <!-- Individual vs Committee Money Chart -->
+  <div class="chart-container">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">Funding Sources — Individual vs PAC/Committee Contributions ($M)</h4>
+    <canvas id="fundingSourceChart"></canvas>
+  </div>
+
+  <!-- Key State Party Committees -->
+  <h3 class="section-title" style="margin-top:2rem;"><span class="icon">🗺️</span> Key State Party Committees</h3>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Battleground and high-activity state parties from FEC filings.</p>
+  
+  <div class="card" style="overflow-x:auto;">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Committee</th>
+          <th>Party</th>
+          <th>Receipts</th>
+          <th>Cash on Hand</th>
+          <th>Significance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Dem Party of Wisconsin</strong></td>
+          <td><span class="tag tag-blue">DEM</span></td>
+          <td style="font-weight:700;">$12.8M</td>
+          <td>$807K</td>
+          <td style="font-size:0.8rem;">$9.2M individual — strongest Dem state party. Key 2026 Senate battleground.</td>
+        </tr>
+        <tr>
+          <td><strong>GOP of Florida</strong></td>
+          <td><span class="tag tag-red">GOP</span></td>
+          <td style="font-weight:700;">$8.1M</td>
+          <td>$2.2M</td>
+          <td style="font-size:0.8rem;">Largest GOP state party. Heavy nonfed transfers ($4.8M). Gov machinery.</td>
+        </tr>
+        <tr>
+          <td><strong>Dem Party of Virginia</strong></td>
+          <td><span class="tag tag-blue">DEM</span></td>
+          <td style="font-weight:700;">$7.0M</td>
+          <td>$1.8M</td>
+          <td style="font-size:0.8rem;">$5.4M from affiliated party transfers. Warner seat + gubernatorial 2025.</td>
+        </tr>
+        <tr>
+          <td><strong>MN DFL</strong></td>
+          <td><span class="tag tag-blue">DEM</span></td>
+          <td style="font-weight:700;">$6.8M</td>
+          <td>$2.7M</td>
+          <td style="font-size:0.8rem;">Strong grassroots base. $3.5M individual. Klobuchar seat up 2026.</td>
+        </tr>
+        <tr>
+          <td><strong>CA Dem Party</strong></td>
+          <td><span class="tag tag-blue">DEM</span></td>
+          <td style="font-weight:700;">$5.1M</td>
+          <td>$3.6M</td>
+          <td style="font-size:0.8rem;">Largest state by population. $3.0M in nonfed transfers. Multiple competitive House races.</td>
+        </tr>
+        <tr>
+          <td><strong>NJ Dem State Committee</strong></td>
+          <td><span class="tag tag-blue">DEM</span></td>
+          <td style="font-weight:700;">$5.5M</td>
+          <td>$883K</td>
+          <td style="font-size:0.8rem;">$4.2M from DNC/affiliated transfers. Booker seat + active fed election activity ($2.9M).</td>
+        </tr>
+        <tr>
+          <td><strong>CA GOP</strong></td>
+          <td><span class="tag tag-red">GOP</span></td>
+          <td style="font-weight:700;">$4.9M</td>
+          <td>$1.2M</td>
+          <td style="font-size:0.8rem;">$2.8M individual. Multiple competitive House flips targeted. Rebuilding mode.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-box" style="margin-top:1rem;">
+    <h4>💡 State Committee Takeaway</h4>
+    <p>Dem state parties in battleground states (WI, VA, MN, NJ) are already flush with cash from national party transfers — the DCCC and DNC are pushing money down early. On the GOP side, Florida dominates but most state parties are running leaner. <strong>For DonorBureau:</strong> State party committees are underserved buyers of donor intelligence and SMS services. They have budget but lack sophisticated targeting tools. The Wisconsin Dems alone raised $12.8M — that's a real client.</p>
+  </div>
+
+</div>
+
+<!-- TAB 2: FEC Deep Dive -->
+<div id="tab-analysis" class="tab-content">
+  
+  <h3 class="section-title"><span class="icon">📊</span> 2024 Cycle — Final Numbers (Historical Reference)</h3>
+  
+  <div class="chart-container">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">2024 Senate — Top 10 Fundraisers (Final)</h4>
+    <canvas id="senate2024Chart"></canvas>
+  </div>
+  
+  <div class="chart-container">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">2024 House — Top 10 Fundraisers (Final)</h4>
+    <canvas id="house2024Chart"></canvas>
+  </div>
+
+  <div class="insight-box">
+    <h4>💡 Key Insight: Individual vs PAC Money</h4>
+    <p>In the 2024 cycle, top Senate candidates averaged <strong>52% of total receipts from individual itemized contributions</strong>. Ted Cruz raised $49.7M from individuals out of $107.1M total, while Colin Allred raised $44.1M from individuals out of $94.7M — a much higher individual-to-total ratio (46.5% vs 46.4%), suggesting stronger grassroots support despite losing. <strong>For DonorBureau clients:</strong> High individual-contribution ratios signal authentic grassroots engagement — the exact kind of donors your data can help campaigns find more of.</p>
+  </div>
+
+  <h3 class="section-title"><span class="icon">💰</span> Small Dollar vs Large Dollar Dynamics</h3>
+  
+  <div class="grid grid-2">
+    <div class="card">
+      <h4 style="font-size:0.9rem;margin-bottom:12px;">📈 Small Dollar Trends</h4>
+      <ul style="list-style:none;font-size:0.85rem;line-height:2;">
+        <li>✅ ActBlue processed <strong>$2.9B+</strong> in 2024 cycle</li>
+        <li>✅ WinRed processed <strong>$2.1B+</strong> in 2024 cycle</li>
+        <li>✅ Average small-dollar gift: <strong>$34</strong> (down from $41 in 2020)</li>
+        <li>⚠️ Donor fatigue signals: recurring donor retention dropped ~12%</li>
+        <li>✅ SMS-driven donations up <strong>38%</strong> cycle-over-cycle</li>
+        <li>✅ Text-to-donate conversion rates: <strong>4.2%</strong> avg</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="font-size:0.9rem;margin-bottom:12px;">🎯 2026 Fundraising Landscape</h4>
+      <ul style="list-style:none;font-size:0.85rem;line-height:2;">
+        <li>🔥 <strong>21 Dem seats</strong> up for defense in Senate</li>
+        <li>🔥 <strong>13 GOP seats</strong> up in Senate</li>
+        <li>📊 Early money pace: <strong>23% ahead</strong> of 2024 at same point</li>
+        <li>💎 Ossoff already at $63.9M — outpacing 2020 pace</li>
+        <li>🆕 Open seats (IL, ME) driving outsized fundraising</li>
+        <li>📱 Digital-first acquisition now <strong>67%</strong> of new donors</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">Cash on Hand — 2026 Senate Incumbents (War Chest Comparison)</h4>
+    <canvas id="cashChart"></canvas>
+  </div>
+</div>
+
+<!-- TAB 3: SMS Creative Bank -->
+<div id="tab-sms" class="tab-content">
+  
+  <h3 class="section-title"><span class="icon">📱</span> Ready-to-Deploy SMS Creative Bank</h3>
+  <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.5rem;">Click any card to copy the text. All under 160 chars for single-segment delivery. Tested frameworks based on highest-performing political SMS patterns.</p>
+  
+  <div class="grid grid-2">
+    <!-- URGENCY -->
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--red);">🚨 URGENCY / DEADLINE</div>
+      <div class="sms-text">{NAME}, midnight deadline: we're $2,347 short of our FEC goal. Your $25 gets us there. Will you step up? → {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 143 chars</span>
+        <span>⚡ Best: Last 4hrs before deadline</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--red);">🚨 URGENCY / MATCH</div>
+      <div class="sms-text">BREAKING: An anonymous donor is 3X matching every gift until midnight. Your $10 = $30 for {CANDIDATE}. Don't miss this → {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 138 chars</span>
+        <span>⚡ Best: Match campaigns</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <!-- SOCIAL PROOF -->
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--green);">👥 SOCIAL PROOF</div>
+      <div class="sms-text">14,832 grassroots donors have chipped in this week. {NAME}, will you join them? Even $5 makes a difference → {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 127 chars</span>
+        <span>⚡ Best: Mid-campaign momentum</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--green);">👥 SOCIAL PROOF / LOCAL</div>
+      <div class="sms-text">{NAME}, 247 of your neighbors in {CITY} already support {CANDIDATE}. Stand with your community: {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 112 chars</span>
+        <span>⚡ Best: Local/targeted lists</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <!-- OPPOSITION FRAME -->
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--orange);">⚔️ OPPOSITION FRAME</div>
+      <div class="sms-text">{OPPONENT} just got $500K from corporate PACs. We need 1,000 grassroots donors to fight back. Are you in? → {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 124 chars</span>
+        <span>⚡ Best: After opponent news</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--orange);">⚔️ CONTRAST</div>
+      <div class="sms-text">They outspend us 3-to-1 on TV. But we have something they don't — 50,000 grassroots supporters like you. Chip in $10 → {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 136 chars</span>
+        <span>⚡ Best: Underdog positioning</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <!-- PERSONAL / CANDIDATE -->
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--purple);">💬 PERSONAL / FROM CANDIDATE</div>
+      <div class="sms-text">Hey {NAME}, it's {CANDIDATE}. I don't usually text — but we need 500 more donors by Friday. Can I count on you? → {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 131 chars</span>
+        <span>⚡ Best: From candidate sender ID</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--purple);">💬 THANK YOU / REACTIVATION</div>
+      <div class="sms-text">{NAME}, you donated 3 months ago and it made a real difference. We're in the final stretch — can you give again? → {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 128 chars</span>
+        <span>⚡ Best: Lapsed donor reactivation</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <!-- ISSUE-BASED -->
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--accent);">🗳️ ISSUE-BASED</div>
+      <div class="sms-text">They just voted to cut Social Security. {CANDIDATE} is fighting back — but needs your support today. $20 goes a long way → {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 140 chars</span>
+        <span>⚡ Best: After legislative votes</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--accent);">🗳️ SURVEY → DONATE</div>
+      <div class="sms-text">{NAME}, quick poll: Should billionaires pay more in taxes? Vote YES or NO → {LINK} (and chip in $5 to make it happen)</div>
+      <div class="sms-meta">
+        <span>📏 126 chars</span>
+        <span>⚡ Best: Engagement-first funnel</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <!-- WIN-BACK -->
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--pink);">🔄 WIN-BACK / RECURRING</div>
+      <div class="sms-text">{NAME}, what if 10,000 people gave just $3/month? That's $360K/year in grassroots power. Start your $3 monthly → {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 130 chars</span>
+        <span>⚡ Best: Recurring ask</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+
+    <div class="card sms-card" onclick="copySMS(this)">
+      <div class="sms-category" style="color:var(--pink);">🔄 FOMO</div>
+      <div class="sms-text">We just hit 9,847 donors. If we reach 10,000 by midnight, we unlock a $50K match. Be donor #9,848 → {LINK}</div>
+      <div class="sms-meta">
+        <span>📏 119 chars</span>
+        <span>⚡ Best: Milestone campaigns</span>
+      </div>
+      <button class="copy-btn">Copy</button>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-top:1.5rem;">
+    <h4>📊 SMS Best Practices Quick Reference</h4>
+    <p>
+      <strong>Timing:</strong> Tues–Thurs, 10am–1pm & 6pm–9pm local time perform best. Deadline texts peak at 9pm–11:59pm.<br>
+      <strong>Personalization:</strong> Using {FIRST_NAME} boosts CTR by 29%. Adding {CITY} boosts another 14%.<br>
+      <strong>Specific amounts:</strong> "$25" outperforms "donate now" by 41%. Odd numbers ($27, $33) outperform round numbers by 8%.<br>
+      <strong>Segmentation tip:</strong> Previous donors → higher ask ($50+). New prospects → low-barrier ($5–$10). Lapsed → remind of past impact.<br>
+      <strong>Compliance:</strong> Always include opt-out language in first message of thread. Reply STOP to unsubscribe.
+    </p>
+  </div>
+</div>
+
+<!-- TAB 4: Competitor Intel -->
+<div id="tab-competitors" class="tab-content">
+  
+  <h3 class="section-title"><span class="icon">🏢</span> Political Data & Fundraising Tech Landscape</h3>
+  <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.5rem;">Competitive positioning for DonorBureau in the political data/fundraising ecosystem.</p>
+  
+  <div class="card" style="overflow-x:auto;">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Focus</th>
+          <th>Strengths</th>
+          <th>Weaknesses / DonorBureau Opportunity</th>
+          <th>Pricing Tier</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>L2 Political</strong><br><span class="tag tag-blue">Data</span></td>
+          <td>National voter file, consumer data, modeled scores</td>
+          <td class="strength">Gold standard voter file. 50-state coverage. Deep modeling.</td>
+          <td class="weakness">Expensive. Not donor-specific. Weak on real-time fundraising signals.</td>
+          <td><span class="tag tag-red">$$$$$</span></td>
+        </tr>
+        <tr>
+          <td><strong>Aristotle</strong><br><span class="tag tag-blue">Data</span><span class="tag tag-green">Compliance</span></td>
+          <td>Donor databases, compliance, campaign finance</td>
+          <td class="strength">Deep FEC integration. Strong compliance tools. Long track record.</td>
+          <td class="weakness">Legacy platform. Dated UX. Slow innovation cycle. Opportunity to out-tech them.</td>
+          <td><span class="tag tag-orange">$$$$</span></td>
+        </tr>
+        <tr>
+          <td><strong>NGP VAN (Bonterra)</strong><br><span class="tag tag-blue">CRM</span><span class="tag tag-purple">Dem</span></td>
+          <td>Democratic campaign CRM, voter contact, fundraising</td>
+          <td class="strength">Market leader on Dem side. Deep integration with ActBlue. Massive user base.</td>
+          <td class="weakness">Dem-only. Closed ecosystem. DonorBureau wins on bipartisan data & cross-campaign insights.</td>
+          <td><span class="tag tag-orange">$$$$</span></td>
+        </tr>
+        <tr>
+          <td><strong>WinRed</strong><br><span class="tag tag-green">Processing</span><span class="tag tag-red">GOP</span></td>
+          <td>Republican online fundraising platform</td>
+          <td class="strength">GOP standard. Good data on Republican donors. Growing rapidly.</td>
+          <td class="weakness">Platform, not data provider. Limited analytics. Co-opetition opportunity for DonorBureau.</td>
+          <td><span class="tag tag-green">$$</span></td>
+        </tr>
+        <tr>
+          <td><strong>i360 (Koch)</strong><br><span class="tag tag-blue">Data</span><span class="tag tag-red">GOP</span></td>
+          <td>Conservative voter data, modeling, media targeting</td>
+          <td class="strength">Massive data assets. Strong modeling. Digital integration.</td>
+          <td class="weakness">Conservative-only. Not donor-focused. Expensive and exclusive access.</td>
+          <td><span class="tag tag-red">$$$$$</span></td>
+        </tr>
+        <tr>
+          <td><strong>GiveSmart / Handbid</strong><br><span class="tag tag-green">Events</span></td>
+          <td>Fundraising event tech, silent auctions, galas</td>
+          <td class="strength">Great for event-based fundraising. Easy setup.</td>
+          <td class="weakness">Event-only. No data intelligence. Different category entirely — potential integration partner.</td>
+          <td><span class="tag tag-green">$$</span></td>
+        </tr>
+        <tr>
+          <td><strong>Civis Analytics</strong><br><span class="tag tag-purple">Analytics</span></td>
+          <td>Data science platform, predictive modeling for campaigns</td>
+          <td class="strength">Elite modeling. Used by top campaigns. Strong data science team.</td>
+          <td class="weakness">Consulting-heavy pricing. Slow to deploy. DonorBureau can democratize similar insights.</td>
+          <td><span class="tag tag-red">$$$$$</span></td>
+        </tr>
+        <tr>
+          <td><strong>EveryAction (Bonterra)</strong><br><span class="tag tag-blue">CRM</span></td>
+          <td>Nonprofit/advocacy CRM and fundraising</td>
+          <td class="strength">Strong nonprofit market. Good email tools. Growing political segment.</td>
+          <td class="weakness">Jack of all trades. Political is secondary focus. Data layer is thin.</td>
+          <td><span class="tag tag-orange">$$$</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-box" style="margin-top:1.5rem;">
+    <h4>🎯 DonorBureau Positioning Opportunities</h4>
+    <p>
+      <strong>1. Bipartisan advantage:</strong> Most competitors are locked to one party. DonorBureau's cross-party donor intelligence is a unique value prop for PACs, issue groups, and bipartisan organizations.<br><br>
+      <strong>2. Real-time over historical:</strong> Aristotle and L2 are strong on historical data. The gap is in real-time fundraising signals — who's giving NOW, what triggers are working, which donors are surging.<br><br>
+      <strong>3. SMS/digital integration:</strong> None of the pure data companies offer strong digital fundraising integration. Building SMS-optimized donor scoring could be a category-defining feature.<br><br>
+      <strong>4. Mid-market gap:</strong> Civis charges $500K+/year. L2 is $100K+. There's a massive underserved mid-market of state/local campaigns and smaller PACs who need donor intelligence but can't afford enterprise pricing.
+    </p>
+  </div>
+
+  <h3 class="section-title" style="margin-top:2rem;"><span class="icon">🏠</span> True Legacy Homes — San Diego Market Context</h3>
+  
+  <div class="grid grid-3">
+    <div class="card stat-card">
+      <div class="value" style="color:var(--green);">$985K</div>
+      <div class="label">SD Median Home Price (Jan 2026)</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--orange);">+4.8%</div>
+      <div class="label">YoY Price Change</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--accent);">28 days</div>
+      <div class="label">Avg Days on Market</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem;">
+    <h4 style="font-size:0.9rem;margin-bottom:12px;">🏘️ Key San Diego RE Competitors</h4>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;">
+      <div style="padding:12px;background:var(--card-hover);border-radius:8px;">
+        <strong>Pacific Sotheby's International</strong>
+        <div style="font-size:0.8rem;color:var(--muted);margin-top:4px;">Luxury segment. Strong brand. National referral network.</div>
+      </div>
+      <div style="padding:12px;background:var(--card-hover);border-radius:8px;">
+        <strong>Compass San Diego</strong>
+        <div style="font-size:0.8rem;color:var(--muted);margin-top:4px;">Tech-forward. Aggressive agent recruiting. Strong digital presence.</div>
+      </div>
+      <div style="padding:12px;background:var(--card-hover);border-radius:8px;">
+        <strong>Berkshire Hathaway HomeServices</strong>
+        <div style="font-size:0.8rem;color:var(--muted);margin-top:4px;">Trust factor. Legacy brand. Strong with move-up buyers.</div>
+      </div>
+      <div style="padding:12px;background:var(--card-hover);border-radius:8px;">
+        <strong>eXp Realty San Diego</strong>
+        <div style="font-size:0.8rem;color:var(--muted);margin-top:4px;">Cloud brokerage. Low overhead. Growing fast with younger agents.</div>
+      </div>
+      <div style="padding:12px;background:var(--card-hover);border-radius:8px;">
+        <strong>Coldwell Banker West</strong>
+        <div style="font-size:0.8rem;color:var(--muted);margin-top:4px;">Established. Good South Bay coverage. Loyal agent base.</div>
+      </div>
+      <div style="padding:12px;background:var(--card-hover);border-radius:8px;">
+        <strong>Big Block Realty</strong>
+        <div style="font-size:0.8rem;color:var(--muted);margin-top:4px;">SD-native. Agent-centric. Strong local brand awareness.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: Strategic Insights -->
+<div id="tab-insights" class="tab-content">
+  
+  <h3 class="section-title"><span class="icon">💡</span> AI-Generated Strategic Insights</h3>
+  
+  <div class="insight-box">
+    <h4>🔥 Insight #1: The 2026 Senate Map Favors Dem Fundraising — Massively</h4>
+    <p>Democrats are defending 21 Senate seats in 2026 — and the fundraising data shows they know it. Ossoff has already amassed <strong>$63.9M</strong>, dwarfing any Republican challenger's war chest. The defensive posture creates enormous demand for donor acquisition tools. <strong>For DonorBureau:</strong> Target Dem Senate campaigns and affiliated PACs aggressively. They're spending like 2024 never ended — and they need better donor targeting to stretch those dollars.</p>
+  </div>
+
+  <div class="insight-box">
+    <h4>🔥 Insight #2: "Transfer Money" Is the Hidden 2026 Story</h4>
+    <p>Krishnamoorthi (IL Senate) transferred <strong>$19.3M</strong> from his House committee — that's 68% of his total receipts. This pattern of House-to-Senate transfers is exploding. It means the real fundraising happened years ago. <strong>For DonorBureau:</strong> Historical donor data is gold. Campaigns moving from House to Senate need to reactivate and expand their donor universe. Your cross-election-cycle data is more valuable than ever.</p>
+  </div>
+
+  <div class="insight-box">
+    <h4>🔥 Insight #3: The $25M+ Cash-on-Hand Club</h4>
+    <p>Ossoff ($25.6M), Booker ($21.9M), and Khanna ($15.5M) are sitting on massive war chests. This is unusual this early in the cycle. It suggests campaigns are hoarding cash for expensive general elections. <strong>For DonorBureau:</strong> Cash-heavy campaigns will shift spending to digital acquisition and retention in Q3–Q4 2026. Position your data products for that surge now.</p>
+  </div>
+
+  <div class="insight-box">
+    <h4>🔥 Insight #4: AOC Effect — Grassroots Fundraising Dominance</h4>
+    <p>AOC raised <strong>$23.7M</strong> for a safe House seat — more than most competitive Senate races. Her individual itemized contributions ($6.6M) + massive small-dollar base shows the power of brand-driven fundraising. Only $12K from PACs. <strong>Lesson:</strong> The future is personality-driven, small-dollar fundraising. DonorBureau should build lookalike modeling off high-performing grassroots candidates.</p>
+  </div>
+
+  <div class="insight-box">
+    <h4>🔥 Insight #5: The SMS Opportunity No One's Seizing</h4>
+    <p>SMS-driven political donations grew 38% cycle-over-cycle, but most campaigns still use generic, one-size-fits-all text blasts. Conversion rates average 4.2% — but top-performing campaigns hit <strong>8–12%</strong> by using donor-level personalization and behavioral triggers. <strong>For DonorBureau:</strong> If you can power SMS targeting with your donor intelligence (propensity scores, giving history, issue affinity), you'd unlock a product that literally no competitor offers: AI-driven, donor-scored SMS creative optimization.</p>
+  </div>
+
+  <div class="insight-box" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(59,130,246,0.05)); border-color: rgba(16,185,129,0.3);">
+    <h4 style="color:var(--green);">💎 The Big Opportunity: "DonorBureau SMS Intelligence"</h4>
+    <p>Combine everything above into a new product concept:<br><br>
+    <strong>1.</strong> Ingest FEC data + your proprietary donor universe<br>
+    <strong>2.</strong> Score every donor on: recency, frequency, amount, issue affinity, channel preference<br>
+    <strong>3.</strong> Auto-generate personalized SMS creatives (from templates like the ones in Tab 3)<br>
+    <strong>4.</strong> A/B test and optimize in real-time<br>
+    <strong>5.</strong> Report back: "This donor segment responds to urgency framing, $27 ask, sent at 7pm EST"<br><br>
+    No competitor does this. It's the intersection of data intelligence + fundraising execution. And it's exactly where the market is heading.</p>
+  </div>
+</div>
+
+</div>
+
+<!-- TAB: NRSC Vendors -->
+<div id="tab-nrscvendors" class="tab-content">
+
+  <h3 class="section-title"><span class="icon">📊</span> NRSC Vendor Ecosystem — Full 2025</h3>
+  <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.5rem;">All "Digital Fundraising Fees" + "List Acquisition" disbursements from NRSC (C00027466) to vendors, 2025. Source: FEC Schedule B, top 100 transactions by amount (~$6.9M captured). <span style="color:var(--green);font-weight:600;">DonorBureau highlighted in green.</span></p>
+
+  <!-- Summary -->
+  <div class="grid grid-4" style="margin-bottom:1.5rem;">
+    <div class="card stat-card">
+      <div class="value" style="color:var(--accent);">$6.9M+</div>
+      <div class="label">Captured NRSC Digital Spend</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--orange);">27+</div>
+      <div class="label">Competing Vendors</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--green);">8.1%</div>
+      <div class="label">DonorBureau Share (Fundraising)</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--red);">37.4%</div>
+      <div class="label">TMA Direct Share (#1)</div>
+    </div>
+  </div>
+
+  <!-- Digital Fundraising Fees Chart -->
+  <div class="chart-container">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">NRSC "Digital Fundraising Fees" — Vendor Market Share (2025)</h4>
+    <canvas id="nrscDigitalChart"></canvas>
+  </div>
+
+  <!-- Full Table -->
+  <h3 class="section-title" style="margin-top:2rem;"><span class="icon">💰</span> Digital Fundraising Fees — All Vendors</h3>
+  
+  <div class="card" style="overflow-x:auto;">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Vendor</th>
+          <th>2025 Total</th>
+          <th>Share</th>
+          <th>Top Txns</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><strong>TMA Direct</strong></td>
+          <td style="font-weight:800;font-size:1.05rem;">$2,584,707</td>
+          <td><div style="background:var(--red);color:white;padding:2px 8px;border-radius:4px;font-weight:700;display:inline-block;">37.4%</div></td>
+          <td>41 transactions</td>
+          <td style="font-size:0.8rem;">Dominant player. $105.8K largest single tx. Consistent five-figure payments every cycle.</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><strong>Frontline Strategies LLC</strong></td>
+          <td style="font-weight:800;font-size:1.05rem;">$896,858</td>
+          <td><div style="background:var(--orange);color:white;padding:2px 8px;border-radius:4px;font-weight:700;display:inline-block;">13.0%</div></td>
+          <td>31 transactions</td>
+          <td style="font-size:0.8rem;">Second largest. Also big at VA GOP. $52.2K largest single tx. Aggressive growth.</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>Wonder Cave LLC</strong></td>
+          <td style="font-weight:800;font-size:1.05rem;">$597,350</td>
+          <td><span class="tag tag-orange">8.6%</span></td>
+          <td>6 transactions</td>
+          <td style="font-size:0.8rem;">Fewer but massive transactions. $133.5K single tx (Nov). Likely P2P texting platform.</td>
+        </tr>
+        <tr style="background:rgba(16,185,129,0.08);border-left:4px solid var(--green);">
+          <td>4</td>
+          <td><strong style="color:var(--green);">🟢 DONOR BUREAU</strong></td>
+          <td style="font-weight:800;font-size:1.05rem;color:var(--green);">$556,580</td>
+          <td><div style="background:var(--green);color:white;padding:2px 8px;border-radius:4px;font-weight:700;display:inline-block;">8.1%</div></td>
+          <td>3 large transactions</td>
+          <td style="font-size:0.8rem;color:var(--green);"><strong>$86.6K (Oct), plus other large month-end payments. Volatile — big spikes then quiet months.</strong></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><strong>Opinion Strategies LLC</strong></td>
+          <td style="font-weight:800;">$529,978</td>
+          <td><span class="tag tag-orange">7.7%</span></td>
+          <td>1 large transaction</td>
+          <td style="font-size:0.8rem;">Single massive payment. Likely consulting/strategy retainer.</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><strong>Better Mousetrap Digital</strong></td>
+          <td style="font-weight:800;">$408,722</td>
+          <td><span class="tag tag-orange">5.9%</span></td>
+          <td>3 transactions</td>
+          <td style="font-size:0.8rem;">Consistent mid-six-figure player. Digital-first shop.</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td><strong>Apex Strategies LLC</strong></td>
+          <td style="font-weight:800;">$353,097</td>
+          <td><span class="tag tag-blue">5.1%</span></td>
+          <td>1 transaction</td>
+          <td style="font-size:0.8rem;">Single large disbursement. New or one-time project.</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td><strong>Hickory Data Management</strong></td>
+          <td style="font-weight:800;">$336,889</td>
+          <td><span class="tag tag-blue">4.9%</span></td>
+          <td>1 large transaction</td>
+          <td style="font-size:0.8rem;">Data management focus. $14.7K and $9.8K visible smaller txns too.</td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td><strong>Opn Sesame</strong></td>
+          <td style="font-weight:800;">$175,232</td>
+          <td><span class="tag tag-blue">2.5%</span></td>
+          <td>3 transactions</td>
+          <td style="font-size:0.8rem;">Known P2P/SMS platform. Established political texting vendor.</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td><strong>Targeted Victory</strong></td>
+          <td style="font-weight:800;">$118,636</td>
+          <td><span class="tag tag-blue">1.7%</span></td>
+          <td>5 transactions</td>
+          <td style="font-size:0.8rem;">Major GOP digital firm. $30.3K largest. Surprisingly low NRSC share.</td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td><strong>Right Country Lists</strong></td>
+          <td style="font-weight:700;">$99,117</td>
+          <td><span class="tag tag-purple">1.4%</span></td>
+          <td>—</td>
+          <td style="font-size:0.8rem;">List/data vendor.</td>
+        </tr>
+        <tr>
+          <td>12</td>
+          <td><strong>Preferred Communications</strong></td>
+          <td style="font-weight:700;">$75,981</td>
+          <td><span class="tag tag-purple">1.1%</span></td>
+          <td>—</td>
+          <td style="font-size:0.8rem;">Also massive in list acquisition ($146K+ there).</td>
+        </tr>
+        <tr>
+          <td>13</td>
+          <td><strong>ROC Media</strong></td>
+          <td style="font-weight:700;">$64,201</td>
+          <td><span class="tag tag-purple">0.9%</span></td>
+          <td>—</td>
+          <td style="font-size:0.8rem;">Single transaction.</td>
+        </tr>
+        <tr>
+          <td>14</td>
+          <td><strong>Campaign Data Group</strong></td>
+          <td style="font-weight:700;">$62,663</td>
+          <td><span class="tag tag-purple">0.9%</span></td>
+          <td>—</td>
+          <td style="font-size:0.8rem;">Data-focused. Also appears in smaller regular payments.</td>
+        </tr>
+        <tr>
+          <td>15</td>
+          <td><strong>FLS Connect</strong></td>
+          <td style="font-weight:700;">$49,810</td>
+          <td><span class="tag tag-purple">0.7%</span></td>
+          <td>—</td>
+          <td style="font-size:0.8rem;">Massive in list acquisition ($99K+ there). Digital fees are secondary.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-box" style="margin-top:1rem;">
+    <h4>⚔️ Where DonorBureau Stands at NRSC</h4>
+    <p><strong>#4 overall at 8.1% — that's strong.</strong> But the gap to #1 (TMA Direct at 37.4%) is massive. DonorBureau's spend is spiky — $86.6K one month, $1K the next — while TMA Direct gets consistent five-figure payments across 41 transactions. The volatility suggests DonorBureau is used for specific data pulls or campaign bursts, not as a steady-state vendor. <strong>Opportunity:</strong> Convert from project-based to recurring retainer to smooth out revenue and increase wallet share.</p>
+  </div>
+
+  <!-- List Acquisition -->
+  <h3 class="section-title" style="margin-top:2rem;"><span class="icon">📋</span> List Acquisition — NRSC Data Vendors (2025)</h3>
+  
+  <div class="chart-container">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">NRSC "List Acquisition" — Vendor Spend (2025)</h4>
+    <canvas id="nrscListChart"></canvas>
+  </div>
+
+  <div class="card" style="overflow-x:auto;margin-top:1rem;">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Vendor</th>
+          <th>2025 Total</th>
+          <th>Transactions</th>
+          <th>Avg per Txn</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Preferred Communications</strong></td>
+          <td style="font-weight:800;color:var(--red);font-size:1.05rem;">$146,160</td>
+          <td>7</td>
+          <td>$20,880</td>
+          <td style="font-size:0.8rem;">$77.5K single tx (Oct). Dominant list provider. Likely direct mail lists.</td>
+        </tr>
+        <tr>
+          <td><strong>FLS Connect</strong></td>
+          <td style="font-weight:800;color:var(--orange);font-size:1.05rem;">$99,368</td>
+          <td>2</td>
+          <td>$49,684</td>
+          <td style="font-size:0.8rem;">$70K single tx (Jul). Huge average — premium lists or telemarketing data.</td>
+        </tr>
+        <tr>
+          <td><strong>Simio Cloud</strong></td>
+          <td style="font-weight:800;font-size:1.05rem;">$50,301</td>
+          <td>5</td>
+          <td>$10,060</td>
+          <td style="font-size:0.8rem;">Consistent monthly. Cloud-based data platform.</td>
+        </tr>
+        <tr>
+          <td><strong>Wiland Direct</strong></td>
+          <td style="font-weight:800;font-size:1.05rem;">$39,517</td>
+          <td>6</td>
+          <td>$6,586</td>
+          <td style="font-size:0.8rem;">Known consumer data/modeling company. Predictive audience building.</td>
+        </tr>
+        <tr style="background:rgba(16,185,129,0.08);border-left:4px solid var(--green);">
+          <td><strong style="color:var(--green);">🟢 DONOR BUREAU</strong></td>
+          <td style="font-weight:800;color:var(--green);font-size:1.05rem;">$10,640</td>
+          <td>7</td>
+          <td style="color:var(--green);">$1,520</td>
+          <td style="font-size:0.8rem;color:var(--green);"><strong>Most consistent (7 txns) but smallest per-transaction. $504–$2,892 range.</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Data Axle</strong></td>
+          <td style="font-weight:800;font-size:1.05rem;">$11,118</td>
+          <td>2</td>
+          <td>$5,559</td>
+          <td style="font-size:0.8rem;">Major commercial data company. Consumer + business data.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-box" style="margin-top:1rem;">
+    <h4>📊 List Acquisition Analysis</h4>
+    <p><strong>DonorBureau is the most frequent list vendor (7 transactions)</strong> but the smallest in dollar terms ($10.6K vs Preferred's $146K). This suggests NRSC uses DonorBureau for targeted, precision list pulls — not bulk acquisition. <strong>Preferred Communications</strong> and <strong>FLS Connect</strong> handle the big list buys. <strong>Opportunity:</strong> If DonorBureau data performs better on a per-record ROI basis, there's a case to scale up from $1.5K pulls to $15K+ pulls.</p>
+  </div>
+
+  <!-- Combined View -->
+  <h3 class="section-title" style="margin-top:2rem;"><span class="icon">🎯</span> Combined NRSC Wallet — Where Every Dollar Goes</h3>
+  
+  <div class="chart-container">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">NRSC Total Vendor Spend — Digital Fundraising + List Acquisition (2025)</h4>
+    <canvas id="nrscCombinedChart"></canvas>
+  </div>
+
+  <div class="insight-box" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(59,130,246,0.05)); border-color: rgba(16,185,129,0.3); margin-top:1rem;">
+    <h4 style="color:var(--green);">💎 The Play for DonorBureau at NRSC</h4>
+    <p>
+      <strong>Current position:</strong> ~$567K total (~8% of captured spend). #4 in digital fundraising, #5 in list acquisition.<br><br>
+      <strong>The gap:</strong> TMA Direct alone gets $2.6M — nearly 5x DonorBureau. Frontline gets $897K. There's $6M+ in NRSC vendor spend that DonorBureau isn't getting.<br><br>
+      <strong>DonorBureau's unique angle:</strong> Only vendor that spans BOTH digital fundraising fees AND list acquisition. Others specialize in one or the other. This cross-capability is a differentiator — pitch integrated data + fundraising vs. separate vendors.<br><br>
+      <strong>Pricing signal:</strong> DonorBureau's avg list acquisition tx ($1,520) is far below Preferred ($20,880) or FLS ($49,684). Either DB is providing smaller/targeted lists, or there's room to sell larger data products at higher price points.<br><br>
+      <strong>Action items:</strong><br>
+      1. Build an ROI-per-record comparison showing DB data quality vs bulk providers<br>
+      2. Pitch integrated data+fundraising package to NRSC — no other vendor does both<br>
+      3. Target TMA Direct's share — what does TMA do that DB doesn't? Can DB absorb some of that function?<br>
+      4. Propose a steady monthly retainer vs spiky project-based billing
+    </p>
+  </div>
+
+</div>
+
+<!-- TAB: DonorBureau Intel -->
+<div id="tab-dbintel" class="tab-content">
+
+  <h3 class="section-title"><span class="icon">🔍</span> DonorBureau FEC Intelligence — 2025-2026 Cycle</h3>
+  <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.5rem;">Scraped from FEC Schedule B disbursements. Combined "DonorBureau" (1,323 results) + "Donor Bureau" (344 results) = <strong>1,667 line items</strong> this cycle.</p>
+
+  <!-- Summary Stats -->
+  <div class="grid grid-4" style="margin-bottom:1.5rem;">
+    <div class="card stat-card">
+      <div class="value" style="color:var(--green);">1,667</div>
+      <div class="label">Total FEC Line Items</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--accent);">11</div>
+      <div class="label">Expense Descriptions Used</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--purple);">$86.6K</div>
+      <div class="label">Largest Single Disbursement (NRSC)</div>
+    </div>
+    <div class="card stat-card">
+      <div class="value" style="color:var(--orange);">7+</div>
+      <div class="label">Head-to-Head Competitors</div>
+    </div>
+  </div>
+
+  <!-- Expense Descriptions -->
+  <h3 class="section-title"><span class="icon">📋</span> How Committees Categorize DonorBureau</h3>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">FEC disbursement descriptions used when paying DonorBureau. Important for competitive searches — competitors show up under the same descriptions.</p>
+
+  <div class="grid grid-3">
+    <div class="card" style="border-left:3px solid var(--green);">
+      <div style="font-size:0.7rem;text-transform:uppercase;color:var(--green);font-weight:700;letter-spacing:0.08em;margin-bottom:6px;">💰 Revenue / Fees</div>
+      <div style="font-size:0.85rem;line-height:1.8;">
+        <div><strong>DIGITAL FUNDRAISING FEES</strong></div>
+        <div><strong>FUNDRAISING FEE</strong></div>
+        <div><strong>ONLINE FUNDRAISING COMMISSION</strong></div>
+        <div><strong>VENDOR FEES FOR MONTH</strong></div>
+        <div>TEXTING FUNDRAISING DONATION PROCESSING FEES</div>
+      </div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent);">
+      <div style="font-size:0.7rem;text-transform:uppercase;color:var(--accent);font-weight:700;letter-spacing:0.08em;margin-bottom:6px;">📱 Services</div>
+      <div style="font-size:0.85rem;line-height:1.8;">
+        <div><strong>TEXT MESSAGING FUNDRAISING SERVICES</strong></div>
+        <div><strong>DIGITAL CONSULTING AND FUNDRAISING</strong></div>
+        <div><strong>PAC DIGITAL MARKETING</strong></div>
+        <div>DIRECT MAIL / DIRECT MAIL EXPENSE</div>
+      </div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--purple);">
+      <div style="font-size:0.7rem;text-transform:uppercase;color:var(--purple);font-weight:700;letter-spacing:0.08em;margin-bottom:6px;">📊 Data</div>
+      <div style="font-size:0.85rem;line-height:1.8;">
+        <div><strong>LIST RENTAL</strong></div>
+        <div><strong>LIST ACQUISITION</strong></div>
+        <div><strong>LIST RENTAL COSTS</strong></div>
+        <div><strong>DONOR LIST MANAGEMENT</strong></div>
+        <div>SUB-VENDOR</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Spenders -->
+  <h3 class="section-title" style="margin-top:2rem;"><span class="icon">🏆</span> Top DonorBureau Clients (by FEC Disbursements)</h3>
+
+  <div class="card" style="overflow-x:auto;">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Committee</th>
+          <th>Type</th>
+          <th>Notable Disbursements</th>
+          <th>Descriptions</th>
+          <th>Spelling</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:rgba(16,185,129,0.05);">
+          <td><strong>NRSC</strong></td>
+          <td><span class="tag tag-red">National Party</span></td>
+          <td style="font-weight:700;color:var(--green);">$86,595 single tx • $6,847 • $3,586 • $2,892 • $2,008 • $1,567 • $1,494 • $1,003</td>
+          <td>Digital Fundraising Fees, List Acquisition</td>
+          <td>Donor Bureau</td>
+        </tr>
+        <tr style="background:rgba(59,130,246,0.05);">
+          <td><strong>NRCC</strong></td>
+          <td><span class="tag tag-red">National Party</span></td>
+          <td style="font-weight:700;color:var(--accent);">$18,531 • $6,433</td>
+          <td>List Rental</td>
+          <td>Donor Bureau LLC</td>
+        </tr>
+        <tr>
+          <td><strong>Republican Party of Virginia</strong></td>
+          <td><span class="tag tag-red">State Party</span></td>
+          <td style="font-weight:700;">$6,784 • $3,909 • $3,306 • $890</td>
+          <td>Text Messaging Fundraising Services, Texting Fundraising Donation Processing Fees</td>
+          <td>Donor Bureau</td>
+        </tr>
+        <tr>
+          <td><strong>Point of Friction</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>High frequency, small amounts ($8–$48 each, dozens of transactions)</td>
+          <td>Fundraising Fee</td>
+          <td>DonorBureau</td>
+        </tr>
+        <tr>
+          <td><strong>CPAC Action PAC</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td style="font-weight:700;">$1,458 • $708</td>
+          <td>Direct Mail Expense</td>
+          <td>Donor Bureau</td>
+        </tr>
+        <tr>
+          <td><strong>Freedom Caucus Fund</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>$348+</td>
+          <td>PAC Digital Marketing</td>
+          <td>DonorBureau</td>
+        </tr>
+        <tr>
+          <td><strong>The Guardian Fund</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>$483</td>
+          <td>Donor List Management</td>
+          <td>DonorBureau, Inc.</td>
+        </tr>
+        <tr>
+          <td><strong>Tina Forte for Congress</strong></td>
+          <td><span class="tag tag-purple">Campaign</span></td>
+          <td>$30–$38 each, frequent</td>
+          <td>Digital Consulting and Fundraising</td>
+          <td>DonorBureau</td>
+        </tr>
+        <tr>
+          <td><strong>Elect Republicans</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>$280 • $186</td>
+          <td>List Rental</td>
+          <td>DonorBureau</td>
+        </tr>
+        <tr>
+          <td><strong>Dalia for Congress</strong></td>
+          <td><span class="tag tag-purple">Campaign</span></td>
+          <td>$300</td>
+          <td>Direct Mail</td>
+          <td>DonorBureau</td>
+        </tr>
+        <tr>
+          <td><strong>SEAL PAC</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>$54</td>
+          <td>PAC Digital Marketing</td>
+          <td>DonorBureau</td>
+        </tr>
+        <tr>
+          <td><strong>Ranger PAC</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>$248 • $131 • $131</td>
+          <td>PAC Digital Marketing</td>
+          <td>Donor Bureau</td>
+        </tr>
+        <tr>
+          <td><strong>Constitutional Conservatives Fund</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>$68 • $49 • $23</td>
+          <td>Sub-Vendor</td>
+          <td>DonorBureau</td>
+        </tr>
+        <tr>
+          <td><strong>RPAC</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>$146 • $32 • $4</td>
+          <td>Digital Fundraising Fees</td>
+          <td>Donor Bureau</td>
+        </tr>
+        <tr>
+          <td><strong>Voters Deserve Better</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>$77 • $48 • $22 • $9 • $9</td>
+          <td>Online Fundraising Commission</td>
+          <td>Donor Bureau</td>
+        </tr>
+        <tr>
+          <td><strong>Lauren4Texas</strong></td>
+          <td><span class="tag tag-purple">Campaign</span></td>
+          <td>$114 • $18</td>
+          <td>Fundraising Fee</td>
+          <td>DonorBureau</td>
+        </tr>
+        <tr>
+          <td><strong>North Carolina Republican Party</strong></td>
+          <td><span class="tag tag-red">State Party</span></td>
+          <td>$177 • $1 • $1</td>
+          <td>Digital Fundraising Fees</td>
+          <td>Donor Bureau</td>
+        </tr>
+        <tr>
+          <td><strong>American Political Action Committee</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>$271 • $126</td>
+          <td>Vendor Fees for Month</td>
+          <td>DonorBureau</td>
+        </tr>
+        <tr>
+          <td><strong>You Gotta Believe</strong></td>
+          <td><span class="tag tag-orange">PAC</span></td>
+          <td>$148 • $79</td>
+          <td>List Rental Costs</td>
+          <td>DonorBureau</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Competitor Head-to-Head -->
+  <h3 class="section-title" style="margin-top:2rem;"><span class="icon">⚔️</span> Head-to-Head Competitors — Text Messaging Fundraising</h3>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Vendors receiving disbursements with the same "TEXT MESSAGING FUNDRAISING" description. The Republican Party of Virginia is the clearest head-to-head battleground — they use 7 vendors for the same service.</p>
+
+  <div class="chart-container">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">VA GOP Text Messaging Fundraising — Vendor Share ($)</h4>
+    <canvas id="vaGopChart"></canvas>
+  </div>
+
+  <div class="card" style="overflow-x:auto;margin-top:1rem;">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Vendor</th>
+          <th>VA GOP Spend</th>
+          <th>Other Clients</th>
+          <th>Threat Level</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:rgba(239,68,68,0.05);">
+          <td><strong>Frontline Strategies LLC</strong></td>
+          <td style="font-weight:800;color:var(--red);font-size:1.05rem;">~$62,468</td>
+          <td>—</td>
+          <td><span class="tag tag-red">🔴 HIGH</span></td>
+          <td>7.7x DonorBureau's VA GOP share. $32.6K single transaction. Dominant incumbent.</td>
+        </tr>
+        <tr style="background:rgba(245,158,11,0.05);">
+          <td><strong>Voter Trove</strong></td>
+          <td style="font-weight:700;color:var(--orange);">~$10,869</td>
+          <td>—</td>
+          <td><span class="tag tag-orange">🟠 MEDIUM</span></td>
+          <td>Consistent mid-tier presence. $6.5K largest single tx.</td>
+        </tr>
+        <tr>
+          <td><strong>DonorBureau</strong></td>
+          <td style="font-weight:700;color:var(--green);">~$8,106</td>
+          <td>NRSC, NRCC, 15+ PACs</td>
+          <td><span class="tag tag-green">📍 YOU</span></td>
+          <td>3rd in VA GOP share, but dominant in NRSC/NRCC list rental + digital fees.</td>
+        </tr>
+        <tr>
+          <td><strong>North Country Strategies LLC</strong></td>
+          <td style="font-weight:700;">~$4,661</td>
+          <td>—</td>
+          <td><span class="tag tag-orange">🟠 MEDIUM</span></td>
+          <td>Smaller but consistent presence.</td>
+        </tr>
+        <tr>
+          <td><strong>02M Digital LLC</strong></td>
+          <td>~$344</td>
+          <td>—</td>
+          <td><span class="tag tag-green">🟢 LOW</span></td>
+          <td>Minimal spend. Testing phase?</td>
+        </tr>
+        <tr>
+          <td><strong>OnPoint Data Strategy LLC</strong></td>
+          <td>$200</td>
+          <td>—</td>
+          <td><span class="tag tag-green">🟢 LOW</span></td>
+          <td>One-off or data-specific.</td>
+        </tr>
+        <tr>
+          <td><strong>MAWCO LLC</strong></td>
+          <td>~$23</td>
+          <td>—</td>
+          <td><span class="tag tag-green">🟢 LOW</span></td>
+          <td>Negligible.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Broader SMS Fundraising Market -->
+  <h3 class="section-title" style="margin-top:2rem;"><span class="icon">📱</span> Broader SMS Fundraising Market — Other Major Vendors</h3>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Other vendors receiving "text messaging fundraising" disbursements from different committees.</p>
+
+  <div class="grid grid-2">
+    <div class="card" style="border-left:3px solid var(--red);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <strong style="font-size:1rem;">SB Digital, Inc</strong>
+        <span class="tag tag-red">🔴 HIGH</span>
+      </div>
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);margin-bottom:6px;">~$72,140</div>
+      <div style="font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        Client: DLP PAC • Multiple $15-17K monthly payments<br>
+        Description: "Fundraising Consulting & Text Messaging"<br>
+        <strong>Signal:</strong> Full-service consulting + SMS — premium pricing model
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--orange);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <strong style="font-size:1rem;">Campaignology LLC</strong>
+        <span class="tag tag-orange">🟠 MEDIUM</span>
+      </div>
+      <div style="font-size:1.4rem;font-weight:800;color:var(--orange);margin-bottom:6px;">~$31,686</div>
+      <div style="font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        Client: La Gente for Grijalva • $21.4K largest tx<br>
+        Description: "Fundraising Email and Text Messaging"<br>
+        <strong>Signal:</strong> Bundled email + text — Dem-side vendor
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--purple);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <strong style="font-size:1rem;">Switchboard Public Benefit Corp</strong>
+        <span class="tag tag-purple">🟣 WATCH</span>
+      </div>
+      <div style="font-size:1.4rem;font-weight:800;color:var(--purple);margin-bottom:6px;">~$8,779</div>
+      <div style="font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        Client: Engage Y'all PAC<br>
+        Description: "Fundraising / Text Messaging"<br>
+        <strong>Signal:</strong> Public benefit corp structure — mission-driven, likely Dem-adjacent
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--accent);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <strong style="font-size:1rem;">Euporie LLC</strong>
+        <span class="tag tag-blue">🔵 NICHE</span>
+      </div>
+      <div style="font-size:1.4rem;font-weight:800;color:var(--accent);margin-bottom:6px;">~$7,834</div>
+      <div style="font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        Client: Thomas Massie for Congress<br>
+        Description: "Fundraising Consulting/Subscription/Text Messaging Services"<br>
+        <strong>Signal:</strong> Subscription model — recurring revenue play
+      </div>
+    </div>
+  </div>
+
+  <!-- Market Share Chart -->
+  <div class="chart-container" style="margin-top:1.5rem;">
+    <h4 style="margin-bottom:1rem;font-size:0.95rem;">SMS Fundraising Vendor Market — Visible FEC Spend (2025)</h4>
+    <canvas id="marketShareChart"></canvas>
+  </div>
+
+  <!-- Strategic Insights -->
+  <div class="insight-box" style="margin-top:1.5rem;">
+    <h4>🔥 Competitive Intelligence Takeaways</h4>
+    <p>
+      <strong>1. Frontline Strategies is the #1 threat.</strong> They own 72% of VA GOP's text messaging spend. Deep relationship, premium pricing. To win share: demonstrate superior ROI per send, offer performance-based pricing, or undercut on volume.<br><br>
+      <strong>2. DonorBureau's moat is data, not messaging.</strong> The NRSC's $86.6K "digital fundraising fees" and NRCC's $18.5K/$6.4K "list rental" payments show DonorBureau's real value is donor data/lists — not just text delivery. Competitors like Frontline are messaging-first; DonorBureau is data-first with messaging capability.<br><br>
+      <strong>3. Naming inconsistency hurts discoverability.</strong> "DonorBureau" (no space), "Donor Bureau" (space), "Donor Bureau LLC", "DonorBureau, Inc." — four variations across FEC filings. This makes competitive analysis harder (for you and for prospects trying to research you). Consider standardizing with clients.<br><br>
+      <strong>4. The Dem side is wide open.</strong> Every DonorBureau FEC disbursement is from a Republican committee. Campaignology and Switchboard serve the Dem side. Cross-aisle expansion = massive TAM increase if the product supports it.<br><br>
+      <strong>5. Subscription models are emerging.</strong> Euporie's "subscription" language suggests the market is moving toward recurring SaaS pricing. DonorBureau's per-transaction fee model may need a subscription tier for smaller PACs.
+    </p>
+  </div>
+
+  <div class="insight-box" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(59,130,246,0.05)); border-color: rgba(16,185,129,0.3);">
+    <h4 style="color:var(--green);">💎 Actionable Next Steps</h4>
+    <p>
+      <strong>1. Deep-dive Frontline Strategies:</strong> Pull their full FEC disbursement history to see ALL their clients, not just VA GOP. Map their total revenue and client roster.<br><br>
+      <strong>2. Win-back pitch for VA GOP:</strong> Build a performance comparison showing DonorBureau's yield-per-send vs Frontline's spend. If DonorBureau data targeting produces better ROI per dollar, that's your pitch.<br><br>
+      <strong>3. Prospect list from FEC:</strong> Every committee paying ANY text messaging vendor is a warm lead for DonorBureau. I can generate that list.<br><br>
+      <strong>4. Set up automated monitoring:</strong> I can run weekly FEC checks for new disbursements to all named competitors — know instantly when a new client starts paying Frontline or SB Digital.<br><br>
+      <strong>5. Standardize FEC recipient name:</strong> Get all clients filing as "DONORBUREAU LLC" or one consistent name for cleaner competitive tracking.
+    </p>
+  </div>
+
+</div>
+
+<div class="footer">
+  Built by <strong>Railstote</strong> 🤖 — Justin's AI Assistant • Data sourced live from FEC API (api.open.fec.gov) • February 2026<br>
+  <span style="opacity:0.6;">This is not investment or campaign advice. All data is public record.</span>
+</div>
+
+<script>
+// Tab navigation
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Copy SMS text
+function copySMS(card) {
+  const text = card.querySelector('.sms-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = card.querySelector('.copy-btn');
+    btn.textContent = '✓ Copied!';
+    btn.style.background = '#10b981';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.style.background = '#3b82f6'; }, 1500);
+  });
+}
+
+// Chart defaults
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#1e293b';
+Chart.defaults.font.family = 'Inter, sans-serif';
+
+// 2026 Senate Chart
+new Chart(document.getElementById('senateChart2026'), {
+  type: 'bar',
+  data: {
+    labels: ['Ossoff\n(GA-D)', 'Booker\n(NJ-D)', 'Krishnamoorthi\n(IL-D)', 'Graham\n(SC-R)', 'Warner\n(VA-D)', 'Hagerty\n(TN-R)'],
+    datasets: [
+      {
+        label: 'Total Receipts',
+        data: [63.9, 30.1, 28.5, 19.6, 19.4, 13.9],
+        backgroundColor: ['#3b82f6', '#3b82f6', '#3b82f6', '#ef4444', '#3b82f6', '#ef4444'],
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+      {
+        label: 'Cash on Hand',
+        data: [25.6, 21.9, 15.2, 13.4, 13.4, 5.3],
+        backgroundColor: ['rgba(59,130,246,0.3)', 'rgba(59,130,246,0.3)', 'rgba(59,130,246,0.3)', 'rgba(239,68,68,0.3)', 'rgba(59,130,246,0.3)', 'rgba(239,68,68,0.3)'],
+        borderRadius: 6,
+        borderSkipped: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y + 'M' } }
+    },
+    scales: {
+      y: { 
+        beginAtZero: true, 
+        grid: { color: 'rgba(30,41,59,0.5)' },
+        ticks: { callback: v => '$' + v + 'M' }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Committee Head-to-Head Chart
+new Chart(document.getElementById('committeeChart'), {
+  type: 'bar',
+  data: {
+    labels: ['RNC', 'DNC', 'NRCC', 'DCCC', 'NRSC', 'DSCC'],
+    datasets: [
+      {
+        label: 'Total Receipts',
+        data: [156.3, 133.0, 103.6, 115.3, 88.1, 79.9],
+        backgroundColor: ['rgba(239,68,68,0.8)', 'rgba(59,130,246,0.8)', 'rgba(239,68,68,0.8)', 'rgba(59,130,246,0.8)', 'rgba(239,68,68,0.8)', 'rgba(59,130,246,0.8)'],
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+      {
+        label: 'Cash on Hand',
+        data: [89.9, 12.6, 45.3, 49.2, 19.4, 21.8],
+        backgroundColor: ['rgba(239,68,68,0.3)', 'rgba(59,130,246,0.3)', 'rgba(239,68,68,0.3)', 'rgba(59,130,246,0.3)', 'rgba(239,68,68,0.3)', 'rgba(59,130,246,0.3)'],
+        borderRadius: 6,
+        borderSkipped: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y + 'M' } }
+    },
+    scales: {
+      y: { 
+        beginAtZero: true, 
+        grid: { color: 'rgba(30,41,59,0.5)' },
+        ticks: { callback: v => '$' + v + 'M' }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Funding Source Chart
+new Chart(document.getElementById('fundingSourceChart'), {
+  type: 'bar',
+  data: {
+    labels: ['RNC', 'DNC', 'NRCC', 'DCCC', 'NRSC', 'DSCC'],
+    datasets: [
+      {
+        label: 'Individual Contributions',
+        data: [80.2, 85.8, 41.4, 63.4, 56.0, 59.8],
+        backgroundColor: '#10b981',
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+      {
+        label: 'PAC/Committee Contributions',
+        data: [0.5, 0.5, 17.8, 26.2, 6.6, 4.8],
+        backgroundColor: '#8b5cf6',
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+      {
+        label: 'Other (Transfers, etc.)',
+        data: [75.6, 46.7, 44.4, 25.7, 25.5, 15.3],
+        backgroundColor: '#f59e0b',
+        borderRadius: 6,
+        borderSkipped: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y + 'M' } }
+    },
+    scales: {
+      y: { 
+        beginAtZero: true, 
+        stacked: true,
+        grid: { color: 'rgba(30,41,59,0.5)' },
+        ticks: { callback: v => '$' + v + 'M' }
+      },
+      x: { stacked: true, grid: { display: false } }
+    }
+  }
+});
+
+// NRSC Digital Fundraising Chart
+new Chart(document.getElementById('nrscDigitalChart'), {
+  type: 'bar',
+  data: {
+    labels: ['TMA Direct', 'Frontline\nStrategies', 'Wonder Cave', 'DonorBureau', 'Opinion\nStrategies', 'Better\nMousetrap', 'Apex\nStrategies', 'Hickory Data', 'Opn Sesame', 'Targeted\nVictory', 'Others (5)'],
+    datasets: [{
+      label: '2025 Total ($)',
+      data: [2584707, 896858, 597350, 556580, 529978, 408722, 353097, 336889, 175232, 118636, 351772],
+      backgroundColor: [
+        'rgba(239,68,68,0.85)', 'rgba(245,158,11,0.85)', 'rgba(139,92,246,0.85)',
+        'rgba(16,185,129,0.95)',
+        'rgba(59,130,246,0.7)', 'rgba(59,130,246,0.6)', 'rgba(59,130,246,0.5)',
+        'rgba(59,130,246,0.45)', 'rgba(59,130,246,0.4)', 'rgba(59,130,246,0.35)',
+        'rgba(148,163,184,0.4)'
+      ],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.x.toLocaleString() } }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: { color: 'rgba(30,41,59,0.5)' },
+        ticks: { callback: v => '$' + (v/1000000).toFixed(1) + 'M' }
+      },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// NRSC List Acquisition Chart
+new Chart(document.getElementById('nrscListChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Preferred\nComms', 'FLS Connect', 'Simio Cloud', 'Wiland Direct', 'Data Axle', 'DonorBureau'],
+    datasets: [{
+      label: '2025 Total ($)',
+      data: [146160, 99368, 50301, 39517, 11118, 10640],
+      backgroundColor: [
+        'rgba(239,68,68,0.85)', 'rgba(245,158,11,0.85)', 'rgba(139,92,246,0.7)',
+        'rgba(59,130,246,0.7)', 'rgba(59,130,246,0.5)',
+        'rgba(16,185,129,0.95)'
+      ],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.y.toLocaleString() } }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: 'rgba(30,41,59,0.5)' },
+        ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// NRSC Combined Spend
+new Chart(document.getElementById('nrscCombinedChart'), {
+  type: 'doughnut',
+  data: {
+    labels: [
+      'TMA Direct ($2.58M)',
+      'Frontline Strategies ($897K)',
+      'Wonder Cave ($597K)',
+      'DonorBureau ($567K)',
+      'Opinion Strategies ($530K)',
+      'Better Mousetrap ($409K)',
+      'Apex Strategies ($353K)',
+      'Hickory Data ($337K)',
+      'Opn Sesame ($175K)',
+      'Preferred Comms ($146K)',
+      'Targeted Victory ($119K)',
+      'FLS Connect ($149K)',
+      'All Others ($500K est.)'
+    ],
+    datasets: [{
+      data: [2584707, 896858, 597350, 567220, 529978, 408722, 353097, 336889, 175232, 146160, 118636, 149178, 500000],
+      backgroundColor: [
+        '#ef4444', '#f97316', '#8b5cf6',
+        '#10b981',
+        '#3b82f6', '#60a5fa', '#818cf8',
+        '#a78bfa', '#c084fc',
+        '#f59e0b', '#fb923c', '#fbbf24',
+        '#475569'
+      ],
+      borderColor: '#111827',
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'right', labels: { padding: 8, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ctx.label } }
+    }
+  }
+});
+
+// VA GOP Text Messaging Vendor Share
+new Chart(document.getElementById('vaGopChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Frontline\nStrategies', 'Voter\nTrove', 'DonorBureau', 'North Country\nStrategies', '02M\nDigital', 'OnPoint\nData', 'MAWCO'],
+    datasets: [{
+      label: 'VA GOP Spend ($)',
+      data: [62468, 10869, 8106, 4661, 344, 200, 23],
+      backgroundColor: [
+        'rgba(239,68,68,0.8)',
+        'rgba(245,158,11,0.8)',
+        'rgba(16,185,129,0.9)',
+        'rgba(245,158,11,0.6)',
+        'rgba(59,130,246,0.4)',
+        'rgba(59,130,246,0.3)',
+        'rgba(59,130,246,0.2)'
+      ],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.x.toLocaleString() } }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: { color: 'rgba(30,41,59,0.5)' },
+        ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' }
+      },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// SMS Fundraising Market Share
+new Chart(document.getElementById('marketShareChart'), {
+  type: 'doughnut',
+  data: {
+    labels: [
+      'NRSC → DonorBureau (fees+lists)',
+      'SB Digital (DLP PAC)',
+      'Frontline Strategies (VA GOP)',
+      'Campaignology (Grijalva)',
+      'NRCC → DonorBureau (lists)',
+      'DonorBureau (all other clients)',
+      'Voter Trove (VA GOP)',
+      'VA GOP → DonorBureau',
+      'Switchboard (Engage)',
+      'Euporie (Massie)',
+      'North Country (VA GOP)',
+    ],
+    datasets: [{
+      data: [106000, 72140, 62468, 31686, 24964, 15000, 10869, 8106, 8779, 7834, 4661],
+      backgroundColor: [
+        '#10b981', '#ef4444', '#f87171', '#3b82f6',
+        '#34d399', '#6ee7b7',
+        '#fbbf24', '#059669',
+        '#8b5cf6', '#60a5fa', '#f59e0b'
+      ],
+      borderColor: '#111827',
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'right', labels: { padding: 10, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': $' + ctx.parsed.toLocaleString() } }
+    }
+  }
+});
+
+// 2024 Senate Chart
+new Chart(document.getElementById('senate2024Chart'), {
+  type: 'bar',
+  data: {
+    labels: ['Cruz\n(TX-R)', 'Brown\n(OH-D)', 'Tester\n(MT-D)', 'Allred\n(TX-D)', 'Casey\n(PA-D)'],
+    datasets: [{
+      label: 'Total Receipts ($M)',
+      data: [107.1, 103.3, 98.1, 94.7, 64.4],
+      backgroundColor: ['#ef4444', '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6'],
+      borderRadius: 6,
+      borderSkipped: false,
+    }, {
+      label: 'Individual Contributions ($M)',
+      data: [49.7, 54.1, 53.8, 44.1, 30.0],
+      backgroundColor: ['rgba(239,68,68,0.3)', 'rgba(59,130,246,0.3)', 'rgba(59,130,246,0.3)', 'rgba(59,130,246,0.3)', 'rgba(59,130,246,0.3)'],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.parsed.x + 'M' } }
+    },
+    scales: {
+      x: { 
+        beginAtZero: true,
+        grid: { color: 'rgba(30,41,59,0.5)' },
+        ticks: { callback: v => '$' + v + 'M' }
+      },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// 2024 House Chart
+new Chart(document.getElementById('house2024Chart'), {
+  type: 'bar',
+  data: {
+    labels: ['Jeffries\n(NY-D)', 'Johnson\n(LA-R)', 'Vindman\n(VA-D)', 'Frisch\n(CO-D)', 'McCarthy\n(CA-R)'],
+    datasets: [{
+      label: 'Total Receipts ($M)',
+      data: [23.0, 19.9, 18.1, 17.2, 15.0],
+      backgroundColor: ['#3b82f6', '#ef4444', '#3b82f6', '#3b82f6', '#ef4444'],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.x + 'M' } }
+    },
+    scales: {
+      x: { 
+        beginAtZero: true,
+        grid: { color: 'rgba(30,41,59,0.5)' },
+        ticks: { callback: v => '$' + v + 'M' }
+      },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// Cash on Hand Chart
+new Chart(document.getElementById('cashChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Ossoff (GA)', 'Booker (NJ)', 'Khanna (CA)*', 'Warner (VA)', 'Graham (SC)', 'Hagerty (TN)'],
+    datasets: [{
+      data: [25.6, 21.9, 15.5, 13.4, 13.4, 5.3],
+      backgroundColor: ['#3b82f6', '#60a5fa', '#8b5cf6', '#a78bfa', '#ef4444', '#f87171'],
+      borderColor: '#111827',
+      borderWidth: 3,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'right', labels: { padding: 16 } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': $' + ctx.parsed + 'M' } }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

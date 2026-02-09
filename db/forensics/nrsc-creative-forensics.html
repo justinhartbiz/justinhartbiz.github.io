@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NRSC Creative Forensics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #ff4444;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+        
+        .stat-card h3 {
+            color: #888;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        
+        .stat-sub {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-tab {
+            padding: 12px 24px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #888;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab:hover, .nav-tab.active {
+            background: #ff4444;
+            color: white;
+            border-color: #ff4444;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .law-card {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .law-number {
+            background: #ff4444;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .law-title {
+            display: inline;
+            font-size: 1.3rem;
+            color: #fff;
+        }
+        
+        .law-stats {
+            margin: 15px 0;
+            padding: 15px;
+            background: #0a0a0f;
+            border-radius: 8px;
+        }
+        
+        .law-proof {
+            font-style: italic;
+            color: #4ecdc4;
+            padding: 15px;
+            border-left: 3px solid #4ecdc4;
+            margin-top: 15px;
+        }
+        
+        .winner-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            border: 1px solid #4ecdc4;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .winner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .winner-id {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        
+        .winner-score {
+            background: #ff4444;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .winner-stats {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .winner-stat {
+            text-align: center;
+        }
+        
+        .winner-stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .winner-stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        .message-box {
+            background: #0a0a0f;
+            padding: 20px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.9rem;
+            color: #e0e0e0;
+            border: 1px solid #333;
+        }
+        
+        .pattern-section {
+            margin-bottom: 40px;
+        }
+        
+        .pattern-section h2 {
+            color: #ff4444;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .bar-chart {
+            margin: 20px 0;
+        }
+        
+        .bar-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .bar-label {
+            width: 150px;
+            font-size: 0.9rem;
+        }
+        
+        .bar-container {
+            flex: 1;
+            height: 30px;
+            background: #1a1a2e;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 15px;
+        }
+        
+        .bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecdc4 0%, #44bd32 100%);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .bar.negative {
+            background: linear-gradient(90deg, #ff4444 0%, #e74c3c 100%);
+        }
+        
+        .bar-value {
+            width: 80px;
+            text-align: right;
+            font-size: 0.9rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        
+        th {
+            background: #1a1a2e;
+            color: #4ecdc4;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        
+        tr:hover {
+            background: #1a1a2e;
+        }
+        
+        .yi-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        
+        .yi-high {
+            background: #2ecc71;
+            color: #000;
+        }
+        
+        .yi-medium {
+            background: #f1c40f;
+            color: #000;
+        }
+        
+        .yi-low {
+            background: #e74c3c;
+            color: #fff;
+        }
+        
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-bar select, .filter-bar input {
+            padding: 10px 15px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+        
+        .power-word {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .power-word.positive {
+            background: #2ecc71;
+            color: #000;
+        }
+        
+        .power-word.negative {
+            background: #e74c3c;
+            color: #fff;
+        }
+        
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+            
+            .winner-stats {
+                gap: 15px;
+            }
+        }
+        
+        .expand-btn {
+            background: #333;
+            color: #888;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+        
+        .expand-btn:hover {
+            background: #444;
+            color: #fff;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 NRSC Creative Forensics</h1>
+            <p class="subtitle">Data: 2023-01-01 → 2025-09-19 | T2: DonorBureau Non-CPA | 4,595 polls | $3.6M revenue</p>
+        </header>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Revenue</h3>
+                <div class="stat-value">$3.65M</div>
+                <div class="stat-sub">4,595 polls analyzed</div>
+            </div>
+            <div class="stat-card">
+                <h3>Top 10% Share</h3>
+                <div class="stat-value">95.1%</div>
+                <div class="stat-sub">Power Law confirmed</div>
+            </div>
+            <div class="stat-card">
+                <h3>Evergreen Creatives</h3>
+                <div class="stat-value">90</div>
+                <div class="stat-sub">10+ polls each</div>
+            </div>
+            <div class="stat-card">
+                <h3>Best Hook Type</h3>
+                <div class="stat-value">Guilt</div>
+                <div class="stat-sub">YI 5.38 (3.8x avg)</div>
+            </div>
+        </div>
+        
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="showTab('laws')">📜 10 Laws</div>
+            <div class="nav-tab" onclick="showTab('winners')">🏆 Winners</div>
+            <div class="nav-tab" onclick="showTab('patterns')">📊 Patterns</div>
+            <div class="nav-tab" onclick="showTab('words')">💬 Power Words</div>
+        </div>
+        
+        <!-- 10 LAWS TAB -->
+        <div id="laws" class="tab-content active">
+            <div class="law-card">
+                <span class="law-number">1</span>
+                <h3 class="law-title">SHORT SHAME HITS HARDEST</h3>
+                <div class="law-stats">
+                    <strong>Yield Index:</strong> 5.38 | <strong>Sample:</strong> 37 polls | <strong>Lift:</strong> 3.8x vs average
+                </div>
+                <div class="law-proof">
+                    "We trusted you, [firstname|Friend]. Prove us right--fix your voter profile IMMEDIATELY: [link]"
+                    <br><em>— Cr-1881SMS, YI 8.06, 26 polls, $8,517</em>
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <span class="law-number">2</span>
+                <h3 class="law-title">THE SECRET MESSAGE PATTERN IS GOLD</h3>
+                <div class="law-stats">
+                    <strong>Yield Index:</strong> 14.42 | <strong>Sample:</strong> 15 polls | <strong>Status:</strong> Under-exploited
+                </div>
+                <div class="law-proof">
+                    "The National Republican Senatorial Committee has sent you a secret message, please review within the next 15 minutes: [link]"
+                    <br><em>— Cr-1658SMS, YI 14.42, 15 polls, $7,892</em>
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <span class="law-number">3</span>
+                <h3 class="law-title">DON JR. IS THE CLOSER</h3>
+                <div class="law-stats">
+                    <strong>Yield Index:</strong> 3.98 | <strong>Sample:</strong> 18 polls | <strong>Revenue:</strong> $27K
+                </div>
+                <div class="law-proof">
+                    "I'm not going to play this game any more, [firstname|Fellow Conservative]. This is the most important election year ever. My father and I need you to verify your voter profile right now."
+                    <br><em>— Cr-1121, YI 3.98, 18 polls, $27,136</em>
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <span class="law-number">4</span>
+                <h3 class="law-title">EMOJI BOOST IS REAL (+16% YI)</h3>
+                <div class="law-stats">
+                    <strong>With Emoji:</strong> YI 1.63 | <strong>Without:</strong> YI 1.40 | <strong>Sample:</strong> 802 vs 3,793 polls
+                </div>
+                <div class="law-proof">
+                    "💔 How can we win, [firstname|Friend]? Your absence in rallying behind Trump is a setback. FINAL CALL: Show your support, verify your commitment, complete the audit: [link]"
+                    <br><em>— Cr-1137, YI 5.93, 11 polls, $10,744</em>
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <span class="law-number">5</span>
+                <h3 class="law-title">TED CRUZ "FIGHT OF MY LIFE" IS EVERGREEN</h3>
+                <div class="law-stats">
+                    <strong>Yield Index:</strong> 3.31 | <strong>Polls:</strong> 55 | <strong>Revenue:</strong> $74K
+                </div>
+                <div class="law-proof">
+                    "[firstname|Patriot], this is Ted Cruz & I'm in the fight of my life. It all comes down to this: [link]"
+                    <br><em>— Cr-1486SMS, YI 3.31, 55 polls, $74,079</em>
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <span class="law-number">6</span>
+                <h3 class="law-title">DEADLINE + LIST REMOVAL = URGENCY</h3>
+                <div class="law-stats">
+                    <strong>Yield Index:</strong> 8.57 | <strong>Sample:</strong> 16 polls | <strong>Pattern:</strong> FINAL WARNING frame
+                </div>
+                <div class="law-proof">
+                    "This is your FINAL WARNING before we remove your name from our Trusted Republican List. You only have HOURS LEFT to fix this mistake."
+                    <br><em>— Cr-1748, YI 8.57, 16 polls, $9,804</em>
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <span class="law-number">7</span>
+                <h3 class="law-title">SOCIAL PROOF WITH EMAILS WORKS</h3>
+                <div class="law-stats">
+                    <strong>Yield Index:</strong> 4.09 | <strong>Sample:</strong> 19 polls | <strong>Revenue:</strong> $21K
+                </div>
+                <div class="law-proof">
+                    "📧 Here's what other committed patriots look like in your community: kyle__@gmail.com: VOTING FOR REPUBLICANS..."
+                    <br><em>— Cr-1381, YI 4.09, 19 polls, $20,711</em>
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <span class="law-number">8</span>
+                <h3 class="law-title">DEMOCRATS PANICKING = REPUBLICAN ENERGY</h3>
+                <div class="law-stats">
+                    <strong>Yield Index:</strong> 4.77 | <strong>Sample:</strong> 36 polls | <strong>Key:</strong> Direct quotes
+                </div>
+                <div class="law-proof">
+                    "🧐 Democrats are turning on their own party: 'This is worse than 2016... Our party is so weak and so diminished.'"
+                    <br><em>— Cr-1726, YI 4.77, 36 polls, $15,715</em>
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <span class="law-number">9</span>
+                <h3 class="law-title">BINARY POLLS SCALE INFINITELY (LOW YI)</h3>
+                <div class="law-stats">
+                    <strong>Yield Index:</strong> -0.29 | <strong>Polls:</strong> 174 | <strong>Revenue:</strong> $197K | <strong>Use:</strong> Volume only
+                </div>
+                <div class="law-proof">
+                    "Who are you voting for? KAMALA HARRIS & TIM WALZ: [link] PRESIDENT TRUMP & JD VANCE: [link]"
+                    <br><em>— Cr-1358SMS, YI -0.29, 174 polls, $196,958</em>
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <span class="law-number">10</span>
+                <h3 class="law-title">MYSTERY + COUNTDOWN = ENGAGEMENT</h3>
+                <div class="law-stats">
+                    <strong>Yield Index:</strong> 1.51 | <strong>Polls:</strong> 47 | <strong>Revenue:</strong> $58K
+                </div>
+                <div class="law-proof">
+                    "*Alert* Message from [Ted Cruz] will be gone in 13 minutes. See the message before permanent removal > [link]"
+                    <br><em>— Cr-1387SMS, YI 1.51, 47 polls, $58,028</em>
+                </div>
+            </div>
+        </div>
+        
+        <!-- WINNERS TAB -->
+        <div id="winners" class="tab-content">
+            <h2 style="color: #4ecdc4; margin-bottom: 20px;">🏆 Top 10 Winners by Winner Score</h2>
+            <p style="color: #888; margin-bottom: 30px;">Winner Score = 50% Efficiency + 30% Scale + 20% Adoption</p>
+            
+            <div class="winner-card">
+                <div class="winner-header">
+                    <span class="winner-id">Cr-1881SMS</span>
+                    <span class="winner-score">Score: 0.975</span>
+                </div>
+                <div class="winner-stats">
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">26</div>
+                        <div class="winner-stat-label">Polls</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">198K</div>
+                        <div class="winner-stat-label">Sends</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">$8,517</div>
+                        <div class="winner-stat-label">Revenue</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">8.06</div>
+                        <div class="winner-stat-label">Yield Index</div>
+                    </div>
+                </div>
+                <div class="message-box">We trusted you, [firstname|Friend].
+Prove us right--fix your voter profile IMMEDIATELY: [link]</div>
+            </div>
+            
+            <div class="winner-card">
+                <div class="winner-header">
+                    <span class="winner-id">Cr-1568</span>
+                    <span class="winner-score">Score: 0.975</span>
+                </div>
+                <div class="winner-stats">
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">17</div>
+                        <div class="winner-stat-label">Polls</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">192K</div>
+                        <div class="winner-stat-label">Sends</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">$15,016</div>
+                        <div class="winner-stat-label">Revenue</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">6.47</div>
+                        <div class="winner-stat-label">Yield Index</div>
+                    </div>
+                </div>
+                <div class="message-box">We can't believe what you did, [firstname|Friend].
+
+President Trump DEFEATED Kamala Harris because of loyal supporters LIKE YOU.
+
+Now, it's time to FIX our country.
+
+Our team has put together a special survey that we need YOU to take ASAP.
+
+Complete it here > [link]</div>
+            </div>
+            
+            <div class="winner-card">
+                <div class="winner-header">
+                    <span class="winner-id">Cr-1748</span>
+                    <span class="winner-score">Score: 0.974</span>
+                </div>
+                <div class="winner-stats">
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">16</div>
+                        <div class="winner-stat-label">Polls</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">156K</div>
+                        <div class="winner-stat-label">Sends</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">$9,804</div>
+                        <div class="winner-stat-label">Revenue</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">8.57</div>
+                        <div class="winner-stat-label">Yield Index</div>
+                    </div>
+                </div>
+                <div class="message-box">I wish someone would respond. 😢
+
+We sent you multiple alerts. We handpicked you. And still NO RESPONSE.
+
+This is your FINAL WARNING before we remove your name from our Trusted Republican List.
+
+You only have HOURS LEFT to fix this mistake.
+
+🔴 Secure your Republican Status NOW → [link]</div>
+            </div>
+            
+            <div class="winner-card">
+                <div class="winner-header">
+                    <span class="winner-id">Cr-1658SMS</span>
+                    <span class="winner-score">Score: 0.973</span>
+                </div>
+                <div class="winner-stats">
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">15</div>
+                        <div class="winner-stat-label">Polls</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">107K</div>
+                        <div class="winner-stat-label">Sends</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">$7,892</div>
+                        <div class="winner-stat-label">Revenue</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value" style="color: #2ecc71;">14.42</div>
+                        <div class="winner-stat-label">Yield Index ⭐</div>
+                    </div>
+                </div>
+                <div class="message-box">The National Republican Senatorial Committee has sent you a secret message, please review within the next 15 minutes: [link]</div>
+            </div>
+            
+            <div class="winner-card">
+                <div class="winner-header">
+                    <span class="winner-id">Cr-1486SMS</span>
+                    <span class="winner-score">Score: 0.971</span>
+                </div>
+                <div class="winner-stats">
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">55</div>
+                        <div class="winner-stat-label">Polls</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">3.8M</div>
+                        <div class="winner-stat-label">Sends</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">$74,079</div>
+                        <div class="winner-stat-label">Revenue</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">3.31</div>
+                        <div class="winner-stat-label">Yield Index</div>
+                    </div>
+                </div>
+                <div class="message-box">[firstname|Patriot], this is Ted Cruz & I'm in the fight of my life.
+
+It all comes down to this: [link]</div>
+            </div>
+            
+            <h2 style="color: #e74c3c; margin: 40px 0 20px;">⚠️ The Cr-1243 Case Study: Volume ≠ Quality</h2>
+            
+            <div class="winner-card" style="border-color: #e74c3c;">
+                <div class="winner-header">
+                    <span class="winner-id" style="color: #e74c3c;">Cr-1243 (The Monster)</span>
+                    <span class="winner-score" style="background: #e74c3c;">YI: 0.38 ⚠️</span>
+                </div>
+                <div class="winner-stats">
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">272</div>
+                        <div class="winner-stat-label">Polls</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">31.9M</div>
+                        <div class="winner-stat-label">Sends</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value">$819,213</div>
+                        <div class="winner-stat-label">Revenue</div>
+                    </div>
+                    <div class="winner-stat">
+                        <div class="winner-stat-value" style="color: #e74c3c;">0.38</div>
+                        <div class="winner-stat-label">Yield Index</div>
+                    </div>
+                </div>
+                <div class="message-box">There's something we haven't told you yet, [firstname|Friend]. This is Donald Trump Jr.
+
+Completing our survey is crucial >> [link]
+
+We need 1500 more responses to finalize our data in [zipcode|your area].
+
+Confirm your Republican Voting Status >> [link]</div>
+                <p style="color: #e74c3c; margin-top: 15px;">
+                    <strong>Verdict:</strong> Scaled on operational convenience, not creative excellence. 
+                    218 polls in July 2024 alone. Good enough to scale, not good enough to celebrate.
+                </p>
+            </div>
+        </div>
+        
+        <!-- PATTERNS TAB -->
+        <div id="patterns" class="tab-content">
+            <div class="two-col">
+                <div class="pattern-section">
+                    <h2>📱 Format: SMS vs MMS</h2>
+                    <div class="bar-chart">
+                        <div class="bar-item">
+                            <span class="bar-label">SMS</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 100%;">YI 1.57</div>
+                            </div>
+                            <span class="bar-value">$12.86 CPM</span>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">MMS</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 86%;">YI 1.35</div>
+                            </div>
+                            <span class="bar-value">$29.96 CPM</span>
+                        </div>
+                    </div>
+                    <p style="color: #888; font-size: 0.9rem;">MMS = higher raw revenue/send, SMS = better normalized performance</p>
+                </div>
+                
+                <div class="pattern-section">
+                    <h2>📅 Year Type</h2>
+                    <div class="bar-chart">
+                        <div class="bar-item">
+                            <span class="bar-label">Off-Year (2023)</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 100%;">YI 1.82</div>
+                            </div>
+                            <span class="bar-value">$363K</span>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">Election (2024)</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 66%;">YI 1.20</div>
+                            </div>
+                            <span class="bar-value">$2.9M</span>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">Off-Year (2025)</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 100%;">YI 1.84</div>
+                            </div>
+                            <span class="bar-value">$335K</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pattern-section">
+                <h2>🎣 Hook Type Performance</h2>
+                <div class="bar-chart">
+                    <div class="bar-item">
+                        <span class="bar-label">Guilt/Shame</span>
+                        <div class="bar-container">
+                            <div class="bar" style="width: 100%;">YI 5.38</div>
+                        </div>
+                        <span class="bar-value">37 polls</span>
+                    </div>
+                    <div class="bar-item">
+                        <span class="bar-label">Insider/Exclusive</span>
+                        <div class="bar-container">
+                            <div class="bar" style="width: 77%;">YI 4.12</div>
+                        </div>
+                        <span class="bar-value">55 polls</span>
+                    </div>
+                    <div class="bar-item">
+                        <span class="bar-label">Urgency/Deadline</span>
+                        <div class="bar-container">
+                            <div class="bar" style="width: 73%;">YI 3.91</div>
+                        </div>
+                        <span class="bar-value">61 polls</span>
+                    </div>
+                    <div class="bar-item">
+                        <span class="bar-label">Gratitude</span>
+                        <div class="bar-container">
+                            <div class="bar" style="width: 29%;">YI 1.57</div>
+                        </div>
+                        <span class="bar-value">284 polls</span>
+                    </div>
+                    <div class="bar-item">
+                        <span class="bar-label">Trump/Identity</span>
+                        <div class="bar-container">
+                            <div class="bar" style="width: 28%;">YI 1.51</div>
+                        </div>
+                        <span class="bar-value">1,248 polls</span>
+                    </div>
+                    <div class="bar-item">
+                        <span class="bar-label">Survey/Poll</span>
+                        <div class="bar-container">
+                            <div class="bar negative" style="width: 10%;">YI 0.52</div>
+                        </div>
+                        <span class="bar-value">426 polls</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="two-col">
+                <div class="pattern-section">
+                    <h2>📏 Message Length</h2>
+                    <div class="bar-chart">
+                        <div class="bar-item">
+                            <span class="bar-label">Short (<160)</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 95%;">YI 1.54</div>
+                            </div>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">Medium (160-320)</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 87%;">YI 1.42</div>
+                            </div>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">Long (320-500)</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 73%;">YI 1.19</div>
+                            </div>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">Very Long (500-1K)</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 88%;">YI 1.43</div>
+                            </div>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">Epic (1000+)</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 100%;">YI 1.63</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pattern-section">
+                    <h2>😀 Emoji Impact</h2>
+                    <div class="bar-chart">
+                        <div class="bar-item">
+                            <span class="bar-label">With Emoji</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 100%;">YI 1.63</div>
+                            </div>
+                            <span class="bar-value">802 polls</span>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">No Emoji</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 86%;">YI 1.40</div>
+                            </div>
+                            <span class="bar-value">3,793 polls</span>
+                        </div>
+                    </div>
+                    <p style="color: #4ecdc4; margin-top: 15px; font-weight: bold;">+16% lift with emoji</p>
+                </div>
+            </div>
+            
+            <div class="pattern-section">
+                <h2>📈 Expansion Funnel</h2>
+                <table>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Creatives</th>
+                        <th>% of Total</th>
+                        <th>Revenue</th>
+                        <th>Avg Yield Index</th>
+                    </tr>
+                    <tr>
+                        <td>Tested (1 poll)</td>
+                        <td>1,021</td>
+                        <td>75.9%</td>
+                        <td>$47,327</td>
+                        <td><span class="yi-badge yi-low">-0.88</span></td>
+                    </tr>
+                    <tr>
+                        <td>Repeat (2-4 polls)</td>
+                        <td>160</td>
+                        <td>11.9%</td>
+                        <td>$104,339</td>
+                        <td><span class="yi-badge yi-high">3.56</span></td>
+                    </tr>
+                    <tr>
+                        <td>Scaled (5-9 polls)</td>
+                        <td>74</td>
+                        <td>5.5%</td>
+                        <td>$227,671</td>
+                        <td><span class="yi-badge yi-high">3.81</span></td>
+                    </tr>
+                    <tr>
+                        <td>Evergreen (10+ polls)</td>
+                        <td>90</td>
+                        <td>6.7%</td>
+                        <td>$3,265,399</td>
+                        <td><span class="yi-badge yi-medium">2.35</span></td>
+                    </tr>
+                </table>
+                <p style="color: #888; margin-top: 15px;">
+                    <strong>Key insight:</strong> Tested → Repeat shows massive YI jump (from -0.88 to 3.56). 
+                    The first repeat is the signal that a creative works.
+                </p>
+            </div>
+        </div>
+        
+        <!-- POWER WORDS TAB -->
+        <div id="words" class="tab-content">
+            <div class="two-col">
+                <div class="pattern-section">
+                    <h2>🔥 Power Words (Use These)</h2>
+                    <p style="color: #888; margin-bottom: 20px;">Phrases correlated with high Yield Index</p>
+                    <div>
+                        <span class="power-word positive">"dead serious" — YI 24.94</span>
+                        <span class="power-word positive">"reclaim your place" — YI 23.47</span>
+                        <span class="power-word positive">"your silence" — YI 22.85</span>
+                        <span class="power-word positive">"were the only" — YI 22.85</span>
+                        <span class="power-word positive">"complete this now" — YI 24.88</span>
+                        <span class="power-word positive">"we trusted you" — YI 8.06</span>
+                        <span class="power-word positive">"secret message" — YI 14.42</span>
+                        <span class="power-word positive">"fight of my life" — YI 3.31</span>
+                        <span class="power-word positive">"FINAL WARNING" — YI 8.57</span>
+                    </div>
+                </div>
+                
+                <div class="pattern-section">
+                    <h2>☠️ Poison Words (Avoid)</h2>
+                    <p style="color: #888; margin-bottom: 20px;">Phrases correlated with low/negative Yield Index</p>
+                    <div>
+                        <span class="power-word negative">"with trump" — YI -16.72</span>
+                        <span class="power-word negative">"to stand with" — YI -10.18</span>
+                        <span class="power-word negative">"we should" — YI -8.64</span>
+                        <span class="power-word negative">"america s" — YI -5.18</span>
+                        <span class="power-word negative">"first 100 days" — YI -4.73</span>
+                        <span class="power-word negative">"your private" — YI -5.72</span>
+                        <span class="power-word negative">"must be" — YI -4.51</span>
+                        <span class="power-word negative">"your spot" — YI -4.46</span>
+                        <span class="power-word negative">"trump has" — YI -3.98</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pattern-section" style="margin-top: 40px;">
+                <h2>🎯 Counterintuitive Finding</h2>
+                <div class="law-card">
+                    <h3 style="color: #ff4444;">Why "with Trump" has NEGATIVE yield index</h3>
+                    <p style="margin-top: 15px; color: #888;">
+                        Trump works as identity context ("Trump DEFEATED Kamala"), not as action framing ("stand with Trump").
+                        The passive "with" construction reduces urgency and personal agency.
+                    </p>
+                    <div class="two-col" style="margin-top: 20px;">
+                        <div>
+                            <h4 style="color: #2ecc71;">✅ What Works</h4>
+                            <ul style="color: #888; margin-top: 10px;">
+                                <li>"Trump DEFEATED Kamala"</li>
+                                <li>"My father and I need you to..."</li>
+                                <li>"President Trump is counting on you"</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 style="color: #e74c3c;">❌ What Fails</h4>
+                            <ul style="color: #888; margin-top: 10px;">
+                                <li>"Stand with Trump"</li>
+                                <li>"Show you're with Trump"</li>
+                                <li>"America needs to stand with Trump"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

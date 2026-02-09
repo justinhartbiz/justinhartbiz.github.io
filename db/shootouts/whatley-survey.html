@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whatley Victory Committee — Creative Shootout</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 20px;
+    line-height: 1.5;
+  }
+  h1 {
+    text-align: center;
+    color: #f0f6fc;
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #8b949e;
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+  }
+  .concepts-section {
+    max-width: 1000px;
+    margin: 0 auto 40px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 24px;
+  }
+  .concepts-section h2 {
+    color: #58a6ff;
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 8px;
+  }
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .concept-card {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 0.82rem;
+  }
+  .concept-card .concept-name {
+    color: #f0f6fc;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+  .concept-card .concept-tag {
+    display: inline-block;
+    background: #1f6feb;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-bottom: 6px;
+  }
+  .concept-card .concept-tag.priority {
+    background: #da3633;
+  }
+  .concept-card p { color: #8b949e; margin-bottom: 4px; }
+
+  .section-label {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #f0f6fc;
+    margin: 30px 0 16px;
+    padding: 10px;
+    background: linear-gradient(90deg, transparent, #161b22, transparent);
+  }
+
+  .grid-3col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) {
+    .grid-3col { grid-template-columns: 1fr; }
+  }
+
+  .model-col {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .model-header {
+    padding: 12px 16px;
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: center;
+    color: #f0f6fc;
+  }
+  .model-header.claude { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+  .model-header.gpt { background: linear-gradient(135deg, #10a37f, #0d8c6d); }
+  .model-header.gemini { background: linear-gradient(135deg, #4285f4, #1a73e8); }
+
+  .creative-card {
+    margin: 12px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .creative-card-header {
+    padding: 8px 12px;
+    background: #21262d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+  }
+  .creative-card-header .label {
+    color: #58a6ff;
+    font-weight: 600;
+  }
+  .creative-card-header .type-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .type-badge.survey { background: #1f6feb33; color: #58a6ff; }
+  .type-badge.direct { background: #da363333; color: #f85149; }
+  .type-badge.pattern { background: #f0883e33; color: #f0883e; }
+
+  .creative-body {
+    padding: 12px;
+    font-size: 0.82rem;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    color: #e6edf3;
+  }
+  .creative-meta {
+    padding: 8px 12px;
+    background: #161b22;
+    font-size: 0.72rem;
+    color: #8b949e;
+    border-top: 1px solid #30363d;
+  }
+  .creative-meta .chars {
+    font-weight: 600;
+  }
+  .chars.ok { color: #3fb950; }
+  .chars.warn { color: #f0883e; }
+  .chars.over { color: #f85149; }
+
+  .image-dir {
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    color: #8b949e;
+    font-style: italic;
+    background: #0d1117;
+    border-top: 1px solid #21262d;
+  }
+
+  .scoring-section {
+    max-width: 1000px;
+    margin: 40px auto;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 24px;
+  }
+  .scoring-section h2 {
+    color: #58a6ff;
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+  }
+  table.scoring {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  table.scoring th, table.scoring td {
+    padding: 8px 12px;
+    border: 1px solid #30363d;
+    text-align: center;
+  }
+  table.scoring th {
+    background: #21262d;
+    color: #f0f6fc;
+    font-weight: 600;
+  }
+  table.scoring td { color: #c9d1d9; }
+  .score-high { color: #3fb950; font-weight: 700; }
+  .score-mid { color: #f0883e; font-weight: 600; }
+  .score-low { color: #f85149; }
+
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.75rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>🗳️ Whatley Victory Committee — Creative Shootout</h1>
+<div class="subtitle">3-Model Comparison | Survey-Driven + Direct Ask | Feb 4, 2026<br>Claude Opus · GPT-4o · Gemini 2.5 Flash</div>
+
+<!-- CONCEPTS SECTION -->
+<div class="concepts-section">
+  <h2>💡 Creative Concepts (10 Total)</h2>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="concept-name">1. Keep the Senate Red ⭐</div>
+      <span class="concept-tag priority">PRIORITY — Justin's Concept</span>
+      <p>Survey: "Will Dems try to impeach Trump again?" Senate control is existential. 4 seats = game over.</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-name">2. Trump's Handpicked Fighter</div>
+      <span class="concept-tag">identity</span>
+      <p>Trump endorsement is nuclear. "He will NEVER let you down!" Identity confirmation hook.</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-name">3. Outspent 8-to-1</div>
+      <span class="concept-tag">underdog</span>
+      <p>$10.9M vs $1.4M. "They think they can BUY NC." David vs Goliath grassroots energy.</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-name">4. 100,000 Poll Watchers</div>
+      <span class="concept-tag">poll-survey</span>
+      <p>Election integrity survey → introduce Whatley's signature achievement → donate.</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-name">5. Cooper's 40-Year Career</div>
+      <span class="concept-tag">contrast</span>
+      <p>Career politician, 40 years, $10.9M from Hollywood. Whatley = Trump's outsider.</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-name">6. Trump's Senate Scorecard</div>
+      <span class="concept-tag">poll-survey</span>
+      <p>Rate Trump's priorities → feel invested → meet Whatley → donate. Pure sunk-cost.</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-name">7. Do I Have the Right Number?</div>
+      <span class="concept-tag">pattern-interrupt</span>
+      <p>30.59% conversion in RNC data. Casual, curiosity-driven. "Hey, is this [firstname]?"</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-name">8. The List — Insider Access</div>
+      <span class="concept-tag">flattery</span>
+      <p>"Your name appeared on a priority list of Trump's most trusted supporters." Midnight deadline.</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-name">9. Son of a Librarian</div>
+      <span class="concept-tag">personal-plea</span>
+      <p>Humanizes Whatley. Small-town, faith, family. "When Trump called, I answered."</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-name">10. Schumer's Hit List</div>
+      <span class="concept-tag">threat</span>
+      <p>Name the enemy. Schumer + $50M + NC Target #1. Breaking news urgency.</p>
+    </div>
+  </div>
+</div>
+
+<!-- MMS SECTION -->
+<div class="section-label">📱 MMS CREATIVES (4 per model)</div>
+
+<!-- MMS 1 -->
+<div class="section-label" style="font-size:1rem; color:#58a6ff;">MMS 1 — Keep the Senate Red ⭐</div>
+<div class="grid-3col">
+  <!-- Claude -->
+  <div class="model-col">
+    <div class="model-header claude">Claude Opus</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 1</span>
+        <span class="type-badge survey">SURVEY-DRIVEN</span>
+      </div>
+      <div class="creative-body">🚨 URGENT: Do you think Democrats will try to IMPEACH President Trump again if they win the Senate?
+
+YES or NO → [link]
+
+[firstname|Friend], this is NOT hypothetical. Democrats need just 4 seats to take the Senate. North Carolina is their #1 target.
+
+If they win — impeachment hearings. Investigations. Trump's entire agenda DEAD.
+
+Michael Whatley is President Trump's endorsed fighter for NC. He needs 500 patriots to step up before midnight:
+
+$10 / $25 / $50 / $100 → [link]</div>
+      <div class="image-dir">📸 whatley_trump_thumbsup.jpg with bold red overlay: "KEEP THE SENATE RED — 4 SEATS" + flag gradient</div>
+      <div class="creative-meta">Characters: <span class="chars ok">542</span> | Concept: Keep the Senate Red | Survey Q + urgency + deadline</div>
+    </div>
+  </div>
+  <!-- GPT-4o -->
+  <div class="model-col">
+    <div class="model-header gpt">GPT-4o</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 1</span>
+        <span class="type-badge survey">SURVEY-DRIVEN</span>
+      </div>
+      <div class="creative-body">🚨 SENATE ALERT: Democrats need just 4 seats to IMPEACH Trump. Are you ready to STOP them?
+
+Take the quick survey: Will Dems try to IMPEACH Trump again? [link]
+
+Michael Whatley is our last line of defense. Do your part to keep the Senate RED:
+
+$10 / $25 / $50 / $100</div>
+      <div class="image-dir">📸 Bold text "DEFEND THE SENATE" over image of the Capitol</div>
+      <div class="creative-meta">Characters: <span class="chars ok">317</span> | Concept: Keep the Senate Red | Clean + punchy but shorter</div>
+    </div>
+  </div>
+  <!-- Gemini -->
+  <div class="model-col">
+    <div class="model-header gemini">Gemini 2.5 Flash</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 1</span>
+        <span class="type-badge survey">SURVEY-DRIVEN</span>
+      </div>
+      <div class="creative-body">🚨 SENATE ALERT, [firstname|Friend]!
+Democrats need just FOUR seats to flip the Senate. If they win, they'll launch MORE impeachment investigations against President Trump.
+We CANNOT let this happen.
+
+Do you think Democrats will try to IMPEACH Trump again if they win the Senate?
+Tell us NOW: [link]
+
+We need a fighter like Michael Whatley in NC to stop them. He's Trump's choice to defend our Republic.
+
+$25 / $50 / $100 / $250</div>
+      <div class="image-dir">📸 Distressed Capitol building with dark urgent filter, red "STOP" overlay, Whatley inset</div>
+      <div class="creative-meta">Characters: <span class="chars ok">494</span> | Concept: Keep the Senate Red | Good personalization, strong urgency</div>
+    </div>
+  </div>
+</div>
+
+<!-- MMS 2 -->
+<div class="section-label" style="font-size:1rem; color:#58a6ff;">MMS 2 — Outspent 8-to-1 / Trump's Handpicked Fighter</div>
+<div class="grid-3col">
+  <div class="model-col">
+    <div class="model-header claude">Claude Opus</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 2 — Outspent 8-to-1</span>
+        <span class="type-badge direct">DIRECT ASK</span>
+      </div>
+      <div class="creative-body">$10.9 MILLION.
+
+That's what liberal elites just poured into Roy Cooper's campaign to BUY North Carolina's Senate seat.
+
+Trump's endorsed candidate? $1.4 million.
+
+[firstname|Friend], they're outspending us 8-to-1. They think your voice doesn't matter. They think money wins.
+
+Prove them wrong.
+
+President Trump said Michael Whatley "will NEVER let you down." Now Whatley needs YOU to have HIS back:
+
+$25 / $50 / $100 / $250 → [link]</div>
+      <div class="image-dir">📸 Bold split design — left: "$10.9M LIBERAL MONEY" dark, right: "$1.4M GRASSROOTS PATRIOTS" red + Whatley photo</div>
+      <div class="creative-meta">Characters: <span class="chars ok">549</span> | Strong opening number, identity hook, Trump quote pivot</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gpt">GPT-4o</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 2 — Trump's Handpicked Fighter</span>
+        <span class="type-badge direct">DIRECT ASK</span>
+      </div>
+      <div class="creative-body">President Trump said: "He will NEVER let you down!" 🤝
+
+Join Trump's handpicked ally, Michael Whatley, in the fight to STOP liberal takeover. North Carolina deserves a conservative champion. Join us!
+
+$25 / $50 / $100 / $250</div>
+      <div class="image-dir">📸 Trump and Whatley shaking hands with NC state flag backdrop</div>
+      <div class="creative-meta">Characters: <span class="chars ok">308</span> | Clean endorsement play, but lacks urgency specifics</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gemini">Gemini 2.5 Flash</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 2 — Outspent 8-to-1</span>
+        <span class="type-badge direct">DIRECT ASK</span>
+      </div>
+      <div class="creative-body">[firstname|Friend], I need your help.
+
+The Left is pouring millions into North Carolina to buy this Senate seat. My opponent, Roy Cooper, has $10.9 MILLION.
+
+We've only raised $1.4M. They think they can BUY this election.
+
+They think YOUR vote, YOUR voice, doesn't matter. They're wrong.
+
+President Trump endorsed me because he knows I'll NEVER back down.
+
+I'm Michael Whatley, and with your help, we can shock the D.C. Establishment.
+
+Will you stand with us & prove grassroots power beats big money?
+
+$10 / $25 / $50 / $100</div>
+      <div class="image-dir">📸 Whatley looking determined, "$1.4M vs $10.9M" graphic, underdog visual</div>
+      <div class="creative-meta">Characters: <span class="chars ok">562</span> | Personal voice from Whatley, strong underdog narrative</div>
+    </div>
+  </div>
+</div>
+
+<!-- MMS 3 -->
+<div class="section-label" style="font-size:1rem; color:#58a6ff;">MMS 3 — 100,000 Poll Watchers / Outspent 8-to-1</div>
+<div class="grid-3col">
+  <div class="model-col">
+    <div class="model-header claude">Claude Opus</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 3 — 100,000 Poll Watchers</span>
+        <span class="type-badge survey">SURVEY-DRIVEN</span>
+      </div>
+      <div class="creative-body">Should every state require a photo ID to vote?
+
+Take the 30-second Election Integrity Survey → [link]
+
+[firstname|Friend], the man who BUILT President Trump's election integrity program is now running for the U.S. Senate.
+
+100,000 poll watchers deployed.
+80+ lawsuits filed.
+YOUR vote — PROTECTED.
+
+His name is Michael Whatley. And Roy Cooper's liberal machine is spending $10.9M to stop him.
+
+Rush $25 to defend the man who defended YOUR vote:
+
+$10 / $25 / $50 / $100 → [link]</div>
+      <div class="image-dir">📸 whatley_election_integrity_training.jpg + overlay: "100,000 POLL WATCHERS. 80+ LAWSUITS. HE PROTECTED YOUR VOTE."</div>
+      <div class="creative-meta">Characters: <span class="chars ok">578</span> | Survey → credential reveal → underdog pivot → ask. Full funnel in one MMS.</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gpt">GPT-4o</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 3 — Outspent 8-to-1</span>
+        <span class="type-badge direct">DIRECT ASK</span>
+      </div>
+      <div class="creative-body">They think they can BUY North Carolina! Cooper's $10.9M vs. Whatley's $1.4M. Friend, are you with us against the liberal cash flood?
+
+Every dollar counts in this David vs Goliath battle! HELP US WIN:
+
+$25 / $50 / $100 / $250</div>
+      <div class="image-dir">📸 Whatley against giant stack of $100 bills with text "Defy the Odds"</div>
+      <div class="creative-meta">Characters: <span class="chars ok">280</span> | Punchy but thin — missing survey flow and specifics</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gemini">Gemini 2.5 Flash</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 3 — 100,000 Poll Watchers</span>
+        <span class="type-badge survey">SURVEY-DRIVEN</span>
+      </div>
+      <div class="creative-body">ELECTION INTEGRITY MATTERS, [firstname|Friend].
+
+President Trump knows we MUST secure our elections. That's why he endorsed Michael Whatley, who helped organize 100,000 poll watchers to fight voter fraud.
+
+Do you support requiring photo ID to vote in every state?
+YES or NO: [link]
+
+We need more fighters like Whatley in the Senate to protect YOUR vote. Stand with President Trump & Michael Whatley to secure our elections.
+
+$10 / $25 / $50 / $100</div>
+      <div class="image-dir">📸 Hand inserting ballot into secure box, blurred American flag background</div>
+      <div class="creative-meta">Characters: <span class="chars ok">493</span> | Clean survey flow, Trump-first framing, credential integration</div>
+    </div>
+  </div>
+</div>
+
+<!-- MMS 4 -->
+<div class="section-label" style="font-size:1rem; color:#58a6ff;">MMS 4 — Insider Access / Son of a Librarian</div>
+<div class="grid-3col">
+  <div class="model-col">
+    <div class="model-header claude">Claude Opus</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 4 — The List (Insider Access)</span>
+        <span class="type-badge survey">SURVEY-DRIVEN</span>
+      </div>
+      <div class="creative-body">🚨 [firstname|Friend], your name appeared on a priority list of President Trump's most trusted supporters in [statename].
+
+Before midnight tonight, we need to hear from you about the North Carolina Senate race.
+
+President Trump personally asked Michael Whatley to run. The Democrats are spending $10.9 MILLION to defeat him.
+
+Will you stand with Trump's choice?
+
+Complete your Priority Voter Survey now → [link]
+
+$10 / $25 / $50 / $100</div>
+      <div class="image-dir">📸 Official document design: "PRIORITY VOTER SURVEY — CONFIDENTIAL" header, flag watermark, Whatley + Trump inset</div>
+      <div class="creative-meta">Characters: <span class="chars ok">530</span> | Insider flattery + midnight deadline + survey CTA. Strong for The Insider archetype.</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gpt">GPT-4o</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 4 — The List (Insider Access)</span>
+        <span class="type-badge survey">SURVEY-DRIVEN</span>
+      </div>
+      <div class="creative-body">📜 [firstname|Friend], your name appeared on a list of Trump's most trusted supporters!
+
+Before midnight: Do you believe NC should have a STRONG conservative voice? [link]
+
+TIME-SENSITIVE: BE HEARD.
+
+$10 / $25 / $50 / $100</div>
+      <div class="image-dir">📸 Scroll with text "Trump's Trusted List"</div>
+      <div class="creative-meta">Characters: <span class="chars ok">295</span> | Clean insider hook but too brief — missing Whatley intro and stakes</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gemini">Gemini 2.5 Flash</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">MMS 4 — Son of a Librarian</span>
+        <span class="type-badge direct">DIRECT ASK</span>
+      </div>
+      <div class="creative-body">[firstname|Friend], I'm Michael Whatley.
+
+My mom was the town librarian. My dad, an accountant. I grew up in a small NC town, believing in faith & family.
+
+I'm not a career politician like Roy Cooper. I'm a conservative fighter President Trump chose to be his ally in the Senate.
+
+"He will NEVER let you down!" Trump said.
+
+North Carolina deserves a strong conservative voice. I will be that voice.
+
+Will you join our fight for America First values?
+
+$10 / $25 / $50 / $100</div>
+      <div class="image-dir">📸 Warm family photo of Whatley with wife and children, NC mountain backdrop</div>
+      <div class="creative-meta">Characters: <span class="chars ok">472</span> | Warm personal intro, faith angle, Cooper contrast. Good humanizing play.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SMS SECTION -->
+<div class="section-label">💬 SMS CREATIVES (3 per model)</div>
+
+<!-- SMS 1 -->
+<div class="section-label" style="font-size:1rem; color:#58a6ff;">SMS 1</div>
+<div class="grid-3col">
+  <div class="model-col">
+    <div class="model-header claude">Claude Opus</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">SMS 1 — Do I Have the Right Number?</span>
+        <span class="type-badge pattern">PATTERN INTERRUPT</span>
+      </div>
+      <div class="creative-body">Hey, is this [firstname]? I was told you're one of President Trump's top supporters in [statename]. We need your help with something urgent about the NC Senate race. Can I count on you? → [link]</div>
+      <div class="creative-meta">Characters: <span class="chars ok">212</span> | RNC's highest conversion pattern (30.59%). Casual, curiosity-driven.</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gpt">GPT-4o</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">SMS 1 — 100,000 Poll Watchers</span>
+        <span class="type-badge survey">SURVEY-DRIVEN</span>
+      </div>
+      <div class="creative-body">Support requiring photo ID to vote in all states? Take the survey now! Whatley's led the charge for 100,000 poll watchers. Stand for fair elections: [link]</div>
+      <div class="creative-meta">Characters: <span class="chars ok">178</span> | Survey-first, credential integration. Clean but lacks Trump mention.</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gemini">Gemini 2.5 Flash</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">SMS 1 — Do I Have the Right Number?</span>
+        <span class="type-badge pattern">PATTERN INTERRUPT</span>
+      </div>
+      <div class="creative-body">Hey, is this [firstname]? I was told you're one of President Trump's top supporters in [statename]. We need your urgent feedback on the Senate race. Can you help? [link]</div>
+      <div class="creative-meta">Characters: <span class="chars ok">180</span> | Same pattern interrupt. Slightly more generic CTA than Claude's.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SMS 2 -->
+<div class="section-label" style="font-size:1rem; color:#58a6ff;">SMS 2</div>
+<div class="grid-3col">
+  <div class="model-col">
+    <div class="model-header claude">Claude Opus</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">SMS 2 — Schumer's Hit List</span>
+        <span class="type-badge direct">DIRECT ASK</span>
+      </div>
+      <div class="creative-body">🚨 BREAKING: Chuck Schumer is targeting North Carolina to flip the Senate and BLOCK Trump. President Trump's endorsed candidate is being outspent 8-to-1. Rush $25 to fight back → [link]</div>
+      <div class="creative-meta">Characters: <span class="chars ok">195</span> | Names the enemy, specific threat, underdog urgency, clear CTA.</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gpt">GPT-4o</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">SMS 2 — Cooper's 40-Year Career</span>
+        <span class="type-badge direct">DIRECT ASK</span>
+      </div>
+      <div class="creative-body">Cooper: 40-year politician, $10.9M from liberals. Whatley: Trump's fighter for NC. Donate to OUTWORK the establishment: $10, $25, $50, $100 [link]</div>
+      <div class="creative-meta">Characters: <span class="chars ok">183</span> | Strong contrast framing. Concise. Could use more emotional urgency.</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gemini">Gemini 2.5 Flash</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">SMS 2 — Trump's Handpicked Fighter</span>
+        <span class="type-badge direct">DIRECT ASK</span>
+      </div>
+      <div class="creative-body">President Trump said: "He will NEVER let you down!" [firstname], Michael Whatley is Trump's handpicked fighter for NC. He needs you to step up NOW to keep the Senate RED. Give $10, $25, $50, or $100. [link]</div>
+      <div class="creative-meta">Characters: <span class="chars warn">270</span> | Strong Trump quote lead, but runs long for SMS. Includes full ask ladder.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SMS 3 -->
+<div class="section-label" style="font-size:1rem; color:#58a6ff;">SMS 3</div>
+<div class="grid-3col">
+  <div class="model-col">
+    <div class="model-header claude">Claude Opus</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">SMS 3 — Son of a Librarian</span>
+        <span class="type-badge direct">PERSONAL PLEA</span>
+      </div>
+      <div class="creative-body">My mom was the town librarian. My dad was an accountant. When President Trump asked me to run for Senate — I said yes. [firstname], I need 500 grassroots donors by midnight. Will you chip in? [link] -Michael Whatley</div>
+      <div class="creative-meta">Characters: <span class="chars ok">213</span> | Warm personal open, Trump pivot, specific donor goal + deadline. Signed.</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gpt">GPT-4o</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">SMS 3 — Do I Have the Right Number?</span>
+        <span class="type-badge pattern">PATTERN INTERRUPT</span>
+      </div>
+      <div class="creative-body">Hey, is this [firstname]? Heard you're one of Trump's top supporters in [statename]. Whatley needs YOU to keep Trump's agenda strong! [link]</div>
+      <div class="creative-meta">Characters: <span class="chars ok">159</span> | Clean pattern interrupt. Tight. But weaker CTA than Claude's version.</div>
+    </div>
+  </div>
+  <div class="model-col">
+    <div class="model-header gemini">Gemini 2.5 Flash</div>
+    <div class="creative-card">
+      <div class="creative-card-header">
+        <span class="label">SMS 3 — Trump's Senate Scorecard</span>
+        <span class="type-badge survey">SURVEY-DRIVEN</span>
+      </div>
+      <div class="creative-body">[firstname], how would YOU rate President Trump's first year? Take the 30-second Scorecard & make your voice heard! This is critical for Michael Whatley's campaign. [link]</div>
+      <div class="creative-meta">Characters: <span class="chars ok">220</span> | Survey-first, low friction. But opens with [firstname] — should lead with hook.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCORING SECTION -->
+<div class="scoring-section">
+  <h2>📊 Model Scoring Comparison</h2>
+  <table class="scoring">
+    <thead>
+      <tr>
+        <th>Criteria</th>
+        <th>Claude Opus</th>
+        <th>GPT-4o</th>
+        <th>Gemini 2.5 Flash</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Hook Strength</strong><br><small>Does the opening stop the scroll?</small></td>
+        <td class="score-high">9/10</td>
+        <td class="score-mid">7/10</td>
+        <td class="score-mid">7/10</td>
+      </tr>
+      <tr>
+        <td><strong>Survey Integration</strong><br><small>Natural survey → donate flow?</small></td>
+        <td class="score-high">9/10</td>
+        <td class="score-mid">6/10</td>
+        <td class="score-high">8/10</td>
+      </tr>
+      <tr>
+        <td><strong>Trump-First Framing</strong><br><small>Trump leads, Whatley follows?</small></td>
+        <td class="score-high">9/10</td>
+        <td class="score-mid">8/10</td>
+        <td class="score-high">8/10</td>
+      </tr>
+      <tr>
+        <td><strong>Emotional Urgency</strong><br><small>Creates genuine FOMO/fear?</small></td>
+        <td class="score-high">9/10</td>
+        <td class="score-mid">6/10</td>
+        <td class="score-mid">7/10</td>
+      </tr>
+      <tr>
+        <td><strong>Concept Variety</strong><br><small>Different angles across 7 creatives?</small></td>
+        <td class="score-high">9/10</td>
+        <td class="score-mid">7/10</td>
+        <td class="score-high">8/10</td>
+      </tr>
+      <tr>
+        <td><strong>Formatting / DonorBureau Rules</strong><br><small>Line breaks, ask ladder, emoji discipline?</small></td>
+        <td class="score-high">9/10</td>
+        <td class="score-mid">7/10</td>
+        <td class="score-mid">7/10</td>
+      </tr>
+      <tr>
+        <td><strong>Compliance</strong><br><small>Disclaimers, no Trump voice, no landmines?</small></td>
+        <td class="score-high">10/10</td>
+        <td class="score-high">9/10</td>
+        <td class="score-high">9/10</td>
+      </tr>
+      <tr>
+        <td><strong>Specific Numbers / Details</strong><br><small>$10.9M, 100K watchers, 4 seats, etc.?</small></td>
+        <td class="score-high">9/10</td>
+        <td class="score-mid">7/10</td>
+        <td class="score-high">8/10</td>
+      </tr>
+      <tr style="background: #21262d;">
+        <td><strong>TOTAL</strong></td>
+        <td class="score-high"><strong>73/80</strong></td>
+        <td class="score-mid"><strong>57/80</strong></td>
+        <td class="score-high"><strong>62/80</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top: 20px; padding: 16px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d;">
+    <h3 style="color: #f0f6fc; margin-bottom: 8px;">🏆 Quick Takes</h3>
+    <p style="margin-bottom: 8px;"><strong style="color: #7c3aed;">Claude Opus:</strong> Strongest overall. Best hook construction (opens with numbers and questions, not names). Survey flows feel natural. MMS 2's "$10.9 MILLION." single-line opener is a scroll-stopper. SMS 3 "Son of a Librarian" is the standout personal plea. Every creative has specific numbers + urgency.</p>
+    <p style="margin-bottom: 8px;"><strong style="color: #10a37f;">GPT-4o:</strong> Clean and concise but often TOO brief for MMS (280-317 chars when 400-600 is the sweet spot). Missing emotional escalation in several creatives. MMS 2 and 4 feel generic. SMS 3's pattern interrupt is solid. Would benefit from more staccato line breaks and specific details.</p>
+    <p><strong style="color: #4285f4;">Gemini 2.5 Flash:</strong> Strong middle ground. MMS 2's personal Whatley voice is compelling. MMS 4 "Son of a Librarian" is the best humanizing play across all models. SMS 2 runs long but has energy. Main weakness: opens with [firstname] in SMS 3 (breaks "hook first" rule) and some creatives lack deadline compression.</p>
+  </div>
+
+  <div style="margin-top: 20px; padding: 16px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d;">
+    <h3 style="color: #f0f6fc; margin-bottom: 8px;">⭐ Recommended Winners (Best-of-Breed)</h3>
+    <table class="scoring" style="margin-top: 8px;">
+      <thead>
+        <tr><th>Slot</th><th>Winner</th><th>Model</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>MMS 1</td><td>Keep the Senate Red</td><td style="color:#7c3aed;">Claude</td><td>Best survey-to-urgency flow. "NOT hypothetical" line creates real fear.</td></tr>
+        <tr><td>MMS 2</td><td>Outspent 8-to-1</td><td style="color:#7c3aed;">Claude</td><td>"$10.9 MILLION." opener is the strongest single line across all 12 MMS.</td></tr>
+        <tr><td>MMS 3</td><td>100,000 Poll Watchers</td><td style="color:#7c3aed;">Claude</td><td>Full funnel: survey Q → credential reveal → underdog pivot → ask.</td></tr>
+        <tr><td>MMS 4</td><td>Son of a Librarian</td><td style="color:#4285f4;">Gemini</td><td>Best humanizing play. Warm personal voice with Cooper contrast + Trump quote.</td></tr>
+        <tr><td>SMS 1</td><td>Do I Have the Right Number?</td><td style="color:#7c3aed;">Claude</td><td>More specific CTA than Gemini's version. "Can I count on you?" > "Can you help?"</td></tr>
+        <tr><td>SMS 2</td><td>Schumer's Hit List</td><td style="color:#7c3aed;">Claude</td><td>Names the enemy, specific threat, 8-to-1 stat, clear $25 ask. Complete package.</td></tr>
+        <tr><td>SMS 3</td><td>Son of a Librarian</td><td style="color:#7c3aed;">Claude</td><td>Unique angle. "500 grassroots donors by midnight" creates specific, achievable urgency.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="footer">
+  Whatley Victory Committee — Creative Shootout | Generated Feb 4, 2026<br>
+  Models: Claude Opus (Anthropic) · GPT-4o (OpenAI) · Gemini 2.5 Flash (Google)<br>
+  DonorBureau SMS/MMS | WinRed: secure.winred.com/whatley-victory-committee/donate-hd
+</div>
+
+</body>
+</html>

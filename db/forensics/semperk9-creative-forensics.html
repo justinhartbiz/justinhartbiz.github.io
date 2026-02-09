@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SemperK9 Creative Forensics Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-color: #c9d1d9;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --border-color: #30363d;
+            --card-hover: #21262d;
+            --tab-active: #1f6feb;
+            --tab-inactive: #21262d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-color);
+            margin-bottom: 0.75rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .date-range {
+            font-size: 0.9rem;
+            color: #8b949e;
+            margin-bottom: 1rem;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 0.75rem 1.25rem;
+            background-color: var(--tab-inactive);
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab:hover {
+            background-color: var(--card-hover);
+        }
+
+        .tab.active {
+            background-color: var(--tab-active);
+            border-bottom-color: transparent;
+        }
+
+        .content-section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 1rem 0;
+        }
+
+        .content-section.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: var(--card-hover);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8b949e;
+        }
+
+        /* Rules Cards */
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .rule-card {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rule-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            background-color: var(--card-hover);
+        }
+
+        .rule-tag {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 100%;
+        }
+
+        .rule-tag.green {
+            background-color: var(--accent-green);
+        }
+
+        .rule-tag.red {
+            background-color: var(--accent-red);
+        }
+
+        .rule-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            padding-right: 25px;
+            font-weight: bold;
+        }
+
+        .rule-stat {
+            font-size: 1rem;
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .rule-proof {
+            background-color: rgba(99, 99, 99, 0.1);
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-blue);
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .rule-explanation {
+            font-size: 0.95rem;
+        }
+
+        /* Winner/Loser Cards */
+        .creative-card {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .creative-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            background-color: var(--card-hover);
+        }
+
+        .winner-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: var(--accent-blue);
+            color: #fff;
+            padding: 0.25rem 1rem;
+            border-radius: 0 0 10px 0;
+            font-weight: bold;
+        }
+
+        .loser-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: var(--accent-red);
+            color: #fff;
+            padding: 0.25rem 1rem;
+            border-radius: 0 0 10px 0;
+            font-weight: bold;
+        }
+
+        .creative-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .metric {
+            background-color: rgba(99, 99, 99, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .metric-label {
+            color: #8b949e;
+            margin-right: 0.5rem;
+        }
+
+        .metric-value {
+            font-weight: bold;
+        }
+
+        .metric-value.positive {
+            color: var(--accent-green);
+        }
+
+        .metric-value.negative {
+            color: var(--accent-red);
+        }
+
+        .copy-pattern {
+            background-color: rgba(88, 166, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        thead {
+            background-color: var(--card-bg);
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        th:hover {
+            background-color: var(--card-hover);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(99, 99, 99, 0.05);
+        }
+
+        /* Bar Chart */
+        .chart-container {
+            margin: 2rem 0;
+        }
+
+        .bar-chart {
+            display: flex;
+            height: 300px;
+            align-items: flex-end;
+            gap: 8px;
+            margin: 2rem 0;
+            padding-bottom: 30px;
+            position: relative;
+        }
+
+        .bar {
+            flex: 1;
+            background-color: var(--accent-blue);
+            min-width: 40px;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .bar:hover {
+            background-color: var(--tab-active);
+            opacity: 0.9;
+            transform: scaleY(1.02);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+
+        .bar-value {
+            position: absolute;
+            bottom: calc(100% + 5px);
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .chart-axis {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+
+        /* Playbook section */
+        .playbook-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .playbook-card {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .playbook-title {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: var(--accent-blue);
+        }
+
+        .playbook-list {
+            list-style-position: inside;
+            margin-left: 0.5rem;
+        }
+
+        .playbook-list li {
+            margin-bottom: 0.75rem;
+        }
+
+        .code-block {
+            background-color: rgba(99, 99, 99, 0.1);
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 1rem 0;
+        }
+
+        /* Search Filter */
+        .search-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-grid, .rules-grid, .playbook-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab {
+                flex-basis: calc(50% - 0.25rem);
+                text-align: center;
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .creative-metrics {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .bar-chart {
+                height: 200px;
+                overflow-x: auto;
+            }
+
+            .bar {
+                min-width: 30px;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border: 1px solid var(--border-color);
+            z-index: 100;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+        }
+
+        .back-to-top:hover {
+            background-color: var(--card-hover);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SemperK9 Creative Forensics Dashboard</h1>
+            <div class="date-range">Last updated: February 5, 2026</div>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" data-target="overview">Overview</div>
+            <div class="tab" data-target="rules">The 10 Rules</div>
+            <div class="tab" data-target="winners">Winners Gallery</div>
+            <div class="tab" data-target="losers">Losers Autopsy</div>
+            <div class="tab" data-target="patterns">Copy Patterns</div>
+            <div class="tab" data-target="tier1">Tier 1 Analysis</div>
+            <div class="tab" data-target="playbook">Shootout Playbook</div>
+        </div>
+
+        <!-- Overview Section -->
+        <section id="overview" class="content-section active">
+            <h2>Key Stats at a Glance</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Creatives</div>
+                    <div class="stat-value">284</div>
+                    <div class="stat-detail">(194 active)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Sends</div>
+                    <div class="stat-value">4.9M</div>
+                    <div class="stat-detail">4,935,595 sends</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Donated</div>
+                    <div class="stat-value">$708K</div>
+                    <div class="stat-detail">$708,482.96</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Yield Per Send</div>
+                    <div class="stat-value">$0.143</div>
+                    <div class="stat-detail">Overall average</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Click-Through Rate</div>
+                    <div class="stat-value">2.83%</div>
+                    <div class="stat-detail">Overall average</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Donors</div>
+                    <div class="stat-value">16,856</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">MMS Creatives</div>
+                    <div class="stat-value">171</div>
+                    <div class="stat-detail">(88% of active)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">SMS Creatives</div>
+                    <div class="stat-value">23</div>
+                    <div class="stat-detail">(12% of active)</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Date Range</div>
+                <div class="stat-value" style="font-size: 1.5rem;">Oct 2023 – Feb 2026</div>
+                <div class="stat-detail">28 months of data</div>
+            </div>
+        </section>
+
+        <!-- The 10 Rules Section -->
+        <section id="rules" class="content-section">
+            <h2>The 10 Rules of SemperK9 Creative</h2>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" id="rulesSearch" placeholder="Search the rules...">
+            </div>
+
+            <div class="rules-grid">
+                <!-- Rule 1 -->
+                <div class="rule-card">
+                    <div class="rule-tag green"></div>
+                    <h3 class="rule-title">RULE 1: WREATHS ACROSS AMERICA IS THE MONEY PLAY</h3>
+                    <div class="rule-stat">Seasonal Events Crush Evergreen</div>
+                    <div class="rule-proof">
+                        "On December 14, we'll lay wreaths beside our fallen heroes... A gift of $25 today isn't just a donation — it's a way to say 'we remember.'" — Cr-107b, $0.657 yield, $61,456 donated from 79K sends. This ONE creative = 8.7% of all-time revenue.
+                    </div>
+                    <p class="rule-explanation">
+                        <strong>Why it works:</strong> Urgency + specificity + emotional gravitas. "December 14" is a real date, "wreaths beside our fallen heroes" is a real image. The donor isn't giving to an abstract cause — they're participating in a ceremony.
+                    </p>
+                </div>
+
+                <!-- Rule 2 -->
+                <div class="rule-card">
+                    <div class="rule-tag red"></div>
+                    <h3 class="rule-title">RULE 2: THE RONA STORY IS THE ORIGIN STORY</h3>
+                    <div class="rule-stat">But Only in Short Form</div>
+                    <div class="rule-proof">
+                        The lesson: The Rona story works when it's a punchy personal opener that drives to a CTA. It dies when it becomes a long-form essay. Donors want to feel the emotion and act — they don't want to read a memoir in a text message.
+                    </div>
+                    <p class="rule-explanation">
+                        <strong>Winning Rona format (Cr-41):</strong> Origin → emotional gut punch → "I honor her by training service dogs" → ask → link. ~650 chars total.<br>
+                        <strong>Losing Rona format (Cr-91 series):</strong> Detailed war narrative → literary prose → emotional exposition → ask. 800-1200+ chars.
+                    </p>
+                </div>
+
+                <!-- Rule 3 -->
+                <div class="rule-card">
+                    <div class="rule-tag green"></div>
+                    <h3 class="rule-title">RULE 3: CHRIS BAITY INTRODUCTION > ANONYMOUS VOICE</h3>
+                    <div class="rule-stat">Personal Voice Yields $0.065/send vs. $0.011/send</div>
+                    <div class="rule-proof">
+                        The rule: A person asks. An organization gets ignored. Chris has earned credibility as a Marine combat vet who founded the charity. Lead with that.
+                    </div>
+                    <p class="rule-explanation">
+                        Creatives that open with Chris Baity's personal introduction consistently outperform anonymous organizational voice. Cr-02 ("Hi, this is Chris and Amanda Baity from Semper K9") was the original workhorse — $46.8K donated from 730K sends.
+                    </p>
+                </div>
+
+                <!-- Rule 4 -->
+                <div class="rule-card">
+                    <div class="rule-tag green"></div>
+                    <h3 class="rule-title">RULE 4: HUMOR AND PERSONALITY WIN</h3>
+                    <div class="rule-stat">The Dog Voice Is a Secret Weapon</div>
+                    <div class="rule-proof">
+                        "Pleaze excuse any typos, I have to paws a lot because I don't have thumbs" — Cr-126, $0.092/send, $7.2K donated
+                    </div>
+                    <p class="rule-explanation">
+                        <strong>Why it works:</strong> Donors to an animal-service org LOVE animals. Giving the dogs a voice taps directly into the emotional core. It also stands out from every other nonprofit text that sounds identical.
+                    </p>
+                </div>
+
+                <!-- Rule 5 -->
+                <div class="rule-card">
+                    <div class="rule-tag green"></div>
+                    <h3 class="rule-title">RULE 5: SPECIFIC STORIES ABOUT NAMED DOGS OUTPERFORM</h3>
+                    <div class="rule-stat">Named dog + need: $0.066 vs Generic: $0.011</div>
+                    <div class="rule-proof">
+                        The paradox: $7,500 for one dog outperforms $2,000 for the whole org. Specificity creates reality. Round numbers feel made up.
+                    </div>
+                    <p class="rule-explanation">
+                        Every creative that names a specific dog, person, or event outperforms generic mission statements. Donut's ACL surgery ($7,500 specific need) outperforms "We urgently need $2,000 to continue."
+                    </p>
+                </div>
+
+                <!-- Rule 6 -->
+                <div class="rule-card">
+                    <div class="rule-tag green"></div>
+                    <h3 class="rule-title">RULE 6: THE ASK LADDER BELONGS ON THE LANDING PAGE</h3>
+                    <div class="rule-stat">Not in the Text</div>
+                    <div class="rule-proof">
+                        Best practice: Single amount ($25-$35), single link, single CTA. Let the LP handle upsells and ask ladders.
+                    </div>
+                    <p class="rule-explanation">
+                        The top 10 creatives by yield predominantly use a single ask amount in the text ($20-$35 range) and a single link. Cr-107b asks for $25. Cr-12b asks for $25. Cr-132 asks for $35.
+                    </p>
+                </div>
+
+                <!-- Rule 7 -->
+                <div class="rule-card">
+                    <div class="rule-tag green"></div>
+                    <h3 class="rule-title">RULE 7: VETERAN SUICIDE STATS ARE POWERFUL</h3>
+                    <div class="rule-stat">But Need Careful Framing</div>
+                    <div class="rule-proof">
+                        Cr-173 ($0.084/send, $7.9K donated) opens with "I wish I had better news" and delivers hard stats: 17 veterans per day, 20% PTSD, 6,407 suicides in 2022. Then pivots to hope: service dogs reduce symptoms by 82%.
+                    </div>
+                    <p class="rule-explanation">
+                        This works because it follows a <strong>despair → hope → action</strong> arc. The stats create urgency, the solution creates a pathway, the donation becomes the bridge.
+                    </p>
+                </div>
+
+                <!-- Rule 8 -->
+                <div class="rule-card">
+                    <div class="rule-tag green"></div>
+                    <h3 class="rule-title">RULE 8: MMS DOMINATES</h3>
+                    <div class="rule-stat">MMS: $0.093 yield vs SMS: $0.022 yield</div>
+                    <div class="rule-proof">
+                        At $0.005/send for SMS vs $0.02 for MMS: SMS costs 4x less but yields 4.2x less. MMS has a slight edge in raw ROI, but the real win is absolute dollar volume.
+                    </div>
+                    <p class="rule-explanation">
+                        MMS yields <strong>4.2x</strong> more per send than SMS. SMS has higher click-through but dramatically lower conversion — people click but don't give. The image in MMS establishes emotional context before the text even loads.
+                    </p>
+                </div>
+
+                <!-- Rule 9 -->
+                <div class="rule-card">
+                    <div class="rule-tag green"></div>
+                    <h3 class="rule-title">RULE 9: CLIENT DONORS ARE GOLD</h3>
+                    <div class="rule-stat">Yield 4.9x Over DB Donors</div>
+                    <div class="rule-proof">
+                        Client Donors yield $0.394/send — nearly 5x the DB Donors rate. This is the known-donor premium.
+                    </div>
+                    <p class="rule-explanation">
+                        <strong>Operational takeaway:</strong> Client Donors should always get the proven winners. Don't waste D10 test sends on client lists — send them the known top performers.
+                    </p>
+                </div>
+
+                <!-- Rule 10 -->
+                <div class="rule-card">
+                    <div class="rule-tag green"></div>
+                    <h3 class="rule-title">RULE 10: DECEMBER IS CHRISTMAS, OCTOBER IS LAUNCH</h3>
+                    <div class="rule-stat">Respect the Calendar</div>
+                    <div class="rule-proof">
+                        Calendar strategy: Lead with seasonal/event hooks (Wreaths, Valentine's, 4th of July, Veterans Day). January is a sleeper — new year motivation is real.
+                    </div>
+                    <p class="rule-explanation">
+                        <strong>The "home run" pattern:</strong> Months with outsized yield ($0.90+) correlate with smaller, highly targeted sends to Client Donors. High-volume months (Dec, Nov) show lower per-send yield but massive total revenue.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Winners Gallery Section -->
+        <section id="winners" class="content-section">
+            <h2>Winners Gallery</h2>
+            
+            <!-- Winner 1 -->
+            <div class="creative-card">
+                <div class="winner-badge">#1</div>
+                <h3>Cr-107b — The Wreaths Masterpiece</h3>
+                <div class="creative-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Yield:</span>
+                        <span class="metric-value positive">$0.657/send</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Donated:</span>
+                        <span class="metric-value positive">$61,456</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Sent:</span>
+                        <span class="metric-value">79,653</span>
+                    </div>
+                </div>
+                <p><strong>What makes it work:</strong> Specific date (Dec 14), specific action (laying wreaths), emotional image (service dogs standing in remembrance), modest ask ($25), emotional frame ("it's a way to say 'we remember'")</p>
+                <div class="copy-pattern">Copy pattern: Event anchor → visual scene → emotional meaning → ask → CTA</div>
+            </div>
+
+            <!-- Winner 2 -->
+            <div class="creative-card">
+                <div class="winner-badge">#2</div>
+                <h3>Cr-132 — The Rhetorical Question Open</h3>
+                <div class="creative-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Yield:</span>
+                        <span class="metric-value positive">$0.118/send</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Donated:</span>
+                        <span class="metric-value positive">$13,307</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Sent:</span>
+                        <span class="metric-value">14,133</span>
+                    </div>
+                </div>
+                <p><strong>What makes it work:</strong> Opens with "What if a wagging tail could help heal a broken heart?" — disarming, emotional, makes you lean in. Then Chris Baity introduces himself with credibility markers. New Year frame. $35 ask.</p>
+                <div class="copy-pattern">Copy pattern: Rhetorical hook → personal intro → mission → seasonal frame → ask → CTA</div>
+            </div>
+
+            <!-- Winner 3 -->
+            <div class="creative-card">
+                <div class="winner-badge">#3</div>
+                <h3>Cr-12b — The Brevity Winner</h3>
+                <div class="creative-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Yield:</span>
+                        <span class="metric-value positive">$0.102/send</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Donated:</span>
+                        <span class="metric-value positive">$19,546</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Sent:</span>
+                        <span class="metric-value">123,580</span>
+                    </div>
+                </div>
+                <p><strong>What makes it work:</strong> Just 3 short sentences + a link. "Tomorrow we're laying wreaths." Pure. Clean. No fluff. The image does the heavy lifting.</p>
+                <div class="copy-pattern">Copy pattern: Time urgency → visual → single ask → CTA</div>
+            </div>
+
+            <!-- Winner 4 -->
+            <div class="creative-card">
+                <div class="winner-badge">#4</div>
+                <h3>Cr-03 — The Celebrity Endorsement</h3>
+                <div class="creative-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Yield:</span>
+                        <span class="metric-value positive">$0.091/send</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Donated:</span>
+                        <span class="metric-value positive">$7,432</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Sent:</span>
+                        <span class="metric-value">33,942</span>
+                    </div>
+                </div>
+                <p><strong>What makes it work:</strong> Opens with "Dirty Jobs Host MIKE ROWE" in celebrity quote format. Mike Rowe = trusted blue-collar voice for this audience. Quote explains the mission simply. Then pivots to the ask.</p>
+                <div class="copy-pattern">Copy pattern: Celebrity name (caps) → quote → mission → ask → sign-off</div>
+            </div>
+
+            <!-- Winner 5 -->
+            <div class="creative-card">
+                <div class="winner-badge">#5</div>
+                <h3>Cr-126 — The Dog Voice</h3>
+                <div class="creative-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Yield:</span>
+                        <span class="metric-value positive">$0.092/send</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Donated:</span>
+                        <span class="metric-value positive">$7,166</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Sent:</span>
+                        <span class="metric-value">47,559</span>
+                    </div>
+                </div>
+                <p><strong>What makes it work:</strong> Written from Hank the dog's perspective. Personality, humor, charm. "Pleaze excuse any typos, I have to paws a lot." Delightful. Stands out from every other text on the phone.</p>
+                <div class="copy-pattern">Copy pattern: Character voice → humor → mission (light) → ask → humor close</div>
+            </div>
+        </section>
+
+        <!-- Losers Autopsy Section -->
+        <section id="losers" class="content-section">
+            <h2>Losers Autopsy</h2>
+
+            <div class="creative-card">
+                <div class="loser-badge">FAILURE</div>
+                <h3>The Cr-91 Series — How to Kill the Best Story</h3>
+                <p>Six variants of the Rona story, all failed (combined: 193K sends, $1.4K donated, avg yield $0.007)</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Creative</th>
+                            <th>Yield</th>
+                            <th>Sent</th>
+                            <th>What Went Wrong</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Cr-91b</td>
+                            <td class="metric-value negative">-$0.014</td>
+                            <td>29.6K</td>
+                            <td>"Picture this" opening = fiction voice, not personal</td>
+                        </tr>
+                        <tr>
+                            <td>Cr-91c</td>
+                            <td class="metric-value negative">-$0.012</td>
+                            <td>25.2K</td>
+                            <td>"Our mission is rooted in loyalty" = corporate brochure</td>
+                        </tr>
+                        <tr>
+                            <td>Cr-91d</td>
+                            <td class="metric-value negative">-$0.015</td>
+                            <td>33.7K</td>
+                            <td>Same "picture this" + too long + volunteer P.S. splits focus</td>
+                        </tr>
+                        <tr>
+                            <td>Cr-91e</td>
+                            <td class="metric-value negative">-$0.018</td>
+                            <td>33.2K</td>
+                            <td>1000+ chars, literary prose, "keen nose found hidden dangers"</td>
+                        </tr>
+                        <tr>
+                            <td>Cr-91f</td>
+                            <td class="metric-value negative">-$0.017</td>
+                            <td>38.9K</td>
+                            <td>"War is chaos. Fear. Uncertainty." = novel opening, not text</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <p><strong>The diagnosis:</strong> These read like creative writing, not fundraising texts. They prioritize literary craft over donor psychology. The Rona story has genuine power — but it needs to be told in 3 sentences, not 3 paragraphs.</p>
+            </div>
+
+            <!-- Loser 2 -->
+            <div class="creative-card">
+                <div class="loser-badge">FAILURE</div>
+                <h3>Cr-83 — The Organizational Panic</h3>
+                <div class="creative-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Yield:</span>
+                        <span class="metric-value negative">-$0.019/send</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Donated:</span>
+                        <span class="metric-value">$50</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Sent:</span>
+                        <span class="metric-value">5,000</span>
+                    </div>
+                </div>
+                <p>"We're Short on Our Goal and Time is Running Out!" + "We urgently need $2,000"</p>
+                <p><strong>Why it failed:</strong> Donors don't care about your internal fundraising targets. "We need $2,000" is about you, not them. No emotional story, no named person, no reason to care.</p>
+            </div>
+
+            <!-- Loser 3 -->
+            <div class="creative-card">
+                <div class="loser-badge">FAILURE</div>
+                <h3>Cr-13 — The Generic Holiday Card</h3>
+                <div class="creative-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Yield:</span>
+                        <span class="metric-value negative">-$0.018/send</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Donated:</span>
+                        <span class="metric-value">$50</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Sent:</span>
+                        <span class="metric-value">11,700</span>
+                    </div>
+                </div>
+                <p>"Merry Christmas from Semper K9 and these 4 furry fellows!"</p>
+                <p><strong>Why it failed:</strong> Opening line sounds like a mass mailer from a brand, not a person. "Be a part of a Christmas miracle" is worn-out language. No urgency, no story, no specificity.</p>
+            </div>
+
+            <!-- Loser 4 -->
+            <div class="creative-card">
+                <div class="loser-badge">FAILURE</div>
+                <h3>Cr-108 — The Indirect Ask</h3>
+                <div class="creative-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Yield:</span>
+                        <span class="metric-value negative">-$0.013/send</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Donated:</span>
+                        <span class="metric-value">$100</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Sent:</span>
+                        <span class="metric-value">9,800</span>
+                    </div>
+                </div>
+                <p>"Will you join us in a tribute that makes a real impact?"</p>
+                <p><strong>Why it failed:</strong> Questions that can be answered "no" without guilt don't work in fundraising. "Will you join us" is passive. Compare to Cr-107b's "A gift of $25 today isn't just a donation" — declarative, assumes participation.</p>
+            </div>
+        </section>
+
+        <!-- Copy Patterns Section -->
+        <section id="patterns" class="content-section">
+            <h2>Copy Pattern Analysis</h2>
+            
+            <div class="creative-card">
+                <h3>Opening Line Winners vs Losers</h3>
+                
+                <h4>Winners open with:</h4>
+                <ol>
+                    <li>A specific date/event: "On December 14..." "Tomorrow, we're laying wreaths..."</li>
+                    <li>A rhetorical question: "What if a wagging tail could help heal a broken heart?"</li>
+                    <li>A celebrity name: "Dirty Jobs Host MIKE ROWE:"</li>
+                    <li>A character voice: "Hey, it's Hank from Semper K9. Pleaze excuse any typos..."</li>
+                    <li>A personal intro + urgency: "I wish I had better news, but the latest numbers just came in."</li>
+                </ol>
+
+                <h4>Losers open with:</h4>
+                <ol>
+                    <li>Organizational announcements: "We're Short on Our Goal..."</li>
+                    <li>Brand greetings: "Merry Christmas from Semper K9..."</li>
+                    <li>Abstract imagery: "Picture this: a shelter dog steps into the sunlight..."</li>
+                    <li>Mission statements: "At Semper K9, our mission is rooted in loyalty..."</li>
+                    <li>Overwritten prose: "War is chaos. Fear. Uncertainty."</li>
+                </ol>
+            </div>
+
+            <div class="creative-card">
+                <h3>Character Length Sweet Spot</h3>
+                
+                <div class="chart-container">
+                    <div class="bar-chart">
+                        <div class="bar" style="height: 90%;">
+                            <div class="bar-value">$0.090</div>
+                            <div class="bar-label">Under 250</div>
+                        </div>
+                        <div class="bar" style="height: 82%;">
+                            <div class="bar-value">$0.082</div>
+                            <div class="bar-label">250-500</div>
+                        </div>
+                        <div class="bar" style="height: 61%;">
+                            <div class="bar-value">$0.061</div>
+                            <div class="bar-label">500-800</div>
+                        </div>
+                        <div class="bar" style="height: 34%;">
+                            <div class="bar-value">$0.034</div>
+                            <div class="bar-label">800-1200</div>
+                        </div>
+                        <div class="bar" style="height: 9%;">
+                            <div class="bar-value">$0.009</div>
+                            <div class="bar-label">1200+</div>
+                        </div>
+                        <div class="chart-axis"></div>
+                    </div>
+                </div>
+
+                <p>Short wins. But ultra-short only works with strong MMS images doing the emotional heavy lifting. The sweet spot is <strong>250-500 characters</strong> — enough to tell a tight story, not so much you lose them.</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Length Range</th>
+                            <th>Avg Yield</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Under 250 chars</td>
+                            <td>$0.090</td>
+                            <td>Cr-08 "Woof Woof!"</td>
+                        </tr>
+                        <tr>
+                            <td>250-500 chars</td>
+                            <td>$0.082</td>
+                            <td>Cr-12b "Tomorrow, wreaths"</td>
+                        </tr>
+                        <tr>
+                            <td>500-800 chars</td>
+                            <td>$0.061</td>
+                            <td>Cr-41 Rona story (short)</td>
+                        </tr>
+                        <tr>
+                            <td>800-1200 chars</td>
+                            <td>$0.034</td>
+                            <td>Cr-180 Chris origin story</td>
+                        </tr>
+                        <tr>
+                            <td>1200+ chars</td>
+                            <td>$0.009</td>
+                            <td>Cr-91 series (all failures)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="creative-card">
+                <h3>Ask Amount Patterns</h3>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Amount</th>
+                            <th>Frequency (Top 20)</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>$25</td>
+                            <td>8 of top 20</td>
+                            <td>Sweet spot for SK9 audience</td>
+                        </tr>
+                        <tr>
+                            <td>$20</td>
+                            <td>4 of top 20</td>
+                            <td>Works, especially playful copy</td>
+                        </tr>
+                        <tr>
+                            <td>$30</td>
+                            <td>3 of top 20</td>
+                            <td>Original Cr-02 amount</td>
+                        </tr>
+                        <tr>
+                            <td>$35</td>
+                            <td>2 of top 20</td>
+                            <td>Works in premium positioning</td>
+                        </tr>
+                        <tr>
+                            <td>No amount</td>
+                            <td>3 of top 20</td>
+                            <td>Let the LP handle it</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p><strong>$25 is the SemperK9 sweet spot.</strong> It appears in the most winners and is anchored by the Wreaths creatives. $30 was the original workhorse but $25 now outperforms.</p>
+            </div>
+        </section>
+
+        <!-- Tier 1 Analysis Section -->
+        <section id="tier1" class="content-section">
+            <h2>Tier 1 Analysis — DB Donors D10 (Pure Signal)</h2>
+            <p>D10 tests are the cleanest signal for creative quality. Here are the top performers on DB D10:</p>
+            
+            <table id="tier1Table">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('tier1Table', 0)">Creative</th>
+                        <th onclick="sortTable('tier1Table', 1)">D10 Yield</th>
+                        <th onclick="sortTable('tier1Table', 2)">D10 Sent</th>
+                        <th onclick="sortTable('tier1Table', 3)">What It Tells Us</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Cr-02</td>
+                        <td>$0.359</td>
+                        <td>51.6K</td>
+                        <td>Original workhorse. Chris + Amanda intro + "100% success rate"</td>
+                    </tr>
+                    <tr>
+                        <td>Cr-12</td>
+                        <td>$0.314</td>
+                        <td>44.8K</td>
+                        <td>Wreaths (Saturday version). Brevity master.</td>
+                    </tr>
+                    <tr>
+                        <td>Cr-03</td>
+                        <td>$0.313</td>
+                        <td>19K</td>
+                        <td>Mike Rowe endorsement</td>
+                    </tr>
+                    <tr>
+                        <td>Cr-12c</td>
+                        <td>$0.272</td>
+                        <td>12.7K</td>
+                        <td>Wreaths variant</td>
+                    </tr>
+                    <tr>
+                        <td>Cr-161</td>
+                        <td>$0.259</td>
+                        <td>4.7K</td>
+                        <td>Lolly the named dog</td>
+                    </tr>
+                    <tr>
+                        <td>Cr-12b</td>
+                        <td>$0.236</td>
+                        <td>11.1K</td>
+                        <td>Wreaths ("tomorrow" version)</td>
+                    </tr>
+                    <tr>
+                        <td>Cr-105</td>
+                        <td>$0.211</td>
+                        <td>24.7K</td>
+                        <td>Wreaths (Saturday variant)</td>
+                    </tr>
+                    <tr>
+                        <td>Cr-17</td>
+                        <td>$0.196</td>
+                        <td>28.8K</td>
+                        <td>Unknown — needs copy pull</td>
+                    </tr>
+                    <tr>
+                        <td>Cr-30</td>
+                        <td>$0.191</td>
+                        <td>27.4K</td>
+                        <td>Unknown — needs copy pull</td>
+                    </tr>
+                    <tr>
+                        <td>Cr-107</td>
+                        <td>$0.131</td>
+                        <td>184.4K</td>
+                        <td>Wreaths (high-volume workhorse)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p><strong>D10 takeaway:</strong> 5 of the top 10 D10 creatives are Wreaths-themed. The ceremony gives donors a concrete reason to give NOW. On D10, Cr-02 (the original intro creative) is #1 — these are the best donors, and a straightforward personal ask from the founder converts them.</p>
+        </section>
+
+        <!-- Shootout Playbook Section -->
+        <section id="playbook" class="content-section">
+            <h2>Shootout Playbook</h2>
+            
+            <div class="playbook-grid">
+                <div class="playbook-card">
+                    <h3 class="playbook-title">What to Build Next</h3>
+                    <ol class="playbook-list">
+                        <li><strong>More event-anchored creatives.</strong> Wreaths is proven. Build equivalents for: National Service Dog Month (Sept), Veterans Day (Nov), Independence Day, Memorial Day, National Puppy Day (March 23)</li>
+                        <li><strong>Named dog stories with specific needs.</strong> Donut's ACL surgery worked. Find the next Donut — a specific dog with a specific need and a specific dollar amount</li>
+                        <li><strong>Celebrity endorsement expansion.</strong> Mike Rowe worked at $0.091. Who else? Any other celebrity endorsers?</li>
+                        <li><strong>Dog-voice variants.</strong> Hank's letter was top-10. Try other dogs, different personalities</li>
+                        <li><strong>Valentine's Day "love" angle.</strong> Feb 2024 yielded $0.305. Lean into the bond between dog and veteran as a love story</li>
+                        <li><strong>Short-form + strong MMS image.</strong> The brevity winners (Cr-12b at 3 sentences) only work with compelling images. Invest in image testing</li>
+                    </ol>
+                </div>
+
+                <div class="playbook-card">
+                    <h3 class="playbook-title">What to Stop Doing</h3>
+                    <ol class="playbook-list">
+                        <li><strong>Long-form Rona rewrites.</strong> The Cr-91 series is dead. Stop trying to make 1000+ char Rona essays work</li>
+                        <li><strong>Organizational voice.</strong> "At Semper K9, our mission..." = immediate delete</li>
+                        <li><strong>Internal fundraising appeals.</strong> "We need $X to reach our goal" = donor doesn't care</li>
+                        <li><strong>Generic holiday greetings.</strong> "Merry Christmas from..." without story = noise</li>
+                        <li><strong>Literary creative writing.</strong> "Picture this" / "War is chaos" = wrong medium</li>
+                    </ol>
+                </div>
+
+                <div class="playbook-card">
+                    <h3 class="playbook-title">A/B Test Priority Queue</h3>
+                    <ol class="playbook-list">
+                        <li><strong>$25 vs $20 vs $35</strong> on proven copy (Cr-107b variant)</li>
+                        <li><strong>Named dog + need vs generic mission</strong> (Donut-style vs Cr-02 style)</li>
+                        <li><strong>Celebrity quote opener vs Chris Baity personal</strong> on same theme</li>
+                        <li><strong>Dog voice (humorous) vs veteran voice (serious)</strong> for Spring 2026</li>
+                        <li><strong>Stats-forward (Cr-173 style) vs story-forward (Cr-41 style)</strong> on evergreen</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="creative-card">
+                <h3>Creative Formula Template</h3>
+                <div class="code-block">
+[EVENT/DATE ANCHOR or PERSONAL HOOK or DOG CHARACTER]
+
+[1-2 sentences of STORY with SPECIFIC DETAILS]
+
+[Single ask: $25 today → specific impact]
+
+[CTA with >> arrows] >> [link]
+
+[Short sign-off: Chris Baity, Semper K9]
+                </div>
+                <p>This formula combines the elements of the top-performing creatives. Start with a specific event, personal introduction, or dog character voice. Keep the story tight with specific details, use a single clear ask (preferably $25), and end with a strong call to action using the >> arrow format.</p>
+            </div>
+
+            <div class="creative-card">
+                <h3>Key Data Points for Quick Reference</h3>
+                <ul class="playbook-list">
+                    <li><strong>Best single creative:</strong> Cr-107b ($0.657 yield, $61.5K donated)</li>
+                    <li><strong>Best workhorse:</strong> Cr-107 ($24.2K donated across 184K D10 sends)</li>
+                    <li><strong>Best D10 creative:</strong> Cr-02 ($0.359 D10 yield)</li>
+                    <li><strong>Worst series:</strong> Cr-91a-f (combined -$0.013 avg yield, 193K sends, $1.4K donated)</li>
+                    <li><strong>MMS vs SMS:</strong> 4.2x yield premium for MMS</li>
+                    <li><strong>Client Donors vs DB Donors:</strong> 4.9x yield premium for Client</li>
+                    <li><strong>D10 vs D9:</strong> D10 $0.092 vs D9 $0.061 (1.5x premium)</li>
+                    <li><strong>Best month ever:</strong> Oct 2025 ($1.364 yield — small Client Donor sends)</li>
+                    <li><strong>Best high-volume month:</strong> Dec 2024 ($0.243 yield, $141.8K donated)</li>
+                    <li><strong>$25 is the magic number.</strong> Most winners use it.</li>
+                    <li><strong>250-500 characters</strong> is the sweet spot.</li>
+                    <li><strong>Wreaths + Chris Baity + $25 + short copy</strong> = the proven formula.</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer>
+            <p>SemperK9 Creative Forensics Dashboard • Last updated: February 5, 2026</p>
+            <p>Dataset: 284 creatives (194 with sends), 806 send records, ~4.9M total sends, $708K donated</p>
+        </footer>
+    </div>
+
+    <div class="back-to-top" id="backToTop">↑</div>
+
+    <script>
+        // Tab navigation functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.tab');
+            const sections = document.querySelectorAll('.content-section');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const target = this.dataset.target;
+                    
+                    // Remove active class from all tabs and sections
+                    tabs.forEach(t => t.classList.remove('active'));
+                    sections.forEach(s => s.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding section
+                    this.classList.add('active');
+                    document.getElementById(target).classList.add('active');
+                });
+            });
+
+            // Back to top button
+            const backToTopBtn = document.getElementById('backToTop');
+
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopBtn.classList.add('visible');
+                } else {
+                    backToTopBtn.classList.remove('visible');
+                }
+            });
+
+            backToTopBtn.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Rules search functionality
+            const rulesSearch = document.getElementById('rulesSearch');
+            if (rulesSearch) {
+                rulesSearch.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const ruleCards = document.querySelectorAll('.rule-card');
+                    
+                    ruleCards.forEach(card => {
+                        const title = card.querySelector('.rule-title').textContent.toLowerCase();
+                        const content = card.querySelector('.rule-explanation').textContent.toLowerCase();
+                        const proof = card.querySelector('.rule-proof').textContent.toLowerCase();
+                        
+                        if (title.includes(searchTerm) || content.includes(searchTerm) || proof.includes(searchTerm)) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Add subtle animation to stats cards
+            const statValues = document.querySelectorAll('.stat-value');
+            statValues.forEach(stat => {
+                stat.classList.add('pulse-animation');
+            });
+        });
+
+        // Table sorting function
+        function sortTable(tableId, columnIndex) {
+            const table = document.getElementById(tableId);
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            const direction = table.getAttribute('data-sort-dir') === 'asc' ? 'desc' : 'asc';
+            table.setAttribute('data-sort-dir', direction);
+            
+            rows.sort((a, b) => {
+                let aValue = a.cells[columnIndex].textContent.trim();
+                let bValue = b.cells[columnIndex].textContent.trim();
+                
+                // If sorting numeric columns (with $ or K)
+                if (aValue.includes('$') || bValue.includes('$')) {
+                    aValue = parseFloat(aValue.replace(/[^0-9.-]+/g, ""));
+                    bValue = parseFloat(bValue.replace(/[^0-9.-]+/g, ""));
+                } else if (aValue.includes('K') || bValue.includes('K')) {
+                    aValue = parseFloat(aValue.replace(/[^0-9.-]+/g, "")) * 1000;
+                    bValue = parseFloat(bValue.replace(/[^0-9.-]+/g, "")) * 1000;
+                }
+                
+                if (!isNaN(aValue) && !isNaN(bValue)) {
+                    return direction === 'asc' ? aValue - bValue : bValue - aValue;
+                } else {
+                    return direction === 'asc' 
+                        ? aValue.localeCompare(bValue) 
+                        : bValue.localeCompare(aValue);
+                }
+            });
+            
+            // Clear existing rows and append sorted rows
+            while (tbody.firstChild) {
+                tbody.removeChild(tbody.firstChild);
+            }
+            
+            rows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+</body>
+</html>

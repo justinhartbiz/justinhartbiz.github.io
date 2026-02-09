@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Analyzer v4 — Forensics Edition</title>
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #0f1117;
+    --card: #151821;
+    --card-border: #1e2230;
+    --accent: #6366f1;
+    --accent2: #818cf8;
+    --accent-glow: rgba(99,102,241,0.12);
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.15);
+    --yellow: #eab308;
+    --yellow-dim: rgba(234,179,8,0.15);
+    --red: #ef4444;
+    --red-dim: rgba(239,68,68,0.15);
+    --orange: #f97316;
+    --cyan: #06b6d4;
+    --cyan-dim: rgba(6,182,212,0.12);
+    --purple: #a855f7;
+    --purple-dim: rgba(168,85,247,0.12);
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --dim: #64748b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .header {
+    background: linear-gradient(135deg, #0c0a1e 0%, #1a1547 40%, #0f0d24 100%);
+    padding: 20px 28px;
+    border-bottom: 1px solid rgba(99,102,241,0.3);
+  }
+  .header-inner { max-width:1600px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .header h1 { font-size:20px; font-weight:700; }
+  .header h1 span { color:var(--accent); }
+  .header-right { display:flex; align-items:center; gap:12px; }
+  .client-select {
+    background: rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.3);
+    color:var(--text); padding:8px 16px; border-radius:8px; font-size:14px;
+    font-weight:600; cursor:pointer;
+  }
+  .badge { background: linear-gradient(135deg, var(--accent), #7c3aed); color: white; font-size: 10px; font-weight: 700; padding: 5px 12px; border-radius: 16px; letter-spacing: 0.5px; }
+
+  .container { max-width:1600px; margin:0 auto; padding:20px 28px; }
+  .grid-main { display:grid; grid-template-columns: 400px 1fr; gap:20px; }
+  @media(max-width:1100px) { .grid-main { grid-template-columns:1fr; } }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:800px) { .grid-2 { grid-template-columns:1fr; } }
+
+  .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; margin-bottom:16px; }
+  .card-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--dim); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .card-title .icon { font-size:14px; }
+  .pill { font-size:9px; padding:3px 8px; border-radius:6px; background:var(--accent-glow); color:var(--accent2); margin-left:auto; font-weight:600; }
+
+  .input-area {
+    width:100%; min-height:180px;
+    background: var(--bg2); border:1px solid var(--card-border);
+    border-radius:8px; color:var(--text);
+    font-family:'SF Mono','Fira Code',monospace;
+    font-size:12px; line-height:1.6; padding:14px;
+    resize:vertical;
+  }
+  .input-area:focus { outline:none; border-color:var(--accent); }
+  .char-bar { margin-top:10px; }
+  .char-bar-bg { height:8px; background:var(--bg); border-radius:4px; overflow:hidden; position:relative; }
+  .char-bar-fill { height:100%; border-radius:4px; transition:width 0.3s; }
+  .char-bar-markers { display:flex; justify-content:space-between; font-size:9px; color:var(--dim); margin-top:4px; }
+  .char-info { display:flex; justify-content:space-between; margin-top:6px; font-size:11px; color:var(--muted); }
+  .char-count { font-weight:700; font-family:'SF Mono',monospace; }
+
+  .btn { padding:10px 20px; border-radius:8px; font-size:13px; font-weight:700; border:none; cursor:pointer; transition:all 0.2s; }
+  .btn-primary { background:linear-gradient(135deg, var(--accent), #7c3aed); color:white; }
+  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(99,102,241,0.3); }
+  .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--card-border); }
+  .controls { display:flex; gap:8px; margin-top:12px; }
+
+  /* Laws Scorecard */
+  .laws-grid { display:flex; flex-direction:column; gap:6px; }
+  .law-row { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg2); border-radius:8px; font-size:12px; }
+  .law-status { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+  .law-pass { background:var(--green-dim); color:var(--green); }
+  .law-fail { background:var(--red-dim); color:var(--red); }
+  .law-warn { background:var(--yellow-dim); color:var(--yellow); }
+  .law-name { flex:1; }
+  .law-impact { font-size:10px; color:var(--dim); }
+
+  /* Score Ring */
+  .score-section { display:flex; flex-direction:column; align-items:center; padding:16px 0; }
+  .score-ring { width:140px; height:140px; position:relative; }
+  .score-ring svg { transform:rotate(-90deg); }
+  .score-ring circle { fill:none; stroke-width:10; stroke-linecap:round; }
+  .score-ring .bg { stroke:var(--card-border); }
+  .score-ring .fill { transition:stroke-dashoffset 0.8s ease; }
+  .score-value { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
+  .score-value .num { font-size:38px; font-weight:800; letter-spacing:-2px; }
+  .score-value .label { font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:1px; }
+  .score-grade { font-size:13px; font-weight:700; margin-top:8px; text-align:center; }
+
+  /* Yield Prediction */
+  .yield-box { text-align:center; padding:16px; background:var(--bg2); border-radius:10px; margin-top:12px; }
+  .yield-label { font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  .yield-value { font-size:32px; font-weight:800; color:var(--green); }
+  .yield-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+
+  /* Opening Line */
+  .opening-box { padding:12px; background:var(--bg2); border-radius:8px; margin-bottom:12px; }
+  .opening-label { font-size:10px; color:var(--dim); text-transform:uppercase; margin-bottom:6px; }
+  .opening-text { font-size:13px; font-style:italic; color:var(--text); line-height:1.5; }
+  .opening-verdict { margin-top:8px; font-size:11px; padding:6px 10px; border-radius:6px; }
+  .verdict-good { background:var(--green-dim); color:var(--green); }
+  .verdict-bad { background:var(--red-dim); color:var(--red); }
+  .verdict-ok { background:var(--yellow-dim); color:var(--yellow); }
+
+  /* Voice Analysis */
+  .voice-grid { display:flex; gap:8px; flex-wrap:wrap; }
+  .voice-chip { padding:6px 12px; border-radius:8px; font-size:11px; font-weight:600; background:var(--bg2); border:1px solid var(--card-border); }
+  .voice-chip.active { background:var(--accent-glow); border-color:var(--accent); color:var(--accent2); }
+  .voice-chip.inactive { opacity:0.4; }
+
+  /* Winner/Loser Cards */
+  .match-card { padding:14px; background:var(--bg2); border-radius:10px; margin-bottom:10px; border-left:3px solid transparent; }
+  .match-card.winner { border-left-color:var(--green); }
+  .match-card.loser { border-left-color:var(--red); }
+  .match-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .match-id { font-weight:700; font-size:13px; }
+  .match-yield { font-family:'SF Mono',monospace; font-size:12px; font-weight:700; }
+  .match-yield.positive { color:var(--green); }
+  .match-yield.negative { color:var(--red); }
+  .match-preview { font-size:11px; color:var(--muted); line-height:1.5; margin-bottom:8px; font-style:italic; }
+  .match-reason { font-size:11px; color:var(--text); }
+  .match-tag { display:inline-block; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:600; margin-right:4px; margin-bottom:4px; }
+  .tag-green { background:var(--green-dim); color:var(--green); }
+  .tag-red { background:var(--red-dim); color:var(--red); }
+
+  /* Recommendations */
+  .rec-item { display:flex; gap:10px; padding:10px; background:var(--bg2); border-radius:8px; margin-bottom:8px; font-size:12px; }
+  .rec-icon { font-size:16px; }
+  .rec-text { flex:1; line-height:1.5; }
+  .rec-priority { font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px; }
+  .priority-high { background:var(--red-dim); color:var(--red); }
+  .priority-med { background:var(--yellow-dim); color:var(--yellow); }
+  .priority-low { background:var(--cyan-dim); color:var(--cyan); }
+
+  /* Data source footer */
+  .data-source { font-size:10px; color:var(--dim); margin-top:8px; text-align:center; }
+
+  .empty-state { color:var(--dim); font-size:12px; text-align:center; padding:30px 20px; }
+
+  /* Tabs */
+  .tabs { display:flex; gap:0; margin-bottom:12px; }
+  .tab { padding:8px 16px; font-size:11px; font-weight:600; cursor:pointer; background:var(--bg2); border:1px solid var(--card-border); color:var(--dim); transition:all 0.2s; }
+  .tab:first-child { border-radius:8px 0 0 8px; }
+  .tab:last-child { border-radius:0 8px 8px 0; }
+  .tab.active { background:var(--accent); color:white; border-color:var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <h1>🔬 Creative Analyzer <span>v4</span> — Forensics Edition</h1>
+    <div class="header-right">
+      <select class="client-select" id="client-select" onchange="switchClient()">
+        <option value="ncpd">NCPD</option>
+        <option value="soldierstrong">SoldierStrong</option>
+        <option value="semperk9">SemperK9</option>
+      </select>
+      <span class="badge">Real Data</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="grid-main">
+    <!-- Left Column: Input -->
+    <div>
+      <div class="card">
+        <div class="card-title"><span class="icon">✍️</span> Creative Input <span class="pill" id="client-label">NCPD</span></div>
+        <div class="tabs">
+          <div class="tab active" onclick="setFormat('mms')">MMS</div>
+          <div class="tab" onclick="setFormat('sms')">SMS</div>
+        </div>
+        <textarea class="input-area" id="creative-input" placeholder="Paste your creative here..."></textarea>
+        <div class="char-bar">
+          <div class="char-bar-bg">
+            <div class="char-bar-fill" id="char-bar-fill" style="width:0; background:var(--dim);"></div>
+          </div>
+          <div class="char-bar-markers" id="char-markers">
+            <span>0</span>
+            <span id="sweet-start">250</span>
+            <span id="sweet-end">500</span>
+            <span>1000+</span>
+          </div>
+        </div>
+        <div class="char-info">
+          <span><span class="char-count" id="char-count">0</span> characters</span>
+          <span id="length-verdict" style="color:var(--dim)">Enter text</span>
+        </div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="analyze()">⚡ Analyze</button>
+          <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Score Ring -->
+      <div class="card">
+        <div class="card-title"><span class="icon">🎯</span> Forensics Score</div>
+        <div class="score-section">
+          <div class="score-ring">
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              <circle class="bg" cx="70" cy="70" r="58"/>
+              <circle class="fill" id="score-arc" cx="70" cy="70" r="58" stroke-dasharray="364" stroke-dashoffset="364"/>
+            </svg>
+            <div class="score-value">
+              <div class="num" id="score-num">—</div>
+              <div class="label">Score</div>
+            </div>
+          </div>
+          <div class="score-grade" id="score-grade" style="color:var(--dim)">Paste creative to analyze</div>
+        </div>
+        <div class="yield-box" id="yield-box" style="display:none;">
+          <div class="yield-label">Predicted Yield</div>
+          <div class="yield-value" id="yield-value">$0.00</div>
+          <div class="yield-sub" id="yield-sub">per send</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Analysis -->
+    <div>
+      <!-- The 10 Laws -->
+      <div class="card">
+        <div class="card-title"><span class="icon">📜</span> The 10 Laws <span class="pill" id="laws-passed">0/10</span></div>
+        <div class="laws-grid" id="laws-grid">
+          <div class="empty-state">Analyze a creative to check against the 10 Laws</div>
+        </div>
+        <div class="data-source" id="data-source">Based on 133 D10 polls, $143K revenue (NCPD)</div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Opening Line Analysis -->
+        <div class="card">
+          <div class="card-title"><span class="icon">👀</span> Opening Line</div>
+          <div id="opening-analysis">
+            <div class="empty-state">First line is critical for performance</div>
+          </div>
+        </div>
+
+        <!-- Voice Analysis -->
+        <div class="card">
+          <div class="card-title"><span class="icon">🎭</span> Voice Analysis</div>
+          <div id="voice-analysis">
+            <div class="empty-state">Multi-voice = higher yield</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Winner Match -->
+        <div class="card">
+          <div class="card-title"><span class="icon">🏆</span> Winner Match</div>
+          <div id="winner-match">
+            <div class="empty-state">Shows similar top performers</div>
+          </div>
+        </div>
+
+        <!-- Loser Warning -->
+        <div class="card">
+          <div class="card-title"><span class="icon">⚠️</span> Loser Warning</div>
+          <div id="loser-warning">
+            <div class="empty-state">Flags patterns that fail</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="card">
+        <div class="card-title"><span class="icon">💡</span> Recommendations</div>
+        <div id="recommendations">
+          <div class="empty-state">Specific fixes to improve your creative</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CLIENT DATA — Real forensics from each client
+// ============================================================
+
+const CLIENTS = {
+  ncpd: {
+    name: 'NCPD',
+    dataSource: 'Based on 133 D10 polls, $143K revenue',
+    sweetSpot: { min: 320, max: 900, label: 'Long form wins (320+ chars)' },
+    avgYield: 0.041,
+    topYield: 0.077,
+    laws: [
+      { id: 'wife_voice', name: 'Let the Wife Speak', impact: '+29% Yield Index', check: t => /\b(wife|wife's|husband'?s?\s+wife|kimberly|this is.*wife)\b/i.test(t) && /\b(my\s+husband|begging|pleading)\b/i.test(t) },
+      { id: 'urgency', name: 'Urgency is Non-Negotiable', impact: '90% of sends', check: t => /\b(NOW|urgent|immediately|before it'?s too late|running out of time|trial|court|verdict)\b/i.test(t) },
+      { id: 'crisis', name: 'Crisis > Policy', impact: '+69% YI for crisis hooks', check: t => /\b(BREAKING|emergency|99[\s-]?year|life in prison|murder charge)\b/i.test(t) },
+      { id: 'long_form', name: 'Long Form Enables Story', impact: '89% of T1 is 320+ chars', check: t => t.length >= 320 },
+      { id: 'villain_victim', name: 'Name Villain, Name Victim', impact: 'Soros = +58% YI', check: t => /\b(soros|radical\s+(da|prosecutor)|cop[\s-]?hat)/i.test(t) || /\b(officer|sergeant|trooper)\s+[A-Z][a-z]+/i.test(t) },
+      { id: 'first_person', name: 'First Person, First Position', impact: '97% use 1st person', check: t => /\b(I'm|I am|my\s+husband|my\s+son|I\s+don't)\b/i.test(t) },
+      { id: 'children', name: 'Children Make It Concrete', impact: 'Top performers mention kids', check: t => /\b(children|babies|baby|kids|son|daughter|young son|father)\b/i.test(t) },
+      { id: 'firstname', name: 'Use [firstname] Merge', impact: '50% of top vs 34% of low', check: t => /\[firstname/i.test(t) },
+      { id: 'allcaps', name: 'ALL CAPS Emphasis', impact: '83% of top performers', check: t => (t.match(/\b[A-Z]{3,}\b/g) || []).filter(w => !['SMS','MMS','USA','BLM','NCPD'].includes(w)).length >= 1 },
+      { id: 'link', name: 'Include Link', impact: 'Required for conversion', check: t => /\[link\]|https?:\/\/|bit\.ly/i.test(t) }
+    ],
+    winners: [
+      { id: 'Cr-297', yield: 0.191, preview: '😭 [firstname], this is Kimberly, Chance\'s wife. I don\'t know how to do this, but I am BEGGING you...', tags: ['wife', 'emoji opener', 'BEGGING', 'firstname'] },
+      { id: 'Cr-207', yield: 0.239, preview: 'Sheriff David Clarke: I rarely take this step, but I sense this family needs me...', tags: ['authority', 'Soros', 'personal ask'] },
+      { id: 'Cr-400', yield: 0.193, preview: 'Kimberly here. I\'m begging for help. My husband, Officer Chance Bretches...', tags: ['wife', 'begging', 'concise'] }
+    ],
+    losers: [
+      { id: 'Cr-207b', yield: -0.30, preview: 'Generic organizational messaging without personal voice...', reason: 'Overused, no refresh, list fatigue' },
+      { id: 'Generic', yield: 0.011, preview: 'Support our officers today with your donation...', reason: 'No story, no wife/family voice, no urgency' }
+    ]
+  },
+
+  soldierstrong: {
+    name: 'SoldierStrong',
+    dataSource: 'Based on 224 creatives, 3.3M sends, $363K',
+    sweetSpot: { min: 351, max: 500, label: '351-500 chars is the goldmine' },
+    avgYield: 0.070,
+    topYield: 0.221,
+    laws: [
+      { id: 'dana', name: 'Dana Perino is the Money Machine', impact: '7x yield vs no celebrity', check: t => /\b(dana\s+perino|it'?s\s+dana)\b/i.test(t) },
+      { id: 'holiday', name: 'Holidays Win', impact: 'Thanksgiving = $0.199/send', check: t => /\b(thanksgiving|christmas|easter|4th of july|independence day|memorial day|veterans day)\b/i.test(t) },
+      { id: 'length', name: 'Sweet Spot: 351-500 chars', impact: '$0.135/send in range', check: t => t.length >= 351 && t.length <= 500 },
+      { id: 'celebrity_open', name: 'Open with Celebrity Name', impact: 'All 12 expanded creatives do this', check: t => /^.{0,50}(dana|martha|perino|maccallum)/i.test(t) },
+      { id: 'one_cta', name: 'One CTA, One Link, at End', impact: 'Multiple links = failure', check: t => (t.match(/\[link\]|https?:\/\//gi) || []).length <= 1 },
+      { id: 'no_amounts', name: 'No $ Amounts in Body', impact: 'Let LP handle amounts', check: t => (t.match(/\$\d+/g) || []).length <= 1 },
+      { id: 'trifecta', name: 'Holiday + Celebrity + 1st Person', impact: 'Highest consistency', check: t => /\b(dana|martha)\b/i.test(t) && /\b(thanksgiving|christmas|easter|july)\b/i.test(t) && /\b(I'm|I am|it's|my friends)\b/i.test(t) },
+      { id: 'multi_voice', name: 'Multi-Voice Perspective', impact: '1st/2nd/3rd = $0.137', check: t => /\b(I'm|I am|my)\b/i.test(t) && /\b(you|your)\b/i.test(t) && /\b(our|they|veterans)\b/i.test(t) },
+      { id: 'arrows', name: 'Use >> Arrows Before Link', impact: 'Top CTAs use this', check: t => />>\s*\[link\]|>>\s*https/i.test(t) },
+      { id: 'no_chris', name: 'Avoid Chris Meek Voice', impact: 'Chris = $0.018 yield', check: t => !/chris\s+meek/i.test(t) }
+    ],
+    winners: [
+      { id: 'Cr-138', yield: 0.221, preview: '🎅 This Christmas, join forces with Martha MacCallum and SoldierStrong...', tags: ['Martha', 'Christmas', 'exoskeleton', '$20 ask'] },
+      { id: 'Cr-34b', yield: 0.193, preview: '🦃 Urgent: A Thanksgiving Plea from Dana Perino...', tags: ['Dana', 'Thanksgiving', 'urgency', '>>'] },
+      { id: 'Cr-25', yield: 0.131, preview: 'Hello [firstname|patriot], Dana Perino here, wishing you a happy upcoming 4th of July!', tags: ['Dana 1st person', '4th of July', 'multi-voice'] }
+    ],
+    losers: [
+      { id: 'Cr-07', yield: -0.033, preview: 'The folks at SoldierStrong need our support!', reason: 'Anonymous voice, no celebrity, no personalization' },
+      { id: 'Cr-91 series', yield: 0.007, preview: 'Picture this: a shelter dog steps into the sunlight...', reason: 'Literary prose, too long (1000+ chars), no celebrity' }
+    ]
+  },
+
+  semperk9: {
+    name: 'SemperK9',
+    dataSource: 'Based on 194 creatives, 4.9M sends, $708K',
+    sweetSpot: { min: 250, max: 500, label: '250-500 chars sweet spot' },
+    avgYield: 0.093,
+    topYield: 0.657,
+    laws: [
+      { id: 'event', name: 'Event Anchor (Wreaths = King)', impact: '$0.657 yield for Wreaths', check: t => /\b(wreaths|december\s+\d+|ceremony|veterans day|memorial day)\b/i.test(t) },
+      { id: 'named_dog', name: 'Named Dog + Specific Need', impact: 'Donut ACL = $0.066', check: t => /\b(meet|this is)\s+[A-Z][a-z]+\b/.test(t) || /\b(surgery|needs|requires)\b.*\$\d/i.test(t) },
+      { id: 'chris_intro', name: 'Chris Baity Personal Intro', impact: 'Founder voice = trust', check: t => /\b(chris\s+(baity|and amanda)|i'm chris|this is chris)\b/i.test(t) },
+      { id: 'short_story', name: 'Short Story (Not Essay)', impact: '1000+ chars = failure', check: t => t.length < 800 },
+      { id: 'ask_25', name: '$25 Ask Amount', impact: 'Most winners use $25', check: t => /\$25\b/.test(t) },
+      { id: 'humor', name: 'Humor/Dog Voice Works', impact: 'Hank the dog = $0.092', check: t => /\b(woof|paws?|typos.*thumbs|furry)\b/i.test(t) },
+      { id: 'mike_rowe', name: 'Celebrity Endorsement', impact: 'Mike Rowe = $0.091', check: t => /\b(mike\s+rowe|dirty\s+jobs)\b/i.test(t) },
+      { id: 'despair_hope', name: 'Despair → Hope → Action Arc', impact: 'Stats need hope bridge', check: t => /\b(17 veterans|suicide|PTSD)\b/i.test(t) && /\b(service dog|walk again|reduce|help)\b/i.test(t) },
+      { id: 'mms', name: 'Use MMS (Not SMS)', impact: 'MMS = 4.2x yield', check: t => true }, // Can't detect format from text alone
+      { id: 'single_link', name: 'Single Link at End', impact: 'Multiple links = failure', check: t => (t.match(/\[link\]|https?:\/\//gi) || []).length <= 1 }
+    ],
+    winners: [
+      { id: 'Cr-107b', yield: 0.657, preview: 'On December 14, we\'ll lay wreaths beside our fallen heroes... A gift of $25 today...', tags: ['Wreaths', 'specific date', '$25', 'emotional'] },
+      { id: 'Cr-132', yield: 0.118, preview: 'What if a wagging tail could help heal a broken heart?', tags: ['rhetorical hook', 'Chris Baity', 'New Year'] },
+      { id: 'Cr-126', yield: 0.092, preview: 'Hey, it\'s Hank from Semper K9. Pleaze excuse any typos, I have to paws a lot...', tags: ['dog voice', 'humor', 'charm'] }
+    ],
+    losers: [
+      { id: 'Cr-91 series', yield: 0.007, preview: 'War is chaos. Fear. Uncertainty...', reason: 'Literary prose, 1000+ chars, no event anchor' },
+      { id: 'Cr-83', yield: -0.019, preview: 'We\'re Short on Our Goal and Time is Running Out!', reason: 'Organizational panic, no story, internal metrics' }
+    ]
+  }
+};
+
+let currentClient = 'ncpd';
+let currentFormat = 'mms';
+
+// ============================================================
+// UI FUNCTIONS
+// ============================================================
+
+function switchClient() {
+  currentClient = document.getElementById('client-select').value;
+  const client = CLIENTS[currentClient];
+  document.getElementById('client-label').textContent = client.name;
+  document.getElementById('data-source').textContent = client.dataSource;
+  
+  // Update sweet spot markers
+  document.getElementById('sweet-start').textContent = client.sweetSpot.min;
+  document.getElementById('sweet-end').textContent = client.sweetSpot.max;
+  
+  // Re-analyze if there's content
+  const text = document.getElementById('creative-input').value.trim();
+  if (text) analyze();
+}
+
+function setFormat(fmt) {
+  currentFormat = fmt;
+  document.querySelectorAll('.tabs .tab').forEach((t, i) => {
+    t.classList.toggle('active', (fmt === 'mms' && i === 0) || (fmt === 'sms' && i === 1));
+  });
+}
+
+function clearAll() {
+  document.getElementById('creative-input').value = '';
+  document.getElementById('char-count').textContent = '0';
+  document.getElementById('char-bar-fill').style.width = '0';
+  document.getElementById('length-verdict').textContent = 'Enter text';
+  document.getElementById('score-num').textContent = '—';
+  document.getElementById('score-arc').style.strokeDashoffset = 364;
+  document.getElementById('score-grade').textContent = 'Paste creative to analyze';
+  document.getElementById('score-grade').style.color = 'var(--dim)';
+  document.getElementById('yield-box').style.display = 'none';
+  document.getElementById('laws-grid').innerHTML = '<div class="empty-state">Analyze a creative to check against the 10 Laws</div>';
+  document.getElementById('laws-passed').textContent = '0/10';
+  document.getElementById('opening-analysis').innerHTML = '<div class="empty-state">First line is critical for performance</div>';
+  document.getElementById('voice-analysis').innerHTML = '<div class="empty-state">Multi-voice = higher yield</div>';
+  document.getElementById('winner-match').innerHTML = '<div class="empty-state">Shows similar top performers</div>';
+  document.getElementById('loser-warning').innerHTML = '<div class="empty-state">Flags patterns that fail</div>';
+  document.getElementById('recommendations').innerHTML = '<div class="empty-state">Specific fixes to improve your creative</div>';
+}
+
+// Update char count on input
+document.getElementById('creative-input').addEventListener('input', function() {
+  const len = this.value.length;
+  const client = CLIENTS[currentClient];
+  document.getElementById('char-count').textContent = len;
+  
+  // Update bar
+  const pct = Math.min(100, (len / 1000) * 100);
+  const bar = document.getElementById('char-bar-fill');
+  bar.style.width = pct + '%';
+  
+  // Color based on sweet spot
+  if (len >= client.sweetSpot.min && len <= client.sweetSpot.max) {
+    bar.style.background = 'var(--green)';
+    document.getElementById('length-verdict').textContent = '✓ In sweet spot';
+    document.getElementById('length-verdict').style.color = 'var(--green)';
+  } else if (len < client.sweetSpot.min) {
+    bar.style.background = 'var(--yellow)';
+    document.getElementById('length-verdict').textContent = 'Too short';
+    document.getElementById('length-verdict').style.color = 'var(--yellow)';
+  } else if (len > client.sweetSpot.max && len <= 800) {
+    bar.style.background = 'var(--orange)';
+    document.getElementById('length-verdict').textContent = 'Getting long';
+    document.getElementById('length-verdict').style.color = 'var(--orange)';
+  } else {
+    bar.style.background = 'var(--red)';
+    document.getElementById('length-verdict').textContent = 'Too long — yield crashes';
+    document.getElementById('length-verdict').style.color = 'var(--red)';
+  }
+});
+
+// ============================================================
+// ANALYSIS ENGINE
+// ============================================================
+
+function analyze() {
+  const text = document.getElementById('creative-input').value.trim();
+  if (!text) return;
+
+  const client = CLIENTS[currentClient];
+  
+  // Check laws
+  let passed = 0;
+  let lawsHtml = '';
+  const failedLaws = [];
+  
+  client.laws.forEach(law => {
+    const pass = law.check(text);
+    if (pass) passed++;
+    else failedLaws.push(law);
+    
+    lawsHtml += `
+      <div class="law-row">
+        <div class="law-status ${pass ? 'law-pass' : 'law-fail'}">${pass ? '✓' : '✗'}</div>
+        <div class="law-name">${law.name}</div>
+        <div class="law-impact">${law.impact}</div>
+      </div>
+    `;
+  });
+  
+  document.getElementById('laws-grid').innerHTML = lawsHtml;
+  document.getElementById('laws-passed').textContent = `${passed}/10`;
+  
+  // Calculate score
+  const score = Math.round((passed / 10) * 100);
+  document.getElementById('score-num').textContent = score;
+  
+  const circumference = 2 * Math.PI * 58;
+  const offset = circumference - (score / 100) * circumference;
+  const arc = document.getElementById('score-arc');
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = score >= 70 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+  
+  // Grade
+  let grade, gradeColor;
+  if (score >= 80) { grade = 'Excellent — Winner Pattern'; gradeColor = 'var(--green)'; }
+  else if (score >= 60) { grade = 'Good — Some Gaps'; gradeColor = 'var(--yellow)'; }
+  else if (score >= 40) { grade = 'Weak — Missing Key Elements'; gradeColor = 'var(--orange)'; }
+  else { grade = 'Poor — Loser Pattern'; gradeColor = 'var(--red)'; }
+  
+  document.getElementById('score-grade').textContent = grade;
+  document.getElementById('score-grade').style.color = gradeColor;
+  
+  // Predict yield
+  const yieldPrediction = client.avgYield + (passed / 10) * (client.topYield - client.avgYield);
+  document.getElementById('yield-box').style.display = 'block';
+  document.getElementById('yield-value').textContent = '$' + yieldPrediction.toFixed(3);
+  document.getElementById('yield-value').style.color = yieldPrediction >= client.avgYield ? 'var(--green)' : 'var(--red)';
+  document.getElementById('yield-sub').textContent = `per send (avg: $${client.avgYield.toFixed(3)})`;
+  
+  // Opening line analysis
+  const firstLine = text.split(/[.\n]/)[0].substring(0, 100);
+  const openingHtml = analyzeOpening(firstLine, client);
+  document.getElementById('opening-analysis').innerHTML = openingHtml;
+  
+  // Voice analysis
+  const voiceHtml = analyzeVoice(text);
+  document.getElementById('voice-analysis').innerHTML = voiceHtml;
+  
+  // Winner match
+  const winnerHtml = findWinnerMatch(text, client);
+  document.getElementById('winner-match').innerHTML = winnerHtml;
+  
+  // Loser warning
+  const loserHtml = findLoserWarning(text, client);
+  document.getElementById('loser-warning').innerHTML = loserHtml;
+  
+  // Recommendations
+  const recsHtml = generateRecommendations(text, failedLaws, client);
+  document.getElementById('recommendations').innerHTML = recsHtml;
+}
+
+function analyzeOpening(firstLine, client) {
+  let verdict = 'ok';
+  let verdictText = 'Neutral opening';
+  
+  // Check for winner patterns
+  if (currentClient === 'ncpd') {
+    if (/wife|kimberly|😭/i.test(firstLine)) { verdict = 'good'; verdictText = '✓ Wife voice opener — matches top performer pattern'; }
+    else if (/sheriff|david clarke/i.test(firstLine)) { verdict = 'good'; verdictText = '✓ Authority opener — highest conversion archetype'; }
+    else if (/hello \[firstname/i.test(firstLine)) { verdict = 'ok'; verdictText = 'Personalized but not emotional'; }
+    else if (/support|donate|help/i.test(firstLine)) { verdict = 'bad'; verdictText = '✗ Generic ask opener — bottom performer pattern'; }
+  } else if (currentClient === 'soldierstrong') {
+    if (/dana|martha|perino|maccallum/i.test(firstLine)) { verdict = 'good'; verdictText = '✓ Celebrity opener — all 12 expanded creatives do this'; }
+    else if (/🦃|🎄|🎅|thanksgiving|christmas/i.test(firstLine)) { verdict = 'good'; verdictText = '✓ Holiday hook — top yield pattern'; }
+    else if (/at soldierstrong|our mission/i.test(firstLine)) { verdict = 'bad'; verdictText = '✗ Institutional opener — loser pattern'; }
+  } else if (currentClient === 'semperk9') {
+    if (/december|wreaths|ceremony/i.test(firstLine)) { verdict = 'good'; verdictText = '✓ Event anchor — $0.657 yield pattern'; }
+    else if (/chris\s+(baity|and amanda)/i.test(firstLine)) { verdict = 'good'; verdictText = '✓ Founder intro — builds trust'; }
+    else if (/what if|rhetorical/i.test(firstLine)) { verdict = 'good'; verdictText = '✓ Rhetorical hook — Cr-132 pattern'; }
+    else if (/at semper|our mission|we're short/i.test(firstLine)) { verdict = 'bad'; verdictText = '✗ Organizational voice — loser pattern'; }
+  }
+  
+  return `
+    <div class="opening-box">
+      <div class="opening-label">First Line</div>
+      <div class="opening-text">"${firstLine}..."</div>
+      <div class="opening-verdict verdict-${verdict}">${verdictText}</div>
+    </div>
+  `;
+}
+
+function analyzeVoice(text) {
+  const has1st = /\b(I|I'm|I've|my|me|we|our)\b/.test(text);
+  const has2nd = /\b(you|your|you're|you've)\b/i.test(text);
+  const has3rd = /\b(he|she|his|her|they|their|veterans?|soldiers?|officers?)\b/i.test(text);
+  
+  const voices = [];
+  if (has1st) voices.push('1st Person');
+  if (has2nd) voices.push('2nd Person');
+  if (has3rd) voices.push('3rd Person');
+  
+  const multiVoice = voices.length >= 2;
+  
+  return `
+    <div class="voice-grid">
+      <div class="voice-chip ${has1st ? 'active' : 'inactive'}">1st Person (I/my/we)</div>
+      <div class="voice-chip ${has2nd ? 'active' : 'inactive'}">2nd Person (you/your)</div>
+      <div class="voice-chip ${has3rd ? 'active' : 'inactive'}">3rd Person (they/veterans)</div>
+    </div>
+    <div style="margin-top:10px; font-size:11px; color:${multiVoice ? 'var(--green)' : 'var(--yellow)'}">
+      ${multiVoice ? '✓ Multi-voice detected — higher yield pattern' : '⚠ Single voice — try weaving perspectives'}
+    </div>
+  `;
+}
+
+function findWinnerMatch(text, client) {
+  // Simple keyword matching to find similar winner
+  let bestMatch = null;
+  let bestScore = 0;
+  
+  client.winners.forEach(w => {
+    let matchScore = 0;
+    w.tags.forEach(tag => {
+      if (new RegExp(tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(text)) {
+        matchScore++;
+      }
+    });
+    if (matchScore > bestScore) {
+      bestScore = matchScore;
+      bestMatch = w;
+    }
+  });
+  
+  if (!bestMatch || bestScore === 0) {
+    return '<div class="empty-state">No close winner match found</div>';
+  }
+  
+  return `
+    <div class="match-card winner">
+      <div class="match-header">
+        <span class="match-id">${bestMatch.id}</span>
+        <span class="match-yield positive">$${bestMatch.yield.toFixed(3)}/send</span>
+      </div>
+      <div class="match-preview">"${bestMatch.preview.substring(0, 120)}..."</div>
+      <div>
+        ${bestMatch.tags.map(t => `<span class="match-tag tag-green">${t}</span>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function findLoserWarning(text, client) {
+  const warnings = [];
+  
+  // Check for loser patterns
+  if (/\b(our mission|at \w+,? our|the folks at)\b/i.test(text)) {
+    warnings.push({ pattern: 'Institutional voice', reason: 'Sounds like an organization, not a person' });
+  }
+  if (text.length > 1000) {
+    warnings.push({ pattern: 'Too long (1000+ chars)', reason: 'Yield crashes at this length' });
+  }
+  if (/picture this|war is chaos|imagine/i.test(text)) {
+    warnings.push({ pattern: 'Literary prose', reason: 'Creative writing ≠ fundraising texts' });
+  }
+  if (/we need \$\d|we're short on our goal/i.test(text)) {
+    warnings.push({ pattern: 'Organizational panic', reason: 'Donors don\'t care about your internal goals' });
+  }
+  
+  if (warnings.length === 0) {
+    return '<div style="color:var(--green); font-size:12px; padding:16px; text-align:center;">✓ No major loser patterns detected</div>';
+  }
+  
+  return warnings.map(w => `
+    <div class="match-card loser">
+      <div class="match-header">
+        <span class="match-id">⚠️ ${w.pattern}</span>
+      </div>
+      <div class="match-reason">${w.reason}</div>
+    </div>
+  `).join('');
+}
+
+function generateRecommendations(text, failedLaws, client) {
+  if (failedLaws.length === 0) {
+    return '<div style="color:var(--green); font-size:12px; padding:16px; text-align:center;">✓ All laws passed — this creative follows winner patterns!</div>';
+  }
+  
+  const priorities = {
+    'wife_voice': 'high', 'dana': 'high', 'event': 'high',
+    'urgency': 'high', 'holiday': 'med', 'firstname': 'med',
+    'long_form': 'med', 'length': 'med', 'short_story': 'med',
+    'link': 'high', 'one_cta': 'med', 'single_link': 'med'
+  };
+  
+  const fixes = {
+    'wife_voice': 'Rewrite from wife/family perspective: "This is [name], [officer\'s] wife..."',
+    'dana': 'Open with Dana Perino: "Hi [firstname], it\'s Dana Perino..."',
+    'event': 'Anchor to a specific event/date: "On December 14, we\'ll lay wreaths..."',
+    'urgency': 'Add urgency: "before it\'s too late", "trial starts soon", "NOW"',
+    'holiday': 'Tie to an upcoming holiday for seasonal boost',
+    'firstname': 'Add [firstname] or [firstname|Friend] personalization',
+    'long_form': 'Expand to 320+ characters — tell the story',
+    'length': 'Trim to 351-500 characters — the sweet spot',
+    'short_story': 'Cut to under 800 chars — brevity wins',
+    'link': 'Add [link] at the end',
+    'allcaps': 'Add 1-2 ALL CAPS words for emphasis (BEGGING, NOW, MURDER)',
+    'multi_voice': 'Weave 1st/2nd/3rd person: "I\'m asking YOU to help our veterans"',
+    'arrows': 'Use >> before link: "Give back >> [link]"'
+  };
+  
+  return failedLaws.slice(0, 5).map(law => {
+    const priority = priorities[law.id] || 'low';
+    const fix = fixes[law.id] || `Address "${law.name}" to improve score`;
+    return `
+      <div class="rec-item">
+        <div class="rec-icon">${priority === 'high' ? '🔴' : priority === 'med' ? '🟡' : '🔵'}</div>
+        <div class="rec-text"><strong>${law.name}:</strong> ${fix}</div>
+        <div class="rec-priority priority-${priority}">${priority.toUpperCase()}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Initialize
+switchClient();
+</script>
+</body>
+</html>

@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoldierStrong Creative Forensics Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-card: #141414;
+    --bg-card-hover: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e8e8e8;
+    --text-dim: #888;
+    --text-bright: #fff;
+    --dana-gold: #FFD700;
+    --martha-blue: #4A9EFF;
+    --winner-green: #00C853;
+    --loser-red: #FF4444;
+    --accent-purple: #B388FF;
+    --accent-orange: #FF9100;
+    --accent-cyan: #00E5FF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Floating Nav */
+  .nav-float {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .nav-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+
+  .nav-brand {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--dana-gold);
+    white-space: nowrap;
+    padding: 16px 20px 16px 0;
+    border-right: 1px solid var(--border);
+    margin-right: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .nav-link {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 16px 14px;
+    white-space: nowrap;
+    transition: color 0.2s, background 0.2s;
+    border-bottom: 2px solid transparent;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .nav-link:hover { color: var(--text-bright); background: rgba(255,255,255,0.03); }
+  .nav-link.active { color: var(--dana-gold); border-bottom-color: var(--dana-gold); }
+
+  /* Hero */
+  .hero {
+    padding: 120px 24px 60px;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(255,215,0,0.04) 0%, transparent 60%);
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 800;
+    color: var(--text-bright);
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+  }
+  .hero h1 span { color: var(--dana-gold); }
+  .hero .subtitle {
+    font-size: 16px;
+    color: var(--text-dim);
+    max-width: 600px;
+    margin: 0 auto 24px;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+  .hero-stat {
+    text-align: center;
+  }
+  .hero-stat .num {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--dana-gold);
+  }
+  .hero-stat .label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Sections */
+  .section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px 24px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .section-header {
+    margin-bottom: 48px;
+  }
+  .section-header h2 {
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 800;
+    color: var(--text-bright);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .section-header .section-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .tag-gold { background: rgba(255,215,0,0.15); color: var(--dana-gold); }
+  .tag-blue { background: rgba(74,158,255,0.15); color: var(--martha-blue); }
+  .tag-green { background: rgba(0,200,83,0.15); color: var(--winner-green); }
+  .tag-red { background: rgba(255,68,68,0.15); color: var(--loser-red); }
+  .tag-purple { background: rgba(179,136,255,0.15); color: var(--accent-purple); }
+  .tag-cyan { background: rgba(0,229,255,0.15); color: var(--accent-cyan); }
+  .tag-orange { background: rgba(255,145,0,0.15); color: var(--accent-orange); }
+
+  .section-header p {
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 700px;
+  }
+
+  /* Law Cards */
+  .laws-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+  }
+  .law-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    transition: transform 0.2s, border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .law-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,215,0,0.3);
+    box-shadow: 0 8px 32px rgba(255,215,0,0.06);
+  }
+  .law-card .law-num {
+    font-size: 64px;
+    font-weight: 900;
+    color: var(--dana-gold);
+    opacity: 0.12;
+    position: absolute;
+    top: -8px;
+    right: 16px;
+    line-height: 1;
+    pointer-events: none;
+  }
+  .law-card .law-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-right: 40px;
+  }
+  .law-card .law-stat {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+  .law-card .law-stat-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .law-card .law-proof {
+    font-size: 13px;
+    color: var(--text-dim);
+    border-left: 3px solid var(--border);
+    padding-left: 12px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* Chart containers */
+  .chart-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .chart-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .chart-box h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .chart-box .chart-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .chart-canvas-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  /* Quote snippets */
+  .quote-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .quote-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+  }
+  .quote-card.dana { border-left: 3px solid var(--dana-gold); }
+  .quote-card.martha { border-left: 3px solid var(--martha-blue); }
+  .quote-card .q-voice {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .quote-card .q-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .quote-card .q-meta {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 10px;
+  }
+
+  /* Winners & Losers Cards */
+  .creative-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 20px;
+  }
+  .creative-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: transform 0.2s, border-color 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .creative-card:hover {
+    transform: translateY(-2px);
+  }
+  .creative-card.winner { border-left: 4px solid var(--winner-green); }
+  .creative-card.winner:hover { border-color: var(--winner-green); }
+  .creative-card.loser { border-left: 4px solid var(--loser-red); }
+  .creative-card.loser:hover { border-color: var(--loser-red); }
+  .creative-card.voice-dana { border-left-color: var(--dana-gold); }
+  .creative-card.voice-martha { border-left-color: var(--martha-blue); }
+
+  .cc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .cc-id {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dim);
+  }
+  .cc-rank {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 4px;
+  }
+  .cc-rank.win { background: rgba(0,200,83,0.15); color: var(--winner-green); }
+  .cc-rank.lose { background: rgba(255,68,68,0.15); color: var(--loser-red); }
+
+  .cc-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .cc-stat .cc-val {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .cc-stat .cc-lbl {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .cc-body {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .cc-body::-webkit-scrollbar { width: 4px; }
+  .cc-body::-webkit-scrollbar-track { background: transparent; }
+  .cc-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .cc-verdict {
+    font-size: 12px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    line-height: 1.5;
+  }
+  .cc-verdict.win-v { background: rgba(0,200,83,0.08); color: var(--winner-green); }
+  .cc-verdict.lose-v { background: rgba(255,68,68,0.08); color: var(--loser-red); }
+
+  .voice-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: 8px;
+  }
+  .voice-badge.dana-badge { background: rgba(255,215,0,0.15); color: var(--dana-gold); }
+  .voice-badge.martha-badge { background: rgba(74,158,255,0.15); color: var(--martha-blue); }
+  .voice-badge.other-badge { background: rgba(136,136,136,0.15); color: var(--text-dim); }
+
+  /* Playbook */
+  .playbook-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+  }
+  .playbook-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+  .playbook-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .playbook-card h3 .pb-icon {
+    font-size: 20px;
+  }
+  .pb-list {
+    list-style: none;
+  }
+  .pb-list li {
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    line-height: 1.5;
+  }
+  .pb-list li:last-child { border-bottom: none; }
+  .pb-list .check { color: var(--winner-green); font-weight: 700; flex-shrink: 0; }
+  .pb-list .cross { color: var(--loser-red); font-weight: 700; flex-shrink: 0; }
+
+  /* Template cards */
+  .template-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .template-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dana-gold);
+    margin-bottom: 4px;
+  }
+  .template-card .tmpl-yield {
+    font-size: 12px;
+    color: var(--winner-green);
+    margin-bottom: 12px;
+  }
+  .template-card pre {
+    font-size: 12px;
+    color: var(--text);
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border: 1px solid rgba(255,255,255,0.04);
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  }
+
+  /* Heatmap grid */
+  .heatmap-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .heat-cell {
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .heat-cell:hover { transform: scale(1.03); }
+  .heat-cell .heat-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+  }
+  .heat-cell .heat-yield {
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .heat-cell .heat-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* Expansion tracker */
+  .exp-table-wrap {
+    overflow-x: auto;
+    margin-top: 24px;
+  }
+  .exp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .exp-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .exp-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text);
+  }
+  .exp-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .exp-table .poll-bar-cell { width: 180px; }
+  .poll-bar-bg {
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    height: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .poll-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+  .poll-bar-label {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  /* Attribute predictor pills */
+  .attr-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .attr-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+  .attr-pill .attr-pct {
+    font-weight: 800;
+    font-size: 14px;
+  }
+
+  /* Footer */
+  .footer {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .laws-grid,
+    .creative-grid,
+    .chart-row,
+    .playbook-grid {
+      grid-template-columns: 1fr;
+    }
+    .nav-brand { font-size: 12px; padding-right: 12px; }
+    .nav-link { font-size: 11px; padding: 14px 10px; }
+    .hero-stats { gap: 20px; }
+    .hero-stat .num { font-size: 24px; }
+    .section { padding: 60px 16px; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+  /* Divider */
+  .section-divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--dana-gold), transparent);
+    margin-top: 12px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating Nav -->
+<nav class="nav-float">
+  <div class="nav-inner">
+    <span class="nav-brand">SS FORENSICS</span>
+    <a href="#laws" class="nav-link active" data-section="laws">10 Laws</a>
+    <a href="#voice" class="nav-link" data-section="voice">Voice</a>
+    <a href="#anatomy" class="nav-link" data-section="anatomy">Anatomy</a>
+    <a href="#winners" class="nav-link" data-section="winners">Winners</a>
+    <a href="#losers" class="nav-link" data-section="losers">Losers</a>
+    <a href="#playbook" class="nav-link" data-section="playbook">Playbook</a>
+    <a href="#heatmap" class="nav-link" data-section="heatmap">Seasons</a>
+    <a href="#expansion" class="nav-link" data-section="expansion">Expansion</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="hero">
+  <h1>SoldierStrong <span>Creative Forensics</span></h1>
+  <p class="subtitle">What makes winners win. A data-driven autopsy of 224 creatives, 3.3M sends, and $363K in donations.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">224</div><div class="label">Creatives Analyzed</div></div>
+    <div class="hero-stat"><div class="num">3.3M</div><div class="label">Total Sends</div></div>
+    <div class="hero-stat"><div class="num">$363K</div><div class="label">Total Donated</div></div>
+    <div class="hero-stat"><div class="num">198/26</div><div class="label">MMS / SMS</div></div>
+  </div>
+</header>
+
+<!-- Section 1: The 10 Laws -->
+<section id="laws" class="section" data-section="laws">
+  <div class="section-header">
+    <span class="section-tag tag-gold">Section 1</span>
+    <h2>The 10 Laws of SoldierStrong Creative</h2>
+    <p>Ten rules distilled from 224 creatives. Break them at your own peril.</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="laws-grid">
+    <!-- Law 1 -->
+    <div class="law-card">
+      <div class="law-num">01</div>
+      <div class="law-title">Dana Perino Is the Money Machine</div>
+      <div class="law-stat" style="color:var(--dana-gold)">7×</div>
+      <div class="law-stat-label">yield vs no-celebrity ($0.140 vs $0.023/send)</div>
+      <div class="law-proof">"Hi [firstname], it's Dana Perino. I'm asking you to step up and support our soldiers." — Cr-13, $0.129 yield, 23 polls, $29,794 donated.</div>
+    </div>
+    <!-- Law 2 -->
+    <div class="law-card">
+      <div class="law-num">02</div>
+      <div class="law-title">Holidays Win — Thanksgiving Is King</div>
+      <div class="law-stat" style="color:var(--accent-orange)">$0.199</div>
+      <div class="law-stat-label">Thanksgiving yield/send — highest of any category</div>
+      <div class="law-proof">"🦃 Urgent: A Thanksgiving Plea from Dana Perino" — Cr-34b, $0.193 yield, 16 polls, $48,552 donated.</div>
+    </div>
+    <!-- Law 3 -->
+    <div class="law-card">
+      <div class="law-num">03</div>
+      <div class="law-title">The Sweet Spot Is 351–500 Characters</div>
+      <div class="law-stat" style="color:var(--winner-green)">$0.135</div>
+      <div class="law-stat-label">yield/send for 351–500 chars, 3.9 avg polls</div>
+      <div class="law-proof">Celebrity intro (50) + holiday context (100) + mission (100) + ask (100) + CTA (50) = the perfect message.</div>
+    </div>
+    <!-- Law 4 -->
+    <div class="law-card">
+      <div class="law-num">04</div>
+      <div class="law-title">Open with Celebrity + Personal Address + Urgency</div>
+      <div class="law-stat" style="color:var(--accent-cyan)">10/10</div>
+      <div class="law-stat-label">top 10 creatives open with a celebrity name</div>
+      <div class="law-proof">Every single creative that expanded to 10+ polls opens with a celebrity name in the first line. Zero expanded creatives open with organizational voice.</div>
+    </div>
+    <!-- Law 5 -->
+    <div class="law-card">
+      <div class="law-num">05</div>
+      <div class="law-title">One CTA, One Link, at the End — With >> Arrows</div>
+      <div class="law-stat" style="color:var(--dana-gold)">11/12</div>
+      <div class="law-stat-label">expanded creatives use a single CTA link at end</div>
+      <div class="law-proof">"Please, give what you can - right now >> [link]" — Simple. Direct. One link. Done.</div>
+    </div>
+    <!-- Law 6 -->
+    <div class="law-card">
+      <div class="law-num">06</div>
+      <div class="law-title">Don't Put Dollar Amounts in the Body</div>
+      <div class="law-stat" style="color:var(--accent-purple)">0</div>
+      <div class="law-stat-label">dollar amounts in top 5 by yield — let the LP close</div>
+      <div class="law-proof">Exception: "If we all chip in $20, we can help a paralyzed veteran walk again." Social proof frame, not ask amount.</div>
+    </div>
+    <!-- Law 7 -->
+    <div class="law-card">
+      <div class="law-num">07</div>
+      <div class="law-title">Holiday + Celebrity + First Person = The Trifecta</div>
+      <div class="law-stat" style="color:var(--winner-green)">$0.131</div>
+      <div class="law-stat-label">yield for the trifecta formula (Cr-25, 26 polls)</div>
+      <div class="law-proof">"Hello [firstname|patriot], Dana Perino here, wishing you a happy upcoming 4th of July!" — Cr-25, $46,969 donated across 26 polls.</div>
+    </div>
+    <!-- Law 8 -->
+    <div class="law-card">
+      <div class="law-num">08</div>
+      <div class="law-title">Martha MacCallum Is the Strong #2 — Especially Christmas</div>
+      <div class="law-stat" style="color:var(--martha-blue)">$0.221</div>
+      <div class="law-stat-label">yield for Martha's #1 — the all-time champion</div>
+      <div class="law-proof">"🎅 This Christmas, join forces with Martha MacCallum..." — Cr-138, the highest-yielding creative in the entire dataset.</div>
+    </div>
+    <!-- Law 9 -->
+    <div class="law-card">
+      <div class="law-num">09</div>
+      <div class="law-title">Don't Combine Dana and Martha — Pick One Voice</div>
+      <div class="law-stat" style="color:var(--loser-red)">$0.067</div>
+      <div class="law-stat-label">yield for Dana+Martha combined — below either alone</div>
+      <div class="law-proof">Too many cooks. The reader needs ONE authority figure to respond to, not a committee.</div>
+    </div>
+    <!-- Law 10 -->
+    <div class="law-card">
+      <div class="law-num">10</div>
+      <div class="law-title">No-Celebrity Creative Dies in the Test Phase</div>
+      <div class="law-stat" style="color:var(--loser-red)">0</div>
+      <div class="law-stat-label">no-celebrity creatives that expanded past 5 polls</div>
+      <div class="law-proof">63 no-celebrity MMS creatives, 0 expanded. Chris Meek: $0.018/send. Letterman: $0.010. The data is brutal and clear.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 2: Voice Performance -->
+<section id="voice" class="section" data-section="voice">
+  <div class="section-header">
+    <span class="section-tag tag-gold">Section 2</span>
+    <h2>Voice Performance</h2>
+    <p>Celebrity, perspective, and authority — how voice determines everything.</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-box">
+      <h3>Yield per Send by Voice</h3>
+      <div class="chart-sub">Dana dominates. No celebrity = no chance.</div>
+      <div class="chart-canvas-wrap"><canvas id="voiceYieldChart"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Average Polls by Voice</h3>
+      <div class="chart-sub">Polls = expansion confidence. More polls = more sends.</div>
+      <div class="chart-canvas-wrap"><canvas id="voicePollsChart"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-box">
+      <h3>Total Revenue by Voice</h3>
+      <div class="chart-sub">Dana: $287K. Martha: $57K. Everyone else: scraps.</div>
+      <div class="chart-canvas-wrap"><canvas id="voiceRevenueChart"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Voice Perspective Yield</h3>
+      <div class="chart-sub">Multi-voice (1st+2nd+3rd) crushes single-perspective.</div>
+      <div class="chart-canvas-wrap"><canvas id="perspectiveChart"></canvas></div>
+    </div>
+  </div>
+  <h3 style="color:var(--text-bright);margin-bottom:16px;font-size:15px;text-transform:uppercase;letter-spacing:1px;">Winning Voice Snippets</h3>
+  <div class="quote-strip">
+    <div class="quote-card dana">
+      <div class="q-voice" style="color:var(--dana-gold)">Dana Perino — 1st Person</div>
+      <div class="q-text">"Hi [firstname], it's Dana Perino. I'm asking you to step up and support our soldiers."</div>
+      <div class="q-meta">Cr-13 · $0.129 yield · 23 polls · $29,794</div>
+    </div>
+    <div class="quote-card dana">
+      <div class="q-voice" style="color:var(--dana-gold)">Dana Perino — Pattern Interrupt</div>
+      <div class="q-text">"Dana Perino's heart beats for our heroes 💖 Yours too?"</div>
+      <div class="q-meta">Cr-79 · $0.113 yield · 8 polls · $6,395</div>
+    </div>
+    <div class="quote-card martha">
+      <div class="q-voice" style="color:var(--martha-blue)">Martha MacCallum — Christmas</div>
+      <div class="q-text">"🎅 This Christmas, join forces with Martha MacCallum and SoldierStrong to bring joy and freedom to our disabled veterans."</div>
+      <div class="q-meta">Cr-138 · $0.221 yield · #1 All-Time · $13,607</div>
+    </div>
+    <div class="quote-card martha">
+      <div class="q-voice" style="color:var(--martha-blue)">Martha MacCallum — Gift Frame</div>
+      <div class="q-text">"3 days left to Christmas! Martha MacCallum here. Can you go in on a gift 🎁 with me for our brave disabled veterans?"</div>
+      <div class="q-meta">Cr-47b · $0.113 yield · $5,047 from 1 poll</div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 3: Creative Anatomy -->
+<section id="anatomy" class="section" data-section="anatomy">
+  <div class="section-header">
+    <span class="section-tag tag-cyan">Section 3</span>
+    <h2>Creative Anatomy</h2>
+    <p>Character length, openings, CTAs, emoji — the structural DNA of performance.</p>
+    <div class="section-divider" style="background:linear-gradient(90deg, var(--accent-cyan), transparent);"></div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-box">
+      <h3>Yield by Character Length</h3>
+      <div class="chart-sub">351–500 is the goldmine. 750+ is the graveyard.</div>
+      <div class="chart-canvas-wrap"><canvas id="charLengthChart"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Hook Taxonomy — What Opens the Wallet</h3>
+      <div class="chart-sub">Holiday/Seasonal and Celebrity hooks dominate. Emotional stories fail.</div>
+      <div class="chart-canvas-wrap"><canvas id="hookChart"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-box">
+      <h3>CTA Pattern Effectiveness</h3>
+      <div class="chart-sub">Single >> link at end wins. Multiple links = death.</div>
+      <div class="chart-canvas-wrap"><canvas id="ctaChart"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Emoji Impact</h3>
+      <div class="chart-sub">Marginal overall, but holiday emojis correlate with seasonal winners.</div>
+      <div class="chart-canvas-wrap"><canvas id="emojiChart"></canvas></div>
+    </div>
+  </div>
+  <!-- Opening line taxonomy -->
+  <div class="chart-row" style="margin-top:8px;">
+    <div class="chart-box" style="grid-column: 1 / -1;">
+      <h3>Opening Line Taxonomy</h3>
+      <div class="chart-sub">What the top 10 and bottom 10 openings look like side by side</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px;">
+        <div>
+          <h4 style="font-size:13px;color:var(--winner-green);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">✅ What Works</h4>
+          <div style="font-size:12px;line-height:2;">
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--winner-green);font-weight:700;">#1</span> <span style="color:var(--text-dim);">Cr-138 $0.221</span> — 🎅 + Holiday + Celebrity Name</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--winner-green);font-weight:700;">#2</span> <span style="color:var(--text-dim);">Cr-34b $0.193</span> — 🦃 + Urgency + Celebrity Name</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--winner-green);font-weight:700;">#3</span> <span style="color:var(--text-dim);">Cr-32 $0.149</span> — Personal Address + Celebrity</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--winner-green);font-weight:700;">#4</span> <span style="color:var(--text-dim);">Cr-25 $0.131</span> — Personal Address + Celebrity</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--winner-green);font-weight:700;">#5</span> <span style="color:var(--text-dim);">Cr-16 $0.131</span> — Personal Address + Celebrity</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--winner-green);font-weight:700;">#6</span> <span style="color:var(--text-dim);">Cr-13 $0.129</span> — Personal Address + Celebrity</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--winner-green);font-weight:700;">#7</span> <span style="color:var(--text-dim);">Cr-79 $0.113</span> — Celebrity + Pattern Interrupt</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--winner-green);font-weight:700;">#8</span> <span style="color:var(--text-dim);">Cr-47b $0.113</span> — Countdown + Celebrity</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--winner-green);font-weight:700;">#9</span> <span style="color:var(--text-dim);">Cr-34 $0.106</span> — 🦃 + Urgency + Celebrity</div>
+            <div style="padding:6px 0;"><span style="color:var(--winner-green);font-weight:700;">#10</span> <span style="color:var(--text-dim);">Cr-19b $0.104</span> — Celebrity + Urgent Plea</div>
+          </div>
+        </div>
+        <div>
+          <h4 style="font-size:13px;color:var(--loser-red);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">❌ What Dies</h4>
+          <div style="font-size:12px;line-height:2;">
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--loser-red);font-weight:700;">💀</span> <span style="color:var(--text-dim);">Cr-07 -$0.033</span> — "The folks at SoldierStrong need..."</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--loser-red);font-weight:700;">💀</span> <span style="color:var(--text-dim);">Cr-06 -$0.026</span> — "It's the last day to get that sweet tax deduction..."</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--loser-red);font-weight:700;">💀</span> <span style="color:var(--text-dim);">Cr-33 -$0.022</span> — "Scars are unavoidable in war."</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--loser-red);font-weight:700;">💀</span> <span style="color:var(--text-dim);">Cr-39 -$0.022</span> — "In 2021, a tragic incident..."</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--loser-red);font-weight:700;">💀</span> <span style="color:var(--text-dim);">Cr-40 -$0.022</span> — "At SoldierStrong, our commitment..."</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--loser-red);font-weight:700;">💀</span> <span style="color:var(--text-dim);">Cr-71 -$0.022</span> — "Hey, have a minute to change..."</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--loser-red);font-weight:700;">💀</span> <span style="color:var(--text-dim);">Cr-36 -$0.022</span> — "MUST READ:" (clickbait)</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--loser-red);font-weight:700;">💀</span> <span style="color:var(--text-dim);">Cr-78 -$0.022</span> — Martha misspelled, 78 chars</div>
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:var(--loser-red);font-weight:700;">💀</span> <span style="color:var(--text-dim);">Cr-80 -$0.022</span> — Off-topic Israel/war angle</div>
+            <div style="padding:6px 0;"><span style="color:var(--loser-red);font-weight:700;">💀</span> <span style="color:var(--text-dim);">Cr-61 -$0.022</span> — No celebrity, 156 chars</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 4: Winners Gallery -->
+<section id="winners" class="section" data-section="winners">
+  <div class="section-header">
+    <span class="section-tag tag-green">Section 4</span>
+    <h2>Winners Gallery — Top 20</h2>
+    <p>The creatives that drove the money. Full copy, full stats, full breakdown.</p>
+    <div class="section-divider" style="background:linear-gradient(90deg, var(--winner-green), transparent);"></div>
+  </div>
+  <div class="creative-grid" id="winnersGrid">
+    <!-- Populated by JS -->
+  </div>
+</section>
+
+<!-- Section 5: Losers Autopsy -->
+<section id="losers" class="section" data-section="losers">
+  <div class="section-header">
+    <span class="section-tag tag-red">Section 5</span>
+    <h2>Losers Autopsy — Bottom 20</h2>
+    <p>What went wrong, and how to never repeat it.</p>
+    <div class="section-divider" style="background:linear-gradient(90deg, var(--loser-red), transparent);"></div>
+  </div>
+  <div class="creative-grid" id="losersGrid">
+    <!-- Populated by JS -->
+  </div>
+  <!-- Common failure patterns -->
+  <div style="margin-top:40px;">
+    <div class="chart-box" style="border-left:4px solid var(--loser-red);">
+      <h3>The Pattern of Failure</h3>
+      <div class="chart-sub">Common to 16+ of the bottom 20 creatives</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:16px;">
+        <div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="color:var(--loser-red);font-size:24px;font-weight:900;">16/20</span> No celebrity or misused celebrity</div>
+        <div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="color:var(--loser-red);font-size:24px;font-weight:900;">15/20</span> No holiday/seasonal hook</div>
+        <div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="color:var(--loser-red);font-size:24px;font-weight:900;">15/20</span> Wrong hook (suicide, origin, current events)</div>
+        <div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="color:var(--loser-red);font-size:24px;font-weight:900;">14/20</span> Institutional/organizational voice</div>
+        <div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="color:var(--loser-red);font-size:24px;font-weight:900;">12/20</span> Too long (&gt;500) or too short (&lt;150)</div>
+        <div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="color:var(--loser-red);font-size:24px;font-weight:900;">20/20</span> Exactly 1 poll — tested once and killed</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 6: Shootout Playbook -->
+<section id="playbook" class="section" data-section="playbook">
+  <div class="section-header">
+    <span class="section-tag tag-purple">Section 6</span>
+    <h2>Shootout Playbook</h2>
+    <p>The recipe card for building winning SoldierStrong creatives.</p>
+    <div class="section-divider" style="background:linear-gradient(90deg, var(--accent-purple), transparent);"></div>
+  </div>
+
+  <!-- Formula -->
+  <div class="template-card" style="margin-bottom:32px;border:1px solid var(--dana-gold);">
+    <h4>THE FORMULA</h4>
+    <div class="tmpl-yield">The template every winner follows</div>
+    <pre>[Holiday Emoji] [Urgency/Holiday Label] from [Celebrity Name]
+
+[Greeting] [firstname|patriot/Friend], [Celebrity] here. [30-second hook / stop scrolling / don't delete].
+
+[Celebrity's relationship to SoldierStrong] [Mission in 1-2 sentences]. [Emotional payload — "walk again" / "stand tall" / "overcome"]. [Ask — "Will you help?" / "join me"].
+
+[Themed CTA verb] >> [link]</pre>
+  </div>
+
+  <div class="playbook-grid">
+    <div class="playbook-card" style="border-top:3px solid var(--winner-green);">
+      <h3><span class="pb-icon">✅</span> Voice — DO</h3>
+      <ul class="pb-list">
+        <li><span class="check">✓</span> Use Dana Perino as primary celebrity voice</li>
+        <li><span class="check">✓</span> Use Martha MacCallum for Christmas creative</li>
+        <li><span class="check">✓</span> Write in first person: "Hi, it's Dana Perino" / "Martha MacCallum here"</li>
+        <li><span class="check">✓</span> Use "my friends at SoldierStrong" (Dana's actual language)</li>
+        <li><span class="check">✓</span> Weave between 1st, 2nd, and 3rd person within same message</li>
+        <li><span class="check">✓</span> Use [firstname|patriot] or [firstname|Friend] personalization</li>
+      </ul>
+    </div>
+    <div class="playbook-card" style="border-top:3px solid var(--loser-red);">
+      <h3><span class="pb-icon">❌</span> Voice — DON'T</h3>
+      <ul class="pb-list">
+        <li><span class="cross">✗</span> Don't write as Chris Meek (founder) — yields $0.018</li>
+        <li><span class="cross">✗</span> Don't use David Letterman — yields $0.010</li>
+        <li><span class="cross">✗</span> Don't combine Dana AND Martha in same creative — yields $0.067</li>
+        <li><span class="cross">✗</span> Don't use anonymous/organizational voice — yields $0.023, 0 expansions</li>
+        <li><span class="cross">✗</span> Don't write in pure third person — use multi-voice instead</li>
+        <li><span class="cross">✗</span> Don't sign as "SoldierStrong Team" or "Chris Meek, Founder"</li>
+      </ul>
+    </div>
+    <div class="playbook-card" style="border-top:3px solid var(--winner-green);">
+      <h3><span class="pb-icon">✅</span> Opening — DO</h3>
+      <ul class="pb-list">
+        <li><span class="check">✓</span> Open with celebrity name in first 10 words</li>
+        <li><span class="check">✓</span> Use holiday emoji as very first character (🦃🎄🎅❣️)</li>
+        <li><span class="check">✓</span> Add urgency: "Urgent:", countdown ("3 days left!")</li>
+        <li><span class="check">✓</span> Use "pause your scrolling," "stop what you're doing for 30 seconds"</li>
+        <li><span class="check">✓</span> Use "please don't delete this text" pattern interrupt</li>
+      </ul>
+    </div>
+    <div class="playbook-card" style="border-top:3px solid var(--loser-red);">
+      <h3><span class="pb-icon">❌</span> Opening — DON'T</h3>
+      <ul class="pb-list">
+        <li><span class="cross">✗</span> Don't open with org statements ("At SoldierStrong, our commitment...")</li>
+        <li><span class="cross">✗</span> Don't open with statistics ("17 veterans commit suicide...")</li>
+        <li><span class="cross">✗</span> Don't open with philosophical musings ("Scars are unavoidable...")</li>
+        <li><span class="cross">✗</span> Don't open with clickbait ("MUST READ:")</li>
+        <li><span class="cross">✗</span> Don't open with gratitude ("I'm so proud of you")</li>
+        <li><span class="cross">✗</span> Don't lead with current events / geopolitics</li>
+      </ul>
+    </div>
+    <div class="playbook-card" style="border-top:3px solid var(--winner-green);">
+      <h3><span class="pb-icon">✅</span> Body & CTA — DO</h3>
+      <ul class="pb-list">
+        <li><span class="check">✓</span> Keep MMS 300–450 characters (sweet spot: 351–500)</li>
+        <li><span class="check">✓</span> Keep SMS 101–160 characters</li>
+        <li><span class="check">✓</span> Focus on "walk again" / "stand tall" / "regain independence"</li>
+        <li><span class="check">✓</span> Single link at end with >> arrows</li>
+        <li><span class="check">✓</span> Tie CTA to theme: "Give thanks by giving back >> [link]"</li>
+        <li><span class="check">✓</span> Let the LP handle dollar amount selection</li>
+        <li><span class="check">✓</span> If dollar amount, keep low ($20) + social proof framing</li>
+      </ul>
+    </div>
+    <div class="playbook-card" style="border-top:3px solid var(--loser-red);">
+      <h3><span class="pb-icon">❌</span> Body & CTA — DON'T</h3>
+      <ul class="pb-list">
+        <li><span class="cross">✗</span> Don't exceed 500 chars for MMS (yields crash at 750+)</li>
+        <li><span class="cross">✗</span> Don't use tiered dollar amounts ("$25, $50, or even $100")</li>
+        <li><span class="cross">✗</span> Don't use hashtags (#SoldierStrong #SupportOurVets)</li>
+        <li><span class="cross">✗</span> Don't use more than 3 emojis in one message</li>
+        <li><span class="cross">✗</span> Don't use multiple links or mid-message links</li>
+        <li><span class="cross">✗</span> Don't use "Learn more:" or "Tap here to read his full story"</li>
+        <li><span class="cross">✗</span> Don't focus on PTSD/suicide prevention as primary hook</li>
+        <li><span class="cross">✗</span> Don't misspell Martha MacCallum (not McCallum)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Proven Templates -->
+  <h3 style="color:var(--text-bright);margin:48px 0 20px;font-size:16px;text-transform:uppercase;letter-spacing:1px;">Proven Templates</h3>
+  <div class="template-card">
+    <h4>Template 1 — Holiday + Dana (Thanksgiving / Easter / 4th of July)</h4>
+    <div class="tmpl-yield">Expected yield: $0.10–$0.20/send</div>
+    <pre>[Holiday Emoji] [Urgency Label]: A [Holiday] Plea from Dana Perino
+
+Hello [firstname|patriot], Dana Perino here. Pause your scrolling and read this crucial message:
+
+SoldierStrong is doing incredible work providing resources to our brave men and women. This [holiday], they need our support more than ever. Will you take a moment to help? Every second counts! [Holiday-themed CTA] >> [link]</pre>
+  </div>
+  <div class="template-card">
+    <h4>Template 2 — Dana Personal Direct</h4>
+    <div class="tmpl-yield">Expected yield: $0.08–$0.13/send</div>
+    <pre>Hi [firstname], it's Dana Perino. [Urgency line — "I'm asking you to step up" / "Please know, this is your last chance"].
+
+My good friends at SoldierStrong provide our patriots with the resources they need to overcome obstacles new and old. Will you help today? Take 2 minutes and make a difference with me! >> [link]</pre>
+  </div>
+  <div class="template-card">
+    <h4>Template 3 — Martha Christmas Gift</h4>
+    <div class="tmpl-yield">Expected yield: $0.05–$0.11/send</div>
+    <pre>[Countdown] days left to Christmas! Martha MacCallum here. Can you go in on a gift 🎁 with me for our brave disabled veterans?
+
+[firstname|Patriot], my friends at SoldierStrong are changing the lives of our wounded warriors with their "wearable robot" SoldierSuits. They're the perfect Christmas gift.
+
+If we all chip in $20, we can help a paralyzed veteran walk again. You'll never feel better about giving a Christmas gift than this one. Click here now: ==> [link]</pre>
+  </div>
+  <div class="template-card">
+    <h4>Template 4 — SMS: Celebrity + State Personalization</h4>
+    <div class="tmpl-yield">Expected yield: $0.04–$0.07/send</div>
+    <pre>Dana Perino: Will [statename] step up for our vets? Help them walk again and SERIOUSLY change lives. PRESS HERE > [link]</pre>
+  </div>
+</section>
+
+<!-- Section 7: Season/Holiday Heatmap -->
+<section id="heatmap" class="section" data-section="heatmap">
+  <div class="section-header">
+    <span class="section-tag tag-orange">Section 7</span>
+    <h2>Season &amp; Holiday Heatmap</h2>
+    <p>Thanksgiving is king by yield. Christmas is the workhorse by volume.</p>
+    <div class="section-divider" style="background:linear-gradient(90deg, var(--accent-orange), transparent);"></div>
+  </div>
+  <div class="heatmap-wrap">
+    <div class="heat-cell" style="background:linear-gradient(135deg, rgba(255,145,0,0.3), rgba(255,68,0,0.15));">
+      <div class="heat-name">🦃 Thanksgiving</div>
+      <div class="heat-yield" style="color:#FF9100;">$0.199</div>
+      <div class="heat-meta">10 creatives · 6.1 avg polls · 3 expanded</div>
+    </div>
+    <div class="heat-cell" style="background:linear-gradient(135deg, rgba(255,215,0,0.25), rgba(255,145,0,0.1));">
+      <div class="heat-name">🇺🇸 4th of July</div>
+      <div class="heat-yield" style="color:#FFD700;">$0.144</div>
+      <div class="heat-meta">33 creatives · 2.7 avg polls · 4 expanded</div>
+    </div>
+    <div class="heat-cell" style="background:linear-gradient(135deg, rgba(179,136,255,0.25), rgba(120,80,200,0.1));">
+      <div class="heat-name">🐣 Easter</div>
+      <div class="heat-yield" style="color:#B388FF;">$0.121</div>
+      <div class="heat-meta">9 creatives · 5.0 avg polls · 3 expanded</div>
+    </div>
+    <div class="heat-cell" style="background:linear-gradient(135deg, rgba(74,158,255,0.25), rgba(40,100,200,0.1));">
+      <div class="heat-name">🎄 Christmas</div>
+      <div class="heat-yield" style="color:#4A9EFF;">$0.095</div>
+      <div class="heat-meta">25 creatives · 4.5 avg polls · 6 expanded · 961K sends</div>
+    </div>
+    <div class="heat-cell" style="background:linear-gradient(135deg, rgba(100,100,100,0.2), rgba(50,50,50,0.1));">
+      <div class="heat-name">📅 Non-Holiday</div>
+      <div class="heat-yield" style="color:#888;">$0.070</div>
+      <div class="heat-meta">121 creatives · 1.7 avg polls · 5 expanded</div>
+    </div>
+  </div>
+  <div class="chart-row" style="margin-top:32px;">
+    <div class="chart-box" style="grid-column:1/-1;">
+      <h3>Yield by Holiday/Season</h3>
+      <div class="chart-sub">Volume (creatives) vs. Yield — size of opportunity by season</div>
+      <div class="chart-canvas-wrap"><canvas id="seasonChart"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-box" style="margin-top:24px;">
+    <h3>Topic Elements That Work vs. Die</h3>
+    <div class="chart-sub">Inside the message body — what resonates with donors</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px;font-size:13px;">
+      <div>
+        <div style="color:var(--winner-green);font-weight:700;margin-bottom:8px;text-transform:uppercase;font-size:11px;letter-spacing:1px;">Works Inside Messages</div>
+        <div style="padding:4px 0;">✅ Exoskeleton / walking again — the core emotional payload</div>
+        <div style="padding:4px 0;">✅ "Paralyzed veteran takes first steps" — signature story arc</div>
+        <div style="padding:4px 0;">✅ Countdown urgency — "3 days left," "before the 4th"</div>
+        <div style="padding:4px 0;">✅ "Wearable robot" — memorable copy for the SoldierSuit</div>
+      </div>
+      <div>
+        <div style="color:var(--loser-red);font-weight:700;margin-bottom:8px;text-transform:uppercase;font-size:11px;letter-spacing:1px;">Dies as Primary Hook</div>
+        <div style="padding:4px 0;">❌ Suicide prevention / PTSD — $0.017 yield or below</div>
+        <div style="padding:4px 0;">❌ BraveMind VR therapy — too technical for SMS</div>
+        <div style="padding:4px 0;">❌ Chris Meek origin story — nobody cares in a text</div>
+        <div style="padding:4px 0;">❌ Israel/Ukraine/current events — off-mission</div>
+        <div style="padding:4px 0;">❌ SoldierScholar scholarships — too abstract</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 8: Expansion Tracker -->
+<section id="expansion" class="section" data-section="expansion">
+  <div class="section-header">
+    <span class="section-tag tag-cyan">Section 8</span>
+    <h2>Expansion Tracker</h2>
+    <p>From test poll to full deployment — the cascade pattern of winning creatives.</p>
+    <div class="section-divider" style="background:linear-gradient(90deg, var(--accent-cyan), transparent);"></div>
+  </div>
+
+  <!-- Expansion predictor pills -->
+  <h3 style="color:var(--text-bright);margin-bottom:16px;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Expansion Predictors — What Gets the Green Light</h3>
+  <div class="attr-pills">
+    <div class="attr-pill"><span class="attr-pct" style="color:var(--winner-green);">12/12</span> Celebrity name in opening</div>
+    <div class="attr-pill"><span class="attr-pct" style="color:var(--winner-green);">12/12</span> Dana or Martha voice</div>
+    <div class="attr-pill"><span class="attr-pct" style="color:var(--winner-green);">10/12</span> Holiday/seasonal context</div>
+    <div class="attr-pill"><span class="attr-pct" style="color:var(--winner-green);">10/12</span> 251–500 character range</div>
+    <div class="attr-pill"><span class="attr-pct" style="color:var(--winner-green);">11/12</span> Single CTA link at end</div>
+    <div class="attr-pill"><span class="attr-pct" style="color:var(--winner-green);">10/12</span> Multi-voice perspective</div>
+  </div>
+
+  <!-- One-and-done antipatterns -->
+  <div style="margin-top:24px;margin-bottom:32px;">
+    <h3 style="color:var(--text-bright);margin-bottom:16px;font-size:14px;text-transform:uppercase;letter-spacing:1px;">One-and-Done Antipatterns — Why 141 Creatives Never Expanded</h3>
+    <div class="attr-pills">
+      <div class="attr-pill"><span class="attr-pct" style="color:var(--loser-red);">14%</span> No celebrity at all</div>
+      <div class="attr-pill"><span class="attr-pct" style="color:var(--loser-red);">Heavy</span> Institutional voice</div>
+      <div class="attr-pill"><span class="attr-pct" style="color:var(--loser-red);">751+</span> Too many characters</div>
+      <div class="attr-pill"><span class="attr-pct" style="color:var(--loser-red);">Wrong</span> Suicide/origin/tech hooks</div>
+      <div class="attr-pill"><span class="attr-pct" style="color:var(--loser-red);">0</span> Thomas Carufel expansions</div>
+      <div class="attr-pill"><span class="attr-pct" style="color:var(--loser-red);">0</span> Mike Hahn expansions</div>
+    </div>
+  </div>
+
+  <!-- Expansion table -->
+  <div class="exp-table-wrap">
+    <table class="exp-table">
+      <thead>
+        <tr>
+          <th>Creative</th>
+          <th>Polls</th>
+          <th style="width:160px;">Poll Expansion</th>
+          <th>Yield</th>
+          <th>Voice</th>
+          <th>Theme</th>
+          <th>Opening Pattern</th>
+        </tr>
+      </thead>
+      <tbody id="expansionBody">
+        <!-- Populated by JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="chart-row" style="margin-top:32px;">
+    <div class="chart-box">
+      <h3>Author/Agency Expansion Rate</h3>
+      <div class="chart-sub">Who gets creatives past the test phase?</div>
+      <div class="chart-canvas-wrap"><canvas id="authorChart"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Expansion by Voice Type</h3>
+      <div class="chart-sub">Dana + Martha = 19 of 21 expanded creatives</div>
+      <div class="chart-canvas-wrap"><canvas id="expansionVoiceChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div>
+    <strong style="color:var(--text-bright);">SoldierStrong Creative Forensics</strong><br>
+    Dataset: 224 creatives (198 MMS, 26 SMS) · ~3.3M total sends · $363K total donated
+  </div>
+  <div style="text-align:right;">
+    Last Updated: February 4, 2026<br>
+    Analysis through February 2026
+  </div>
+</footer>
+
+<script>
+// ─── Chart.js Global Config ─────────────────────────────────────────────
+Chart.defaults.color = '#888';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'SF Pro Display', -apple-system, 'Inter', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.plugins.legend.display = false;
+
+const GOLD = '#FFD700';
+const BLUE = '#4A9EFF';
+const GREEN = '#00C853';
+const RED = '#FF4444';
+const PURPLE = '#B388FF';
+const ORANGE = '#FF9100';
+const CYAN = '#00E5FF';
+const DIM = '#555';
+
+// ─── Voice Yield Chart ──────────────────────────────────────────────────
+new Chart(document.getElementById('voiceYieldChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Dana 1st Person', 'Martha 1st Person', 'All Dana', 'All Martha', 'Dana+Martha', 'No Celebrity', 'Chris Meek'],
+    datasets: [{
+      data: [0.157, 0.122, 0.140, 0.100, 0.067, 0.023, 0.018],
+      backgroundColor: [GOLD, BLUE, 'rgba(255,215,0,0.6)', 'rgba(74,158,255,0.6)', PURPLE, DIM, DIM],
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 48
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: { label: ctx => '$' + ctx.raw.toFixed(3) + '/send' }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { callback: v => '$' + v.toFixed(2) },
+        grid: { color: 'rgba(255,255,255,0.04)' }
+      },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// ─── Voice Polls Chart ──────────────────────────────────────────────────
+new Chart(document.getElementById('voicePollsChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Dana 1st', 'All Dana', 'Martha 1st', 'Dana+Martha', 'All Martha', 'Chris Meek', 'No Celebrity'],
+    datasets: [{
+      data: [5.5, 4.1, 3.9, 3.2, 2.5, 1.6, 1.2],
+      backgroundColor: [GOLD, 'rgba(255,215,0,0.6)', BLUE, PURPLE, 'rgba(74,158,255,0.6)', DIM, DIM],
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 48
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: { label: ctx => ctx.raw + ' avg polls' }
+      }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// ─── Voice Revenue Chart ────────────────────────────────────────────────
+new Chart(document.getElementById('voiceRevenueChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Dana Perino', 'Martha MacCallum', 'No Celebrity', 'Chris Meek', 'Other'],
+    datasets: [{
+      data: [287950, 56672, 6686, 1506, 10186],
+      backgroundColor: [GOLD, BLUE, DIM, '#333', '#444'],
+      borderWidth: 0,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '60%',
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } },
+      tooltip: {
+        callbacks: { label: ctx => ctx.label + ': $' + ctx.raw.toLocaleString() }
+      }
+    }
+  }
+});
+
+// ─── Voice Perspective Chart ────────────────────────────────────────────
+new Chart(document.getElementById('perspectiveChart'), {
+  type: 'bar',
+  data: {
+    labels: ['1st+2nd+3rd', '2nd+3rd', '1st+3rd', '1st+2nd', '2nd Only', '3rd Only', '1st Only', 'None'],
+    datasets: [{
+      data: [0.137, 0.122, 0.121, 0.111, 0.056, 0.060, 0.036, 0.029],
+      backgroundColor: [GREEN, 'rgba(0,200,83,0.7)', 'rgba(0,200,83,0.5)', 'rgba(0,200,83,0.4)', DIM, DIM, '#333', '#222'],
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 48
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: { label: ctx => '$' + ctx.raw.toFixed(3) + '/send' }
+      }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { ticks: { callback: v => '$' + v.toFixed(2) }, grid: { color: 'rgba(255,255,255,0.04)' } }
+    }
+  }
+});
+
+// ─── Character Length Chart ─────────────────────────────────────────────
+new Chart(document.getElementById('charLengthChart'), {
+  type: 'bar',
+  data: {
+    labels: ['0-100', '101-160', '161-250', '251-350', '351-500', '501-750', '751+'],
+    datasets: [{
+      label: 'Yield/Send',
+      data: [0.004, 0.016, 0.019, 0.106, 0.135, 0.082, 0.016],
+      backgroundColor: ['#222', '#333', '#444', 'rgba(0,200,83,0.6)', GREEN, 'rgba(0,200,83,0.4)', RED],
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 52,
+      yAxisID: 'y'
+    }, {
+      label: 'Avg Polls',
+      type: 'line',
+      data: [1.0, 1.0, 1.3, 2.4, 3.9, 2.1, 1.5],
+      borderColor: GOLD,
+      backgroundColor: 'rgba(255,215,0,0.1)',
+      pointBackgroundColor: GOLD,
+      pointRadius: 5,
+      tension: 0.3,
+      yAxisID: 'y1'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: true, position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', padding: 16 } },
+      tooltip: {
+        callbacks: {
+          label: ctx => ctx.dataset.label === 'Yield/Send'
+            ? '$' + ctx.raw.toFixed(3) + '/send'
+            : ctx.raw + ' avg polls'
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { position: 'left', ticks: { callback: v => '$' + v.toFixed(2) }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      y1: { position: 'right', ticks: { callback: v => v + ' polls' }, grid: { display: false } }
+    }
+  }
+});
+
+// ─── Hook Taxonomy Chart ────────────────────────────────────────────────
+new Chart(document.getElementById('hookChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Holiday/Seasonal', 'Celebrity Authority', 'Urgent Plea', 'Guilt', 'Other/Generic', 'Outrage/Injustice', 'Emotional Story', 'Gratitude'],
+    datasets: [{
+      data: [0.130, 0.128, 0.111, 0.104, 0.021, 0.017, 0.014, 0.000],
+      backgroundColor: [ORANGE, GOLD, CYAN, PURPLE, DIM, RED, '#444', '#222'],
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 48
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: { label: ctx => '$' + ctx.raw.toFixed(3) + '/send' }
+      }
+    },
+    scales: {
+      x: { ticks: { callback: v => '$' + v.toFixed(2) }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// ─── CTA Chart ──────────────────────────────────────────────────────────
+new Chart(document.getElementById('ctaChart'), {
+  type: 'bar',
+  data: {
+    labels: ['"Give back >> [link]"', '"Make a difference >> [link]"', '"Give what you can >> [link]"', '"Donate now: [link]"', '"Click here now: ==> [link]"', 'Multiple links', 'Tiered click-to-donate', '"Learn more: [link]"'],
+    datasets: [{
+      data: [0.193, 0.131, 0.104, 0.221, 0.113, 0.000, -0.018, 0.005],
+      backgroundColor: [GREEN, GREEN, GREEN, GREEN, GREEN, RED, RED, RED],
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 44
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: { label: ctx => '$' + ctx.raw.toFixed(3) + '/send' }
+      }
+    },
+    scales: {
+      x: { ticks: { callback: v => '$' + v.toFixed(3) }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// ─── Emoji Chart ────────────────────────────────────────────────────────
+new Chart(document.getElementById('emojiChart'), {
+  type: 'bar',
+  data: {
+    labels: ['With Emoji', 'Without Emoji'],
+    datasets: [{
+      label: 'Yield/Send',
+      data: [0.117, 0.112],
+      backgroundColor: [CYAN, DIM],
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 80
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      tooltip: { callbacks: { label: ctx => '$' + ctx.raw.toFixed(3) + '/send' } }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { ticks: { callback: v => '$' + v.toFixed(2) }, grid: { color: 'rgba(255,255,255,0.04)' }, min: 0.08, max: 0.14 }
+    }
+  }
+});
+
+// ─── Season Chart ───────────────────────────────────────────────────────
+new Chart(document.getElementById('seasonChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Thanksgiving', '4th of July', 'Easter', 'Christmas', 'Non-Holiday'],
+    datasets: [{
+      label: 'Yield/Send',
+      data: [0.199, 0.144, 0.121, 0.095, 0.070],
+      backgroundColor: [ORANGE, GOLD, PURPLE, BLUE, DIM],
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 60,
+      yAxisID: 'y'
+    }, {
+      label: 'Creatives',
+      type: 'line',
+      data: [10, 33, 9, 25, 121],
+      borderColor: CYAN,
+      backgroundColor: 'rgba(0,229,255,0.1)',
+      pointBackgroundColor: CYAN,
+      pointRadius: 6,
+      tension: 0.3,
+      yAxisID: 'y1'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: true, position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', padding: 16 } }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { position: 'left', ticks: { callback: v => '$' + v.toFixed(2) }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      y1: { position: 'right', ticks: { callback: v => v + ' creatives' }, grid: { display: false } }
+    }
+  }
+});
+
+// ─── Author Chart ───────────────────────────────────────────────────────
+new Chart(document.getElementById('authorChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Justin Hart', 'Unknown/None', 'Leo Nemaeus', 'Ryan Mooney', 'Justin Hart + AI', 'Matt Cicconi', 'Katherine Horne', 'Mike Hahn', 'Thomas Carufel'],
+    datasets: [{
+      label: 'Expanded (5+)',
+      data: [15, 4, 1, 1, 0, 0, 0, 0, 0],
+      backgroundColor: GREEN,
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 40
+    },{
+      label: 'Total Creatives',
+      data: [120, 35, 7, 6, 2, 7, 10, 7, 4],
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 40
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: true, position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', padding: 16 } }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' } }
+    }
+  }
+});
+
+// ─── Expansion Voice Chart ──────────────────────────────────────────────
+new Chart(document.getElementById('expansionVoiceChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Dana Perino', 'Martha MacCallum', 'Other'],
+    datasets: [{
+      data: [15, 6, 0],
+      backgroundColor: [GOLD, BLUE, DIM],
+      borderWidth: 0,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '55%',
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } },
+      tooltip: {
+        callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + ' expanded creatives' }
+      }
+    }
+  }
+});
+
+// ─── Winners Gallery ────────────────────────────────────────────────────
+const winners = [
+  { id:'Cr-138', rank:1, yield:'$0.221', donated:'$13,607', sends:'~62K', polls:10, voice:'martha',
+    text:'🎅 This Christmas, join forces with Martha MacCallum and SoldierStrong to bring joy and freedom to our disabled veterans. SoldierStrong\'s exoskeleton suits allow paralyzed heroes to stand tall, walk again, and celebrate the season with their families.\n\nFor just $20, YOU can help deliver this incredible gift 🎄 to a veteran in need. Time is running out--our heroes are counting on your support.\n\n🎁 Join Martha and make this Christmas miracle happen. Donate now: [link]',
+    why:'Martha + Christmas + exoskeleton story + accessible $20 ask + three-part emoji structure (🎅🎄🎁)' },
+  { id:'Cr-34b', rank:2, yield:'$0.193', donated:'$48,552', sends:'~252K', polls:16, voice:'dana',
+    text:'🦃 Urgent: A Thanksgiving Plea from Dana Perino\n\nHello [firstname|patriot], Dana Perino here. Pause your scrolling and read this crucial message:\n\nSoldierStrong is doing incredible work providing resources to our brave men and women. This Thanksgiving, they need our support more than ever. Will you take a moment to help? Every second counts! Give thanks by giving back >> [link]',
+    why:'Dana + Thanksgiving urgency + "pause your scrolling" interrupt + iconic CTA "Give thanks by giving back"' },
+  { id:'Cr-32', rank:3, yield:'$0.149', donated:'$10,914', sends:'~73K', polls:9, voice:'martha',
+    text:'Hello [firstname|patriot], Martha MacCallum here. As we approach the holiday season, a time of giving and gratitude, I invite you to pause for just 30 seconds and consider this:\n\nMy esteemed friends at SoldierStrong work tirelessly to support our courageous soldiers, providing them with essential resources to navigate life\'s challenges. As we enter this season of gratitude and giving, would you join me in honoring these heroes? Your prompt action can make a meaningful impact, setting the tone for a season of generosity and care. Prepare for the holidays by giving back >> [link]',
+    why:'Martha 1st person + holiday season + "pause for 30 seconds" + elegant language' },
+  { id:'Cr-25', rank:4, yield:'$0.131', donated:'$46,969', sends:'~359K', polls:26, voice:'dana',
+    text:'Hello [firstname|patriot], Dana Perino here, wishing you a happy upcoming 4th of July! Please stop what you\'re doing for 30 seconds and read this:\n\nMy friends at SoldierStrong tirelessly work to give back to our heroic soldiers, providing them with the resources they need to conquer their challenges. On this special day, would you join me in honoring them? Your quick action can create a world of difference! Celebrate Independence Day by giving back >> [link]',
+    why:'Dana + 4th of July patriotism + "stop what you\'re doing for 30 seconds" + highest poll count (26)' },
+  { id:'Cr-16', rank:5, yield:'$0.131', donated:'$5,914', sends:'~45K', polls:4, voice:'dana',
+    text:'Hi [firstname], it\'s Dana Perino. Please know - this is your last chance to make an impact before the year is out.\n\nMy good friends at SoldierStrong provide our patriots with the resources they need to overcome obstacles new and old. Will you help today? Take 2 minutes and make a difference with me! >> [link]',
+    why:'"Last chance" urgency + Dana 1st person + "Take 2 minutes" time ask + concise at 263 chars' },
+  { id:'Cr-13', rank:6, yield:'$0.129', donated:'$29,794', sends:'~231K', polls:23, voice:'dana',
+    text:'Hi [firstname], it\'s Dana Perino. I\'m asking you to step up and support our soldiers.\n\nMy good friends at SoldierStrong provide our patriots with the resources they need to overcome obstacles new and old. Will you help today? Take 2 minutes and make a difference with me! >> [link]',
+    why:'The simplest, most direct Dana creative. 23 polls = evergreen workhorse. Pure celebrity authority.' },
+  { id:'Cr-79', rank:7, yield:'$0.113', donated:'$6,395', sends:'~57K', polls:8, voice:'dana',
+    text:'Dana Perino\'s heart beats for our heroes 💖 Yours too? [link]\n\nWith Memorial Day around the corner, it\'s more than just a holiday; it\'s a call to action.\n\nSoldierStrong transforms lives with cutting-edge tech, making daily victories possible for our vets.\n\nWe owe them a debt of gratitude and mobility, but the race against time is real.\n\nBe the change you wish to see this Memorial Day.',
+    why:'Most creative opening in the entire dataset. Pattern interrupt + Memorial Day urgency.' },
+  { id:'Cr-47b', rank:8, yield:'$0.113', donated:'$5,047', sends:'~45K', polls:1, voice:'martha',
+    text:'3 days left to Christmas! Martha MacCallum here. Can you go in on a gift 🎁 with me for our brave disabled veterans?\n\n[firstname|Patriot], my friends at SoldierStrong are changing the lives of our wounded warriors with their "wearable robot" SoldierSuits. They\'re the perfect Christmas gift.\n\nIf we all chip in $20, we can help a paralyzed veteran walk again. You\'ll never feel better about giving a Christmas gift than this one. Click here now: ==> [link]',
+    why:'"Go in on a gift with me" reframe. It\'s not a donation — it\'s a shared gift. "Wearable robot" = memorable.' },
+  { id:'Cr-34', rank:9, yield:'$0.106', donated:'$41,909', sends:'~395K', polls:30, voice:'dana',
+    text:'🦃 Urgent: A Thanksgiving Plea from Dana Perino [same message as Cr-34b]',
+    why:'Same as Cr-34b. 30 polls = the most-expanded creative in the entire dataset. The Thanksgiving workhorse.' },
+  { id:'Cr-19b', rank:10, yield:'$0.104', donated:'$16,560', sends:'~159K', polls:11, voice:'dana',
+    text:'Hi. It\'s Dana Perino - this is important so please don\'t delete this text.\n\nI\'ve thrown my support behind this incredible group called SoldierStrong. They provide vital resources to help our heroes live full and happy lives. Your donation can make all the difference for these brave men and women. Please join me in supporting SoldierStrong and give the gift of hope this coming Easter season - a fresh start for so many who need it.\n\nPlease, give what you can - right now >> [link]',
+    why:'"Please don\'t delete this text" is peak SMS pattern interrupt. Easter framing + "gift of hope."' },
+  { id:'Cr-56', rank:11, yield:'$0.099', donated:'—', sends:'—', polls:'—', voice:'dana',
+    text:'Multi-celebrity reference (Dana + Martha) + suicide prevention — rare winner in that category.',
+    why:'Rare multi-celebrity + suicide prevention win. The exception that proves Rule 9.' },
+  { id:'Cr-117', rank:12, yield:'$0.082', donated:'—', sends:'—', polls:'—', voice:'dana',
+    text:'Thanksgiving variant of Cr-34 — proves the formula replicates across seasons.',
+    why:'Replication proof. Same Thanksgiving formula, still delivers.' },
+  { id:'Cr-19', rank:13, yield:'$0.081', donated:'—', sends:'—', polls:'—', voice:'dana',
+    text:'😢 It breaks my heart... [same as Cr-19b with emotional pre-open]',
+    why:'Emotional pre-open variant of Cr-19b. The 😢 adds an emotional layer.' },
+  { id:'Cr-82SMS', rank:14, yield:'$0.067', donated:'—', sends:'—', polls:'—', voice:'dana',
+    text:'Dana Perino: Will [statename] step up for our vets? Help them walk again and SERIOUSLY change lives. PRESS HERE > [link]',
+    why:'Top SMS. Celebrity + state personalization + "walk again" + CAPS emphasis.' },
+  { id:'Cr-170', rank:15, yield:'$0.064', donated:'—', sends:'—', polls:'—', voice:'dana',
+    text:'Easter urgency + Dana/Martha dual mention + "don\'t scroll past"',
+    why:'Easter urgency + "don\'t scroll past" interrupt.' },
+  { id:'Cr-13b', rank:16, yield:'$0.063', donated:'—', sends:'—', polls:'—', voice:'dana',
+    text:'Christmas variant of Cr-13 — "10 days to Christmas" urgency layer added.',
+    why:'Proves adding holiday countdown to the evergreen workhorse works.' },
+  { id:'Cr-137', rank:17, yield:'$0.059', donated:'—', sends:'—', polls:'—', voice:'martha',
+    text:'Martha + Christmas exoskeleton + $25 ask — clean execution.',
+    why:'Martha + Christmas + exoskeleton. Clean, reliable combo.' },
+  { id:'Cr-92', rank:18, yield:'$0.058', donated:'—', sends:'—', polls:'—', voice:'other',
+    text:'Guilt hook: "don\'t turn your back on the brave men and women" — rare guilt win.',
+    why:'Rare guilt hook that works. "Don\'t turn your back" is more personal than statistical guilt.' },
+  { id:'Cr-47', rank:19, yield:'$0.054', donated:'—', sends:'—', polls:'—', voice:'martha',
+    text:'Same as Cr-47b but "5 days" instead of "3 days" — proves countdown works at different intervals.',
+    why:'Countdown works at 5 days too. More urgency = more yield (3 days > 5 days).' },
+  { id:'Cr-134', rank:20, yield:'$0.053', donated:'—', sends:'—', polls:'—', voice:'dana',
+    text:'🎅 Join Dana Perino and SoldierStrong... Dana + Christmas + exoskeleton.',
+    why:'Dana + Christmas + exoskeleton. The reliable combo, 15 polls.' }
+];
+
+const losers = [
+  { id:'Cr-07', rank:'WORST', yield:'-$0.033', polls:1, voice:'other',
+    text:'The folks at SoldierStrong need our support! Look at what their SoldierSuit can do! "The feeling of standing and walking again is indescribable. The first time I used the rehab suit was two years after my injury..." -U.S. Army Sergeant Help today! [link]',
+    why:'Anonymous voice ("The folks at..."). Quote wall. No celebrity. No personalization. No urgency. Reads like a brochure.' },
+  { id:'Cr-06', rank:'#2', yield:'-$0.026', polls:1, voice:'other',
+    text:'It\'s the last day to get that sweet tax deduction for 2021. Here\'s a GREAT opportunity!...',
+    why:'Tax deduction framing appeals to the head, not the heart. "GREAT opportunity" sounds like an ad. No celebrity.' },
+  { id:'Cr-18', rank:'#3', yield:'-$0.022', polls:1, voice:'other',
+    text:'Every veteran suicide is a preventable tragedy. Donate to SoldierStrong today...',
+    why:'Opens with suicide stats. No celebrity. Institutional voice. Too heavy for SMS/MMS.' },
+  { id:'Cr-33', rank:'#4', yield:'-$0.022', polls:1, voice:'other',
+    text:'Scars are unavoidable in war. Sometimes, our brave veterans carry scars that aren\'t visible at all. Picture this: a soldier who once stood tall...',
+    why:'Poetic but passive. 539 chars of narrative before a link. No celebrity. No urgency. Author: Thomas Carufel.' },
+  { id:'Cr-39', rank:'#5', yield:'-$0.022', polls:1, voice:'other',
+    text:'In 2021, a tragic incident underscored the critical need for innovative solutions...',
+    why:'897 characters. Opens with years-old news. Reads like a grant proposal. Gets to the point on line 15. Author: Thomas Carufel.' },
+  { id:'Cr-40', rank:'#6', yield:'-$0.022', polls:1, voice:'other',
+    text:'At SoldierStrong, our commitment to supporting our nation\'s heroes runs deep. Our mission is simple: Small goods. Large impact.',
+    why:'Opens with mission statement. 744 chars. Organizational history lesson. Zero personal connection. Author: Thomas Carufel.' },
+  { id:'Cr-61', rank:'#7', yield:'-$0.022', polls:1, voice:'other',
+    text:'[156-character no-celebrity message with 3rd person institutional voice]',
+    why:'No celebrity. 156 chars — not enough weight. Third person institutional voice.' },
+  { id:'Cr-71', rank:'#8', yield:'-$0.022', polls:1, voice:'other',
+    text:'Hey, have a minute to change a soldier\'s life? Have a minute to help a disabled soldier walk again?',
+    why:'Repetitive question structure. No celebrity. "SoliderStrong" (typo). Anonymous voice. Author: Mike Hahn.' },
+  { id:'Cr-78', rank:'#9', yield:'-$0.022', polls:1, voice:'martha',
+    text:'🇺🇸 Martha McCallum stands with Vets! Do you? Give hope this Memorial Day ➡️ [link]',
+    why:'Only 78 characters. Martha\'s name misspelled ("McCallum" vs "MacCallum"). Too generic. No story, no weight.' },
+  { id:'Cr-80', rank:'#10', yield:'-$0.022', polls:1, voice:'dana',
+    text:'"I can\'t believe we\'re at war again" 😢 Veterans understand more than ANYONE what it means to go to war...',
+    why:'Israel/Ukraine angle is off-mission. Political current events alienate rather than unite. Off-brand for SoldierStrong.' },
+  { id:'Cr-36', rank:'#11', yield:'-$0.022', polls:1, voice:'other',
+    text:'MUST READ: A SoldierStrong veteran was just featured on Fox News. Tap here to read his full story: [link]',
+    why:'Clickbait header. No celebrity endorsement. No ask. Just a link to content. Author: Thomas Carufel.' },
+  { id:'Cr-99', rank:'#12', yield:'-$0.018', polls:1, voice:'other',
+    text:'[Tiered click-to-donate buttons — $25 / $50 / $100]',
+    why:'Tiered dollar amounts kill response. Choice paralysis. Reads as fundraising letter, not personal text.' },
+  { id:'Cr-193', rank:'#13', yield:'$0.000', polls:4, voice:'other',
+    text:'[1,000+ character organizational narrative with multiple scattered links]',
+    why:'Multiple links scattered throughout. 1,000+ chars. Reads like an email, not SMS. Author: Ryan Mooney.' },
+  { id:'Cr-110', rank:'#14', yield:'$0.000', polls:1, voice:'other',
+    text:'[Message with 🎉🏥🙌🇺🇸💪🙏👉 — seven different emojis]',
+    why:'Seven different emojis. Emoji clutter signals spam. Zero donors.' },
+  { id:'Cr-85SMS', rank:'#15', yield:'-$0.012', polls:1, voice:'other',
+    text:'Our goal is to improve the lives of wounded veterans. Donations fuel our initiatives to change lives >> [link]',
+    why:'No celebrity. Institutional voice. Generic language. Bottom SMS creative.' },
+  // fill remaining with general pattern
+  { id:'Various', rank:'#16-20', yield:'-$0.022', polls:1, voice:'other',
+    text:'Various no-celebrity, institutional voice creatives with wrong hooks — suicide prevention, origin stories, tech descriptions, current events.',
+    why:'The bottom 20 share: no celebrity, institutional voice, no holiday hook, wrong length, wrong hook. All tested once and killed.' }
+];
+
+function renderCreatives(items, containerId, type) {
+  const grid = document.getElementById(containerId);
+  items.forEach(c => {
+    const isWinner = type === 'winner';
+    const voiceClass = c.voice === 'dana' ? 'voice-dana' : c.voice === 'martha' ? 'voice-martha' : '';
+    const badgeClass = c.voice === 'dana' ? 'dana-badge' : c.voice === 'martha' ? 'martha-badge' : 'other-badge';
+    const badgeLabel = c.voice === 'dana' ? 'Dana' : c.voice === 'martha' ? 'Martha' : 'No Celebrity';
+
+    let statsHtml = '';
+    if (isWinner) {
+      statsHtml = `
+        <div class="cc-stats">
+          <div class="cc-stat"><div class="cc-val" style="color:${GREEN}">${c.yield}</div><div class="cc-lbl">Yield/Send</div></div>
+          ${c.donated !== '—' ? `<div class="cc-stat"><div class="cc-val" style="color:var(--text-bright)">${c.donated}</div><div class="cc-lbl">Donated</div></div>` : ''}
+          ${c.polls !== '—' ? `<div class="cc-stat"><div class="cc-val" style="color:${GOLD}">${c.polls}</div><div class="cc-lbl">Polls</div></div>` : ''}
+          ${c.sends !== '—' ? `<div class="cc-stat"><div class="cc-val" style="color:var(--text-dim)">${c.sends}</div><div class="cc-lbl">Sends</div></div>` : ''}
+        </div>`;
+    } else {
+      statsHtml = `
+        <div class="cc-stats">
+          <div class="cc-stat"><div class="cc-val" style="color:${RED}">${c.yield}</div><div class="cc-lbl">Yield/Send</div></div>
+          <div class="cc-stat"><div class="cc-val" style="color:var(--text-dim)">${c.polls}</div><div class="cc-lbl">Polls</div></div>
+        </div>`;
+    }
+
+    grid.innerHTML += `
+      <div class="creative-card ${isWinner ? 'winner' : 'loser'} ${isWinner ? voiceClass : ''}">
+        <div class="cc-header">
+          <div>
+            <span class="cc-id">${c.id}</span>
+            <span class="voice-badge ${badgeClass}">${badgeLabel}</span>
+          </div>
+          <span class="cc-rank ${isWinner ? 'win' : 'lose'}">#${c.rank}</span>
+        </div>
+        ${statsHtml}
+        <div class="cc-body">${c.text.replace(/\n/g, '<br>')}</div>
+        <div class="cc-verdict ${isWinner ? 'win-v' : 'lose-v'}">${isWinner ? '✅' : '❌'} ${c.why}</div>
+      </div>`;
+  });
+}
+
+renderCreatives(winners, 'winnersGrid', 'winner');
+renderCreatives(losers, 'losersGrid', 'loser');
+
+// ─── Expansion Table ────────────────────────────────────────────────────
+const expansionData = [
+  { id:'Cr-34', polls:30, yield:'$0.106', voice:'Dana (2nd/3rd)', theme:'Thanksgiving', opening:'🦃 Urgent: Thanksgiving Plea from Dana Perino' },
+  { id:'Cr-25', polls:26, yield:'$0.131', voice:'Dana (1st/2nd/3rd)', theme:'Patriotism', opening:'Hello [firstname], Dana Perino here... 4th of July' },
+  { id:'Cr-41', polls:26, yield:'$0.029', voice:'Dana (2nd/3rd)', theme:'Christmas', opening:'🎄 Urgent: A Christmas Plea from Dana Perino' },
+  { id:'Cr-13', polls:23, yield:'$0.129', voice:'Dana (1st/2nd/3rd)', theme:'Non-Holiday', opening:'Hi [firstname], it\'s Dana Perino...' },
+  { id:'Cr-69', polls:18, yield:'$0.044', voice:'Dana (1st/2nd/3rd)', theme:'Easter', opening:'Hi. It\'s Dana Perino - please don\'t delete...' },
+  { id:'Cr-34b', polls:16, yield:'$0.193', voice:'Dana (2nd/3rd)', theme:'Thanksgiving', opening:'🦃 Urgent: Thanksgiving Plea from Dana Perino' },
+  { id:'Cr-37', polls:15, yield:'$0.040', voice:'Dana (1st/2nd/3rd)', theme:'Christmas', opening:'Our disabled veterans have one wish... to walk' },
+  { id:'Cr-134', polls:15, yield:'$0.053', voice:'Dana (3rd)', theme:'Christmas', opening:'🎅 Join Dana Perino and SoldierStrong...' },
+  { id:'Cr-156', polls:13, yield:'$0.012', voice:'Dana (2nd/3rd)', theme:'Non-Holiday', opening:'Hi [firstname], Dana Perino stands with...' },
+  { id:'Cr-19b', polls:11, yield:'$0.104', voice:'Dana (1st/2nd/3rd)', theme:'Easter', opening:'Hi. It\'s Dana Perino - this is important...' },
+  { id:'Cr-141', polls:11, yield:'$0.022', voice:'Dana (3rd)', theme:'Christmas', opening:'🎄 [firstname], Christmas is days away...' },
+  { id:'Cr-138', polls:10, yield:'$0.221', voice:'Martha (2nd/3rd)', theme:'Christmas', opening:'🎅 This Christmas, join Martha MacCallum...' },
+];
+
+const maxPolls = 30;
+const expBody = document.getElementById('expansionBody');
+expansionData.forEach(d => {
+  const pct = (d.polls / maxPolls * 100).toFixed(0);
+  const barColor = d.voice.includes('Martha') ? BLUE : GOLD;
+  expBody.innerHTML += `
+    <tr>
+      <td style="font-weight:700;color:var(--text-bright);">${d.id}</td>
+      <td style="font-weight:700;">${d.polls}</td>
+      <td class="poll-bar-cell">
+        <div class="poll-bar-bg">
+          <div class="poll-bar-fill" style="width:${pct}%;background:${barColor};"></div>
+          <span class="poll-bar-label">${d.polls}</span>
+        </div>
+      </td>
+      <td style="color:${GREEN};font-weight:700;">${d.yield}</td>
+      <td>${d.voice}</td>
+      <td>${d.theme}</td>
+      <td style="font-size:12px;color:var(--text-dim);">${d.opening}</td>
+    </tr>`;
+});
+
+// ─── Scroll Animations ─────────────────────────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// ─── Active Nav Tracking ────────────────────────────────────────────────
+const navLinks = document.querySelectorAll('.nav-link');
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.getAttribute('data-section');
+      navLinks.forEach(l => l.classList.remove('active'));
+      document.querySelector(`.nav-link[data-section="${id}"]`)?.classList.add('active');
+    }
+  });
+}, { threshold: 0.15, rootMargin: '-80px 0px -50% 0px' });
+
+document.querySelectorAll('.section').forEach(s => navObserver.observe(s));
+
+// Smooth scroll for nav clicks
+navLinks.forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>
