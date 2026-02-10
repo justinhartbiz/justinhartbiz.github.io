@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLH AI Phone Agent — Implementation Plan</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface2: #334155;
+  --border: #475569;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent: #38bdf8;
+  --green: #4ade80;
+  --green-bg: rgba(74,222,128,0.15);
+  --yellow: #fbbf24;
+  --yellow-bg: rgba(251,191,36,0.15);
+  --red: #f87171;
+  --purple: #a78bfa;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 900px; margin: 0 auto; padding: 24px; }
+header { text-align: center; padding: 48px 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+header h1 { font-size: 2rem; margin-bottom: 8px; }
+header .subtitle { color: var(--text-muted); font-size: 1.1rem; }
+header .badge { display: inline-block; background: var(--green-bg); color: var(--green); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-top: 16px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+.card h2 { font-size: 1.25rem; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.card h2 .icon { font-size: 1.4rem; }
+.card h3 { font-size: 1rem; color: var(--accent); margin: 20px 0 12px; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+ul, ol { padding-left: 24px; margin: 12px 0; }
+li { margin: 8px 0; }
+.step { background: var(--surface2); border-radius: 8px; padding: 16px; margin: 12px 0; border-left: 4px solid var(--accent); }
+.step-num { display: inline-block; background: var(--accent); color: var(--bg); width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 700; font-size: 0.85rem; margin-right: 12px; }
+.step-title { font-weight: 600; font-size: 1rem; }
+.step-desc { color: var(--text-muted); margin-top: 8px; font-size: 0.9rem; }
+.highlight { background: var(--yellow-bg); border: 1px solid var(--yellow); border-radius: 8px; padding: 16px; margin: 16px 0; }
+.highlight-title { font-weight: 600; color: var(--yellow); margin-bottom: 8px; }
+.code { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-family: 'SF Mono', Monaco, monospace; font-size: 0.85rem; overflow-x: auto; margin: 12px 0; }
+.cost-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0; }
+.cost-item { background: var(--surface2); border-radius: 8px; padding: 16px; text-align: center; }
+.cost-item .amount { font-size: 1.5rem; font-weight: 700; color: var(--green); }
+.cost-item .label { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+.timeline { margin: 20px 0; }
+.timeline-item { display: flex; gap: 16px; margin: 16px 0; }
+.timeline-week { background: var(--accent); color: var(--bg); padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; white-space: nowrap; height: fit-content; }
+.timeline-content { flex: 1; }
+.flow-diagram { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 16px 0; text-align: center; font-family: monospace; font-size: 0.9rem; line-height: 2; }
+.flow-arrow { color: var(--accent); }
+.status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+.status-badge.ready { background: var(--green-bg); color: var(--green); }
+.status-badge.needed { background: var(--yellow-bg); color: var(--yellow); }
+footer { text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 40px; }
+.prompt-box { background: var(--bg); border: 1px solid var(--accent); border-radius: 8px; padding: 20px; margin: 16px 0; font-size: 0.9rem; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🤖 TLH AI Phone Agent</h1>
+  <p class="subtitle">After-Hours Call Handling with ElevenLabs + CallRail</p>
+  <div class="badge">Implementation Plan v1.0</div>
+</header>
+
+<div class="container">
+
+<div class="card">
+  <h2><span class="icon">🎯</span> Goal</h2>
+  <p>Automatically answer TLH phone calls after business hours with an AI agent that:</p>
+  <ul>
+    <li>Qualifies the caller (estate sale, listing, general inquiry)</li>
+    <li>Captures lead information (name, phone, property address, situation)</li>
+    <li>Creates a Lead in Salesforce</li>
+    <li>Sends confirmation text to caller</li>
+    <li>Preserves all CallRail attribution and tracking</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2><span class="icon">🔄</span> How It Works</h2>
+  <div class="flow-diagram">
+    📞 Inbound Call<br>
+    <span class="flow-arrow">↓</span><br>
+    <strong>CallRail</strong> (tracking number — attribution preserved)<br>
+    <span class="flow-arrow">↓</span><br>
+    Call Flow Builder [Schedule Check]<br>
+    <span class="flow-arrow">↓</span><br>
+    ┌─────────────────┬─────────────────┐<br>
+    │ Business Hours  │  After Hours    │<br>
+    │ → Forward to    │  → SIP Forward  │<br>
+    │   team phones   │    to ElevenLabs│<br>
+    └─────────────────┴─────────────────┘<br>
+    <span class="flow-arrow" style="margin-left: 180px;">↓</span><br>
+    <strong>ElevenLabs AI Agent</strong><br>
+    <span class="flow-arrow">↓</span><br>
+    Webhook → Salesforce Lead<br>
+    <span class="flow-arrow">↓</span><br>
+    SMS Confirmation to Caller
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="icon">🧩</span> Components</h2>
+  <table>
+    <thead>
+      <tr><th>Component</th><th>Status</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>CallRail</strong></td>
+        <td><span class="status-badge ready">✓ Have</span></td>
+        <td>Tracking numbers, attribution, Call Flow Builder</td>
+      </tr>
+      <tr>
+        <td><strong>ElevenLabs</strong></td>
+        <td><span class="status-badge ready">✓ Have</span></td>
+        <td>AI voice agent, SIP trunking, conversation handling</td>
+      </tr>
+      <tr>
+        <td><strong>Salesforce</strong></td>
+        <td><span class="status-badge ready">✓ Have</span></td>
+        <td>Lead creation via webhook</td>
+      </tr>
+      <tr>
+        <td><strong>SIP Trunk Config</strong></td>
+        <td><span class="status-badge needed">To Setup</span></td>
+        <td>Connect CallRail → ElevenLabs</td>
+      </tr>
+      <tr>
+        <td><strong>Webhook Endpoint</strong></td>
+        <td><span class="status-badge needed">To Build</span></td>
+        <td>ElevenLabs → Salesforce Lead creation</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2><span class="icon">💰</span> Cost Estimate</h2>
+  <div class="cost-grid">
+    <div class="cost-item">
+      <div class="amount">$0.00</div>
+      <div class="label">New Phone Numbers</div>
+    </div>
+    <div class="cost-item">
+      <div class="amount">~$0.12</div>
+      <div class="label">Per Minute (AI)</div>
+    </div>
+    <div class="cost-item">
+      <div class="amount">~$15-30</div>
+      <div class="label">Est. Monthly (50-100 calls)</div>
+    </div>
+  </div>
+  
+  <h3>Cost Breakdown</h3>
+  <table>
+    <thead>
+      <tr><th>Item</th><th>Cost</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ElevenLabs Voice</td><td>~$0.08/min</td><td>TTS + ASR</td></tr>
+      <tr><td>LLM (Gemini Flash)</td><td>~$0.02/min</td><td>Cheapest option</td></tr>
+      <tr><td>ElevenLabs Platform</td><td>~$0.02/min</td><td>Turn-taking, orchestration</td></tr>
+      <tr><td>CallRail</td><td>Existing</td><td>No additional cost</td></tr>
+      <tr><td>Salesforce</td><td>Existing</td><td>No additional cost</td></tr>
+    </tbody>
+  </table>
+  
+  <div class="highlight">
+    <div class="highlight-title">💡 Volume Estimate</div>
+    <p>If TLH gets ~50 after-hours calls/month averaging 3 minutes each = 150 minutes = <strong>~$18/month</strong></p>
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="icon">📋</span> Implementation Steps</h2>
+  
+  <h3>Phase 1: ElevenLabs Agent Setup (Day 1)</h3>
+  
+  <div class="step">
+    <span class="step-num">1</span>
+    <span class="step-title">Create Agent in ElevenLabs Dashboard</span>
+    <div class="step-desc">Go to elevenlabs.io → Agents → Create New Agent</div>
+  </div>
+  
+  <div class="step">
+    <span class="step-num">2</span>
+    <span class="step-title">Configure Agent Settings</span>
+    <div class="step-desc">
+      • Voice: Select warm, professional voice (recommend "Rachel" or custom clone)<br>
+      • LLM: Gemini 2.0 Flash (fastest, cheapest)<br>
+      • Language: English (US)
+    </div>
+  </div>
+  
+  <div class="step">
+    <span class="step-num">3</span>
+    <span class="step-title">Set System Prompt</span>
+    <div class="step-desc">See prompt template below</div>
+  </div>
+  
+  <div class="step">
+    <span class="step-num">4</span>
+    <span class="step-title">Add Knowledge Base</span>
+    <div class="step-desc">Upload TLH FAQ, service descriptions, coverage areas</div>
+  </div>
+
+  <h3>Phase 2: SIP Trunk Configuration (Day 1-2)</h3>
+  
+  <div class="step">
+    <span class="step-num">5</span>
+    <span class="step-title">Create SIP Trunk in ElevenLabs</span>
+    <div class="step-desc">
+      Agents → Phone Numbers → Import SIP Trunk<br>
+      • Authentication: IP Allowlist (add CallRail IPs) or Digest Auth<br>
+      • Note the SIP URI: <code>sip:+1XXXXX@sip.rtc.elevenlabs.io:5060</code>
+    </div>
+  </div>
+  
+  <div class="step">
+    <span class="step-num">6</span>
+    <span class="step-title">Configure CallRail Call Flow</span>
+    <div class="step-desc">
+      For each tracking number:<br>
+      • Call Flow Builder → Add "Schedule" step<br>
+      • Business hours: Forward to existing destinations<br>
+      • After hours: Add "SIP Endpoint" step → Enter ElevenLabs SIP URI
+    </div>
+  </div>
+
+  <h3>Phase 3: Salesforce Integration (Day 2-3)</h3>
+  
+  <div class="step">
+    <span class="step-num">7</span>
+    <span class="step-title">Create Webhook Endpoint</span>
+    <div class="step-desc">
+      Options:<br>
+      • Zapier (easiest): ElevenLabs webhook → Zapier → Salesforce Lead<br>
+      • Make.com: Same flow, more control<br>
+      • Custom: Salesforce Flow + Platform Event
+    </div>
+  </div>
+  
+  <div class="step">
+    <span class="step-num">8</span>
+    <span class="step-title">Configure ElevenLabs Server Tool</span>
+    <div class="step-desc">
+      Agent → Tools → Add Server Tool<br>
+      • Name: "create_lead"<br>
+      • Endpoint: Your webhook URL<br>
+      • Parameters: name, phone, address, inquiry_type, notes
+    </div>
+  </div>
+  
+  <div class="step">
+    <span class="step-num">9</span>
+    <span class="step-title">Add SMS Confirmation Tool</span>
+    <div class="step-desc">
+      Use ElevenLabs built-in SMS tool or webhook to Twilio/smrtPhone
+    </div>
+  </div>
+
+  <h3>Phase 4: Testing & Launch (Day 3-4)</h3>
+  
+  <div class="step">
+    <span class="step-num">10</span>
+    <span class="step-title">Test End-to-End</span>
+    <div class="step-desc">
+      • Call tracking number after hours<br>
+      • Verify AI answers correctly<br>
+      • Confirm Lead created in Salesforce<br>
+      • Confirm SMS received
+    </div>
+  </div>
+  
+  <div class="step">
+    <span class="step-num">11</span>
+    <span class="step-title">Gradual Rollout</span>
+    <div class="step-desc">
+      Start with 1-2 tracking numbers, monitor for a week, then expand
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="icon">💬</span> Agent System Prompt</h2>
+  <div class="prompt-box">You are a friendly, professional receptionist for True Legacy Homes, a family-owned company in San Diego that helps families with estate sales, real estate, and senior transitions.
+
+## Your Role
+You answer calls after business hours (before 8am and after 6pm, and weekends). Your job is to:
+1. Greet the caller warmly
+2. Find out what they need help with
+3. Collect their information so someone can call them back
+4. Reassure them that a team member will reach out promptly
+
+## Conversation Flow
+
+### Opening
+"Hi, thanks for calling True Legacy Homes! This is our after-hours line. I'm an AI assistant and I'd be happy to help get you connected with our team. What can I help you with today?"
+
+### Qualifying Questions
+Based on their response, determine if they're calling about:
+- **Estate Sale**: "Are you looking to have an estate sale, or interested in attending one of our upcoming sales?"
+- **Selling Property**: "Are you thinking about selling a home? Is it your own home or are you helping a family member?"
+- **General Inquiry**: "No problem! Let me get your information and have someone call you back."
+
+### Information Collection
+Collect (in natural conversation, not like a form):
+- Their name
+- Best phone number to reach them
+- Property address (if applicable)
+- Brief description of their situation
+- Best time to call back
+
+### Closing
+"Perfect! I've got all your information. Someone from our team will give you a call [tomorrow morning / on Monday / within 24 hours]. Is there anything else I can help you with?"
+
+"Great, have a wonderful [evening/day]! Goodbye."
+
+## Important Guidelines
+- Be warm and conversational, not robotic
+- If someone is emotional (dealing with a death, difficult family situation), be empathetic
+- Don't make promises about pricing or timelines
+- If asked something you don't know, say "I want to make sure you get accurate information, so let me have one of our specialists call you back about that."
+- Keep calls concise but not rushed — aim for 2-3 minutes
+
+## Service Areas
+- San Diego County (primary)
+- Orange County (expanding)
+
+## Business Hours
+Monday-Friday: 8am - 6pm
+Saturday-Sunday: Closed (estate sale events may occur)</div>
+</div>
+
+<div class="card">
+  <h2><span class="icon">📅</span> Timeline</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-week">Day 1</div>
+      <div class="timeline-content">
+        <strong>Agent Setup</strong><br>
+        Create ElevenLabs agent, configure voice/LLM, set system prompt, upload knowledge base
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-week">Day 2</div>
+      <div class="timeline-content">
+        <strong>SIP & CallRail</strong><br>
+        Configure SIP trunk, update CallRail call flows for 1-2 test numbers
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-week">Day 3</div>
+      <div class="timeline-content">
+        <strong>Salesforce Integration</strong><br>
+        Set up webhook (Zapier or direct), configure Lead creation, test end-to-end
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-week">Day 4</div>
+      <div class="timeline-content">
+        <strong>Testing</strong><br>
+        Internal team test calls, refine prompt based on results, fix any issues
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-week">Week 2</div>
+      <div class="timeline-content">
+        <strong>Soft Launch</strong><br>
+        Enable on 2-3 primary numbers, monitor daily, collect feedback
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-week">Week 3+</div>
+      <div class="timeline-content">
+        <strong>Full Rollout</strong><br>
+        Enable on all CallRail numbers, ongoing monitoring and optimization
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="icon">⚠️</span> Risks & Mitigations</h2>
+  <table>
+    <thead>
+      <tr><th>Risk</th><th>Likelihood</th><th>Mitigation</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Caller frustrated with AI</td>
+        <td>Medium</td>
+        <td>Add "press 0 for voicemail" fallback option</td>
+      </tr>
+      <tr>
+        <td>Misunderstood caller intent</td>
+        <td>Medium</td>
+        <td>Agent confirms understanding, human reviews all leads</td>
+      </tr>
+      <tr>
+        <td>Technical failure (SIP down)</td>
+        <td>Low</td>
+        <td>CallRail fallback to voicemail if SIP fails</td>
+      </tr>
+      <tr>
+        <td>Sensitive caller situations</td>
+        <td>Medium</td>
+        <td>Prompt includes empathy guidelines, escalation path</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2><span class="icon">📊</span> Success Metrics</h2>
+  <ul>
+    <li><strong>Lead Capture Rate:</strong> % of after-hours calls that result in a Salesforce Lead</li>
+    <li><strong>Call Completion Rate:</strong> % of calls that complete without hangup/transfer</li>
+    <li><strong>Average Call Duration:</strong> Target 2-3 minutes</li>
+    <li><strong>Lead Quality Score:</strong> % of AI-captured leads that convert to appointments</li>
+    <li><strong>Caller Satisfaction:</strong> Follow-up survey or callback feedback</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2><span class="icon">🚀</span> Next Steps</h2>
+  <ol>
+    <li><strong>Approve this plan</strong> — Any changes needed?</li>
+    <li><strong>Access check</strong> — Confirm ElevenLabs account has Agents access</li>
+    <li><strong>CallRail access</strong> — Who can edit Call Flow Builder?</li>
+    <li><strong>Decide webhook approach</strong> — Zapier (fast) vs custom (more control)?</li>
+    <li><strong>Schedule implementation</strong> — Pick a week to execute</li>
+  </ol>
+</div>
+
+</div>
+
+<footer>
+  True Legacy Homes — AI Phone Agent Implementation Plan<br>
+  Generated February 10, 2026 by Railstote 🦉
+</footer>
+
+</body>
+</html>
