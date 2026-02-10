@@ -754,10 +754,80 @@
         </header>
 
         <div class="tabs">
-            <button class="tab active" data-tab="simulator">🎯 Simulator</button>
+            <button class="tab" data-tab="preflight">✈️ Pre-Flight</button>
+            <button class="tab active" data-tab="simulator">🎯 A/B Test</button>
             <button class="tab" data-tab="archetypes">👥 Archetypes</button>
             <button class="tab" data-tab="history">📊 History</button>
             <button class="tab" data-tab="methodology">📖 Methodology</button>
+        </div>
+
+        <!-- Pre-Flight Tab -->
+        <div id="preflight" class="tab-content">
+            <div class="simulator-section">
+                <h2 class="section-title">
+                    <span>✈️</span>
+                    Pre-Flight Creative Check
+                </h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                    Test a single creative before sending. Get scores and specific feedback from each donor archetype.
+                </p>
+
+                <div class="client-select">
+                    <label for="preflight-client">Client</label>
+                    <select id="preflight-client">
+                        <option value="soldierstrong">SoldierStrong</option>
+                        <option value="herobox">HeroBox</option>
+                        <option value="semperk9">SemperK9</option>
+                        <option value="nrsc">NRSC</option>
+                        <option value="nrcc">NRCC</option>
+                        <option value="rnc">RNC</option>
+                        <option value="ncpd">NCPD</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <select id="preflight-type" style="margin-left: 1rem;">
+                        <option value="mms">MMS</option>
+                        <option value="sms">SMS</option>
+                    </select>
+                </div>
+
+                <div class="creative-input" style="margin-bottom: 1.5rem;">
+                    <label>Creative to Test</label>
+                    <textarea id="preflight-creative" placeholder="Paste your creative here...
+
+Example:
+[firstname|Patriot], Dana Perino here. I just visited the SoldierStrong headquarters and saw something incredible - a paralyzed veteran taking his first steps in an exoskeleton. Can you chip in $25 to help more heroes walk again? [link]" style="min-height: 120px;"></textarea>
+                </div>
+
+                <button class="run-button" id="run-preflight">
+                    <span class="spinner"></span>
+                    <span>✈️ Run Pre-Flight Check</span>
+                </button>
+            </div>
+
+            <div class="results-section" id="preflight-results">
+                <div class="results-header" style="flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+                        <div class="prediction-result" id="preflight-tier">
+                            <span class="icon">🟢</span>
+                            <span class="text">Strong Performer</span>
+                        </div>
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--green);" id="preflight-score">
+                            42 / 55
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1.5rem;" id="preflight-scores">
+                    <!-- Score cards populated by JS -->
+                </div>
+
+                <div class="simulator-section" style="margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">💡 Recommendations</h3>
+                    <div id="preflight-recommendations" style="color: var(--text-muted);">
+                        <!-- Recommendations populated by JS -->
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Simulator Tab -->
@@ -1516,6 +1586,235 @@ You give when you can calculate the impact of your donation.`
 
         // Event listeners
         runButton.addEventListener('click', runTest);
+
+        // ============================================
+        // PRE-FLIGHT MODE
+        // ============================================
+        
+        function scoreCreative(archetype, text) {
+            const lower = text.toLowerCase();
+            let score = 5; // Base score
+            let feedback = [];
+            
+            switch(archetype.id) {
+                case 'patriot':
+                    const patriotKeywords = ['veteran', 'military', 'hero', 'service', 'duty', 'america', 'flag', 'honor', 'sacrifice', 'patriot', 'country', 'freedom'];
+                    let patriotHits = 0;
+                    patriotKeywords.forEach(kw => {
+                        if (lower.includes(kw)) patriotHits++;
+                    });
+                    score = Math.min(10, 4 + patriotHits * 1.5);
+                    if (patriotHits >= 3) feedback.push('Strong patriotic language ✓');
+                    if (patriotHits === 0) feedback.push('Add duty/service language');
+                    break;
+                    
+                case 'celebrity':
+                    const celebrities = ['dana perino', 'kid rock', 'trump', 'president', 'governor', 'senator', 'congressman'];
+                    let celebHit = false;
+                    celebrities.forEach(cel => {
+                        if (lower.includes(cel)) celebHit = true;
+                    });
+                    if (lower.match(/^[^,]+,\s*(dana|kid|president|i'm|i am|this is)/i)) {
+                        score = 9;
+                        feedback.push('First-person celebrity voice ✓');
+                    } else if (celebHit) {
+                        score = 7;
+                        feedback.push('Celebrity mention present');
+                        feedback.push('Consider first-person voice');
+                    } else {
+                        score = 4;
+                        feedback.push('No celebrity/authority voice');
+                        feedback.push('Add trusted spokesperson');
+                    }
+                    break;
+                    
+                case 'urgency':
+                    const urgencyKeywords = ['deadline', 'midnight', 'hours', 'expir', 'now', 'today', 'last chance', 'running out', 'urgent', 'breaking', 'match', 'ends'];
+                    let urgencyHits = 0;
+                    urgencyKeywords.forEach(kw => {
+                        if (lower.includes(kw)) urgencyHits++;
+                    });
+                    if (lower.match(/\d+x\s*(match|impact)/i)) urgencyHits += 2;
+                    if (lower.match(/\d+\s*(hours?|days?)/i)) urgencyHits += 1;
+                    score = Math.min(10, 4 + urgencyHits * 1.5);
+                    if (urgencyHits >= 2) feedback.push('Strong urgency cues ✓');
+                    if (urgencyHits === 0) feedback.push('Add deadline or time pressure');
+                    break;
+                    
+                case 'gratitude':
+                    const gratitudeKeywords = ['thank', 'grateful', 'appreciate', 'because of you', 'you made', 'your support', 'generous', 'loyal'];
+                    let gratHits = 0;
+                    gratitudeKeywords.forEach(kw => {
+                        if (lower.includes(kw)) gratHits++;
+                    });
+                    score = Math.min(10, 4 + gratHits * 2);
+                    if (gratHits >= 2) feedback.push('Warm, appreciative tone ✓');
+                    if (gratHits === 0) feedback.push('Consider adding gratitude');
+                    break;
+                    
+                case 'story':
+                    const storyPatterns = [/meet \w+/i, /\w+'s story/i, /named \w+/i, /this is \w+/i, /his wife/i, /her husband/i, /their family/i];
+                    let storyHits = 0;
+                    storyPatterns.forEach(pat => {
+                        if (lower.match(pat)) storyHits++;
+                    });
+                    score = Math.min(10, 4 + storyHits * 2);
+                    if (storyHits >= 1) feedback.push('Personal narrative present ✓');
+                    if (storyHits === 0) feedback.push('Add named individual or story');
+                    break;
+                    
+                case 'impact':
+                    const impactPatterns = [/\d+%/, /\$\d+/, /\d+ (veterans|dogs|people|families|heroes|officers)/i, /every \$?\d+/i];
+                    let impactHits = 0;
+                    impactPatterns.forEach(pat => {
+                        if (lower.match(pat)) impactHits++;
+                    });
+                    score = Math.min(10, 4 + impactHits * 2);
+                    // Note: High impact score is actually anti-predictive
+                    if (impactHits >= 2) feedback.push('Heavy on metrics (⚠️ may underperform)');
+                    if (impactHits === 0) feedback.push('No metrics (often fine)');
+                    break;
+            }
+            
+            // Personalization bonus
+            if (lower.includes('[firstname')) {
+                score = Math.min(10, score + 0.5);
+            }
+            
+            return { 
+                score: Math.round(score * 10) / 10, 
+                feedback: feedback.length > 0 ? feedback : ['Neutral']
+            };
+        }
+        
+        async function runPreflight() {
+            const text = document.getElementById('preflight-creative').value.trim();
+            const client = document.getElementById('preflight-client').value;
+            const type = document.getElementById('preflight-type').value;
+            
+            if (!text) {
+                alert('Please paste a creative to test.');
+                return;
+            }
+            
+            const preflightBtn = document.getElementById('run-preflight');
+            preflightBtn.classList.add('loading');
+            preflightBtn.disabled = true;
+            loadingOverlay.classList.add('visible');
+            
+            const scores = [];
+            let weightedTotal = 0;
+            const maxPossible = archetypes.reduce((sum, a) => sum + (10 * a.weight), 0);
+            
+            for (const arch of archetypes) {
+                loadingPersona.textContent = arch.name;
+                await new Promise(r => setTimeout(r, 300));
+                
+                const result = scoreCreative(arch, text);
+                weightedTotal += result.score * arch.weight;
+                scores.push({
+                    archetype: arch,
+                    score: result.score,
+                    feedback: result.feedback
+                });
+            }
+            
+            loadingOverlay.classList.remove('visible');
+            preflightBtn.classList.remove('loading');
+            preflightBtn.disabled = false;
+            
+            // Determine tier
+            let tier, tierEmoji, tierColor;
+            if (weightedTotal >= 40) {
+                tier = 'Strong Performer';
+                tierEmoji = '🟢';
+                tierColor = 'var(--green)';
+            } else if (weightedTotal >= 30) {
+                tier = 'Average';
+                tierEmoji = '🟡';
+                tierColor = 'var(--yellow)';
+            } else if (weightedTotal >= 20) {
+                tier = 'Weak';
+                tierEmoji = '🟠';
+                tierColor = 'var(--orange)';
+            } else {
+                tier = 'Poor — Reconsider';
+                tierEmoji = '🔴';
+                tierColor = 'var(--red)';
+            }
+            
+            // Update tier display
+            const tierEl = document.getElementById('preflight-tier');
+            tierEl.innerHTML = `<span class="icon">${tierEmoji}</span><span class="text">${tier}</span>`;
+            tierEl.style.borderColor = tierColor;
+            tierEl.style.color = tierColor;
+            
+            // Update score display
+            const scoreEl = document.getElementById('preflight-score');
+            scoreEl.textContent = `${Math.round(weightedTotal)} / ${Math.round(maxPossible)}`;
+            scoreEl.style.color = tierColor;
+            
+            // Render score cards
+            const scoresEl = document.getElementById('preflight-scores');
+            scoresEl.innerHTML = scores.map(s => `
+                <div class="vote-card" style="border-color: ${s.score >= 7 ? 'var(--green)' : s.score >= 5 ? 'var(--yellow)' : 'var(--red)'};">
+                    <div class="vote-card-header">
+                        <div class="archetype-icon ${s.archetype.color}">${s.archetype.icon}</div>
+                        <div class="archetype-name">${s.archetype.name}</div>
+                        <div style="margin-left: auto; font-size: 1.5rem; font-weight: 700; color: ${s.score >= 7 ? 'var(--green)' : s.score >= 5 ? 'var(--yellow)' : 'var(--red)'};">
+                            ${s.score}/10
+                        </div>
+                    </div>
+                    <div class="vote-reasoning">
+                        ${s.feedback.map(f => `<div>→ ${f}</div>`).join('')}
+                        <div style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+                            Weight: ${s.archetype.weight.toFixed(1)}x
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Generate recommendations
+            const recsEl = document.getElementById('preflight-recommendations');
+            const lowScorers = scores.filter(s => s.score < 6 && s.archetype.weight >= 0.8);
+            const highScorers = scores.filter(s => s.score >= 8);
+            
+            let recs = [];
+            
+            if (lowScorers.length > 0) {
+                recs.push(`<strong>Areas to strengthen:</strong>`);
+                lowScorers.forEach(s => {
+                    const fixes = s.feedback.filter(f => !f.includes('✓'));
+                    if (fixes.length > 0) {
+                        recs.push(`• ${s.archetype.name}: ${fixes.join(', ')}`);
+                    }
+                });
+            }
+            
+            if (highScorers.length > 0) {
+                recs.push(`<br><strong>Strengths:</strong>`);
+                highScorers.forEach(s => {
+                    const wins = s.feedback.filter(f => f.includes('✓'));
+                    if (wins.length > 0) {
+                        recs.push(`• ${s.archetype.name}: ${wins.join(', ')}`);
+                    }
+                });
+            }
+            
+            // Warning about Impact Seeker
+            const impactScore = scores.find(s => s.archetype.id === 'impact');
+            if (impactScore && impactScore.score >= 8) {
+                recs.push(`<br>⚠️ <strong>Caution:</strong> High Impact Seeker score often correlates with <em>lower</em> real-world performance. Consider reducing metrics and adding emotional triggers.`);
+            }
+            
+            recsEl.innerHTML = recs.join('<br>');
+            
+            // Show results
+            document.getElementById('preflight-results').classList.add('visible');
+            document.getElementById('preflight-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        document.getElementById('run-preflight').addEventListener('click', runPreflight);
 
         // Initialize
         updateHistoryUI();
