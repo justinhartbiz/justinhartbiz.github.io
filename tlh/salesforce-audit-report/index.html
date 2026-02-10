@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLH Salesforce Platform Audit — Executive Dashboard</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2333;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --accent: #58a6ff;
+  --accent2: #388bfd;
+  --red: #f85149;
+  --red-bg: rgba(248,81,73,0.12);
+  --yellow: #d29922;
+  --yellow-bg: rgba(210,153,34,0.12);
+  --green: #3fb950;
+  --green-bg: rgba(63,185,80,0.12);
+  --orange: #db6d28;
+  --purple: #bc8cff;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+#login-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; background: var(--bg); }
+#login-box { background: var(--surface); border:1px solid var(--border); border-radius:12px; padding:48px; max-width:420px; width:90%; text-align:center; }
+#login-box h1 { font-size:1.5rem; margin-bottom:8px; }
+#login-box p { color:var(--text-muted); margin-bottom:24px; font-size:0.9rem; }
+#login-box input { width:100%; padding:12px 16px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:1rem; margin-bottom:16px; outline:none; }
+#login-box input:focus { border-color:var(--accent); }
+#login-box button { width:100%; padding:12px; border-radius:8px; border:none; background:var(--accent2); color:#fff; font-size:1rem; font-weight:600; cursor:pointer; }
+#login-box button:hover { background:var(--accent); }
+#login-error { color:var(--red); font-size:0.85rem; margin-bottom:12px; display:none; }
+#app { display:none; }
+header { background: var(--surface); border-bottom:1px solid var(--border); padding:16px 24px; position:sticky; top:0; z-index:100; }
+header .brand { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+header .brand h1 { font-size:1.25rem; font-weight:700; }
+header .brand .badge { background:var(--yellow-bg); color:var(--yellow); padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:600; }
+.tab-bar { display:flex; gap:4px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
+.tab-bar button { flex-shrink:0; padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid transparent; border-bottom:none; background:transparent; color:var(--text-muted); font-size:0.85rem; font-weight:500; cursor:pointer; white-space:nowrap; transition:all .15s; }
+.tab-bar button:hover { color:var(--text); background:var(--surface2); }
+.tab-bar button.active { background:var(--bg); color:var(--accent); border-color:var(--border); font-weight:600; }
+main { max-width:1100px; margin:0 auto; padding:24px; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:20px; }
+.card h2 { font-size:1.15rem; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.card h3 { font-size:1rem; margin:16px 0 8px; color:var(--accent); }
+.rating { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:8px; font-size:0.8rem; font-weight:600; }
+.rating.red { background:var(--red-bg); color:var(--red); }
+.rating.yellow { background:var(--yellow-bg); color:var(--yellow); }
+.rating.green { background:var(--green-bg); color:var(--green); }
+table { width:100%; border-collapse:collapse; margin:12px 0; font-size:0.88rem; }
+th, td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); }
+th { color:var(--text-muted); font-weight:600; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; }
+tr:last-child td { border-bottom:none; }
+ul, ol { padding-left:20px; margin:8px 0; }
+li { margin:4px 0; font-size:0.92rem; }
+.collapsible { cursor:pointer; user-select:none; }
+.collapsible::before { content:'▸ '; color:var(--accent); transition:transform .2s; display:inline-block; }
+.collapsible.open::before { content:'▾ '; }
+.collapsible-content { display:none; margin-top:12px; }
+.collapsible-content.open { display:block; }
+.heat-map { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin:16px 0; }
+.heat-cell { padding:16px; border-radius:10px; text-align:center; }
+.heat-cell .label { font-size:0.8rem; color:var(--text-muted); margin-bottom:4px; }
+.heat-cell .value { font-size:1.5rem; font-weight:700; }
+.heat-cell.red { background:var(--red-bg); }
+.heat-cell.red .value { color:var(--red); }
+.heat-cell.yellow { background:var(--yellow-bg); }
+.heat-cell.yellow .value { color:var(--yellow); }
+.heat-cell.green { background:var(--green-bg); }
+.heat-cell.green .value { color:var(--green); }
+.stat-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin:16px 0; }
+.stat { background:var(--surface2); border-radius:10px; padding:16px; text-align:center; }
+.stat .num { font-size:1.8rem; font-weight:700; color:var(--accent); }
+.stat .lbl { font-size:0.78rem; color:var(--text-muted); margin-top:4px; }
+.action-item { background:var(--surface2); border-left:3px solid var(--red); padding:12px 16px; border-radius:0 8px 8px 0; margin:8px 0; }
+.action-item.warn { border-left-color:var(--yellow); }
+.action-item .title { font-weight:600; font-size:0.92rem; }
+.action-item .desc { font-size:0.85rem; color:var(--text-muted); margin-top:4px; }
+.rec-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
+@media (max-width:700px) { .rec-grid { grid-template-columns:1fr; } .heat-map { grid-template-columns:1fr 1fr; } }
+.section-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.section-header h2 { margin:0; }
+footer { text-align:center; padding:32px; color:var(--text-muted); font-size:0.8rem; border-top:1px solid var(--border); margin-top:40px; }
+@media print {
+  body { background:#fff; color:#000; }
+  .tab-bar, #login-screen { display:none !important; }
+  #app { display:block !important; }
+  .tab-content { display:block !important; page-break-before:always; }
+  .tab-content:first-child { page-break-before:auto; }
+  .card { border:1px solid #ccc; break-inside:avoid; }
+  header { position:static; background:#fff; border-bottom:2px solid #000; }
+  .collapsible-content { display:block !important; }
+  .heat-cell.red, .heat-cell.yellow, .heat-cell.green { border:2px solid #999; }
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div id="login-box">
+    <h1>🔒 TLH Salesforce Audit</h1>
+    <p>Executive Dashboard — Confidential</p>
+    <div id="login-error">Incorrect password. Try again.</div>
+    <input type="password" id="pwd" placeholder="Enter password" autofocus>
+    <button onclick="doLogin()">Access Report</button>
+  </div>
+</div>
+
+<div id="app">
+<header>
+  <div class="brand">
+    <h1>True Legacy Homes — Salesforce Platform Audit</h1>
+    <span class="badge">CONFIDENTIAL</span>
+  </div>
+  <div class="tab-bar" id="tabBar">
+    <button class="active" onclick="showTab(0)">Executive Summary</button>
+    <button onclick="showTab(1)">Phase 1: Data Model</button>
+    <button onclick="showTab(2)">Phase 2: Users & Access</button>
+    <button onclick="showTab(3)">Phase 3: Automation</button>
+    <button onclick="showTab(4)">Phase 4: Integrations</button>
+    <button onclick="showTab(5)">Phase 5: Reporting</button>
+    <button onclick="showTab(6)">Phase 6: AI Readiness</button>
+    <button onclick="showTab(7)">Phase 7: Training & Rollout</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ===================== TAB 0: EXECUTIVE SUMMARY ===================== -->
+<div class="tab-content active" id="tab0">
+
+<div class="card">
+  <h2>Overall Platform Health</h2>
+  <div style="text-align:center;margin:20px 0">
+    <span class="rating yellow" style="font-size:1.3rem;padding:8px 24px;">🟡 MANAGEABLE BUT CONCERNING</span>
+  </div>
+  <p style="text-align:center;color:var(--text-muted);max-width:700px;margin:0 auto">The org works today — deals close, data exists — but structural issues are compounding. Without intervention within 12-18 months, every new initiative (AI, portals, NetSuite) will take 3× longer and cost significantly more than it should.</p>
+</div>
+
+<div class="card">
+  <h2>Risk Heat Map — By Section</h2>
+  <div class="heat-map">
+    <div class="heat-cell yellow"><div class="label">Org Architecture</div><div class="value">🟡</div></div>
+    <div class="heat-cell red"><div class="label">Data Model</div><div class="value">🔴</div></div>
+    <div class="heat-cell yellow"><div class="label">Automation</div><div class="value">🟡</div></div>
+    <div class="heat-cell yellow"><div class="label">UX & Friction</div><div class="value">🟡</div></div>
+    <div class="heat-cell red"><div class="label">Reporting</div><div class="value">🔴</div></div>
+    <div class="heat-cell yellow"><div class="label">Integrations</div><div class="value">🟡</div></div>
+    <div class="heat-cell red"><div class="label">Security & Access</div><div class="value">🔴</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>By the Numbers</h2>
+  <div class="stat-row">
+    <div class="stat"><div class="num">7,153</div><div class="lbl">Accounts</div></div>
+    <div class="stat"><div class="num">183</div><div class="lbl">Active Flows (3× benchmark)</div></div>
+    <div class="stat"><div class="num">43</div><div class="lbl">Apex Triggers</div></div>
+    <div class="stat"><div class="num">94</div><div class="lbl">Permission Sets</div></div>
+    <div class="stat"><div class="num">200+</div><div class="lbl">Reports</div></div>
+    <div class="stat"><div class="num">14+</div><div class="lbl">External Integrations</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🚨 Top 12 Critical Findings</h2>
+  <ol>
+    <li><strong>Property data exists in 3 places</strong> — LeftMain object, Account record type, Lead record type. No single source of truth.</li>
+    <li><strong>People data split across Contact & Person Account</strong> — 9,301 Contacts vs 7,153 Accounts creates duplicates and broken reporting.</li>
+    <li><strong>183 active Flows is 3-4× industry benchmark</strong> — undocumented, multiple builders, overlapping logic. Any change is high-risk.</li>
+    <li><strong>Security posture is HIGH-RISK</strong> — 94 Permission Sets, no access governance, sensitive financial data visibility unverified.</li>
+    <li><strong>Reporting is unreliable</strong> — 200+ reports built on fragmented data model; aggregate numbers require manual reconciliation.</li>
+    <li><strong>LeftMain CRM dependency</strong> — managed package controls core schema. Vendor lock-in limits customization and creates external risk.</li>
+    <li><strong>Two phone systems (smrtPhone + RingCentral)</strong> — duplicate activity logs, user confusion, wasted spend.</li>
+    <li><strong>No automation governance</strong> — no naming conventions, no ownership, no documentation. Tribal knowledge is the only guide.</li>
+    <li><strong>Zapier webhooks fail silently</strong> — 4 core object sync triggers with zero failure visibility.</li>
+    <li><strong>Account object abused with 8 record types</strong> — conflates people, properties, organizations, and roles.</li>
+    <li><strong>Opportunity stages don't match workflow reality</strong> — 15 stages with inconsistent probabilities; Townsquare used for actual transaction management.</li>
+    <li><strong>No segregation of duties</strong> — deal creation through approval may be in same hands; insider risk unmitigated.</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h2>⚡ Top 5 Immediate Actions Required</h2>
+  <div class="action-item">
+    <div class="title">1. Make the LeftMain Decision — Keep or Remove</div>
+    <div class="desc">This single decision affects 40% of data model choices. Everything cascades from this. Recommendation: Remove for clean break and full schema control.</div>
+  </div>
+  <div class="action-item">
+    <div class="title">2. Conduct Emergency Security & Access Audit</div>
+    <div class="desc">Export all users with permissions. Lock sensitive objects (IC decisions, pro formas). Establish admin succession. Cannot pass a basic audit today.</div>
+  </div>
+  <div class="action-item">
+    <div class="title">3. Freeze All New Automation</div>
+    <div class="desc">No new flows or triggers until inventory is complete and an Automation Owner is designated. Every new flow increases Phase 3 migration cost.</div>
+  </div>
+  <div class="action-item warn">
+    <div class="title">4. Consolidate Phone Systems</div>
+    <div class="desc">Pick smrtPhone OR RingCentral. Sunset the other within 90 days. Eliminate duplicate data, reduce cost, simplify training.</div>
+  </div>
+  <div class="action-item warn">
+    <div class="title">5. Audit Zapier Failure History</div>
+    <div class="desc">Check what has been silently failing. Identify critical vs. convenience Zaps. Begin Platform Event migration planning.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🔑 Key Decisions Required</h2>
+  <table>
+    <thead><tr><th>Decision</th><th>Options</th><th>Recommendation</th><th>Impact</th></tr></thead>
+    <tbody>
+      <tr><td>LeftMain CRM</td><td>Keep (constrained) vs. Remove (migration)</td><td><strong>Remove</strong></td><td>Affects 40% of design</td></tr>
+      <tr><td>Property Object</td><td>LeftMain object vs. Native custom object</td><td><strong>Native</strong></td><td>Foundation for all reporting</td></tr>
+      <tr><td>People Model</td><td>Keep Contact + Person Account vs. Person Account only</td><td><strong>Person Account only</strong></td><td>Eliminates duplicates</td></tr>
+      <tr><td>Phone System</td><td>smrtPhone vs. RingCentral</td><td><strong>Survey users, pick one</strong></td><td>Data quality + cost</td></tr>
+      <tr><td>Care Placement</td><td>Keep in Opportunity vs. Separate object</td><td><strong>Evaluate</strong></td><td>Different sales cycle?</td></tr>
+      <tr><td>Fireflies.ai</td><td>Keep + define workflow vs. Decommission</td><td><strong>Decide quickly</strong></td><td>Data landing zone unknown</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>📅 Timeline Implications</h2>
+  <table>
+    <thead><tr><th>Phase</th><th>Estimated Duration</th><th>Prerequisites</th></tr></thead>
+    <tbody>
+      <tr><td>Immediate decisions (LeftMain, telephony, security)</td><td>Weeks 1-2</td><td>Leadership alignment</td></tr>
+      <tr><td>Data model redesign (Property, Person Account)</td><td>Weeks 3-8</td><td>LeftMain decision</td></tr>
+      <tr><td>Automation cleanup (183 → 50 flows)</td><td>Weeks 5-12</td><td>Data model stable</td></tr>
+      <tr><td>Integration rationalization</td><td>Weeks 8-14</td><td>Phone decision, automation cleanup</td></tr>
+      <tr><td>Reporting rebuild</td><td>Weeks 12-16</td><td>Data model + automation complete</td></tr>
+      <tr><td>AI readiness & portals</td><td>Weeks 16+</td><td>Clean data foundation</td></tr>
+      <tr><td>Training & rollout</td><td>Ongoing</td><td>Parallel with all phases</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:12px;color:var(--text-muted);font-size:0.88rem"><strong>Critical path:</strong> The longer you wait, the more expensive the fix. Every month adds more data, automations, and dependencies. This is a six-figure decision — there is no cheap option, only honest ones.</p>
+</div>
+
+</div>
+
+<!-- ===================== TAB 1: DATA MODEL ===================== -->
+<div class="tab-content" id="tab1">
+
+<div class="section-header">
+  <h2>Phase 1: Data Model — Core Objects & Relationships</h2>
+  <span class="rating red">🔴 Structurally Compromised</span>
+</div>
+
+<div class="card">
+  <h2>Executive Summary</h2>
+  <ul>
+    <li>The Account object is abused with <strong>8 record types</strong> conflating people, properties, organizations, and roles.</li>
+    <li>Property data exists in <strong>3 separate places</strong> — no single source of truth for the core business asset.</li>
+    <li>Contact (9,301) and Person Account coexist — the classic Salesforce anti-pattern creating duplicates.</li>
+    <li>LeftMain CRM creates a <strong>parallel data universe</strong> with its own Property, Transaction, and Vendor objects.</li>
+    <li>Opportunity structure is the <strong>healthiest part</strong> — record types align with business transaction types.</li>
+    <li>Paul's proposed model is <strong>structurally sound</strong> and addresses the core issues correctly.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Account Object — 7,153 Records, 8 Record Types</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Record Type</th><th>Assessment</th><th>Recommendation</th></tr></thead>
+      <tbody>
+        <tr><td>Person Account</td><td><span class="rating green">✅ Correct</span></td><td>Keep — standard B2C pattern</td></tr>
+        <tr><td>Business Account</td><td><span class="rating green">✅ Correct</span></td><td>Keep — organizations, employers</td></tr>
+        <tr><td>Property Account</td><td><span class="rating red">🔴 Wrong Object</span></td><td>Migrate to Property__c custom object</td></tr>
+        <tr><td>Buyer</td><td><span class="rating yellow">🟡 Should Be Field</span></td><td>Person Account + role indicator field</td></tr>
+        <tr><td>Lender</td><td><span class="rating yellow">🟡 Should Be Field</span></td><td>Business Account + type picklist</td></tr>
+        <tr><td>Vendor</td><td><span class="rating yellow">🟡 Should Be Field</span></td><td>Business Account + type picklist</td></tr>
+        <tr><td>Realtor</td><td><span class="rating yellow">🟡 Should Be Field</span></td><td>Person Account + profession field</td></tr>
+        <tr><td>Care Community</td><td><span class="rating yellow">🟡 Should Be Field</span></td><td>Business Account + type picklist</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px;color:var(--text-muted)"><strong>Target:</strong> Consolidate to 2 record types — Person Account + Business Account. All others become fields or related objects.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">The Property Crisis — 3 Representations, Zero Truth</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Location</th><th>Object</th><th>Problem</th></tr></thead>
+      <tbody>
+        <tr><td>Left_Main__Property__c</td><td>Managed package custom object</td><td>Limited customization, vendor dependency</td></tr>
+        <tr><td>Account (Property Account RT)</td><td>Standard object, wrong use</td><td>Properties aren't accounts — breaks hierarchies</td></tr>
+        <tr><td>Lead (Property RT)</td><td>Standard object, wrong use</td><td>Properties aren't leads — pollutes conversion metrics</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px">A property is a <strong>physical asset</strong> that persists across transactions. It must be a first-class custom object with relationships to Opportunities (Acquisition → Renovation → Listing).</p>
+    <p style="color:var(--red);font-weight:600;margin-top:8px">Without a unified Property object, property lifecycle ROI reporting is impossible.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Opportunity Object — 5,767 Records</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Current RT</th><th>Proposed RT</th><th>Health</th></tr></thead>
+      <tbody>
+        <tr><td>Cash Offer</td><td>Acquisition</td><td><span class="rating green">🟢</span></td></tr>
+        <tr><td>Listing</td><td>Owned Listing + Client Listing</td><td><span class="rating green">🟢 Smart split</span></td></tr>
+        <tr><td>Estate Sale</td><td>Estate Sale</td><td><span class="rating green">🟢</span></td></tr>
+        <tr><td>Renovation</td><td>Renovation</td><td><span class="rating green">🟢</span></td></tr>
+        <tr><td>Care Placement</td><td>TBD</td><td><span class="rating yellow">🟡 Decision needed</span></td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px;color:var(--green)">Opportunity is the healthiest part of the current model. Paul's refinements are sound.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Strategic Recommendations</h2>
+  <div class="rec-grid">
+    <div class="action-item"><div class="title">Week 1: Make LeftMain Decision</div><div class="desc">Blocking dependency — 40% of choices cascade from this.</div></div>
+    <div class="action-item"><div class="title">Week 1-2: Define Property Object</div><div class="desc">Choose ONE representation. Design schema, relationships.</div></div>
+    <div class="action-item warn"><div class="title">Weeks 3-8: Migrate Property Accounts</div><div class="desc">Create Property__c, migrate data, update automations.</div></div>
+    <div class="action-item warn"><div class="title">Weeks 3-8: Consolidate Account RTs</div><div class="desc">8 → 2 record types. Buyer, Vendor, Realtor → fields.</div></div>
+  </div>
+</div>
+
+</div>
+
+<!-- ===================== TAB 2: USERS & ACCESS ===================== -->
+<div class="tab-content" id="tab2">
+
+<div class="section-header">
+  <h2>Phase 2: Users & Access — Security & Permissions</h2>
+  <span class="rating red">🔴 High-Risk & Overexposed</span>
+</div>
+
+<div class="card">
+  <h2>Executive Summary</h2>
+  <ul>
+    <li><strong>94 Permission Sets</strong> for ~20-50 users = reactive access sprawl with no strategy.</li>
+    <li><strong>25 Profiles</strong> (benchmark: 5-10) — created per-person, not per-role.</li>
+    <li>Sensitive financial data (IC decisions, pro formas, deal terms) has <strong>no verified access controls</strong>.</li>
+    <li><strong>No segregation of duties</strong> — same person may create, approve, and close a deal.</li>
+    <li>Cannot pass a <strong>basic regulatory or client audit</strong> today.</li>
+    <li>Admin access is <strong>concentrated and undocumented</strong> — critical bus-factor risk.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Permission Set Sprawl Analysis</h3>
+  <div class="collapsible-content">
+    <div class="stat-row">
+      <div class="stat"><div class="num">94</div><div class="lbl">Permission Sets (Target: 15-20)</div></div>
+      <div class="stat"><div class="num">25</div><div class="lbl">Profiles (Target: 5-10)</div></div>
+      <div class="stat"><div class="num">~4</div><div class="lbl">Avg Permission Sets/User</div></div>
+    </div>
+    <p>Permission sets were created reactively: "User X needs field Y → new permission set." Result: overlapping grants, unknown effective permissions, impossible auditing.</p>
+    <p style="margin-top:8px">Managed packages (LeftMain, DocuSign, DLRS, PropertySalesAI) contribute 25+ additional permission sets with hidden access grants to standard objects.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Sensitive Data Exposure Risk</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Data Category</th><th>Object</th><th>Who Should See</th><th>Verified?</th></tr></thead>
+      <tbody>
+        <tr><td>IC Decisions</td><td>IC_DoA_Log__c</td><td>Executives, DoA</td><td>❓ Unknown</td></tr>
+        <tr><td>Property Valuations</td><td>Acquisition_Pro_Forma__c</td><td>Evaluators, IC</td><td>❓ Unknown</td></tr>
+        <tr><td>Deal Terms & Commissions</td><td>Opportunity, Transaction</td><td>Parties + Finance</td><td>❓ Unknown</td></tr>
+        <tr><td>Client PII</td><td>Person Account, Contact</td><td>Account owners, Ops</td><td>❓ Unknown</td></tr>
+        <tr><td>Financial Pro Forma</td><td>Pro Forma objects</td><td>Finance, IC</td><td>❓ Unknown</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px;color:var(--red)">Default Salesforce sharing is typically "Public Read/Write" — meaning everyone sees everything unless explicitly restricted.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Governance Gaps</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Element</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Access granting process</td><td>❌ Not documented</td></tr>
+        <tr><td>Access revocation (termination)</td><td>❌ Not documented</td></tr>
+        <tr><td>Periodic access review</td><td>❌ Not evident</td></tr>
+        <tr><td>Change documentation</td><td>❌ Not evident</td></tr>
+        <tr><td>Principle of least privilege</td><td>❌ Not applied</td></tr>
+        <tr><td>Segregation of duties</td><td>❌ Not enforced</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Strategic Recommendations</h2>
+  <div class="action-item"><div class="title">Immediate: Emergency Access Audit</div><div class="desc">Export all users with profiles + permission sets. Map sensitive object sharing rules. Identify all System Administrators.</div></div>
+  <div class="action-item"><div class="title">Immediate: Admin Succession Plan</div><div class="desc">Document credentials, establish backup admin, enable enhanced audit trail monitoring.</div></div>
+  <div class="action-item"><div class="title">Immediate: Lock Sensitive Objects</div><div class="desc">Set IC_DoA_Log__c and Pro Forma objects to Private. Add explicit sharing rules for authorized roles only.</div></div>
+  <div class="action-item warn"><div class="title">Phase 2: Redesign from Scratch</div><div class="desc">Define 5-7 functional roles → 5-7 base profiles → 10-15 permission sets → Permission Set Groups. Document everything.</div></div>
+</div>
+
+</div>
+
+<!-- ===================== TAB 3: AUTOMATION ===================== -->
+<div class="tab-content" id="tab3">
+
+<div class="section-header">
+  <h2>Phase 3: Workflows & Automation</h2>
+  <span class="rating yellow">🟡 Functional But Fragile</span>
+</div>
+
+<div class="card">
+  <h2>Executive Summary</h2>
+  <ul>
+    <li>Automation is <strong>3-4× larger than appropriate</strong>: 183 Flows, 43 Triggers, 47 Validation Rules = 273 components.</li>
+    <li><strong>No "one trigger per object" pattern</strong> — Lead has 6 triggers, Opportunity has 4. Execution order unpredictable.</li>
+    <li><strong>No governance</strong>: no naming convention, no documentation, no ownership, no change control.</li>
+    <li>Tribal knowledge is the <strong>single biggest risk</strong> — 6+ month onboarding for a new admin.</li>
+    <li>Validation rules are the <strong>healthiest part</strong> — stage-gated requirements are appropriate.</li>
+    <li>Paul's Phase 3 "one trigger per object" approach is correct but requires 60-90 days of cleanup.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Automation Density vs. Benchmarks</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Metric</th><th>Current</th><th>Benchmark</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Active Flows</td><td>183</td><td>40-60</td><td><span class="rating red">3× over</span></td></tr>
+        <tr><td>Apex Triggers</td><td>43</td><td>10-15</td><td><span class="rating red">3× over</span></td></tr>
+        <tr><td>Validation Rules</td><td>47</td><td>30-40</td><td><span class="rating yellow">Acceptable</span></td></tr>
+        <tr><td>Total Components</td><td>273</td><td>80-115</td><td><span class="rating red">2.5× over</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Critical: Multiple Triggers Per Object</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Object</th><th>Triggers</th><th>Flows</th><th>Total</th><th>Risk</th></tr></thead>
+      <tbody>
+        <tr><td>Lead</td><td>6</td><td>17+</td><td>35+</td><td><span class="rating red">🔴 Critical</span></td></tr>
+        <tr><td>Opportunity</td><td>4</td><td>24+</td><td>42+</td><td><span class="rating red">🔴 Critical</span></td></tr>
+        <tr><td>Account</td><td>3</td><td>6+</td><td>13+</td><td><span class="rating yellow">🟡 Moderate</span></td></tr>
+        <tr><td>Contact</td><td>3</td><td>5+</td><td>8+</td><td><span class="rating yellow">🟡 Moderate</span></td></tr>
+        <tr><td>Task</td><td>3</td><td>6+</td><td>9+</td><td><span class="rating yellow">🟡 Moderate</span></td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px">Salesforce does <strong>not guarantee</strong> trigger execution order with multiple triggers on the same object. A Lead insert fires 6 triggers in unpredictable order — data can be modified mid-stream.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Governance Assessment</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Element</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Naming Convention</td><td>❌ Multiple conventions across builders</td></tr>
+        <tr><td>Documentation</td><td>❌ No flow descriptions or trigger comments</td></tr>
+        <tr><td>Ownership</td><td>❌ No owner metadata</td></tr>
+        <tr><td>Change Log</td><td>❌ No versioning</td></tr>
+        <tr><td>Review Process</td><td>❌ Unknown</td></tr>
+        <tr><td>Execution Order Docs</td><td>❌ Critical gap</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Strategic Recommendations</h2>
+  <div class="action-item"><div class="title">Week 1: Freeze + Assign Automation Owner</div><div class="desc">No new flows without approval. One person owns all automation decisions.</div></div>
+  <div class="action-item"><div class="title">Weeks 1-4: Complete Automation Inventory</div><div class="desc">Document every flow and trigger: purpose, events, fields, owner. Estimated: 40-60 hours.</div></div>
+  <div class="action-item warn"><div class="title">Weeks 5-8: One Trigger Per Object</div><div class="desc">Consolidate to handler class pattern. 80-120 hours of developer effort.</div></div>
+  <div class="action-item warn"><div class="title">Weeks 9-12: Flow Consolidation</div><div class="desc">183 → 40-60 well-documented flows. 120-160 hours.</div></div>
+</div>
+
+</div>
+
+<!-- ===================== TAB 4: INTEGRATIONS ===================== -->
+<div class="tab-content" id="tab4">
+
+<div class="section-header">
+  <h2>Phase 4: Integrations & External Systems</h2>
+  <span class="rating yellow">🟡 Functional But Fragile</span>
+</div>
+
+<div class="card">
+  <h2>Executive Summary</h2>
+  <ul>
+    <li><strong>14+ external systems</strong> connected reactively — no integration architecture, no map, unclear ownership.</li>
+    <li>Two phone systems <strong>(smrtPhone + RingCentral)</strong> creating duplicate activity logs and operational confusion.</li>
+    <li><strong>Zapier webhooks fail silently</strong> — 4 core object sync triggers with zero failure visibility.</li>
+    <li>Fireflies.ai transcriptions have <strong>no clear destination</strong> — data may be lost.</li>
+    <li>SF/NetSuite boundary is <strong>stated but not verified</strong> — silent overwrites possible.</li>
+    <li>API usage at 17% provides headroom, but MLS + AI scaling could stress limits.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Integration Health Matrix</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Integration</th><th>Health</th><th>Criticality</th><th>Owner</th></tr></thead>
+      <tbody>
+        <tr><td>DocuSign</td><td><span class="rating green">🟢 Stable</span></td><td>Mission-Critical</td><td>Admin</td></tr>
+        <tr><td>NetSuite</td><td><span class="rating green">🟢 Stable</span></td><td>Mission-Critical</td><td>Finance</td></tr>
+        <tr><td>Mailchimp</td><td><span class="rating green">🟢 Stable</span></td><td>Moderate</td><td>Marketing</td></tr>
+        <tr><td>DLRS / Rollup Helper</td><td><span class="rating green">🟢 Stable</span></td><td>High</td><td>Admin</td></tr>
+        <tr><td>smrtPhone</td><td><span class="rating yellow">🟡 Overlaps RC</span></td><td>High</td><td>❓ Unknown</td></tr>
+        <tr><td>RingCentral</td><td><span class="rating yellow">🟡 Overlaps sP</span></td><td>High</td><td>❓ Unknown</td></tr>
+        <tr><td>CallRail</td><td><span class="rating yellow">🟡 Functional</span></td><td>High</td><td>❓ Unknown</td></tr>
+        <tr><td>LeftMain CRM</td><td><span class="rating yellow">🟡 Functional</span></td><td>Critical</td><td>❓ Unknown</td></tr>
+        <tr><td>MLS Feed</td><td><span class="rating yellow">🟡 Functional</span></td><td>High</td><td>❓ Unknown</td></tr>
+        <tr><td>PropertySalesAI</td><td><span class="rating yellow">🟡 Brittle</span></td><td>Moderate</td><td>❓ Unknown</td></tr>
+        <tr><td>Townsquare</td><td><span class="rating yellow">🟡 Brittle</span></td><td>Moderate</td><td>❓ Unknown</td></tr>
+        <tr><td>Zapier</td><td><span class="rating red">🔴 High-Risk</span></td><td>Unknown</td><td>❓ Unknown</td></tr>
+        <tr><td>Fireflies.ai</td><td><span class="rating red">🔴 High-Risk</span></td><td>Low-Mod</td><td>❓ Unknown</td></tr>
+        <tr><td>QuickBooks</td><td><span class="rating red">🔴 Unknown</span></td><td>Unknown</td><td>❓ Unknown</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px;color:var(--red)">8 of 14 integrations have no documented owner. If they break, remediation is trial-and-error.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Webhook Silent Failure Risk</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Trigger</th><th>Object</th><th>Monitoring</th></tr></thead>
+      <tbody>
+        <tr><td>OpportunitySyncWebhookTrigger</td><td>Opportunity</td><td>❌ None</td></tr>
+        <tr><td>LeadSyncWebhookTrigger</td><td>Lead</td><td>❌ None</td></tr>
+        <tr><td>AccountSyncWebhookTrigger</td><td>Account</td><td>❌ None</td></tr>
+        <tr><td>ContactSyncWebhookTrigger</td><td>Contact</td><td>❌ None</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px">All four core objects sync to external systems with <strong>zero failure visibility</strong>. When Zapier fails, Salesforce shows "success." Data silently diverges.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Strategic Recommendations</h2>
+  <div class="action-item"><div class="title">Week 1: Assign Integration Owners</div><div class="desc">Every integration needs a named person responsible for monitoring and troubleshooting.</div></div>
+  <div class="action-item"><div class="title">Week 1-2: Audit Zapier Failures</div><div class="desc">Check task history for patterns. Identify critical vs. convenience Zaps.</div></div>
+  <div class="action-item warn"><div class="title">Weeks 3-8: Replace Webhooks → Platform Events</div><div class="desc">Gain failure visibility, enable retry logic, decouple from transactions.</div></div>
+  <div class="action-item warn"><div class="title">Week 2: Decide Fireflies Fate</div><div class="desc">If staying: define destination and workflow. If not: decommission cleanly.</div></div>
+</div>
+
+</div>
+
+<!-- ===================== TAB 5: REPORTING ===================== -->
+<div class="tab-content" id="tab5">
+
+<div class="section-header">
+  <h2>Phase 5: Features & Portals — Reporting & Dashboards</h2>
+  <span class="rating red">🔴 Unreliable or Bypassed</span>
+</div>
+
+<div class="card">
+  <h2>Executive Summary</h2>
+  <ul>
+    <li><strong>200+ reports is a symptom, not an asset.</strong> People built their own because they couldn't find or trust existing ones.</li>
+    <li>Aggregate numbers <strong>cannot be trusted</strong> without manual reconciliation — property in 3 places, people in 2 objects, 2 rollup systems.</li>
+    <li>5 Opportunity types have <strong>5 different definitions of success</strong> but dashboards treat them as one.</li>
+    <li>41 dashboards answer <strong>"what happened"</strong> — not "what should we do."</li>
+    <li>Forecasting <strong>lives outside Salesforce</strong> — strategic decisions made on ungoverned spreadsheet data.</li>
+    <li><strong>Fixing reports before fixing the data model is wasted effort.</strong> Phase 5 must follow Phases 1-3.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Reports That Cannot Be Reliably Produced Today</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Desired Report</th><th>Blocked By</th></tr></thead>
+      <tbody>
+        <tr><td>Property Lifecycle ROI</td><td>Property in 3 places — no single object to query</td></tr>
+        <tr><td>Customer Lifetime Value</td><td>Contact + Person Account split — identity not unified</td></tr>
+        <tr><td>True Pipeline by Business Line</td><td>Record type filtering inconsistent across reports</td></tr>
+        <tr><td>Cross-Transaction Analysis</td><td>No stable property → opportunity linkage</td></tr>
+        <tr><td>Lead-to-Revenue Attribution</td><td>Lead record types mix people and properties</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px;color:var(--text-muted)">These reports become possible after Phases 1-3 complete — unified Property object, Person Account consolidation, clean record types.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">What Salesforce Should (& Should Not) Own</h3>
+  <div class="collapsible-content">
+    <div class="rec-grid">
+      <div>
+        <h3 style="color:var(--green)">✅ Salesforce IS Authority For:</h3>
+        <ul>
+          <li>Pipeline state — where are deals?</li>
+          <li>Activity tracking — what conversations happened?</li>
+          <li>Marketing attribution — which sources produce leads?</li>
+          <li>Process compliance — validation enforcement</li>
+          <li>IC/DoA workflow — approval audit trail</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--red)">❌ Salesforce is NOT Authority For:</h3>
+        <ul>
+          <li>Revenue → NetSuite</li>
+          <li>Cash flow → NetSuite / Bank</li>
+          <li>Property valuation → External validation</li>
+          <li>ROI / Margin → NetSuite (needs expense data)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Strategic Recommendations</h2>
+  <div class="action-item warn"><div class="title">Pre-Phase 5: Establish Metric Dictionary</div><div class="desc">Define "pipeline," "qualified lead," "days to close" centrally. One definition, one owner, one calculation per metric.</div></div>
+  <div class="action-item warn"><div class="title">Phase 5: Archive Unused Reports</div><div class="desc">Target: 200+ → 50-60 canonical reports. Archive anything not accessed in 6 months.</div></div>
+  <div class="action-item warn"><div class="title">Phase 5: Consolidate Dashboards</div><div class="desc">41 → 12-15 dashboards. One primary per role, pinned to homepage.</div></div>
+  <div class="action-item warn"><div class="title">Phase 5: Build Leading Indicators</div><div class="desc">Pipeline velocity, conversion rates, deal aging — forward-looking metrics, not just history.</div></div>
+</div>
+
+</div>
+
+<!-- ===================== TAB 6: AI READINESS ===================== -->
+<div class="tab-content" id="tab6">
+
+<div class="section-header">
+  <h2>Phase 6: AI Capabilities — Readiness Assessment</h2>
+  <span class="rating red">🔴 Not AI-Ready</span>
+</div>
+
+<div class="card">
+  <h2>Executive Summary</h2>
+  <ul>
+    <li>Paul's Phase 6 proposes <strong>22 AI agents</strong> across the business — an ambitious and forward-thinking vision.</li>
+    <li>Current data model is <strong>fundamentally incompatible</strong> with AI deployment. AI needs clean, standardized, deduplicated data.</li>
+    <li><strong>"Garbage in, garbage out"</strong> applies directly — duplicated people, fragmented properties, and 3× over-automated logic will confuse any AI system.</li>
+    <li>PropertySalesAI/Audantic already exists but may <strong>conflict with or become redundant</strong> to planned AI agents.</li>
+    <li>AI readiness is a <strong>Phase 6 capability</strong> that depends entirely on Phases 1-5 being executed successfully.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">AI Readiness Blockers</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>AI Requirement</th><th>Current State</th><th>Blocker Severity</th></tr></thead>
+      <tbody>
+        <tr><td>Clean, deduplicated data</td><td>People in 2 objects, properties in 3</td><td><span class="rating red">🔴 Critical</span></td></tr>
+        <tr><td>Standardized field usage</td><td>Inconsistent across record types, placeholder data common</td><td><span class="rating red">🔴 Critical</span></td></tr>
+        <tr><td>Single source of truth per entity</td><td>LeftMain + native objects = parallel universes</td><td><span class="rating red">🔴 Critical</span></td></tr>
+        <tr><td>Predictable automation behavior</td><td>183 flows, unpredictable execution order</td><td><span class="rating yellow">🟡 Significant</span></td></tr>
+        <tr><td>Clear data ownership boundaries</td><td>SF/NetSuite/LeftMain boundaries unverified</td><td><span class="rating yellow">🟡 Significant</span></td></tr>
+        <tr><td>Reliable activity history</td><td>Dual phone systems = fragmented interaction log</td><td><span class="rating yellow">🟡 Significant</span></td></tr>
+        <tr><td>Governed API capacity</td><td>17% usage today — headroom exists</td><td><span class="rating green">🟢 Adequate</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Existing AI Tools Assessment</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Tool</th><th>Purpose</th><th>Status</th><th>Recommendation</th></tr></thead>
+      <tbody>
+        <tr><td>PropertySalesAI / Audantic</td><td>Property data enrichment</td><td><span class="rating yellow">🟡 Webhook-based, no monitoring</span></td><td>Evaluate: keep, replace, or absorb into AI agents</td></tr>
+        <tr><td>Fireflies.ai</td><td>Meeting transcription</td><td><span class="rating red">🔴 Destination unknown</span></td><td>Decide fate before Phase 6</td></tr>
+        <tr><td>LeftMain MLS enrichment</td><td>Property data via MLS</td><td><span class="rating yellow">🟡 Tied to LeftMain decision</span></td><td>Depends on LeftMain keep/remove</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px;color:var(--text-muted)">Before deploying 22 AI agents, existing AI tools must be rationalized to prevent conflicts and redundancy.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Path to AI Readiness</h2>
+  <table>
+    <thead><tr><th>Phase</th><th>AI Prerequisite</th><th>What It Enables</th></tr></thead>
+    <tbody>
+      <tr><td>Phase 1-2: Data Model</td><td>Unified Property + Person Account</td><td>AI can identify entities reliably</td></tr>
+      <tr><td>Phase 2: Access</td><td>API user governance</td><td>AI agents with appropriate permissions</td></tr>
+      <tr><td>Phase 3: Automation</td><td>Predictable execution order</td><td>AI actions don't conflict with existing flows</td></tr>
+      <tr><td>Phase 4: Integrations</td><td>Platform Events, monitoring</td><td>AI agents can integrate reliably</td></tr>
+      <tr><td>Phase 5: Reporting</td><td>Standardized metrics</td><td>AI has clean data to analyze and predict</td></tr>
+      <tr><td><strong>Phase 6: AI</strong></td><td><strong>All above complete</strong></td><td><strong>Deploy agents on solid foundation</strong></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:16px;color:var(--yellow);font-weight:600">⚠️ Deploying AI on the current data model would amplify problems, not solve them. Fix the foundation first.</p>
+</div>
+
+</div>
+
+<!-- ===================== TAB 7: TRAINING & ROLLOUT ===================== -->
+<div class="tab-content" id="tab7">
+
+<div class="section-header">
+  <h2>Phase 7: Training & Rollout — UX Friction & Adoption</h2>
+  <span class="rating yellow">🟡 Functional But Fatiguing</span>
+</div>
+
+<div class="card">
+  <h2>Executive Summary</h2>
+  <ul>
+    <li>Salesforce is <strong>built for admins, not operators</strong>. Users spend more time satisfying the system than doing their jobs.</li>
+    <li><strong>47 validation rules</strong> create a gauntlet that teaches users to game the system — placeholder data ("TBD," "N/A") is worse than missing data.</li>
+    <li><strong>Shadow systems</strong> (Townsquare, spreadsheets, Slack) prove the workflow doesn't match reality.</li>
+    <li><strong>15 Opportunity stages</strong> with inconsistent probabilities — users mentally batch into 4 phases.</li>
+    <li>No <strong>role-based layouts</strong> — everyone likely sees the same 60-field layout with irrelevant sections.</li>
+    <li>Users are <strong>not the problem</strong>. When they use workarounds, they're responding rationally to a system that doesn't support their work.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Friction Hotspots — Required Field Gauntlet</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Friction Point</th><th>What Users Actually Do</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td>County required at Lead creation</td><td>Enter "TBD" or pick wrong one</td><td>Require at "Working" stage, not creation</td></tr>
+        <tr><td>Address required to convert</td><td>Enter partial/unverified address</td><td>Allow "incomplete" flag</td></tr>
+        <tr><td>Meeting_1_Date to convert</td><td>Backdate if conversion happens quickly</td><td>Make optional or auto-calculate</td></tr>
+        <tr><td>Loss Reason required</td><td>Pick "Other" → type "N/A"</td><td>Single picklist with inline expansion</td></tr>
+        <tr><td>IC Ready field bundle</td><td>Fill incomplete data to proceed</td><td>Make conditional — visible only at IC Ready stage</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px"><strong>Target:</strong> Reduce from 47 to ~25 validation rules, moving enforcement to stage-appropriate triggers.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Shadow Systems — What Users Actually Use</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Tool</th><th>What It Handles</th><th>Why Not in Salesforce</th></tr></thead>
+      <tbody>
+        <tr><td>Townsquare</td><td>Transaction management</td><td>SF stages don't match escrow workflow</td></tr>
+        <tr><td>Spreadsheets</td><td>Pipeline tracking, meeting prep</td><td>SF reports don't provide the right views</td></tr>
+        <tr><td>Email (unlogged)</td><td>Deal coordination</td><td>Too many clicks to log in SF</td></tr>
+        <tr><td>Slack / Group Texts</td><td>Deal status questions</td><td>SF isn't real-time; faster to ask</td></tr>
+        <tr><td>Personal Notes</td><td>Account context</td><td>Notes not searchable, not contextual</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="collapsible" onclick="toggle(this)">Stage Rationalization Needed</h3>
+  <div class="collapsible-content">
+    <table>
+      <thead><tr><th>Current (15 Stages)</th><th>Proposed Consolidation</th></tr></thead>
+      <tbody>
+        <tr><td>Claimed Lead, Reschedule</td><td>→ "New" with sub-status field</td></tr>
+        <tr><td>Cold Pursuit, Hot Pursuit, In Pursuit</td><td>→ "Active Pursuit" with temperature field</td></tr>
+        <tr><td>Meeting #1 Set, Meeting #2 Set</td><td>→ Keep (clear stages)</td></tr>
+        <tr><td>Pending Ratings, IC Ready</td><td>→ "Under Review" with sub-stage</td></tr>
+        <tr><td>Retrade, Approved, Pending Signature, Closing Escrow</td><td>→ Keep (distinct milestones)</td></tr>
+        <tr><td>Closed Won, Closed Lost</td><td>→ Keep (standard)</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px"><strong>Target:</strong> 15 → 10 stages with sub-status picklists for granularity.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Rollout Recommendations</h2>
+  <div class="rec-grid">
+    <div class="action-item"><div class="title">Weeks 1-2: Audit Validation Rules</div><div class="desc">Identify rules generating >10% placeholder data. Convert from creation-blockers to stage-appropriate checks.</div></div>
+    <div class="action-item"><div class="title">Weeks 3-6: Role-Based Page Layouts</div><div class="desc">Define 4-5 personas. Create persona-specific layouts using Dynamic Forms. Reduce visible fields from 60+ to 20-30.</div></div>
+    <div class="action-item warn"><div class="title">Weeks 7-10: Stage Rationalization</div><div class="desc">Interview users. Consolidate pursuit stages. Align probabilities with actual conversion rates.</div></div>
+    <div class="action-item warn"><div class="title">Ongoing: Townsquare Integration Decision</div><div class="desc">Options: Integrate (API sync), Replace (build in SF), Accept (continue parallel). Requires transaction workflow design.</div></div>
+  </div>
+</div>
+
+</div>
+
+</main>
+
+<footer>
+  <p>True Legacy Homes — Salesforce Platform Audit Report</p>
+  <p>Prepared February 2026 | Confidential — For Executive Leadership Only</p>
+  <p style="margin-top:8px;font-size:0.75rem">© 2026 True Legacy Homes. All rights reserved.</p>
+</footer>
+
+</div>
+
+<script>
+function doLogin() {
+  const pwd = document.getElementById('pwd').value;
+  if (pwd === 'legacy2026') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('pwd').value = '';
+    document.getElementById('pwd').focus();
+  }
+}
+document.getElementById('pwd').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+function showTab(n) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab' + n).classList.add('active');
+  document.querySelectorAll('.tab-bar button')[n].classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function toggle(el) {
+  el.classList.toggle('open');
+  const content = el.nextElementSibling;
+  content.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>
