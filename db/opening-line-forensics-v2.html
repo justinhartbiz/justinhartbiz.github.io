@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opening Line Forensics V2</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; padding: 20px; }
+h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
+.subtitle { color: #888; font-size: 14px; margin-bottom: 30px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.card { background: #14141f; border: 1px solid #2a2a3a; border-radius: 12px; padding: 20px; }
+.card h2 { font-size: 16px; color: #aaa; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+.full { grid-column: 1 / -1; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px; border-bottom: 2px solid #2a2a3a; color: #888; font-weight: 600; }
+td { padding: 8px; border-bottom: 1px solid #1a1a2a; }
+.pos { color: #4ade80; }
+.neg { color: #f87171; }
+.neutral { color: #888; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.badge-yes { background: #166534; color: #4ade80; }
+.badge-no { background: #7f1d1d; color: #f87171; }
+.badge-mixed { background: #3a3a2a; color: #fbbf24; }
+.stat-row { display: flex; gap: 15px; margin-bottom: 20px; }
+.stat { flex: 1; background: #1a1a2a; border-radius: 8px; padding: 15px; text-align: center; }
+.stat .val { font-size: 28px; font-weight: 700; color: #fff; }
+.stat .lbl { font-size: 11px; color: #888; margin-top: 4px; }
+canvas { max-height: 300px; }
+.opener-card { background: #1a1a2a; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+.opener-card .meta { font-size: 11px; color: #888; margin-bottom: 4px; }
+.opener-card .text { font-size: 14px; color: #fff; }
+.opener-card .polls { font-size: 13px; color: #4ade80; font-weight: 600; }
+.loser .polls { color: #f87171; }
+.insight { background: #1a1a2f; border-left: 3px solid #6366f1; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+.insight strong { color: #818cf8; }
+</style>
+</head>
+<body>
+
+<h1>Opening Line Forensics V2</h1>
+<p class="subtitle">2,933 creatives across NRSC, RNC, NRCC — Feature-first methodology | Feb 2026</p>
+
+<div class="stat-row">
+  <div class="stat"><div class="val">2,933</div><div class="lbl">Creatives Analyzed</div></div>
+  <div class="stat"><div class="val">17</div><div class="lbl">Features Extracted</div></div>
+  <div class="stat"><div class="val">1</div><div class="lbl">Universal Predictor</div></div>
+  <div class="stat"><div class="val">r=0.041</div><div class="lbl">Strongest Universal r</div></div>
+</div>
+
+<div class="insight">
+  <strong>V2 Key Finding:</strong> Almost no linguistic feature in the opening line strongly predicts performance across all clients.
+  The only universally positive feature is <strong>personalization tokens</strong> ([firstname]) — and even that is weak (r=0.041).
+  V1's "curiosity gap" finding was an NRSC artifact that doesn't replicate.
+</div>
+
+<div class="grid">
+
+<!-- Correlation Chart -->
+<div class="card full">
+  <h2>Feature Correlations with Performance (by Client)</h2>
+  <canvas id="corrChart"></canvas>
+</div>
+
+<!-- Correlation Table -->
+<div class="card full">
+  <h2>Feature Correlation Table</h2>
+  <table>
+    <tr><th>Feature</th><th>Overall r</th><th>NRSC</th><th>RNC</th><th>NRCC</th><th>Universal?</th></tr>
+    <tr><td>has_personalization</td><td class="pos">+0.041</td><td class="pos">+0.023</td><td class="pos">+0.087</td><td class="pos">+0.089</td><td><span class="badge badge-yes">✓ YES</span></td></tr>
+    <tr><td>curiosity_gap</td><td class="pos">+0.119</td><td class="pos">+0.158</td><td class="neutral">-0.006</td><td class="neg">-0.020</td><td><span class="badge badge-no">NRSC only</span></td></tr>
+    <tr><td>has_name_ref</td><td class="pos">+0.035</td><td class="pos">+0.051</td><td class="pos">+0.033</td><td class="neg">-0.060</td><td><span class="badge badge-mixed">Mixed</span></td></tr>
+    <tr><td>exclamation_count</td><td class="neg">-0.037</td><td class="neg">-0.039</td><td class="neg">-0.051</td><td class="neutral">-0.013</td><td><span class="badge badge-mixed">~Negative</span></td></tr>
+    <tr><td>is_exclamatory</td><td class="neg">-0.032</td><td class="neg">-0.034</td><td class="neg">-0.050</td><td class="neutral">-0.008</td><td><span class="badge badge-mixed">~Negative</span></td></tr>
+    <tr><td>is_question</td><td class="neg">-0.026</td><td class="neg">-0.028</td><td class="neg">-0.032</td><td class="neutral">-0.010</td><td><span class="badge badge-mixed">~Negative</span></td></tr>
+    <tr><td>char_count</td><td class="pos">+0.017</td><td class="neutral">-0.002</td><td class="pos">+0.077</td><td class="pos">+0.070</td><td><span class="badge badge-mixed">Mixed</span></td></tr>
+    <tr><td>cap_ratio</td><td class="neutral">-0.007</td><td class="pos">+0.014</td><td class="neg">-0.054</td><td class="neg">-0.074</td><td><span class="badge badge-mixed">Mixed</span></td></tr>
+    <tr><td>has_urgency</td><td class="neutral">-0.011</td><td class="neg">-0.018</td><td class="neutral">-0.006</td><td class="pos">+0.024</td><td><span class="badge badge-no">NOT a factor</span></td></tr>
+    <tr><td>personal_intro</td><td class="neutral">-0.003</td><td class="neutral">+0.005</td><td class="neg">-0.033</td><td class="neg">-0.030</td><td><span class="badge badge-no">Doesn't help</span></td></tr>
+  </table>
+</div>
+
+<!-- Character Count -->
+<div class="card">
+  <h2>Performance by Character Count</h2>
+  <canvas id="charChart"></canvas>
+</div>
+
+<!-- Winners vs Losers -->
+<div class="card">
+  <h2>Winners vs Losers (Feature Averages)</h2>
+  <canvas id="wlChart"></canvas>
+</div>
+
+<!-- Personalization Effect -->
+<div class="card">
+  <h2>Personalization Effect by Client</h2>
+  <canvas id="persChart"></canvas>
+</div>
+
+<!-- Client Baselines -->
+<div class="card">
+  <h2>Client Baselines</h2>
+  <table>
+    <tr><th>Client</th><th>n</th><th>Mean Polls</th><th>Median</th><th>Stdev</th></tr>
+    <tr><td>NRSC</td><td>2,026</td><td>3.60</td><td>1.0</td><td>14.42</td></tr>
+    <tr><td>RNC</td><td>437</td><td>1.76</td><td>1.0</td><td>2.89</td></tr>
+    <tr><td>NRCC</td><td>470</td><td>2.51</td><td>1.0</td><td>4.65</td></tr>
+  </table>
+</div>
+
+<!-- Top Openers -->
+<div class="card">
+  <h2>🏆 Top Openers (Cross-Client)</h2>
+  <div class="opener-card"><div class="meta">NRSC · Cr-1243 · z=23.5</div><div class="text">There's something we haven't told you yet, [firstname|Friend].</div><div class="polls">342 polls</div></div>
+  <div class="opener-card"><div class="meta">NRSC · Cr-0218CPA · z=19.7</div><div class="text">LIVE POLL: BIDEN-HARRIS APPROVAL.</div><div class="polls">287 polls</div></div>
+  <div class="opener-card"><div class="meta">RNC · Cr-992SMS · z=12.9</div><div class="text">I'm choosing [firstname|you] as the newest member of my Vice Presidential Cabinet.</div><div class="polls">39 polls</div></div>
+  <div class="opener-card"><div class="meta">NRCC · Cr-416SMS · z=9.8</div><div class="text">This silence will cost us, [firstname|Friend]</div><div class="polls">48 polls</div></div>
+  <div class="opener-card"><div class="meta">NRSC · Cr-1267 · z=10.5</div><div class="text">Two things, [firstname|Friend]:</div><div class="polls">155 polls</div></div>
+  <div class="opener-card"><div class="meta">RNC · Cr-1021SMS · z=7.0</div><div class="text">Elon Musk just issued a dire warning to the swamp.</div><div class="polls">22 polls</div></div>
+</div>
+
+<!-- Bottom Openers -->
+<div class="card">
+  <h2>💀 Bottom Openers (What Losers Look Like)</h2>
+  <div class="opener-card loser"><div class="meta">NRCC · Cr-19</div><div class="text">BREAKING!</div><div class="polls">1 poll</div></div>
+  <div class="opener-card loser"><div class="meta">NRCC · Cr-22</div><div class="text">Your Membership has EXPIRED!</div><div class="polls">1 poll</div></div>
+  <div class="opener-card loser"><div class="meta">NRCC · Cr-13</div><div class="text">Hey, [firstname|Friend].</div><div class="polls">1 poll</div></div>
+  <div class="opener-card loser"><div class="meta">NRCC · Cr-24SMS</div><div class="text">It's Mike Pompeo.</div><div class="polls">1 poll</div></div>
+  <div class="opener-card loser"><div class="meta">NRCC · Cr-12SMS</div><div class="text">You've won the Golden Gavel Award for [zipcode]!</div><div class="polls">1 poll</div></div>
+  <div class="opener-card loser"><div class="meta">NRCC · Cr-16</div><div class="text">[firstname|Supporter], I am all in for President Trump.</div><div class="polls">1 poll</div></div>
+</div>
+
+<!-- V1 vs V2 -->
+<div class="card full">
+  <h2>V1 Claims vs V2 Reality</h2>
+  <table>
+    <tr><th>V1 Claim</th><th>V2 Verdict</th><th>Evidence</th></tr>
+    <tr><td>"Curiosity gap = 4.1x lift"</td><td class="neg">NRSC artifact</td><td>RNC r=-0.006, NRCC r=-0.020</td></tr>
+    <tr><td>"Personal intro is highest category"</td><td class="neg">Doesn't replicate</td><td>RNC r=-0.033, NRCC r=-0.030</td></tr>
+    <tr><td>"Name-drop then speak = 2.4x"</td><td class="neutral">Mixed</td><td>NRSC +0.051, RNC +0.033, NRCC -0.060</td></tr>
+    <tr><td>"Urgency words work"</td><td class="neg">NOT a differentiator</td><td>Top and bottom use urgency equally</td></tr>
+    <tr><td>"Personalization helps"</td><td class="pos">✓ Confirmed (weakly)</td><td>Positive in all 3 clients</td></tr>
+  </table>
+</div>
+
+<!-- Actionable Recommendations -->
+<div class="card full">
+  <h2>📋 Actionable Recommendations (Evidence-Backed)</h2>
+  <div class="insight"><strong>1. Use [firstname] tokens.</strong> Only universal positive predictor. Small effect but free to implement. r=+0.041 overall, positive in all 3 clients.</div>
+  <div class="insight"><strong>2. Keep openers 50-150 characters.</strong> Under 30 chars underperforms (z=-0.054). Over 150 chars crashes (z=-0.178). Sweet spot: 51-70 chars (z=+0.065).</div>
+  <div class="insight"><strong>3. Don't over-punctuate.</strong> Fewer exclamation marks correlate with better performance across all clients. "BREAKING!" is a loser pattern.</div>
+  <div class="insight"><strong>4. Skip questions in openers.</strong> Negative correlation in all 3 clients. Statements outperform questions.</div>
+  <div class="insight"><strong>5. Focus on body copy, not opener tricks.</strong> Opener features explain &lt;1% of performance variance. The remaining 99%+ is body copy, targeting, timing, and landing page.</div>
+</div>
+
+</div>
+
+<script>
+// Correlation Chart
+const corrCtx = document.getElementById('corrChart').getContext('2d');
+new Chart(corrCtx, {
+  type: 'bar',
+  data: {
+    labels: ['personalization', 'curiosity_gap', 'name_ref', 'char_count', 'exclamation', 'question', 'cap_ratio', 'urgency', 'personal_intro'],
+    datasets: [
+      { label: 'NRSC', data: [0.023, 0.158, 0.051, -0.002, -0.039, -0.028, 0.014, -0.018, 0.005], backgroundColor: '#6366f1' },
+      { label: 'RNC', data: [0.087, -0.006, 0.033, 0.077, -0.051, -0.032, -0.054, -0.006, -0.033], backgroundColor: '#f59e0b' },
+      { label: 'NRCC', data: [0.089, -0.020, -0.060, 0.070, -0.013, -0.010, -0.074, 0.024, -0.030], backgroundColor: '#ef4444' }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: '#aaa' } } },
+    scales: {
+      x: { ticks: { color: '#888' }, grid: { color: '#1a1a2a' } },
+      y: { ticks: { color: '#888' }, grid: { color: '#1a1a2a' }, title: { display: true, text: 'Pearson r', color: '#888' } }
+    }
+  }
+});
+
+// Character Count Chart
+const charCtx = document.getElementById('charChart').getContext('2d');
+new Chart(charCtx, {
+  type: 'bar',
+  data: {
+    labels: ['0-30', '31-50', '51-70', '71-100', '101-150', '151-300'],
+    datasets: [{
+      label: 'Avg Z-Score',
+      data: [-0.054, 0.010, 0.065, 0.024, 0.077, -0.178],
+      backgroundColor: [-0.054, 0.010, 0.065, 0.024, 0.077, -0.178].map(v => v > 0 ? '#4ade80' : '#f87171')
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#888' }, grid: { color: '#1a1a2a' }, title: { display: true, text: 'Character Count', color: '#888' } },
+      y: { ticks: { color: '#888' }, grid: { color: '#1a1a2a' }, title: { display: true, text: 'Avg Z-Score', color: '#888' } }
+    }
+  }
+});
+
+// Winners vs Losers
+const wlCtx = document.getElementById('wlChart').getContext('2d');
+new Chart(wlCtx, {
+  type: 'bar',
+  data: {
+    labels: ['exclamation_count', 'cap_ratio', 'has_personalization', 'punct_density', 'is_exclamatory'],
+    datasets: [
+      { label: 'Top 25 Avg', data: [0.15, 0.19, 0.39, 0.039, 0.15], backgroundColor: '#4ade80' },
+      { label: 'Bottom 25 Avg', data: [0.37, 0.27, 0.23, 0.048, 0.35], backgroundColor: '#f87171' }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: '#aaa' } } },
+    scales: {
+      x: { ticks: { color: '#888' }, grid: { color: '#1a1a2a' } },
+      y: { ticks: { color: '#888' }, grid: { color: '#1a1a2a' } }
+    }
+  }
+});
+
+// Personalization Effect
+const persCtx = document.getElementById('persChart').getContext('2d');
+new Chart(persCtx, {
+  type: 'bar',
+  data: {
+    labels: ['NRSC', 'RNC', 'NRCC'],
+    datasets: [
+      { label: 'With [firstname]', data: [0.032, 0.123, 0.188], backgroundColor: '#4ade80' },
+      { label: 'Without', data: [-0.016, -0.062, -0.042], backgroundColor: '#f87171' }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: '#aaa' } } },
+    scales: {
+      x: { ticks: { color: '#888' }, grid: { color: '#1a1a2a' } },
+      y: { ticks: { color: '#888' }, grid: { color: '#1a1a2a' }, title: { display: true, text: 'Avg Z-Score', color: '#888' } }
+    }
+  }
+});
+</script>
+</body>
+</html>
