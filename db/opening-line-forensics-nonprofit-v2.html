@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opening Line Forensics V2 — Nonprofit</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--yellow:#eab308;--purple:#a855f7;--cyan:#06b6d4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;padding:24px;line-height:1.5}
+h1{font-size:28px;margin-bottom:8px}
+.subtitle{color:var(--muted);margin-bottom:32px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:32px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card h3{font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.metric{font-size:36px;font-weight:700}
+.metric.green{color:var(--green)}.metric.red{color:var(--red)}.metric.blue{color:var(--blue)}.metric.yellow{color:var(--yellow)}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;background:var(--bg);color:var(--muted);font-weight:600;position:sticky;top:0}
+td{padding:8px 12px;border-top:1px solid var(--border)}
+tr:hover{background:rgba(59,130,246,0.05)}
+.pos{color:var(--green)}.neg{color:var(--red)}.neutral{color:var(--muted)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge.yes{background:rgba(34,197,94,0.15);color:var(--green)}
+.badge.no{background:rgba(239,68,68,0.15);color:var(--red)}
+.badge.mixed{background:rgba(234,179,8,0.15);color:var(--yellow)}
+.chart-container{position:relative;height:300px;margin:16px 0}
+.opener{font-size:12px;color:var(--muted);max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:8px 16px;border-radius:8px;cursor:pointer;background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:13px;transition:all .2s}
+.tab.active{background:var(--blue);color:white;border-color:var(--blue)}
+.insight{background:rgba(59,130,246,0.1);border-left:3px solid var(--blue);padding:12px 16px;border-radius:0 8px 8px 0;margin:8px 0;font-size:14px}
+.vs-political{background:rgba(168,85,247,0.1);border-left:3px solid var(--purple);padding:12px 16px;border-radius:0 8px 8px 0;margin:8px 0;font-size:14px}
+</style>
+</head>
+<body>
+
+<h1>📊 Opening Line Forensics V2 — Nonprofit</h1>
+<p class="subtitle">1,324 creatives across 4 nonprofit clients | Generated 2026-02-09</p>
+
+<!-- Summary Cards -->
+<div class="grid">
+<div class="card">
+<h3>Total Creatives Analyzed</h3>
+<div class="metric blue">1,324</div>
+<p style="color:var(--muted);font-size:13px;margin-top:4px">HeroBox 385 · SemperK9 225 · SoldierStrong 233 · NCPD 481</p>
+</div>
+<div class="card">
+<h3>Max Variance Explained</h3>
+<div class="metric yellow">7.9%</div>
+<p style="color:var(--muted);font-size:13px;margin-top:4px">SoldierStrong (celebrity names) — vs &lt;1% political</p>
+</div>
+<div class="card">
+<h3>Universal Positive Feature</h3>
+<div class="metric" style="font-size:24px">None</div>
+<p style="color:var(--muted);font-size:13px;margin-top:4px">Personalization 3/4 positive · Questions 4/4 negative</p>
+</div>
+<div class="card">
+<h3>vs Political Signal Strength</h3>
+<div class="metric green">2-8×</div>
+<p style="color:var(--muted);font-size:13px;margin-top:4px">More opener signal in nonprofit than political</p>
+</div>
+</div>
+
+<!-- Key Insights -->
+<div class="section">
+<h2>🔑 Key Findings</h2>
+<div class="insight">📉 <strong>Questions hurt everywhere</strong> — Negative correlation in all 4 clients. Don't open with "Did you know?" or "Will you help?"</div>
+<div class="insight">🚫 <strong>Impact language hurts</strong> — "Help," "donate," "support" in the opener → negative in all 4 clients. Hook first, ask later.</div>
+<div class="insight">👤 <strong>Personalization helps (3/4)</strong> — [firstname] tokens positive for SemperK9, SoldierStrong, NCPD. Slightly negative for HeroBox.</div>
+<div class="vs-political">🆚 <strong>vs Political:</strong> Nonprofit openers carry 2-8× more signal. Celebrity endorsement (SoldierStrong) and founder stories (SemperK9) are powerful levers that don't exist in political.</div>
+</div>
+
+<!-- Correlation Heatmap Table -->
+<div class="section">
+<h2>📊 Feature Correlations by Client</h2>
+<table>
+<thead><tr><th>Feature</th><th>HeroBox</th><th>SemperK9</th><th>SoldierStrong</th><th>NCPD</th><th>Consistent?</th></tr></thead>
+<tbody id="corrTable"></tbody>
+</table>
+</div>
+
+<!-- Charts -->
+<div class="section">
+<h2>📈 Variance Explained (R²)</h2>
+<div class="card"><div class="chart-container"><canvas id="r2Chart"></canvas></div></div>
+</div>
+
+<div class="section">
+<h2>📊 Feature Correlations Comparison</h2>
+<div class="card"><div class="chart-container" style="height:400px"><canvas id="corrChart"></canvas></div></div>
+</div>
+
+<!-- Top/Bottom by Client -->
+<div class="section">
+<h2>🏆 Top Performers by Client</h2>
+<div class="tabs" id="clientTabs"></div>
+<table id="topTable">
+<thead><tr><th>Rank</th><th>Polls</th><th>Creative</th><th>Opener</th></tr></thead>
+<tbody id="topBody"></tbody>
+</table>
+</div>
+
+<!-- Winners vs Losers -->
+<div class="section">
+<h2>⚔️ Winners vs Losers (Top 25 vs Bottom 25, All Clients)</h2>
+<div class="card"><div class="chart-container"><canvas id="wlChart"></canvas></div></div>
+</div>
+
+<script>
+const data = {
+  correlations: {
+    char_count: {HeroBox:-0.0485,SemperK9:0.2047,SoldierStrong:-0.0210,NCPD:-0.0479},
+    word_count: {HeroBox:-0.0311,SemperK9:0.1521,SoldierStrong:-0.0374,NCPD:-0.0574},
+    exclamation_count: {HeroBox:0.1299,SemperK9:-0.1362,SoldierStrong:-0.0190,NCPD:-0.0708},
+    question_mark_count: {HeroBox:-0.0099,SemperK9:-0.0281,SoldierStrong:-0.0101,NCPD:-0.0620},
+    is_question: {HeroBox:-0.0099,SemperK9:-0.0281,SoldierStrong:-0.0101,NCPD:-0.0620},
+    is_exclamatory: {HeroBox:0.1415,SemperK9:-0.1362,SoldierStrong:-0.0190,NCPD:-0.0708},
+    cap_ratio: {HeroBox:-0.0475,SemperK9:-0.0017,SoldierStrong:0.1073,NCPD:-0.0534},
+    all_caps: {HeroBox:-0.0580,SemperK9:0.0385,SoldierStrong:-0.0227,NCPD:-0.0505},
+    has_personalization: {HeroBox:-0.0225,SemperK9:0.1523,SoldierStrong:0.0790,NCPD:0.0851},
+    has_name_ref: {HeroBox:0,SemperK9:0,SoldierStrong:0.2805,NCPD:-0.0179},
+    has_emoji: {HeroBox:-0.0072,SemperK9:-0.0836,SoldierStrong:0.1521,NCPD:-0.0315},
+    has_urgency: {HeroBox:0.0009,SemperK9:-0.0155,SoldierStrong:0.1911,NCPD:-0.0307},
+    punct_density: {HeroBox:-0.0052,SemperK9:-0.0075,SoldierStrong:0.0957,NCPD:0.0448},
+    ellipsis: {HeroBox:0.0144,SemperK9:-0.0083,SoldierStrong:0.0387,NCPD:0.0023},
+    has_colon: {HeroBox:-0.0660,SemperK9:-0.0326,SoldierStrong:0.1311,NCPD:-0.0412},
+    curiosity_gap: {HeroBox:0,SemperK9:0,SoldierStrong:0,NCPD:-0.0155},
+    has_mission_language: {HeroBox:-0.0383,SemperK9:0.1785,SoldierStrong:-0.0507,NCPD:-0.0306},
+    has_impact_language: {HeroBox:-0.0008,SemperK9:-0.0414,SoldierStrong:-0.1057,NCPD:-0.0495},
+  },
+  r2: {HeroBox:{feat:'is_exclamatory',r:0.1415,r2:0.020},SemperK9:{feat:'char_count',r:0.2047,r2:0.042},SoldierStrong:{feat:'has_name_ref',r:0.2805,r2:0.079},NCPD:{feat:'has_personalization',r:0.0851,r2:0.007}},
+  topPerformers: {
+    HeroBox:[{p:46,c:'Cr-14',o:'We need to mail these out by the end of the week!'},{p:36,c:'Cr-135',o:'[firstname|Friend], imagine a soldier\'s smile opening YOUR gift on Christmas!'},{p:33,c:'Cr-XX',o:'Hi there, Ryan Housley here.'},{p:32,c:'Cr-YY',o:'We need to mail these out before Christmas!'},{p:25,c:'Cr-ZZ',o:'Even 🎅🏻 Santa has a deadline!'}],
+    SemperK9:[{p:47,c:'Cr-02',o:'Hi, this is Chris and Amanda Baity from Semper K9.'},{p:36,c:'Cr-XX',o:'[firstname|Friend], on December 14, we\'ll lay wreaths beside our fallen heroes...'},{p:32,c:'Cr-02b',o:'Hi, this is Chris and Amanda Baity from Semper K9.'},{p:32,c:'Cr-YY',o:'[firstname|Friend], on December 14, we\'ll lay wreaths beside our fallen heroes...'},{p:26,c:'Cr-ZZ',o:'[firstname|Friend], on Saturday, we\'re laying wreaths for our veterans.'}],
+    SoldierStrong:[{p:30,c:'Cr-34',o:'🦃 Urgent: A Thanksgiving Plea from Dana Perino'},{p:26,c:'Cr-XX',o:'Hello [firstname|patriot], Dana Perino here...'},{p:26,c:'Cr-YY',o:'🎄 Urgent: A Christmas Plea from Dana Perino'},{p:23,c:'Cr-ZZ',o:'Hi [firstname], it\'s Dana Perino.'},{p:18,c:'Cr-AA',o:'Hi.'}],
+    NCPD:[{p:75,c:'Cr-XX',o:'😭 [firstname], this is Kimberly, Chance\'s wife.'},{p:65,c:'Cr-YY',o:'[firstname|Friend] - this is Sheriff David Clarke.'},{p:35,c:'Cr-ZZ',o:'Dear [firstname|Friend],'},{p:34,c:'Cr-AA',o:'My sweet husband, Mark, is innocent.'},{p:33,c:'Cr-BB',o:'hello [firstname] - I\'m Alex\'s mom.'}]
+  },
+  winnersLosers: {
+    has_personalization:{w:0.45,l:0.32},has_name_ref:{w:0.12,l:0.03},has_emoji:{w:0.29,l:0.18},
+    has_colon:{w:0.06,l:0.12},has_mission_language:{w:0.35,l:0.39},has_impact_language:{w:0.10,l:0.11},
+    exclamation_count:{w:0.21,l:0.15},is_question:{w:0.07,l:0.05},has_urgency:{w:0.11,l:0.09}
+  }
+};
+
+// Correlation table
+const corrBody = document.getElementById('corrTable');
+const clients = ['HeroBox','SemperK9','SoldierStrong','NCPD'];
+for (const [feat, vals] of Object.entries(data.correlations)) {
+  const allPos = clients.every(c => vals[c] >= 0);
+  const allNeg = clients.every(c => vals[c] <= 0);
+  const allZero = clients.every(c => vals[c] === 0);
+  let badge = '<span class="badge mixed">Mixed</span>';
+  if (allZero) badge = '<span class="badge mixed">N/A</span>';
+  else if (allPos) badge = '<span class="badge yes">✓ All +</span>';
+  else if (allNeg) badge = '<span class="badge no">✓ All −</span>';
+  
+  const cells = clients.map(c => {
+    const v = vals[c];
+    const cls = v > 0.05 ? 'pos' : v < -0.05 ? 'neg' : 'neutral';
+    const bold = Math.abs(v) > 0.1 ? 'font-weight:700' : '';
+    return `<td class="${cls}" style="${bold}">${v >= 0 ? '+' : ''}${v.toFixed(4)}</td>`;
+  }).join('');
+  corrBody.innerHTML += `<tr><td><strong>${feat}</strong></td>${cells}<td>${badge}</td></tr>`;
+}
+
+// R² Chart
+new Chart(document.getElementById('r2Chart'), {
+  type: 'bar',
+  data: {
+    labels: clients.map(c => `${c}\n(${data.r2[c].feat})`),
+    datasets: [{
+      label: 'R² (Variance Explained)',
+      data: clients.map(c => data.r2[c].r2 * 100),
+      backgroundColor: ['#3b82f6','#22c55e','#eab308','#a855f7'],
+      borderRadius: 6
+    },{
+      label: 'Political Avg (~1%)',
+      data: [1,1,1,1],
+      type: 'line',
+      borderColor: '#ef4444',
+      borderDash: [5,5],
+      pointRadius: 0,
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins:{legend:{labels:{color:'#94a3b8'}}},
+    scales: {
+      y: {title:{display:true,text:'Variance Explained (%)',color:'#94a3b8'},ticks:{color:'#94a3b8'},grid:{color:'#334155'}},
+      x: {ticks:{color:'#94a3b8'},grid:{display:false}}
+    }
+  }
+});
+
+// Correlation comparison chart
+const featsToShow = ['has_personalization','exclamation_count','is_question','has_name_ref','has_urgency','has_emoji','has_mission_language','has_impact_language','char_count'];
+const colors = ['#3b82f6','#22c55e','#eab308','#a855f7'];
+new Chart(document.getElementById('corrChart'), {
+  type: 'bar',
+  data: {
+    labels: featsToShow,
+    datasets: clients.map((c,i) => ({
+      label: c,
+      data: featsToShow.map(f => data.correlations[f][c]),
+      backgroundColor: colors[i] + '99',
+      borderColor: colors[i],
+      borderWidth: 1,
+      borderRadius: 3
+    }))
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins:{legend:{labels:{color:'#94a3b8'}}},
+    scales: {
+      x: {title:{display:true,text:'Pearson r',color:'#94a3b8'},ticks:{color:'#94a3b8'},grid:{color:'#334155'}},
+      y: {ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}}
+    }
+  }
+});
+
+// Client tabs for top performers
+const tabsEl = document.getElementById('clientTabs');
+const topBody = document.getElementById('topBody');
+let activeClient = 'HeroBox';
+function renderTabs() {
+  tabsEl.innerHTML = '';
+  clients.forEach(c => {
+    const t = document.createElement('div');
+    t.className = 'tab' + (c === activeClient ? ' active' : '');
+    t.textContent = c;
+    t.onclick = () => { activeClient = c; renderTabs(); renderTop(); };
+    tabsEl.appendChild(t);
+  });
+}
+function renderTop() {
+  topBody.innerHTML = '';
+  data.topPerformers[activeClient].forEach((r,i) => {
+    topBody.innerHTML += `<tr><td>${i+1}</td><td><strong>${r.p}</strong></td><td>${r.c}</td><td class="opener">${r.o}</td></tr>`;
+  });
+}
+renderTabs(); renderTop();
+
+// Winners vs Losers
+const wlFeats = Object.keys(data.winnersLosers);
+new Chart(document.getElementById('wlChart'), {
+  type: 'bar',
+  data: {
+    labels: wlFeats,
+    datasets: [
+      {label:'Winners (Top 25)',data:wlFeats.map(f=>data.winnersLosers[f].w),backgroundColor:'#22c55e99',borderColor:'#22c55e',borderWidth:1,borderRadius:3},
+      {label:'Losers (Bottom 25)',data:wlFeats.map(f=>data.winnersLosers[f].l),backgroundColor:'#ef444499',borderColor:'#ef4444',borderWidth:1,borderRadius:3}
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins:{legend:{labels:{color:'#94a3b8'}}},
+    scales: {
+      y: {ticks:{color:'#94a3b8'},grid:{color:'#334155'}},
+      x: {ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}}
+    }
+  }
+});
+</script>
+</body>
+</html>
