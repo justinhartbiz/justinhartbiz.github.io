@@ -76,7 +76,8 @@ footer { text-align: center; padding: 32px; color: var(--text-muted); font-size:
   <ul>
     <li>Qualifies the caller (estate sale, listing, general inquiry)</li>
     <li>Captures lead information (name, phone, property address, situation)</li>
-    <li>Creates a Lead in Salesforce</li>
+    <li><strong>Updates the existing Lead</strong> in Salesforce (CallRail creates it automatically)</li>
+    <li>Adds conversation notes and moves Lead status to "Working"</li>
     <li>Sends confirmation text to caller</li>
     <li>Preserves all CallRail attribution and tracking</li>
   </ul>
@@ -89,6 +90,8 @@ footer { text-align: center; padding: 32px; color: var(--text-muted); font-size:
     <span class="flow-arrow">↓</span><br>
     <strong>CallRail</strong> (tracking number — attribution preserved)<br>
     <span class="flow-arrow">↓</span><br>
+    CallRail auto-creates Lead in Salesforce ✓<br>
+    <span class="flow-arrow">↓</span><br>
     Call Flow Builder [Schedule Check]<br>
     <span class="flow-arrow">↓</span><br>
     ┌─────────────────┬─────────────────┐<br>
@@ -97,9 +100,11 @@ footer { text-align: center; padding: 32px; color: var(--text-muted); font-size:
     │   team phones   │    to ElevenLabs│<br>
     └─────────────────┴─────────────────┘<br>
     <span class="flow-arrow" style="margin-left: 180px;">↓</span><br>
-    <strong>ElevenLabs AI Agent</strong><br>
+    <strong>ElevenLabs AI Agent</strong> (handles conversation)<br>
     <span class="flow-arrow">↓</span><br>
-    Webhook → Salesforce Lead<br>
+    Call Ends → Query SF by Phone Number<br>
+    <span class="flow-arrow">↓</span><br>
+    Update Lead: Notes + Status<br>
     <span class="flow-arrow">↓</span><br>
     SMS Confirmation to Caller
   </div>
@@ -135,7 +140,12 @@ footer { text-align: center; padding: 32px; color: var(--text-muted); font-size:
       <tr>
         <td><strong>Webhook Endpoint</strong></td>
         <td><span class="status-badge needed">To Build</span></td>
-        <td>ElevenLabs → Salesforce Lead creation</td>
+        <td>ElevenLabs → Query SF Lead by phone → Update notes/status</td>
+      </tr>
+      <tr>
+        <td><strong>CallRail → SF Sync</strong></td>
+        <td><span class="status-badge ready">✓ Have</span></td>
+        <td>Auto-creates Leads from inbound calls (already working)</td>
       </tr>
     </tbody>
   </table>
@@ -235,52 +245,71 @@ footer { text-align: center; padding: 32px; color: var(--text-muted); font-size:
   </div>
 
   <h3>Phase 3: Salesforce Integration (Day 2-3)</h3>
+
+  <div class="highlight">
+    <div class="highlight-title">✓ Simplified: CallRail Already Creates Leads</div>
+    <p>CallRail auto-creates Leads in Salesforce from inbound calls. The AI agent just needs to UPDATE the existing Lead after the conversation.</p>
+  </div>
   
   <div class="step">
     <span class="step-num">7</span>
-    <span class="step-title">Create Webhook Endpoint</span>
+    <span class="step-title">Create Lead Update Webhook</span>
     <div class="step-desc">
-      Options:<br>
-      • Zapier (easiest): ElevenLabs webhook → Zapier → Salesforce Lead<br>
+      When call ends, ElevenLabs sends conversation data to webhook:<br>
+      • Zapier: Catch Hook → Salesforce "Find Record" (by phone) → "Update Record"<br>
       • Make.com: Same flow, more control<br>
-      • Custom: Salesforce Flow + Platform Event
+      • Custom: Salesforce API endpoint
     </div>
   </div>
   
   <div class="step">
     <span class="step-num">8</span>
-    <span class="step-title">Configure ElevenLabs Server Tool</span>
+    <span class="step-title">Configure ElevenLabs Post-Call Tool</span>
     <div class="step-desc">
       Agent → Tools → Add Server Tool<br>
-      • Name: "create_lead"<br>
+      • Name: "update_lead"<br>
+      • Trigger: End of conversation<br>
       • Endpoint: Your webhook URL<br>
-      • Parameters: name, phone, address, inquiry_type, notes
+      • Parameters: caller_phone, inquiry_type, conversation_summary, callback_preference
     </div>
   </div>
   
   <div class="step">
     <span class="step-num">9</span>
+    <span class="step-title">Salesforce Field Mapping</span>
+    <div class="step-desc">
+      Webhook updates these Lead fields:<br>
+      • <strong>Description/Notes:</strong> AI conversation summary<br>
+      • <strong>Status:</strong> "New" → "Working" (or custom "AI Qualified")<br>
+      • <strong>Lead Source Detail:</strong> "After-Hours AI Call"<br>
+      • <strong>Custom fields:</strong> Inquiry Type, Callback Time Preference
+    </div>
+  </div>
+  
+  <div class="step">
+    <span class="step-num">10</span>
     <span class="step-title">Add SMS Confirmation Tool</span>
     <div class="step-desc">
-      Use ElevenLabs built-in SMS tool or webhook to Twilio/smrtPhone
+      Use ElevenLabs built-in SMS tool or webhook to smrtPhone
     </div>
   </div>
 
   <h3>Phase 4: Testing & Launch (Day 3-4)</h3>
   
   <div class="step">
-    <span class="step-num">10</span>
+    <span class="step-num">11</span>
     <span class="step-title">Test End-to-End</span>
     <div class="step-desc">
       • Call tracking number after hours<br>
       • Verify AI answers correctly<br>
-      • Confirm Lead created in Salesforce<br>
+      • Confirm Lead exists in Salesforce (created by CallRail)<br>
+      • Confirm Lead notes/status UPDATED by AI<br>
       • Confirm SMS received
     </div>
   </div>
   
   <div class="step">
-    <span class="step-num">11</span>
+    <span class="step-num">12</span>
     <span class="step-title">Gradual Rollout</span>
     <div class="step-desc">
       Start with 1-2 tracking numbers, monitor for a week, then expand
