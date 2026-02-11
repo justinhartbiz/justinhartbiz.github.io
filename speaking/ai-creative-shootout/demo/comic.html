@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Creative Shootout — Comic Strip Mode</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+:root{--bg:#0a0a0f;--surface:#14141f;--border:#1e1e2e;--cyan:#00e5ff;--magenta:#ff00e5;--yellow:#ffe500;--green:#00ff88;--text:#e0e0e0;--dim:#666}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+
+header{text-align:center;padding:20px 0 10px}
+header h1{font-family:'Bangers',cursive;font-size:2.8em;letter-spacing:3px;background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header p{color:var(--dim);margin-top:4px;font-size:.9em}
+
+.controls{text-align:center;margin:16px 0}
+.btn{padding:12px 28px;border:none;border-radius:8px;font-weight:700;font-size:1em;cursor:pointer;transition:all .2s}
+.btn-go{background:linear-gradient(135deg,var(--cyan),var(--magenta));color:#000;font-family:'Bangers',cursive;font-size:1.2em;letter-spacing:2px}
+.btn-go:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(0,229,255,.4)}
+.btn-reset{background:var(--surface);border:2px solid var(--dim);color:var(--dim);margin-left:12px;display:none}
+.btn-reset:hover{border-color:var(--text);color:var(--text)}
+.btn-back{background:var(--surface);border:2px solid var(--yellow);color:var(--yellow);margin-left:12px;text-decoration:none;font-weight:700;font-size:1em;padding:12px 20px;border-radius:8px}
+
+.progress{height:4px;background:var(--border);border-radius:2px;margin:12px 0;overflow:hidden;display:none}
+.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--yellow));transition:width .5s;border-radius:2px}
+
+/* Comic Grid */
+.comic-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.panel{position:relative;background:var(--surface);border:4px solid var(--border);border-radius:8px;overflow:hidden;aspect-ratio:16/10;opacity:0;transform:scale(.95);transition:all .6s cubic-bezier(.4,0,.2,1)}
+.panel.visible{opacity:1;transform:scale(1)}
+.panel.p1{border-color:var(--cyan)}
+.panel.p2{border-color:var(--magenta)}
+.panel.p3{border-color:var(--yellow)}
+.panel.p4{border-color:var(--green)}
+
+.panel img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.2) contrast(1.1)}
+
+.panel-number{position:absolute;top:8px;left:10px;background:rgba(0,0,0,.85);border:2px solid currentColor;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:'Bangers',cursive;font-size:1.1em;z-index:3}
+.p1 .panel-number{color:var(--cyan)}
+.p2 .panel-number{color:var(--magenta)}
+.p3 .panel-number{color:var(--yellow)}
+.p4 .panel-number{color:var(--green)}
+
+/* Speech Bubbles */
+.bubble{position:absolute;background:#fff;color:#111;padding:10px 14px;border-radius:16px;font-size:.82em;line-height:1.35;font-weight:700;max-width:55%;z-index:2;opacity:0;transform:translateY(8px);transition:all .4s .2s;box-shadow:2px 3px 8px rgba(0,0,0,.5)}
+.bubble.show{opacity:1;transform:translateY(0)}
+.bubble::after{content:'';position:absolute;bottom:-10px;left:30px;border:10px solid transparent;border-top-color:#fff}
+.bubble.right::after{left:auto;right:30px}
+.bubble.bottom-left{bottom:12px;left:12px}
+.bubble.top-right{top:12px;right:12px}
+.bubble.top-right::after{bottom:auto;top:-10px;border-top-color:transparent;border-bottom-color:#fff;right:30px;left:auto}
+.bubble.top-left{top:12px;left:12px}
+.bubble.top-left::after{bottom:auto;top:-10px;border-top-color:transparent;border-bottom-color:#fff}
+.bubble.bottom-right{bottom:12px;right:12px}
+.bubble.bottom-right::after{left:auto;right:30px}
+
+/* Loading overlay */
+.loading-overlay{position:absolute;inset:0;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;transition:opacity .5s}
+.loading-overlay.hide{opacity:0;pointer-events:none}
+.loading-text{font-family:'JetBrains Mono',monospace;font-size:.85em;color:var(--dim)}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Caption bar */
+.caption{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.8);color:var(--dim);font-size:.7em;font-style:italic;padding:4px 10px;text-align:center;z-index:2}
+
+/* Winner */
+.winner-bar{display:none;margin-top:16px;background:linear-gradient(135deg,rgba(0,255,136,.08),rgba(0,229,255,.08));border:2px solid var(--green);border-radius:12px;padding:16px 20px;text-align:center}
+.winner-bar.show{display:block;animation:fadeUp .5s}
+.winner-bar h3{color:var(--green);font-family:'Bangers',cursive;font-size:1.3em;letter-spacing:2px;margin-bottom:8px}
+.final-copy{font-family:'JetBrains Mono',monospace;font-size:.88em;line-height:1.6;color:var(--text);background:var(--bg);padding:14px;border-radius:8px;text-align:left}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:700px){
+  .comic-grid{grid-template-columns:1fr}
+  .bubble{font-size:.75em;max-width:70%}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚡ AI Creative Shootout</h1>
+    <p>Mode C: The Comic Strip — AI-generated panels with HTML speech bubbles</p>
+  </header>
+
+  <div class="controls">
+    <button class="btn btn-go" id="goBtn" onclick="generate()">💥 GENERATE COMIC</button>
+    <button class="btn btn-reset" id="resetBtn" onclick="resetAll()">↺ Reset</button>
+    <a href="index.html" class="btn-back">← Back to Chat Mode</a>
+  </div>
+
+  <div class="progress" id="progress"><div class="progress-bar" id="bar"></div></div>
+
+  <div class="comic-grid" id="grid">
+    <!-- Panel 1: Patriot -->
+    <div class="panel p1" id="panel1">
+      <div class="loading-overlay" id="load1">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Generating panel 1...</div>
+      </div>
+      <div class="panel-number">1</div>
+      <img src="comic-assets/panel1-patriot.png" alt="The Patriot">
+      <div class="bubble bottom-left" id="b1">"Where is the PROMISE? We need morning in America, not midnight!"</div>
+      <div class="caption">🦅 The Patriot reads the draft and clutches his flag</div>
+    </div>
+
+    <!-- Panel 2: Skeptic -->
+    <div class="panel p2" id="panel2">
+      <div class="loading-overlay" id="load2">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Generating panel 2...</div>
+      </div>
+      <div class="panel-number">2</div>
+      <img src="comic-assets/panel2-skeptic.png" alt="The Skeptic">
+      <div class="bubble top-right" id="b2">"'Destroying'? Citation needed. This reads like a chain email from 2008."</div>
+      <div class="caption">🔍 The Skeptic adjusts her glasses disapprovingly</div>
+    </div>
+
+    <!-- Panel 3: Urgency -->
+    <div class="panel p3" id="panel3">
+      <div class="loading-overlay" id="load3">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Generating panel 3...</div>
+      </div>
+      <div class="panel-number">3</div>
+      <img src="comic-assets/panel3-urgency.png" alt="The Urgency">
+      <div class="bubble bottom-right right" id="b3">"WHY IS NOTHING IN CAPS?! Add a 3X MATCH or I WALK! 🔥"</div>
+      <div class="caption">🔥 The Urgency flips the table — WHERE'S THE DEADLINE?!</div>
+    </div>
+
+    <!-- Panel 4: Consensus -->
+    <div class="panel p4" id="panel4">
+      <div class="loading-overlay" id="load4">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Generating panel 4...</div>
+      </div>
+      <div class="panel-number">4</div>
+      <img src="comic-assets/panel4-consensus.png" alt="Consensus">
+      <div class="bubble top-left" id="b4">"America's promise is worth fighting for. Your $5 becomes $15 — but only by midnight."</div>
+      <div class="caption">🤝 They shake hands. The copy is reborn.</div>
+    </div>
+  </div>
+
+  <div class="winner-bar" id="winner">
+    <h3>✅ CONSENSUS — Final Rewrite</h3>
+    <div class="final-copy">
+      <strong>Subject:</strong> The chapter that changes everything<br><br>
+      <strong>Body:</strong><br>
+      Friend,<br><br>
+      America's greatest chapter hasn't been written yet — and YOU hold the pen.<br><br>
+      Right now, we're just $12,000 away from our goal to flip District 7. And thanks to a group of dedicated patriots, every dollar you give tonight is TRIPLED.<br><br>
+      <strong>Your $5 becomes $15. But only until midnight.</strong><br><br>
+      → <u>Rush your 3X-matched gift now</u><br><br>
+      <strong>P.S.</strong> Your 3X match expires at midnight tonight. Don't leave $10 on the table.
+    </div>
+  </div>
+</div>
+
+<script>
+const DELAYS = [800, 1800, 2800, 3800]; // sequential reveal timing
+
+function generate() {
+  document.getElementById('goBtn').style.display = 'none';
+  document.getElementById('resetBtn').style.display = 'inline-block';
+  document.getElementById('progress').style.display = 'block';
+  const bar = document.getElementById('bar');
+
+  DELAYS.forEach((delay, i) => {
+    const n = i + 1;
+    setTimeout(() => {
+      bar.style.width = ((n) / 5 * 100) + '%';
+      // Hide loading, reveal panel
+      document.getElementById('load' + n).classList.add('hide');
+      document.getElementById('panel' + n).classList.add('visible');
+      // Show bubble after panel appears
+      setTimeout(() => {
+        document.getElementById('b' + n).classList.add('show');
+      }, 400);
+    }, delay);
+  });
+
+  // Show winner
+  setTimeout(() => {
+    bar.style.width = '100%';
+    document.getElementById('winner').classList.add('show');
+  }, DELAYS[3] + 1200);
+}
+
+function resetAll() {
+  document.getElementById('goBtn').style.display = '';
+  document.getElementById('resetBtn').style.display = 'none';
+  document.getElementById('progress').style.display = 'none';
+  document.getElementById('bar').style.width = '0';
+  document.getElementById('winner').classList.remove('show');
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('panel' + i).classList.remove('visible');
+    document.getElementById('load' + i).classList.remove('hide');
+    document.getElementById('b' + i).classList.remove('show');
+  }
+}
+</script>
+</body>
+</html>
