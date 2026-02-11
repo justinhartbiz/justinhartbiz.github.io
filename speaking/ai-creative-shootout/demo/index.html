@@ -83,6 +83,7 @@ header p{color:var(--dim);margin-top:6px;font-size:.95em}
   .comic-grid{grid-template-columns:1fr}
 }
 </style>
+<script src="live-mode.js"></script>
 </head>
 <body>
 <div class="speed-toggle" id="speedToggle" onclick="toggleSpeed()">🐢 Presentation</div>
@@ -274,8 +275,93 @@ function addMsg(colId, text, turnLabel) {
   });
 }
 
-async function runShootout() {
-  if (running) return;
+function addStreamMsg(colId, turnLabel) {
+  const col = document.getElementById(colId);
+  const div = document.createElement('div');
+  div.className = 'msg visible';
+  div.innerHTML = `<div class="label">${turnLabel}</div><span class="msg-text"></span><span class="typing-cursor"></span>`;
+  col.appendChild(div);
+  const span = div.querySelector('.msg-text');
+  const cursor = div.querySelector('.typing-cursor');
+  return {
+    append(text) { span.textContent += text; col.scrollTop = col.scrollHeight; },
+    finish() { cursor.remove(); },
+    getText() { return span.textContent; }
+  };
+}
+
+async function runShootoutLive() {
+  const draft = document.getElementById('userDraft').value.trim();
+  if (!draft) return;
+  running = true;
+  document.getElementById('runBtn').style.display = 'none';
+  document.getElementById('resetBtn').style.display = '';
+  document.getElementById('progressWrap').style.display = 'block';
+  const bar = document.getElementById('progressBar');
+  const chars = ['patriot', 'skeptic', 'urgency'];
+  const colIds = { patriot: 'patriotChat', skeptic: 'skepticChat', urgency: 'urgencyChat' };
+  const history = { patriot: [], skeptic: [], urgency: [] };
+  const allTexts = [];
+
+  try {
+    const rounds = LiveMode.ROUND_PROMPTS;
+    for (let r = 0; r < rounds.length; r++) {
+      bar.style.width = ((r + 1) / (rounds.length + 1) * 100) + '%';
+      const label = `Round ${r + 1}`;
+      const historyStr = allTexts.map(t => `${t.who}: ${t.text}`).join('\n');
+      const userPrompt = rounds[r](draft, historyStr);
+
+      // Stream all 3 in parallel
+      const roundTexts = {};
+      await Promise.all(chars.map(async (char) => {
+        const handle = addStreamMsg(colIds[char], label);
+        try {
+          for await (const chunk of LiveMode.streamCharacter(char, LiveMode.SYSTEM_PROMPTS[char], userPrompt, history[char])) {
+            handle.append(chunk);
+          }
+        } catch (e) {
+          console.error(`Live ${char} failed:`, e);
+          throw e;
+        }
+        handle.finish();
+        const text = handle.getText();
+        roundTexts[char] = text;
+        history[char].push({ role: 'user', content: userPrompt });
+        history[char].push({ role: 'assistant', content: text });
+      }));
+
+      for (const char of chars) {
+        allTexts.push({ who: char, text: roundTexts[char] });
+      }
+      if (!running) return;
+      await new Promise(r => setTimeout(r, 400));
+    }
+
+    // Generate consensus
+    bar.style.width = '95%';
+    const historyStr = allTexts.map(t => `${t.who}: ${t.text}`).join('\n');
+    const consensusPrompt = LiveMode.CONSENSUS_PROMPT(draft, historyStr);
+    // Use whichever API is available
+    let finalText = '';
+    const consensusChar = 'patriot'; // use patriot's API for consensus
+    for await (const chunk of LiveMode.streamCharacter(consensusChar, 'You are a master fundraising copywriter.', consensusPrompt, [])) {
+      finalText += chunk;
+    }
+    bar.style.width = '100%';
+    const wb = document.getElementById('winnerBar');
+    document.getElementById('finalCopy').textContent = finalText;
+    wb.style.display = 'block';
+    requestAnimationFrame(() => wb.classList.add('visible'));
+  } catch (e) {
+    LiveMode.toast('⚠️ Live failed, falling back to simulation');
+    console.error('Live mode error:', e);
+    resetAll();
+    // Disable live mode and run simulated
+    await runShootoutSimulated();
+  }
+}
+
+async function runShootoutSimulated() {
   running = true;
   document.getElementById('runBtn').style.display = 'none';
   document.getElementById('resetBtn').style.display = '';
@@ -286,7 +372,6 @@ async function runShootout() {
     const s = SCRIPT[i];
     bar.style.width = ((i + 1) / SCRIPT.length * 100) + '%';
     const label = `Round ${s.turn}`;
-    // Run all 3 in parallel
     await Promise.all([
       addMsg('patriotChat', s.patriot, label),
       addMsg('skepticChat', s.skeptic, label),
@@ -296,12 +381,20 @@ async function runShootout() {
     await new Promise(r => setTimeout(r, slowMode ? 2000 : 400));
   }
 
-  // Show winner
   const wb = document.getElementById('winnerBar');
   document.getElementById('finalCopy').innerHTML = FINAL_COPY;
   wb.style.display = 'block';
   requestAnimationFrame(() => wb.classList.add('visible'));
   document.getElementById('modeToggle').style.display = 'flex';
+}
+
+async function runShootout() {
+  if (running) return;
+  if (LiveMode.enabled) {
+    await runShootoutLive();
+  } else {
+    await runShootoutSimulated();
+  }
 }
 </script>
 </body>

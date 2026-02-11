@@ -81,6 +81,7 @@ body{background:#000;font-family:'Inter',system-ui,sans-serif;display:flex;align
 .home-bar{height:20px;display:flex;align-items:center;justify-content:center}
 .home-bar div{width:120px;height:4px;background:#555;border-radius:2px}
 </style>
+<script src="live-mode.js"></script>
 </head>
 <body>
 
@@ -256,7 +257,88 @@ function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 function scrollDown() { chat.scrollTop = chat.scrollHeight; }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-async function startChat() {
+function addStreamBubble(who, name, showName) {
+  const group = document.createElement('div');
+  group.className = 'msg-group fade-in';
+  group.innerHTML = `
+    ${showName ? `<div class="sender-name sender-${who}">${name}</div>` : ''}
+    <div class="msg-row">
+      <div class="avatar avatar-${who}">${name.split(' ')[0]}</div>
+      <div class="bubble bubble-${who}"><span class="stream-text"></span><span class="typing-dots" style="display:inline-flex;vertical-align:middle;margin-left:4px"><span></span><span></span><span></span></span></div>
+    </div>`;
+  chat.appendChild(group);
+  scrollDown();
+  const span = group.querySelector('.stream-text');
+  const dots = group.querySelector('.typing-dots');
+  return {
+    append(text) { span.textContent += text; scrollDown(); },
+    finish() { dots.remove(); },
+    getText() { return span.textContent; }
+  };
+}
+
+const CHAR_NAMES = { patriot: '🦅 The Patriot', skeptic: '🔍 The Skeptic', urgency: '🔥 The Urgency' };
+const CHAR_ORDER = ['patriot', 'skeptic', 'urgency'];
+
+async function startChatLive() {
+  const draft = userInput.value.trim();
+  if (!draft) return;
+  running = true;
+  sendBtn.disabled = true;
+  addUserBubble(draft);
+  userInput.value = '';
+  await sleep(400);
+
+  const history = { patriot: [], skeptic: [], urgency: [] };
+  const allTexts = [];
+
+  try {
+    const rounds = LiveMode.ROUND_PROMPTS;
+    for (let r = 0; r < rounds.length; r++) {
+      const historyStr = allTexts.map(t => `${t.who}: ${t.text}`).join('\n');
+      const userPrompt = rounds[r](draft, historyStr);
+      let lastWho = allTexts.length ? allTexts[allTexts.length - 1].who : '';
+
+      for (const char of CHAR_ORDER) {
+        const typingEl = showTyping(char, CHAR_NAMES[char]);
+        await sleep(300);
+        typingEl.remove();
+        const handle = addStreamBubble(char, CHAR_NAMES[char], char !== lastWho);
+        for await (const chunk of LiveMode.streamCharacter(char, LiveMode.SYSTEM_PROMPTS[char], userPrompt, history[char])) {
+          handle.append(chunk);
+        }
+        handle.finish();
+        const text = handle.getText();
+        history[char].push({ role: 'user', content: userPrompt });
+        history[char].push({ role: 'assistant', content: text });
+        allTexts.push({ who: char, text });
+        lastWho = char;
+        await sleep(200);
+      }
+    }
+
+    // Consensus
+    await sleep(400);
+    const historyStr = allTexts.map(t => `${t.who}: ${t.text}`).join('\n');
+    const consensusPrompt = LiveMode.CONSENSUS_PROMPT(draft, historyStr);
+    let finalText = '';
+    for await (const chunk of LiveMode.streamCharacter('patriot', 'You are a master fundraising copywriter.', consensusPrompt, [])) {
+      finalText += chunk;
+    }
+    addConsensus(finalText);
+  } catch (e) {
+    LiveMode.toast('⚠️ Live failed, falling back to simulation');
+    console.error('Live error:', e);
+    // Clear and run simulated
+    chat.innerHTML = '';
+    running = false;
+    sendBtn.disabled = false;
+    userInput.value = draft;
+    await startChatSimulated();
+  }
+}
+
+async function startChatSimulated() {
   if (running) return;
   running = true;
   sendBtn.disabled = true;
@@ -280,6 +362,15 @@ async function startChat() {
 
   await sleep(800);
   addConsensus(FINAL_COPY);
+}
+
+async function startChat() {
+  if (running) return;
+  if (LiveMode.enabled) {
+    await startChatLive();
+  } else {
+    await startChatSimulated();
+  }
 }
 </script>
 </body>
