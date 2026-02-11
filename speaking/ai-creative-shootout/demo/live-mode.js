@@ -4,6 +4,11 @@
  */
 
 const LiveMode = (() => {
+  // Auto-inject Gemini key if not already set
+  if (!localStorage.getItem('shootout_gemini_key')) {
+    localStorage.setItem('shootout_gemini_key', 'AIzaSyCJtYnVl1fiot53anv0WI-eTWWo_yH0mDY');
+  }
+
   let enabled = false;
   
   const SYSTEM_PROMPTS = {
@@ -44,18 +49,10 @@ const LiveMode = (() => {
   }
 
   // Pick which API to use for each character
+  // All characters route to Gemini for simplicity (one key needed)
   function getApiForCharacter(char) {
     const k = getKeys();
-    // Preferred mapping: Patriot→OpenAI, Skeptic→Anthropic, Urgency→Gemini
-    // Falls back to whatever key is available
-    const prefs = {
-      patriot: ['openai', 'gemini', 'anthropic'],
-      skeptic: ['anthropic', 'gemini', 'openai'],
-      urgency: ['gemini', 'openai', 'anthropic']
-    };
-    for (const api of prefs[char]) {
-      if (k[api]) return api;
-    }
+    if (k.gemini) return 'gemini';
     return null;
   }
 
