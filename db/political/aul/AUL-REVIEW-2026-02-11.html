@@ -49,6 +49,50 @@
         
         .stat strong { color: #ff6b6b; }
         
+        .selection-bar {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        #selection-list {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #ff6b6b;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.85rem;
+            min-height: 20px;
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+        
+        #selection-list:empty::before {
+            content: 'Check creatives below to build list…';
+            color: #555;
+            font-family: inherit;
+        }
+        
+        .copy-selection-btn {
+            background: linear-gradient(135deg, #c41e3a, #8b1525);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        
+        .copy-selection-btn:hover { filter: brightness(1.2); }
+        .copy-selection-btn.copied { background: #2d7a4f; }
+        
         main { 
             max-width: 1400px; 
             margin: 0 auto; 
@@ -295,13 +339,17 @@
     </style>
 </head>
 <body>
-    <header class="sticky-header">
+    <header class="sticky-header" style="flex-wrap:wrap;">
         <h1>AUL <span>Creative Shootout</span></h1>
         <div class="header-stats">
             <div class="stat"><strong>12</strong> Creatives</div>
             <div class="stat"><strong>3</strong> Hooks</div>
             <div class="stat">Feb 11, 2026</div>
             <div class="stat" id="selected-count"><strong>0</strong> Selected</div>
+        </div>
+        <div class="selection-bar">
+            <span id="selection-list"></span>
+            <button class="copy-selection-btn" onclick="copySelection(this)">Copy Selection</button>
         </div>
     </header>
     
@@ -840,8 +888,25 @@ Who's next? You decide: [LINK]`
         });
         
         function updateCount() {
-            const count = document.querySelectorAll('input[type="checkbox"]:checked').length;
+            const checked = document.querySelectorAll('input[type="checkbox"]:checked');
+            const count = checked.length;
             document.getElementById('selected-count').innerHTML = `<strong>${count}</strong> Selected`;
+            
+            const ids = [...checked].map(cb => 'CR-' + cb.closest('.creative-card').querySelector('.card-id').textContent.replace(/^CR-/, ''));
+            document.getElementById('selection-list').textContent = ids.join(', ');
+        }
+        
+        function copySelection(btn) {
+            const text = document.getElementById('selection-list').textContent;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy Selection';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
         }
     </script>
 </body>
