@@ -72,12 +72,19 @@ body{background:#000;font-family:'Inter',system-ui,sans-serif;display:flex;align
 .fade-in{animation:fadeIn .3s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
+/* Speed toggle */
+.speed-toggle{position:fixed;top:12px;right:16px;background:#1c1c1e;border:1px solid #333;border-radius:20px;padding:6px 14px;font-size:.8em;cursor:pointer;z-index:100;color:#fff;user-select:none;transition:background .2s}
+.speed-toggle:hover{background:#2c2c2e}
+.speed-toggle.fast{border-color:#ff9500}
+
 /* Home indicator */
 .home-bar{height:20px;display:flex;align-items:center;justify-content:center}
 .home-bar div{width:120px;height:4px;background:#555;border-radius:2px}
 </style>
 </head>
 <body>
+
+<div class="speed-toggle" id="speedToggle" onclick="toggleSpeed()">🐢 Presentation</div>
 
 <div class="phone">
   <div class="notch"></div>
@@ -100,6 +107,14 @@ const chat = document.getElementById('chatArea');
 const sendBtn = document.getElementById('sendBtn');
 const userInput = document.getElementById('userInput');
 let running = false;
+let slowMode = true; // Default: presentation speed
+
+function toggleSpeed() {
+  slowMode = !slowMode;
+  const btn = document.getElementById('speedToggle');
+  btn.textContent = slowMode ? '🐢 Presentation' : '🐇 Fast';
+  btn.classList.toggle('fast', !slowMode);
+}
 
 const SCRIPT = [
   {
@@ -255,12 +270,12 @@ async function startChat() {
   let lastWho = '';
   for (const line of SCRIPT) {
     const typingEl = showTyping(line.who, line.name);
-    const delay = 800 + Math.random() * 1200;
+    const delay = slowMode ? (2000 + Math.random() * 1500) : (800 + Math.random() * 1200);
     await sleep(delay);
     typingEl.remove();
     addBubble(line.who, line.name, line.text, line.who !== lastWho);
     lastWho = line.who;
-    await sleep(300);
+    await sleep(slowMode ? 1200 : 300);
   }
 
   await sleep(800);
