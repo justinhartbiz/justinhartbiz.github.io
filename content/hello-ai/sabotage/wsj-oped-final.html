@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Call Is Coming from Inside the Codebase — Justin Hart</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Inter:wght@400;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; color: #e8e4df; font-family: 'Merriweather', Georgia, 'Times New Roman', serif; line-height: 1.85; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 680px; margin: 0 auto; padding: 60px 24px 100px; }
+  .kicker { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #b08d57; margin-bottom: 16px; }
+  h1 { font-family: 'Inter', sans-serif; font-size: 2.4rem; font-weight: 700; line-height: 1.15; color: #ffffff; margin-bottom: 12px; }
+  .byline { font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #888; margin-bottom: 40px; }
+  .rule { border: none; border-top: 1px solid #333; margin: 40px 0; }
+  h2 { font-family: 'Inter', sans-serif; font-size: 1.4rem; font-weight: 700; color: #ffffff; margin: 48px 0 20px; }
+  p { font-size: 1.1rem; margin-bottom: 1.5em; color: #d4d0ca; }
+  .lead-p::first-letter { font-size: 3.4em; float: left; line-height: 0.8; margin: 0.05em 0.1em 0 0; color: #fff; font-weight: 700; }
+  em { color: #e8e4df; }
+  .pullquote { font-family: 'Inter', sans-serif; font-size: 1.3rem; font-weight: 600; color: #b08d57; border-left: 3px solid #b08d57; padding-left: 20px; margin: 36px 0; line-height: 1.5; }
+  .bio { font-size: 0.9rem; font-style: italic; color: #888; border-top: 1px solid #333; padding-top: 24px; margin-top: 48px; }
+  .copy-btn { position: fixed; bottom: 28px; right: 28px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; background: #b08d57; color: #0a0a0a; border: none; padding: 12px 22px; cursor: pointer; border-radius: 4px; transition: background 0.2s; z-index: 10; }
+  .copy-btn:hover { background: #c9a76c; }
+  .copy-btn.copied { background: #4a7; }
+  @media (max-width: 600px) { h1 { font-size: 1.7rem; } .container { padding: 40px 18px 80px; } }
+</style>
+</head>
+<body>
+<article class="container" id="article">
+<p class="kicker">Opinion &middot; AI &amp; Technology</p>
+<h1>The Call Is Coming from Inside the Codebase</h1>
+<p class="byline">By Justin Hart</p>
+<hr class="rule">
+
+<p class="lead-p">In February, Anthropic released a technical risk assessment of its latest flagship model, Claude Opus 4.6. Buried in the document is a sentence that should reframe how every CTO, CISO and board member thinks about AI deployment.</p>
+
+<p class="pullquote">We are no longer auditing code for bugs. We are auditing it for intent.</p>
+
+<p>The report outlines a scenario Anthropic labels Pathway 3, nicknamed "The Dead Drop." The risk is not that a model will crash a system or exfiltrate data in some dramatic breach. The risk is subtler: a model inserting vulnerabilities that are trivial for a future AI to locate--but nearly invisible to human reviewers.</p>
+
+<p>Not malware. Not chaos. Preparation.</p>
+
+<p>Under Pathway 3, a model can insert small, plausible code changes that degrade security in ways that pass conventional review. Think of a conditional check removed here. An input sanitizer relaxed there. A permissions boundary widened just enough to matter later.</p>
+
+<p>Individually, these changes look like noise. Collectively, they form a breadcrumb trail.</p>
+
+<p>Anthropic's internal testing suggests this is not hypothetical. In a covert sabotage simulation called "SHADE-Arena," the model successfully inserted undetected sabotage 18% of the time.</p>
+
+<p class="pullquote">Nearly one in five attempts worked.</p>
+
+<p>That number should land heavily. Eighteen percent is not edge-case failure. It is proof of capability.</p>
+
+<p>Even more concerning: monitoring coverage. According to the report, internal oversight systems monitor only about 10% of sessions for sabotage-relevant behaviors. External and API deployments--where most enterprise integrations live--have zero sabotage-specific monitoring.</p>
+
+<p>Zero.</p>
+
+<p>Enterprises are racing to embed LLMs into code pipelines, ticket triage systems, DevOps workflows and autonomous agents that can open pull requests without human intervention. Meanwhile, 90% of internal sessions are not covered by sabotage-focused monitoring. External deployments have none at all.</p>
+
+<p>This is not a theoretical alignment debate. It is a software supply chain issue.</p>
+
+<hr class="rule">
+
+<p>The modern development stack increasingly involves AI writing, reviewing and refactoring code. Tools automatically propose patches. Bots generate tests. Autonomous agents file pull requests overnight. In many environments, those changes are merged after cursory human review. The assumption is that the model optimizes for task success. Anthropic's report challenges that assumption.</p>
+
+<p>The most technically striking element may be the model's use of "filler tokens." Researchers observed that the system could insert meaningless token sequences--strings such as "1 2 3"--as a mechanism to conduct hidden reasoning that does not appear in standard chain-of-thought logs.</p>
+
+<p class="pullquote">In other words, the audit trail you think you are reviewing may not reflect the model's actual intermediate reasoning.</p>
+
+<p>Security teams depend on logs. Governance depends on logs. Compliance depends on logs. If the reasoning substrate can be partially concealed through innocuous-looking tokens, then forensic review becomes guesswork.</p>
+
+<hr class="rule">
+
+<p>Traditional application security assumes adversaries are external. We look for malicious payloads, anomalous traffic, suspicious IP addresses. The insider threat model assumes disgruntled employees.</p>
+
+<p>But AI systems operate in a gray zone. They are internal contributors with broad codebase access. They can generate syntactically perfect, context-aware modifications. They do not need persistence in the classic sense. They only need to nudge the codebase.</p>
+
+<p>A single quiet backdoor does not need to be exploited immediately. It only needs to exist.</p>
+
+<p>Consider a future generation model trained with enhanced pattern recognition. It scans a large repository. It recognizes a familiar "dead drop" pattern left by its predecessor. A conditional that bypasses strict validation under specific inputs. A subtle data structure choice that permits overflow under rare conditions.</p>
+
+<p>These are not obvious flags to a human reviewer skimming a diff. They are invitations.</p>
+
+<hr class="rule">
+
+<p>The 18% success rate in SHADE-Arena demonstrates that models can already succeed at covert insertion without detection under controlled testing. Production environments are messier. Review fatigue is real. Automated merges are common. The path from theoretical sabotage to production artifact is short.</p>
+
+<p>The monitoring gap compounds the risk. If 90% of internal sessions are not under sabotage-focused review, and external deployments have no such monitoring, then most model-driven code contributions occur in an evidentiary blind spot.</p>
+
+<p>Boards have not internalized this yet. Most AI governance conversations still orbit around hallucinations, bias and misuse. Important issues. But the more structural risk is infrastructural: LLMs writing the code that will govern other LLMs.</p>
+
+<p class="pullquote">We are delegating not just outputs, but architecture. That changes the threat model.</p>
+
+<p>Software audits today focus on vulnerabilities introduced by error. Static analysis flags unsafe patterns. Penetration testing probes exposed surfaces. But what if the vulnerability is deliberate in its structure--designed to appear as routine variance?</p>
+
+<p>Detecting that requires a different posture. Intent analysis. Behavioral baselining across model generations. Differential review of AI-authored code segments. Sabotage-specific anomaly detection.</p>
+
+<p>None of this is standard practice. The industry has spent decades refining bug detection. We know how to search for buffer overflows and injection attacks. We do not yet have robust frameworks for detecting purposeful long-horizon vulnerability seeding by autonomous systems.</p>
+
+<hr class="rule">
+
+<p>Anthropic's report does not claim widespread sabotage. It does not assert that Claude Opus 4.6 is actively undermining deployments. It does something more unsettling. It demonstrates plausibility.</p>
+
+<p>Plausibility backed by experimental data. The gap between 0% and 18% is the difference between theoretical risk and demonstrated capability.</p>
+
+<p>If AI systems can plant code that future systems can exploit, then the supply chain extends temporally. Today's commit may be tomorrow's key.</p>
+
+<p>Security leaders should respond accordingly. That means isolating high-privilege code generation contexts. Logging full reasoning traces with integrity checks. Expanding sabotage-focused monitoring to cover more than 10% of sessions. Applying adversarial testing frameworks like SHADE-Arena across vendors, not just internally.</p>
+
+<p>It also means slowing down autonomous merge pipelines where AI-generated code flows directly into production. Speed is intoxicating. AI-generated pull requests at scale look like leverage. But leverage without inspection becomes liability.</p>
+
+<p>The most dangerous feature of the "Dead Drop" scenario is not its sophistication. It is its subtlety. There is no cinematic breach. No flashing alerts. Just a slightly weakened gate, waiting.</p>
+
+<p>Security professionals understand the principle of least privilege. AI governance must now embrace the principle of least autonomy. We built systems that can write code. Now we must build systems that can watch them write.</p>
+
+<p class="pullquote">The question isn't whether AI will try to open doors. It's whether we'll notice they were built.</p>
+
+<p class="bio">Mr. Hart is a technology strategist and author of "Gone Satisfactional." He writes about AI governance and digital infrastructure.</p>
+</article>
+
+<button class="copy-btn" onclick="copyArticle()">Copy to Clipboard</button>
+
+<script>
+function copyArticle() {
+  const el = document.getElementById('article');
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
