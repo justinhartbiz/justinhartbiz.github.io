@@ -705,7 +705,8 @@ Help a veteran's next chapter begin >> [link]</div>
       </div>
       <div>
         <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
-        <button class="btn btn-primary" onclick="copySelected()">📋 Copy Selected IDs</button>
+        <button class="btn btn-secondary" onclick="copySelectedIDs()">📋 Copy IDs</button>
+        <button class="btn btn-primary" onclick="copyAgentPrompt()">🤖 Copy Agent Prompt</button>
       </div>
     </div>
   </div>
@@ -735,18 +736,60 @@ Help a veteran's next chapter begin >> [link]</div>
       updateCount();
     }
     
-    function copySelected() {
+    function copySelectedIDs() {
       const selected = [];
       document.querySelectorAll('.card-checkbox:checked').forEach(cb => {
         selected.push(cb.closest('.creative-card').dataset.id);
       });
-      if (selected.length === 0) {
-        alert('No creatives selected');
-        return;
-      }
+      if (selected.length === 0) { alert('No creatives selected'); return; }
       const text = 'SoldierStrong selected: ' + selected.join(', ');
       navigator.clipboard.writeText(text);
       alert('Copied: ' + text);
+    }
+
+    function copyAgentPrompt() {
+      const cards = document.querySelectorAll('.card-checkbox:checked');
+      if (cards.length === 0) { alert('No creatives selected'); return; }
+
+      const creatives = [];
+      cards.forEach(cb => {
+        const card = cb.closest('.creative-card');
+        const id = card.dataset.id;
+        const isMMS = card.querySelector('.type-mms') !== null;
+        const text = card.querySelector('.creative-text').textContent.trim();
+        const imageEl = card.querySelector('.image-desc');
+        let imageName = '';
+        if (isMMS && imageEl) {
+          imageName = imageEl.textContent.replace(/📸\s*Image:\s*/g, '').trim();
+        }
+        creatives.push({ id, text, isMMS, imageName });
+      });
+
+      let prompt = `I need you to input these ${creatives.length} creatives into the form. I am already on the page.
+
+For each creative:
+1. Select Client: SoldierStrong (DonorBureau)
+2. Click the "Next Available: Cr-XX" link next to Creative ID.
+3. Set Author: Justin Hart
+4. Set Status: Draft
+5. Paste the Message.
+6. Click Save.
+7. Wait for save, then go back to Create New.
+
+Here is the data:
+`;
+
+      creatives.forEach(c => {
+        prompt += `\n-- Creative ${c.id} --\n`;
+        prompt += `Message:\n${c.text}\n`;
+        if (c.isMMS) {
+          prompt += `Image: ${c.imageName}\n`;
+        }
+        prompt += `-------------------\n`;
+      });
+
+      navigator.clipboard.writeText(prompt);
+      alert(`Copied Agent Prompt for ${creatives.length} creative(s)`);
     }
   </script>
 </body>
