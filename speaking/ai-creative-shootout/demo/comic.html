@@ -269,7 +269,7 @@ function toggleLive() {
   if (liveMode) {
     toggle.classList.add('live');
     icon.textContent = '🔴';
-    text.textContent = 'Live Mode (Pollinations.ai)';
+    text.textContent = 'Live Mode (Wavespeed FLUX)';
   } else {
     toggle.classList.remove('live');
     icon.textContent = '⚪';
@@ -277,16 +277,37 @@ function toggleLive() {
   }
 }
 
-function getPanelSrc(panelNum) {
-  if (!liveMode) return SIM_IMAGES[panelNum];
-  const seed = Math.floor(Math.random() * 1000000);
-  const key = panelNum % 4; // 1=patriot, 2=skeptic, 3=urgency, 0=consensus
-  const prompt = LIVE_PROMPTS[key];
-  const apiKey = 'sk_BSQUG7yJDFnDepMFyXcFqHOFtDYAB88K';
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=500&nologo=true&seed=${seed}&token=${apiKey}`;
+const WAVESPEED_KEY = 'f0dbd67aefe3b626066d0753cf9cddd66259040b16f2c3c9c1e6e6bb117b0932';
+const WAVESPEED_PROXY = 'https://corsproxy.io/?' + encodeURIComponent('https://api.wavespeed.ai');
+
+async function fetchWavespeedImage(prompt) {
+  const submitUrl = WAVESPEED_PROXY + '/api/v3/wavespeed-ai/flux-schnell';
+  const res = await fetch(submitUrl, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + WAVESPEED_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, width: 1024, height: 576 })
+  });
+  const json = await res.json();
+  const taskId = json.data.id;
+
+  // Poll for result
+  const pollUrl = WAVESPEED_PROXY + '/api/v3/predictions/' + taskId;
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 1000));
+    const pr = await fetch(pollUrl, { headers: { 'Authorization': 'Bearer ' + WAVESPEED_KEY } });
+    const pj = await pr.json();
+    if (pj.data.status === 'completed') return pj.data.outputs[0];
+    if (pj.data.status === 'failed') throw new Error(pj.data.error || 'Generation failed');
+  }
+  throw new Error('Timeout waiting for image');
 }
 
-function generate() {
+function getPanelSrc(panelNum) {
+  if (!liveMode) return SIM_IMAGES[panelNum];
+  return null; // handled async in revealRound
+}
+
+async function generate() {
   const btn = document.getElementById('goBtn');
   document.getElementById('resetBtn').style.display = 'inline-block';
   document.getElementById('progress').style.display = 'block';
@@ -294,9 +315,9 @@ function generate() {
   currentRound++;
   btn.disabled = true;
 
-  if (currentRound === 1) revealRound(1, [1,2,3,4], () => { btn.disabled = false; btn.textContent = '💥 GENERATE ROUND 2'; });
-  else if (currentRound === 2) revealRound(2, [5,6,7,8], () => { btn.disabled = false; btn.textContent = '💥 GENERATE ROUND 3'; });
-  else if (currentRound === 3) revealRound(3, [9,10,11,12], () => {
+  if (currentRound === 1) await revealRound(1, [1,2,3,4], () => { btn.disabled = false; btn.textContent = '💥 GENERATE ROUND 2'; });
+  else if (currentRound === 2) await revealRound(2, [5,6,7,8], () => { btn.disabled = false; btn.textContent = '💥 GENERATE ROUND 3'; });
+  else if (currentRound === 3) await revealRound(3, [9,10,11,12], () => {
     btn.style.display = 'none';
     setTimeout(() => {
       document.getElementById('winner').classList.add('show');
@@ -305,8 +326,7 @@ function generate() {
   });
 }
 
-function revealRound(round, panels, onDone) {
-  const totalPanels = round * 4;
+async function revealRound(round, panels, onDone) {
   const totalAll = 12;
 
   // Show round title
@@ -314,23 +334,40 @@ function revealRound(round, panels, onDone) {
   title.classList.add('visible');
   title.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  panels.forEach((panelNum, i) => {
-    setTimeout(() => {
-      const pct = (panelNum / (totalAll + 1)) * 100;
-      document.getElementById('bar').style.width = pct + '%';
-      // Set image source based on mode
-      const img = document.getElementById('panel' + panelNum).querySelector('img');
-      img.src = getPanelSrc(panelNum);
-      document.getElementById('load' + panelNum).classList.add('hide');
-      document.getElementById('panel' + panelNum).classList.add('visible');
+  if (liveMode) {
+    // Kick off all 4 image generations in parallel
+    const keys = panels.map(p => p % 4);
+    const imagePromises = keys.map(k => fetchWavespeedImage(LIVE_PROMPTS[k]));
+    const imageUrls = await Promise.all(imagePromises);
+
+    panels.forEach((panelNum, i) => {
       setTimeout(() => {
-        document.getElementById('b' + panelNum).classList.add('show');
-      }, 400);
-      // Auto-scroll to keep new panels in view
-      document.getElementById('panel' + panelNum).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      if (i === panels.length - 1 && onDone) setTimeout(onDone, 600);
-    }, i * PANEL_DELAY);
-  });
+        const pct = (panelNum / (totalAll + 1)) * 100;
+        document.getElementById('bar').style.width = pct + '%';
+        const img = document.getElementById('panel' + panelNum).querySelector('img');
+        img.src = imageUrls[i];
+        document.getElementById('load' + panelNum).classList.add('hide');
+        document.getElementById('panel' + panelNum).classList.add('visible');
+        setTimeout(() => { document.getElementById('b' + panelNum).classList.add('show'); }, 400);
+        document.getElementById('panel' + panelNum).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (i === panels.length - 1 && onDone) setTimeout(onDone, 600);
+      }, i * PANEL_DELAY);
+    });
+  } else {
+    panels.forEach((panelNum, i) => {
+      setTimeout(() => {
+        const pct = (panelNum / (totalAll + 1)) * 100;
+        document.getElementById('bar').style.width = pct + '%';
+        const img = document.getElementById('panel' + panelNum).querySelector('img');
+        img.src = getPanelSrc(panelNum);
+        document.getElementById('load' + panelNum).classList.add('hide');
+        document.getElementById('panel' + panelNum).classList.add('visible');
+        setTimeout(() => { document.getElementById('b' + panelNum).classList.add('show'); }, 400);
+        document.getElementById('panel' + panelNum).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (i === panels.length - 1 && onDone) setTimeout(onDone, 600);
+      }, i * PANEL_DELAY);
+    });
+  }
 }
 
 function resetAll() {
