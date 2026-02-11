@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three Models Enter, One Message Wins — AI Creative Shootout</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a2e;
+    --border: #2a2a3e;
+    --neon-cyan: #00f0ff;
+    --neon-magenta: #ff00aa;
+    --neon-yellow: #ffe600;
+    --neon-green: #39ff14;
+    --text: #e0e0e8;
+    --text-dim: #8888a0;
+    --claude: #d4a574;
+    --gpt: #74b9ff;
+    --gemini: #a29bfe;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(0,240,255,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 50%, rgba(255,0,170,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(255,230,0,0.05) 0%, transparent 50%),
+      var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 600px;
+    height: 600px;
+    transform: translate(-50%, -50%);
+    background: conic-gradient(from 0deg, var(--neon-cyan), var(--neon-magenta), var(--neon-yellow), var(--neon-cyan));
+    opacity: 0.04;
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: heroGlow 8s linear infinite;
+  }
+
+  @keyframes heroGlow { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--neon-cyan);
+    border: 1px solid var(--neon-cyan);
+    padding: 0.4rem 1.2rem;
+    border-radius: 2px;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(135deg, var(--neon-cyan), #fff, var(--neon-magenta));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero .subtitle {
+    font-size: 1.25rem;
+    color: var(--text-dim);
+    max-width: 600px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 2rem;
+  }
+
+  .model-icons {
+    display: flex;
+    gap: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .model-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 1.1rem;
+    border: 2px solid;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .model-icon:hover { transform: scale(1.15); }
+  .model-icon.claude { border-color: var(--claude); color: var(--claude); box-shadow: 0 0 20px rgba(212,165,116,0.3); }
+  .model-icon.gpt { border-color: var(--gpt); color: var(--gpt); box-shadow: 0 0 20px rgba(116,185,255,0.3); }
+  .model-icon.gemini { border-color: var(--gemini); color: var(--gemini); box-shadow: 0 0 20px rgba(162,155,254,0.3); }
+
+  /* Nav */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.9);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  nav a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  nav a:hover { color: var(--neon-cyan); background: rgba(0,240,255,0.05); }
+
+  /* Sections */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 2rem; }
+
+  section {
+    padding: 4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--neon-magenta);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #fff;
+  }
+
+  h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--neon-cyan);
+    margin: 2rem 0 0.75rem;
+  }
+
+  h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--neon-yellow);
+    margin: 1.5rem 0 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  p, li { color: var(--text); font-size: 0.95rem; }
+  p { margin-bottom: 1rem; }
+
+  ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+  li { margin-bottom: 0.4rem; }
+  li::marker { color: var(--neon-cyan); }
+
+  /* Copy block */
+  .copy-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    position: relative;
+  }
+
+  .copy-block::before {
+    content: 'COPY-READY';
+    position: absolute;
+    top: -0.6rem;
+    right: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    color: var(--neon-green);
+    background: var(--surface);
+    padding: 0 0.5rem;
+  }
+
+  .copy-block p:last-child { margin-bottom: 0; }
+
+  /* Code */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    background: var(--surface2);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    color: var(--neon-cyan);
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.25rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  /* Storyboard timeline */
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--neon-cyan), var(--neon-magenta), var(--neon-yellow));
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2.35rem;
+    top: 1.2rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--neon-cyan);
+    border: 2px solid var(--bg);
+  }
+
+  .timeline-item.demo::before { background: var(--neon-magenta); box-shadow: 0 0 12px var(--neon-magenta); }
+
+  .time-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--neon-yellow);
+    letter-spacing: 0.1em;
+  }
+
+  .demo-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--neon-magenta);
+    border: 1px solid var(--neon-magenta);
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    margin-left: 0.5rem;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  .timeline-item h4 { margin-top: 0.25rem; margin-bottom: 0.5rem; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.95rem; }
+  .timeline-item p { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.25rem; }
+  .timeline-item ul { margin-top: 0.5rem; margin-bottom: 0; }
+  .timeline-item li { font-size: 0.85rem; color: var(--text-dim); }
+
+  /* Tech stack grid */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .tech-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.25rem;
+    transition: border-color 0.3s;
+  }
+  .tech-card:hover { border-color: var(--neon-cyan); }
+
+  .tech-card h4 { margin-top: 0; }
+  .tech-card ul { margin-bottom: 0; }
+  .tech-card li { font-size: 0.85rem; }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.8;
+    text-align: center;
+    color: var(--text-dim);
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .arch-diagram .highlight { color: var(--neon-cyan); }
+
+  /* Footer */
+  footer {
+    padding: 3rem 0;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+  footer a { color: var(--neon-cyan); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .hero { min-height: 50vh; padding: 3rem 1rem; }
+    nav { gap: 0; }
+    nav a { padding: 0.4rem 0.6rem; font-size: 0.6rem; }
+    .container { padding: 0 1rem; }
+    section { padding: 2.5rem 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<header class="hero">
+  <div class="badge">Conference Talk Submission — 2026</div>
+  <h1>Three Models Enter,<br>One Message Wins</h1>
+  <p class="subtitle">A live AI Creative Shootout — synthetic focus groups debate your fundraising copy in real time.</p>
+  <div class="model-icons">
+    <div class="model-icon claude" title="Claude">C</div>
+    <div class="model-icon gpt" title="GPT">G</div>
+    <div class="model-icon gemini" title="Gemini">✦</div>
+  </div>
+</header>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav>
+  <a href="#pitch">The Pitch</a>
+  <a href="#bio">Bio</a>
+  <a href="#demo">Demo Spec</a>
+  <a href="#storyboard">Storyboard</a>
+  <a href="#tech">Tech Stack</a>
+</nav>
+
+<div class="container">
+
+<!-- ═══════════════════ THE PITCH ═══════════════════ -->
+<section id="pitch">
+  <div class="section-label">Section 01</div>
+  <h2>The Pitch</h2>
+
+  <h3>Title</h3>
+  <div class="copy-block">
+    <p><strong>Three Models Enter, One Message Wins: A Live AI Creative Shootout</strong></p>
+  </div>
+
+  <h3>Abstract</h3>
+  <div class="copy-block">
+    <p>What if you could test fundraising creative on a roomful of donors — instantly, for free, before you spend a dime on postage?</p>
+    <p>In this session, I'll run a <strong>live Synthetic Focus Group</strong> on stage. Three AI models (Claude, GPT-4o, Gemini) each embody a distinct donor archetype — the Patriot, the Skeptic, and the Urgency Donor — and debate real fundraising copy in real time. You'll watch them argue, nitpick, and champion different messages while the audience votes on who's winning.</p>
+    <p>But it gets wilder. With one click, the debate transforms into a <strong>FLUX-generated comic strip</strong> — a visual takeaway you can screenshot and share with your creative team Monday morning.</p>
+    <p><strong>You'll learn:</strong></p>
+    <ul>
+      <li>How to build persona-driven AI focus groups that stress-test copy before it ships</li>
+      <li>Why multi-model "debate" architectures surface insights a single prompt never will</li>
+      <li>A repeatable framework for turning AI critique into actionable creative briefs</li>
+      <li>The tech stack behind streaming three models simultaneously into one UI</li>
+    </ul>
+    <p>No slides-only theory. No vaporware. Just a working prototype, live donor archetypes, and a new way to think about AI-assisted creative development.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ BIO ═══════════════════ -->
+<section id="bio">
+  <div class="section-label">Section 02</div>
+  <h2>Speaker Bio</h2>
+
+  <div class="copy-block">
+    <p><strong>Justin Hart</strong> is a political strategist, data architect, and AI practitioner who has spent 20+ years at the intersection of persuasion and technology. As author of the bestselling book <em>Gone Viral</em> and a veteran of multiple presidential campaigns, he understands what makes people act — and how to test that at scale.</p>
+    <p>Justin currently runs AI-augmented fundraising and analytics systems for political organizations, using multi-model architectures to generate, test, and optimize donor communications. He builds with Claude, GPT, Gemini, FLUX, and whatever ships next Tuesday.</p>
+    <p>He lives in San Diego with his family and an unreasonable number of API keys.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ DEMO SPEC ═══════════════════ -->
+<section id="demo">
+  <div class="section-label">Section 03</div>
+  <h2>Demo Spec</h2>
+
+  <h3>Architecture Overview</h3>
+
+  <div class="arch-diagram">┌─────────────────────────────────────────────────┐
+│                  <span class="highlight">NEXT.JS FRONTEND</span>                  │
+│                                                   │
+│   ┌──────────┐   ┌──────────┐   ┌──────────┐    │
+│   │  PATRIOT │   │ SKEPTIC  │   │ URGENCY  │    │
+│   │  (panel) │   │  (panel) │   │  (panel) │    │
+│   └────┬─────┘   └────┬─────┘   └────┬─────┘    │
+│        │              │              │           │
+│   ┌────▼──────────────▼──────────────▼────┐      │
+│   │         MODE SWITCH CONTROLLER        │      │
+│   │   [A] Chat Battle  ←→  [B] Comic     │      │
+│   └────┬──────────────────────────────┬───┘      │
+│        │                              │          │
+└────────┼──────────────────────────────┼──────────┘
+         │                              │
+    ┌────▼────┐                    ┌────▼────┐
+    │ STREAM  │                    │  FLUX   │
+    │  APIS   │                    │  IMAGE  │
+    │         │                    │   GEN   │
+    ├─────────┤                    └─────────┘
+    │ Claude  │
+    │ GPT-4o  │
+    │ Gemini  │
+    └─────────┘</div>
+
+  <h3>Mode A — Chat Battle</h3>
+  <p>Three-column split-screen. Each column streams from a different model via server-sent events. Each persona has a system prompt defining their donor archetype, communication style, and evaluation criteria.</p>
+  <ul>
+    <li><strong>Patriot:</strong> Values duty, legacy, American identity. Responds to flag imagery and founding-father rhetoric. 🇺🇸</li>
+    <li><strong>Skeptic:</strong> Demands ROI, hates emotional manipulation, wants receipts. Shows the money trail. 🔍</li>
+    <li><strong>Urgency Donor:</strong> Deadline-driven, match-motivated, fears missing out. Needs countdown energy. ⏰</li>
+  </ul>
+  <p>User pastes fundraising copy → all three models respond simultaneously with emoji-heavy critique → audience sees which archetype loves/hates the copy in real time.</p>
+
+  <h3>Mode B — Comic Strip Generator</h3>
+  <p>Takes the best exchange from Mode A and converts it into a structured prompt for <strong>FLUX (via Replicate or fal.ai)</strong>. Output: a 3–4 panel comic strip with each donor archetype as a character reacting to the copy.</p>
+  <ul>
+    <li>Panel layout generated via prompt engineering (character descriptions, speech bubbles, reactions)</li>
+    <li>Style: editorial cartoon meets cyberpunk — bold lines, neon accents</li>
+    <li>"Screenshot this" moment — visual artifact the audience takes home</li>
+  </ul>
+
+  <h3>Switchable Mode Logic</h3>
+  <pre>// Simplified state machine
+type Mode = 'chat' | 'comic';
+
+const [mode, setMode] = useState&lt;Mode&gt;('chat');
+const [chatHistory, setChatHistory] = useState&lt;Exchange[]&gt;([]);
+
+// Mode A: stream 3 models concurrently
+async function runChatBattle(copy: string) {
+  const streams = await Promise.all([
+    streamClaude(PATRIOT_PROMPT, copy),
+    streamGPT(SKEPTIC_PROMPT, copy),
+    streamGemini(URGENCY_PROMPT, copy),
+  ]);
+  // Render each stream into its column
+}
+
+// Mode B: generate comic from best exchange
+async function generateComic() {
+  const bestExchange = selectBestExchange(chatHistory);
+  const comicPrompt = buildComicPrompt(bestExchange);
+  const image = await generateFLUX(comicPrompt);
+  // Display comic panel
+}</pre>
+</section>
+
+<!-- ═══════════════════ STORYBOARD ═══════════════════ -->
+<section id="storyboard">
+  <div class="section-label">Section 04</div>
+  <h2>30-Minute Storyboard</h2>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <span class="time-badge">00:00 – 02:00</span>
+      <h4>Cold Open: "The Fundraiser's Nightmare"</h4>
+      <p>Anecdote: You wrote the perfect fundraising letter. Your boss loves it. The donor hates it. What if you could have known?</p>
+    </div>
+
+    <div class="timeline-item">
+      <span class="time-badge">02:00 – 05:00</span>
+      <h4>The Problem with Real Focus Groups</h4>
+      <ul>
+        <li>Expensive ($8K–$15K per session)</li>
+        <li>Slow (weeks to recruit, schedule, moderate)</li>
+        <li>Biased (groupthink, moderator effects)</li>
+        <li>Not iterative — you get one shot</li>
+      </ul>
+    </div>
+
+    <div class="timeline-item">
+      <span class="time-badge">05:00 – 08:00</span>
+      <h4>Enter the Synthetic Focus Group</h4>
+      <p>Introduce the concept: AI personas with defined psychographics debating your copy. Not a chatbot — a structured adversarial review.</p>
+      <p>Reveal the three archetypes: Patriot 🇺🇸 · Skeptic 🔍 · Urgency ⏰</p>
+    </div>
+
+    <div class="timeline-item demo">
+      <span class="time-badge">08:00 – 15:00</span> <span class="demo-tag">🔴 Live Demo</span>
+      <h4>Demo Moment #1: The Chat Battle</h4>
+      <p>Paste real fundraising copy. Three columns light up. Models stream simultaneously — arguing, praising, tearing apart the copy with emoji and personality.</p>
+      <ul>
+        <li>Audience sees real-time disagreement between archetypes</li>
+        <li>Pause to highlight: "See? The Skeptic caught the vague impact claim the Patriot ignored."</li>
+        <li>Try a second piece of copy — show how responses shift</li>
+      </ul>
+    </div>
+
+    <div class="timeline-item">
+      <span class="time-badge">15:00 – 18:00</span>
+      <h4>Why Multi-Model Matters</h4>
+      <ul>
+        <li>Single-model gives you one perspective; multi-model gives you creative tension</li>
+        <li>Each model has different training biases → different "taste"</li>
+        <li>The disagreements ARE the insights</li>
+      </ul>
+    </div>
+
+    <div class="timeline-item demo">
+      <span class="time-badge">18:00 – 23:00</span> <span class="demo-tag">🔴 Live Demo</span>
+      <h4>Demo Moment #2: The Comic Strip</h4>
+      <p>Hit the mode switch. Best exchange transforms into a FLUX-generated comic strip. Three characters, speech bubbles, neon style.</p>
+      <ul>
+        <li>"This is your Monday morning creative brief."</li>
+        <li>Show the prompt engineering behind the comic generation</li>
+        <li>Audience screenshot moment — the visual artifact</li>
+      </ul>
+    </div>
+
+    <div class="timeline-item">
+      <span class="time-badge">23:00 – 26:00</span>
+      <h4>The Framework: From Debate to Brief</h4>
+      <ul>
+        <li>Step 1: Define your archetypes (donor personas from your data)</li>
+        <li>Step 2: Run the shootout (paste copy, observe reactions)</li>
+        <li>Step 3: Extract the disagreements (that's where the gold is)</li>
+        <li>Step 4: Rewrite informed by synthetic consensus</li>
+      </ul>
+    </div>
+
+    <div class="timeline-item">
+      <span class="time-badge">26:00 – 28:00</span>
+      <h4>Under the Hood (Speed Round)</h4>
+      <p>Quick architecture walkthrough: Next.js, streaming APIs, FLUX, the 200 lines of code that make it work. Open source link.</p>
+    </div>
+
+    <div class="timeline-item">
+      <span class="time-badge">28:00 – 30:00</span>
+      <h4>Close: "Three Models Entered…"</h4>
+      <p>Recap the winning message from the demo. Challenge: "Run this on your own copy this week." Drop the repo link. Q&A teaser.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ TECH STACK ═══════════════════ -->
+<section id="tech">
+  <div class="section-label">Section 05</div>
+  <h2>Tech Stack</h2>
+
+  <div class="tech-grid">
+    <div class="tech-card">
+      <h4>Frontend</h4>
+      <ul>
+        <li>Next.js 14 (App Router)</li>
+        <li>React Server Components</li>
+        <li>Tailwind CSS + custom neon theme</li>
+        <li>Framer Motion (streaming animations)</li>
+      </ul>
+    </div>
+
+    <div class="tech-card">
+      <h4>AI Models</h4>
+      <ul>
+        <li>Anthropic Claude 3.5 Sonnet (Patriot)</li>
+        <li>OpenAI GPT-4o (Skeptic)</li>
+        <li>Google Gemini 1.5 Pro (Urgency)</li>
+        <li>Streaming via SSE / ReadableStream</li>
+      </ul>
+    </div>
+
+    <div class="tech-card">
+      <h4>Image Generation</h4>
+      <ul>
+        <li>FLUX 1.1 Pro (via Replicate or fal.ai)</li>
+        <li>Structured prompt for comic panels</li>
+        <li>Fallback: DALL-E 3 if FLUX is slow</li>
+      </ul>
+    </div>
+
+    <div class="tech-card">
+      <h4>Infrastructure</h4>
+      <ul>
+        <li>Vercel (deploy + edge functions)</li>
+        <li>Vercel AI SDK (unified streaming)</li>
+        <li>Environment: API keys per model</li>
+      </ul>
+    </div>
+
+    <div class="tech-card">
+      <h4>Live Demo Tools</h4>
+      <ul>
+        <li>Pre-loaded fundraising copy samples</li>
+        <li>Hotkey shortcuts for mode switching</li>
+        <li>Fallback: pre-recorded video if WiFi dies</li>
+      </ul>
+    </div>
+
+    <div class="tech-card">
+      <h4>Audience Interaction</h4>
+      <ul>
+        <li>QR code → live poll (which archetype won?)</li>
+        <li>Optional: audience submits copy to test</li>
+        <li>Comic strip shareable via URL</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <p>Built by <a href="https://justinhart.biz">Justin Hart</a> · 2026</p>
+  <p style="margin-top:0.5rem;font-size:0.7rem;color:var(--text-dim);">Three models entered. One message won. The audience decided.</p>
+</footer>
+
+</body>
+</html>
