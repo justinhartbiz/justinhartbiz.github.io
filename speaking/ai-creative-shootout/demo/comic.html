@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Creative Shootout — Comic Strip Mode</title>
+<title>AI Creative Shootout — The Saga (3 Rounds)</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
@@ -19,6 +19,7 @@ header p{color:var(--dim);margin-top:4px;font-size:.9em}
 .btn{padding:12px 28px;border:none;border-radius:8px;font-weight:700;font-size:1em;cursor:pointer;transition:all .2s}
 .btn-go{background:linear-gradient(135deg,var(--cyan),var(--magenta));color:#000;font-family:'Bangers',cursive;font-size:1.2em;letter-spacing:2px}
 .btn-go:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(0,229,255,.4)}
+.btn-go:disabled{opacity:.4;cursor:default;transform:none;box-shadow:none}
 .btn-reset{background:var(--surface);border:2px solid var(--dim);color:var(--dim);margin-left:12px;display:none}
 .btn-reset:hover{border-color:var(--text);color:var(--text)}
 .btn-back{background:var(--surface);border:2px solid var(--yellow);color:var(--yellow);margin-left:12px;text-decoration:none;font-weight:700;font-size:1em;padding:12px 20px;border-radius:8px}
@@ -26,8 +27,16 @@ header p{color:var(--dim);margin-top:4px;font-size:.9em}
 .progress{height:4px;background:var(--border);border-radius:2px;margin:12px 0;overflow:hidden;display:none}
 .progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--yellow));transition:width .5s;border-radius:2px}
 
+/* Round titles */
+.round-title{font-family:'Bangers',cursive;font-size:1.6em;letter-spacing:3px;text-align:center;padding:20px 0 8px;opacity:0;transform:translateY(12px);transition:all .5s}
+.round-title.visible{opacity:1;transform:translateY(0)}
+.round-title.r1{color:var(--cyan)}
+.round-title.r2{color:var(--magenta)}
+.round-title.r3{color:var(--green)}
+.round-title span.sub{display:block;font-family:'Inter',sans-serif;font-size:.45em;color:var(--dim);letter-spacing:0;font-weight:400;margin-top:2px}
+
 /* Comic Grid */
-.comic-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.comic-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
 .panel{position:relative;background:var(--surface);border:4px solid var(--border);border-radius:8px;overflow:hidden;aspect-ratio:16/10;opacity:0;transform:scale(.95);transition:all .6s cubic-bezier(.4,0,.2,1)}
 .panel.visible{opacity:1;transform:scale(1)}
 .panel.p1{border-color:var(--cyan)}
@@ -36,6 +45,8 @@ header p{color:var(--dim);margin-top:4px;font-size:.9em}
 .panel.p4{border-color:var(--green)}
 
 .panel img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.2) contrast(1.1)}
+/* Round 2: mirror the images for visual variety */
+.round2 .panel img{transform:scaleX(-1)}
 
 .panel-number{position:absolute;top:8px;left:10px;background:rgba(0,0,0,.85);border:2px solid currentColor;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:'Bangers',cursive;font-size:1.1em;z-index:3}
 .p1 .panel-number{color:var(--cyan)}
@@ -63,7 +74,6 @@ header p{color:var(--dim);margin-top:4px;font-size:.9em}
 .loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Caption bar */
 /* Panel Banners */
 .panel-banner{position:absolute;top:0;left:0;right:0;z-index:4;padding:4px 14px;font-family:'Bangers',cursive;font-size:1.1em;letter-spacing:3px;text-transform:uppercase;text-align:center;color:#000;font-weight:700;text-shadow:0 0 2px rgba(255,255,255,.3)}
 .p1 .panel-banner{background:var(--cyan);box-shadow:0 0 20px rgba(0,229,255,.6)}
@@ -90,80 +100,137 @@ header p{color:var(--dim);margin-top:4px;font-size:.9em}
 <div class="container">
   <header>
     <h1>⚡ AI Creative Shootout</h1>
-    <p>Mode C: The Comic Strip — AI-generated panels with HTML speech bubbles</p>
+    <p>The Saga — 3 Rounds of AI Debate in Comic Strip Mode</p>
   </header>
 
   <div class="controls">
-    <button class="btn btn-go" id="goBtn" onclick="generate()">💥 GENERATE COMIC</button>
+    <button class="btn btn-go" id="goBtn" onclick="generate()">💥 GENERATE ROUND 1</button>
     <button class="btn btn-reset" id="resetBtn" onclick="resetAll()">↺ Reset</button>
     <a href="index.html" class="btn-back">← Back to Chat Mode</a>
   </div>
 
   <div class="progress" id="progress"><div class="progress-bar" id="bar"></div></div>
 
-  <div class="comic-grid" id="grid">
-    <!-- Panel 1: Patriot -->
+  <!-- ═══════════ ROUND 1: The Initial Fight ═══════════ -->
+  <div class="round-title r1" id="roundTitle1">⚔️ ROUND 1 — THE INITIAL FIGHT<span class="sub">The AI agents read the first draft...</span></div>
+  <div class="comic-grid round1" id="round1">
     <div class="panel p1" id="panel1">
-      <div class="loading-overlay" id="load1">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Generating panel 1...</div>
-      </div>
+      <div class="loading-overlay" id="load1"><div class="loading-spinner"></div><div class="loading-text">Generating panel 1...</div></div>
       <div class="panel-banner">🇺🇸 THE PATRIOT</div>
       <div class="panel-number">1</div>
       <img src="comic-assets/panel1-patriot.png" alt="The Patriot">
-      <div class="bubble bottom-left" id="b1">"Where is the PROMISE? We need morning in America, not midnight!"</div>
-      <div class="caption">🦅 The Patriot reads the draft and clutches his flag</div>
+      <div class="bubble bottom-left" id="b1">"Too DARK! Where is the shining city on a hill? This reads like a funeral notice!"</div>
+      <div class="caption">🦅 The Patriot reads the draft and sees only doom</div>
     </div>
-
-    <!-- Panel 2: Skeptic -->
     <div class="panel p2" id="panel2">
-      <div class="loading-overlay" id="load2">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Generating panel 2...</div>
-      </div>
+      <div class="loading-overlay" id="load2"><div class="loading-spinner"></div><div class="loading-text">Generating panel 2...</div></div>
       <div class="panel-banner">🔍 THE SKEPTIC</div>
       <div class="panel-number">2</div>
       <img src="comic-assets/panel2-skeptic.png" alt="The Skeptic">
-      <div class="bubble top-right" id="b2">"'Destroying'? Citation needed. This reads like a chain email from 2008."</div>
-      <div class="caption">🔍 The Skeptic adjusts her glasses disapprovingly</div>
+      <div class="bubble top-right" id="b2">"This is a SCAM template. 'Destroying our values'? Show me one fact. ONE."</div>
+      <div class="caption">🔍 The Skeptic smells fundraising boilerplate</div>
     </div>
-
-    <!-- Panel 3: Urgency -->
     <div class="panel p3" id="panel3">
-      <div class="loading-overlay" id="load3">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Generating panel 3...</div>
-      </div>
+      <div class="loading-overlay" id="load3"><div class="loading-spinner"></div><div class="loading-text">Generating panel 3...</div></div>
       <div class="panel-banner">🔥 THE URGENCY</div>
       <div class="panel-number">3</div>
       <img src="comic-assets/panel3-urgency.png" alt="The Urgency">
-      <div class="bubble bottom-right right" id="b3">"WHY IS NOTHING IN CAPS?! Add a 3X MATCH or I WALK! 🔥"</div>
-      <div class="caption">🔥 The Urgency flips the table — WHERE'S THE DEADLINE?!</div>
+      <div class="bubble bottom-right right" id="b3">"BORING! No deadline, no match, no caps... my GRANDMA writes more urgent emails! 😴"</div>
+      <div class="caption">🔥 The Urgency almost falls asleep — WHERE'S THE FIRE?!</div>
     </div>
-
-    <!-- Panel 4: Consensus -->
     <div class="panel p4" id="panel4">
-      <div class="loading-overlay" id="load4">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Generating panel 4...</div>
-      </div>
+      <div class="loading-overlay" id="load4"><div class="loading-spinner"></div><div class="loading-text">Generating panel 4...</div></div>
       <div class="panel-banner">🤝 CONSENSUS</div>
       <div class="panel-number">4</div>
       <img src="comic-assets/panel4-consensus.png" alt="Consensus">
-      <div class="bubble top-left" id="b4">"America's promise is worth fighting for. Your $5 becomes $15 — but only by midnight."</div>
+      <div class="bubble top-left" id="b4">"Unanimous rejection. Back to the drawing board. Rewriting now..."</div>
+      <div class="caption">🤝 Even Consensus can't save this one. Rewrite ordered.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ ROUND 2: The Rewrite Debate ═══════════ -->
+  <div class="round-title r2" id="roundTitle2">📝 ROUND 2 — THE REWRITE DEBATE<span class="sub">The second draft lands... closer, but not there yet</span></div>
+  <div class="comic-grid round2" id="round2">
+    <div class="panel p1" id="panel5">
+      <div class="loading-overlay" id="load5"><div class="loading-spinner"></div><div class="loading-text">Generating panel 5...</div></div>
+      <div class="panel-banner">🇺🇸 THE PATRIOT</div>
+      <div class="panel-number">5</div>
+      <img src="comic-assets/panel1-patriot.png" alt="The Patriot">
+      <div class="bubble bottom-left" id="b5">"Better... but it needs MORE FLAG. Say 'patriots' at least twice. And add an eagle."</div>
+      <div class="caption">🦅 The Patriot nods slowly... but wants more America</div>
+    </div>
+    <div class="panel p2" id="panel6">
+      <div class="loading-overlay" id="load6"><div class="loading-spinner"></div><div class="loading-text">Generating panel 6...</div></div>
+      <div class="panel-banner">🔍 THE SKEPTIC</div>
+      <div class="panel-number">6</div>
+      <img src="comic-assets/panel2-skeptic.png" alt="The Skeptic">
+      <div class="bubble top-right" id="b6">"Still vague. 'Make a difference'? That means NOTHING. Give me the district number."</div>
+      <div class="caption">🔍 The Skeptic demands receipts</div>
+    </div>
+    <div class="panel p3" id="panel7">
+      <div class="loading-overlay" id="load7"><div class="loading-spinner"></div><div class="loading-text">Generating panel 7...</div></div>
+      <div class="panel-banner">🔥 THE URGENCY</div>
+      <div class="panel-number">7</div>
+      <img src="comic-assets/panel3-urgency.png" alt="The Urgency">
+      <div class="bubble bottom-right right" id="b7">"MORE CAPS! The match should be in BOLD. And add '⏰ EXPIRES TONIGHT' or we're DONE! 🔥"</div>
+      <div class="caption">🔥 The Urgency slams the desk — LOUDER!</div>
+    </div>
+    <div class="panel p4" id="panel8">
+      <div class="loading-overlay" id="load8"><div class="loading-spinner"></div><div class="loading-text">Generating panel 8...</div></div>
+      <div class="panel-banner">🤝 CONSENSUS</div>
+      <div class="panel-number">8</div>
+      <img src="comic-assets/panel4-consensus.png" alt="Consensus">
+      <div class="bubble top-left" id="b8">"Progress! Merging notes: specifics + patriotism + urgency. One more pass..."</div>
+      <div class="caption">🤝 Consensus scribbles furiously. Almost there.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ ROUND 3: The Final Polish ═══════════ -->
+  <div class="round-title r3" id="roundTitle3">🏆 ROUND 3 — THE FINAL POLISH<span class="sub">Third draft. The moment of truth.</span></div>
+  <div class="comic-grid round3" id="round3">
+    <div class="panel p1" id="panel9">
+      <div class="loading-overlay" id="load9"><div class="loading-spinner"></div><div class="loading-text">Generating panel 9...</div></div>
+      <div class="panel-banner">🇺🇸 THE PATRIOT</div>
+      <div class="panel-number">9</div>
+      <img src="comic-assets/panel1-patriot.png" alt="The Patriot">
+      <div class="bubble bottom-left" id="b9">"NOW we're talking! 'Patriots like you'... 'America's greatest chapter'... I'm tearing up. 🇺🇸"</div>
+      <div class="caption">🦅 The Patriot salutes. A single tear rolls.</div>
+    </div>
+    <div class="panel p2" id="panel10">
+      <div class="loading-overlay" id="load10"><div class="loading-spinner"></div><div class="loading-text">Generating panel 10...</div></div>
+      <div class="panel-banner">🔍 THE SKEPTIC</div>
+      <div class="panel-number">10</div>
+      <img src="comic-assets/panel2-skeptic.png" alt="The Skeptic">
+      <div class="bubble top-right" id="b10">"District 7... $12,000 goal... 3X match with a source. Fine. I'll allow it. ✓"</div>
+      <div class="caption">🔍 The Skeptic removes her glasses. Respect earned.</div>
+    </div>
+    <div class="panel p3" id="panel11">
+      <div class="loading-overlay" id="load11"><div class="loading-spinner"></div><div class="loading-text">Generating panel 11...</div></div>
+      <div class="panel-banner">🔥 THE URGENCY</div>
+      <div class="panel-number">11</div>
+      <img src="comic-assets/panel3-urgency.png" alt="The Urgency">
+      <div class="bubble bottom-right right" id="b11">"MIDNIGHT DEADLINE ✅ TRIPLE MATCH ✅ CAPS WHERE IT COUNTS ✅ ...I think I'm gonna cry. 🔥"</div>
+      <div class="caption">🔥 The Urgency wipes away a fiery tear of joy</div>
+    </div>
+    <div class="panel p4" id="panel12">
+      <div class="loading-overlay" id="load12"><div class="loading-spinner"></div><div class="loading-text">Generating panel 12...</div></div>
+      <div class="panel-banner">🤝 CONSENSUS</div>
+      <div class="panel-number">12</div>
+      <img src="comic-assets/panel4-consensus.png" alt="Consensus">
+      <div class="bubble top-left" id="b12">"SHIPPED. Three rounds, three rewrites, one perfect email. That's AI Creative Shootout."</div>
       <div class="caption">🤝 They shake hands. The copy is reborn.</div>
     </div>
   </div>
 
   <div class="winner-bar" id="winner">
-    <h3>✅ CONSENSUS — Final Rewrite</h3>
+    <h3>✅ CONSENSUS — Final Rewrite (after 3 rounds)</h3>
     <div class="final-copy">
       <strong>Subject:</strong> The chapter that changes everything<br><br>
       <strong>Body:</strong><br>
       Friend,<br><br>
-      America's greatest chapter hasn't been written yet — and YOU hold the pen.<br><br>
+      America's greatest chapter hasn't been written yet — and patriots like YOU hold the pen.<br><br>
       Right now, we're just $12,000 away from our goal to flip District 7. And thanks to a group of dedicated patriots, every dollar you give tonight is TRIPLED.<br><br>
-      <strong>Your $5 becomes $15. But only until midnight.</strong><br><br>
+      <strong>Your $5 becomes $15. But only until midnight. ⏰</strong><br><br>
       → <u>Rush your 3X-matched gift now</u><br><br>
       <strong>P.S.</strong> Your 3X match expires at midnight tonight. Don't leave $10 on the table.
     </div>
@@ -171,46 +238,72 @@ header p{color:var(--dim);margin-top:4px;font-size:.9em}
 </div>
 
 <script>
-const DELAYS = [800, 1800, 2800, 3800]; // sequential reveal timing
+const PANEL_DELAY = 800; // ms between panels in a round
+let currentRound = 0;
 
 function generate() {
-  document.getElementById('goBtn').style.display = 'none';
+  const btn = document.getElementById('goBtn');
   document.getElementById('resetBtn').style.display = 'inline-block';
   document.getElementById('progress').style.display = 'block';
-  const bar = document.getElementById('bar');
 
-  DELAYS.forEach((delay, i) => {
-    const n = i + 1;
+  currentRound++;
+  btn.disabled = true;
+
+  if (currentRound === 1) revealRound(1, [1,2,3,4], () => { btn.disabled = false; btn.textContent = '💥 GENERATE ROUND 2'; });
+  else if (currentRound === 2) revealRound(2, [5,6,7,8], () => { btn.disabled = false; btn.textContent = '💥 GENERATE ROUND 3'; });
+  else if (currentRound === 3) revealRound(3, [9,10,11,12], () => {
+    btn.style.display = 'none';
     setTimeout(() => {
-      bar.style.width = ((n) / 5 * 100) + '%';
-      // Hide loading, reveal panel
-      document.getElementById('load' + n).classList.add('hide');
-      document.getElementById('panel' + n).classList.add('visible');
-      // Show bubble after panel appears
-      setTimeout(() => {
-        document.getElementById('b' + n).classList.add('show');
-      }, 400);
-    }, delay);
+      document.getElementById('winner').classList.add('show');
+      document.getElementById('bar').style.width = '100%';
+    }, 600);
   });
+}
 
-  // Show winner
-  setTimeout(() => {
-    bar.style.width = '100%';
-    document.getElementById('winner').classList.add('show');
-  }, DELAYS[3] + 1200);
+function revealRound(round, panels, onDone) {
+  const totalPanels = round * 4;
+  const totalAll = 12;
+
+  // Show round title
+  const title = document.getElementById('roundTitle' + round);
+  title.classList.add('visible');
+  title.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  panels.forEach((panelNum, i) => {
+    setTimeout(() => {
+      const pct = (panelNum / (totalAll + 1)) * 100;
+      document.getElementById('bar').style.width = pct + '%';
+      document.getElementById('load' + panelNum).classList.add('hide');
+      document.getElementById('panel' + panelNum).classList.add('visible');
+      setTimeout(() => {
+        document.getElementById('b' + panelNum).classList.add('show');
+      }, 400);
+      // Auto-scroll to keep new panels in view
+      document.getElementById('panel' + panelNum).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (i === panels.length - 1 && onDone) setTimeout(onDone, 600);
+    }, i * PANEL_DELAY);
+  });
 }
 
 function resetAll() {
-  document.getElementById('goBtn').style.display = '';
+  currentRound = 0;
+  const btn = document.getElementById('goBtn');
+  btn.style.display = '';
+  btn.disabled = false;
+  btn.textContent = '💥 GENERATE ROUND 1';
   document.getElementById('resetBtn').style.display = 'none';
   document.getElementById('progress').style.display = 'none';
   document.getElementById('bar').style.width = '0';
   document.getElementById('winner').classList.remove('show');
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 12; i++) {
     document.getElementById('panel' + i).classList.remove('visible');
     document.getElementById('load' + i).classList.remove('hide');
     document.getElementById('b' + i).classList.remove('show');
   }
+  for (let r = 1; r <= 3; r++) {
+    document.getElementById('roundTitle' + r).classList.remove('visible');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
 </body>
