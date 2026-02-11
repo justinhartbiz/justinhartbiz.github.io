@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Creative Shootout — The Saga (3 Rounds)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+:root{--bg:#0a0a0f;--surface:#14141f;--border:#1e1e2e;--cyan:#00e5ff;--magenta:#ff00e5;--yellow:#ffe500;--green:#00ff88;--text:#e0e0e0;--dim:#666}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+
+header{text-align:center;padding:20px 0 10px}
+header h1{font-family:'Bangers',cursive;font-size:2.8em;letter-spacing:3px;background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header p{color:var(--dim);margin-top:4px;font-size:.9em}
+
+.controls{text-align:center;margin:16px 0}
+.btn{padding:12px 28px;border:none;border-radius:8px;font-weight:700;font-size:1em;cursor:pointer;transition:all .2s}
+.btn-go{background:linear-gradient(135deg,var(--cyan),var(--magenta));color:#000;font-family:'Bangers',cursive;font-size:1.2em;letter-spacing:2px}
+.btn-go:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(0,229,255,.4)}
+.btn-go:disabled{opacity:.4;cursor:default;transform:none;box-shadow:none}
+.btn-reset{background:var(--surface);border:2px solid var(--dim);color:var(--dim);margin-left:12px;display:none}
+.btn-reset:hover{border-color:var(--text);color:var(--text)}
+.btn-back{background:var(--surface);border:2px solid var(--yellow);color:var(--yellow);margin-left:12px;text-decoration:none;font-weight:700;font-size:1em;padding:12px 20px;border-radius:8px}
+.mode-toggle{display:inline-block;margin-left:16px;padding:10px 20px;border:2px solid var(--cyan);border-radius:8px;cursor:pointer;font-weight:700;font-size:.95em;transition:all .3s;vertical-align:middle}
+.mode-toggle:hover{box-shadow:0 0 20px rgba(0,229,255,.4)}
+.mode-toggle.live{border-color:#ff2222;box-shadow:0 0 20px rgba(255,34,34,.5)}
+
+.progress{height:4px;background:var(--border);border-radius:2px;margin:12px 0;overflow:hidden;display:none}
+.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--yellow));transition:width .5s;border-radius:2px}
+
+/* Round titles */
+.round-title{font-family:'Bangers',cursive;font-size:1.6em;letter-spacing:3px;text-align:center;padding:20px 0 8px;opacity:0;transform:translateY(12px);transition:all .5s}
+.round-title.visible{opacity:1;transform:translateY(0)}
+.round-title.r1{color:var(--cyan)}
+.round-title.r2{color:var(--magenta)}
+.round-title.r3{color:var(--green)}
+.round-title span.sub{display:block;font-family:'Inter',sans-serif;font-size:.45em;color:var(--dim);letter-spacing:0;font-weight:400;margin-top:2px}
+
+/* Comic Grid */
+.comic-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+.panel{position:relative;background:var(--surface);border:4px solid var(--border);border-radius:8px;overflow:hidden;aspect-ratio:16/10;opacity:0;transform:scale(.95);transition:all .6s cubic-bezier(.4,0,.2,1)}
+.panel.visible{opacity:1;transform:scale(1)}
+.panel.p1{border-color:var(--cyan)}
+.panel.p2{border-color:var(--magenta)}
+.panel.p3{border-color:var(--yellow)}
+.panel.p4{border-color:var(--green)}
+
+.panel img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.2) contrast(1.1)}
+/* Round 2: mirror the images for visual variety */
+.round2 .panel img{transform:scaleX(-1)}
+
+.panel-number{position:absolute;top:8px;left:10px;background:rgba(0,0,0,.85);border:2px solid currentColor;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:'Bangers',cursive;font-size:1.1em;z-index:3}
+.p1 .panel-number{color:var(--cyan)}
+.p2 .panel-number{color:var(--magenta)}
+.p3 .panel-number{color:var(--yellow)}
+.p4 .panel-number{color:var(--green)}
+
+/* Speech Bubbles */
+.bubble{position:absolute;background:#fff;color:#111;padding:10px 14px;border-radius:16px;font-size:.82em;line-height:1.35;font-weight:700;max-width:55%;z-index:2;opacity:0;transform:translateY(8px);transition:all .4s .2s;box-shadow:2px 3px 8px rgba(0,0,0,.5)}
+.bubble.show{opacity:1;transform:translateY(0)}
+.bubble::after{content:'';position:absolute;bottom:-10px;left:30px;border:10px solid transparent;border-top-color:#fff}
+.bubble.right::after{left:auto;right:30px}
+.bubble.bottom-left{bottom:12px;left:12px}
+.bubble.top-right{top:48px;right:12px}
+.bubble.top-right::after{bottom:auto;top:-10px;border-top-color:transparent;border-bottom-color:#fff;right:30px;left:auto}
+.bubble.top-left{top:48px;left:12px}
+.bubble.top-left::after{bottom:auto;top:-10px;border-top-color:transparent;border-bottom-color:#fff}
+.bubble.bottom-right{bottom:12px;right:12px}
+.bubble.bottom-right::after{left:auto;right:30px}
+
+/* Loading overlay */
+.loading-overlay{position:absolute;inset:0;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;transition:opacity .5s}
+.loading-overlay.hide{opacity:0;pointer-events:none}
+.loading-text{font-family:'JetBrains Mono',monospace;font-size:.85em;color:var(--dim)}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Panel Banners */
+.panel-banner{position:absolute;top:0;left:0;right:0;z-index:4;padding:4px 14px;font-family:'Bangers',cursive;font-size:1.1em;letter-spacing:3px;text-transform:uppercase;text-align:center;color:#000;font-weight:700;text-shadow:0 0 2px rgba(255,255,255,.3)}
+.p1 .panel-banner{background:var(--cyan);box-shadow:0 0 20px rgba(0,229,255,.6)}
+.p2 .panel-banner{background:#d0d0d8;color:#222;box-shadow:0 0 12px rgba(200,200,210,.5)}
+.p3 .panel-banner{background:#ff2222;color:#fff;box-shadow:0 0 20px rgba(255,34,34,.6);text-shadow:0 0 4px rgba(0,0,0,.4)}
+.p4 .panel-banner{background:var(--green);box-shadow:0 0 20px rgba(0,255,136,.6)}
+
+.caption{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.8);color:var(--dim);font-size:.7em;font-style:italic;padding:4px 10px;text-align:center;z-index:2}
+
+/* Winner */
+.winner-bar{display:none;margin-top:16px;background:linear-gradient(135deg,rgba(0,255,136,.08),rgba(0,229,255,.08));border:2px solid var(--green);border-radius:12px;padding:16px 20px;text-align:center}
+.winner-bar.show{display:block;animation:fadeUp .5s}
+.winner-bar h3{color:var(--green);font-family:'Bangers',cursive;font-size:1.3em;letter-spacing:2px;margin-bottom:8px}
+.final-copy{font-family:'JetBrains Mono',monospace;font-size:.88em;line-height:1.6;color:var(--text);background:var(--bg);padding:14px;border-radius:8px;text-align:left}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:700px){
+  .comic-grid{grid-template-columns:1fr}
+  .bubble{font-size:.75em;max-width:70%}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚡ AI Creative Shootout</h1>
+    <p>The Saga — 3 Rounds of AI Debate in Comic Strip Mode</p>
+  </header>
+
+  <div class="controls">
+    <button class="btn btn-go" id="goBtn" onclick="generate()">💥 GENERATE ROUND 1</button>
+    <button class="btn btn-reset" id="resetBtn" onclick="resetAll()">↺ Reset</button>
+    <a href="index.html" class="btn-back">← Back to Chat Mode</a>
+    <div class="mode-toggle" id="modeToggle" onclick="toggleLive()">
+      <span id="modeIcon">⚪</span> <span id="modeText">Simulation Mode</span>
+    </div>
+  </div>
+
+  <div class="progress" id="progress"><div class="progress-bar" id="bar"></div></div>
+
+  <!-- ═══════════ ROUND 1: The Initial Fight ═══════════ -->
+  <div class="round-title r1" id="roundTitle1">⚔️ ROUND 1 — THE INITIAL FIGHT<span class="sub">The AI agents read the first draft...</span></div>
+  <div class="comic-grid round1" id="round1">
+    <div class="panel p1" id="panel1">
+      <div class="loading-overlay" id="load1"><div class="loading-spinner"></div><div class="loading-text">Generating panel 1...</div></div>
+      <div class="panel-banner">🇺🇸 THE PATRIOT</div>
+      <div class="panel-number">1</div>
+      <img src="comic-assets/panel1-patriot.png" alt="The Patriot">
+      <div class="bubble bottom-left" id="b1">"Too DARK! Where is the shining city on a hill? This reads like a funeral notice!"</div>
+      <div class="caption">🦅 The Patriot reads the draft and sees only doom</div>
+    </div>
+    <div class="panel p2" id="panel2">
+      <div class="loading-overlay" id="load2"><div class="loading-spinner"></div><div class="loading-text">Generating panel 2...</div></div>
+      <div class="panel-banner">🔍 THE SKEPTIC</div>
+      <div class="panel-number">2</div>
+      <img src="comic-assets/panel2-skeptic.png" alt="The Skeptic">
+      <div class="bubble top-right" id="b2">"This is a SCAM template. 'Destroying our values'? Show me one fact. ONE."</div>
+      <div class="caption">🔍 The Skeptic smells fundraising boilerplate</div>
+    </div>
+    <div class="panel p3" id="panel3">
+      <div class="loading-overlay" id="load3"><div class="loading-spinner"></div><div class="loading-text">Generating panel 3...</div></div>
+      <div class="panel-banner">🔥 THE URGENCY</div>
+      <div class="panel-number">3</div>
+      <img src="comic-assets/panel3-urgency.png" alt="The Urgency">
+      <div class="bubble bottom-right right" id="b3">"BORING! No deadline, no match, no caps... my GRANDMA writes more urgent emails! 😴"</div>
+      <div class="caption">🔥 The Urgency almost falls asleep — WHERE'S THE FIRE?!</div>
+    </div>
+    <div class="panel p4" id="panel4">
+      <div class="loading-overlay" id="load4"><div class="loading-spinner"></div><div class="loading-text">Generating panel 4...</div></div>
+      <div class="panel-banner">🤝 CONSENSUS</div>
+      <div class="panel-number">4</div>
+      <img src="comic-assets/panel4-consensus.png" alt="Consensus">
+      <div class="bubble top-left" id="b4">"Unanimous rejection. Back to the drawing board. Rewriting now..."</div>
+      <div class="caption">🤝 Even Consensus can't save this one. Rewrite ordered.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ ROUND 2: The Rewrite Debate ═══════════ -->
+  <div class="round-title r2" id="roundTitle2">📝 ROUND 2 — THE REWRITE DEBATE<span class="sub">The second draft lands... closer, but not there yet</span></div>
+  <div class="comic-grid round2" id="round2">
+    <div class="panel p1" id="panel5">
+      <div class="loading-overlay" id="load5"><div class="loading-spinner"></div><div class="loading-text">Generating panel 5...</div></div>
+      <div class="panel-banner">🇺🇸 THE PATRIOT</div>
+      <div class="panel-number">5</div>
+      <img src="comic-assets/panel1-patriot.png" alt="The Patriot">
+      <div class="bubble bottom-left" id="b5">"Better... but it needs MORE FLAG. Say 'patriots' at least twice. And add an eagle."</div>
+      <div class="caption">🦅 The Patriot nods slowly... but wants more America</div>
+    </div>
+    <div class="panel p2" id="panel6">
+      <div class="loading-overlay" id="load6"><div class="loading-spinner"></div><div class="loading-text">Generating panel 6...</div></div>
+      <div class="panel-banner">🔍 THE SKEPTIC</div>
+      <div class="panel-number">6</div>
+      <img src="comic-assets/panel2-skeptic.png" alt="The Skeptic">
+      <div class="bubble top-right" id="b6">"Still vague. 'Make a difference'? That means NOTHING. Give me the district number."</div>
+      <div class="caption">🔍 The Skeptic demands receipts</div>
+    </div>
+    <div class="panel p3" id="panel7">
+      <div class="loading-overlay" id="load7"><div class="loading-spinner"></div><div class="loading-text">Generating panel 7...</div></div>
+      <div class="panel-banner">🔥 THE URGENCY</div>
+      <div class="panel-number">7</div>
+      <img src="comic-assets/panel3-urgency.png" alt="The Urgency">
+      <div class="bubble bottom-right right" id="b7">"MORE CAPS! The match should be in BOLD. And add '⏰ EXPIRES TONIGHT' or we're DONE! 🔥"</div>
+      <div class="caption">🔥 The Urgency slams the desk — LOUDER!</div>
+    </div>
+    <div class="panel p4" id="panel8">
+      <div class="loading-overlay" id="load8"><div class="loading-spinner"></div><div class="loading-text">Generating panel 8...</div></div>
+      <div class="panel-banner">🤝 CONSENSUS</div>
+      <div class="panel-number">8</div>
+      <img src="comic-assets/panel4-consensus.png" alt="Consensus">
+      <div class="bubble top-left" id="b8">"Progress! Merging notes: specifics + patriotism + urgency. One more pass..."</div>
+      <div class="caption">🤝 Consensus scribbles furiously. Almost there.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ ROUND 3: The Final Polish ═══════════ -->
+  <div class="round-title r3" id="roundTitle3">🏆 ROUND 3 — THE FINAL POLISH<span class="sub">Third draft. The moment of truth.</span></div>
+  <div class="comic-grid round3" id="round3">
+    <div class="panel p1" id="panel9">
+      <div class="loading-overlay" id="load9"><div class="loading-spinner"></div><div class="loading-text">Generating panel 9...</div></div>
+      <div class="panel-banner">🇺🇸 THE PATRIOT</div>
+      <div class="panel-number">9</div>
+      <img src="comic-assets/panel1-patriot.png" alt="The Patriot">
+      <div class="bubble bottom-left" id="b9">"NOW we're talking! 'Patriots like you'... 'America's greatest chapter'... I'm tearing up. 🇺🇸"</div>
+      <div class="caption">🦅 The Patriot salutes. A single tear rolls.</div>
+    </div>
+    <div class="panel p2" id="panel10">
+      <div class="loading-overlay" id="load10"><div class="loading-spinner"></div><div class="loading-text">Generating panel 10...</div></div>
+      <div class="panel-banner">🔍 THE SKEPTIC</div>
+      <div class="panel-number">10</div>
+      <img src="comic-assets/panel2-skeptic.png" alt="The Skeptic">
+      <div class="bubble top-right" id="b10">"District 7... $12,000 goal... 3X match with a source. Fine. I'll allow it. ✓"</div>
+      <div class="caption">🔍 The Skeptic removes her glasses. Respect earned.</div>
+    </div>
+    <div class="panel p3" id="panel11">
+      <div class="loading-overlay" id="load11"><div class="loading-spinner"></div><div class="loading-text">Generating panel 11...</div></div>
+      <div class="panel-banner">🔥 THE URGENCY</div>
+      <div class="panel-number">11</div>
+      <img src="comic-assets/panel3-urgency.png" alt="The Urgency">
+      <div class="bubble bottom-right right" id="b11">"MIDNIGHT DEADLINE ✅ TRIPLE MATCH ✅ CAPS WHERE IT COUNTS ✅ ...I think I'm gonna cry. 🔥"</div>
+      <div class="caption">🔥 The Urgency wipes away a fiery tear of joy</div>
+    </div>
+    <div class="panel p4" id="panel12">
+      <div class="loading-overlay" id="load12"><div class="loading-spinner"></div><div class="loading-text">Generating panel 12...</div></div>
+      <div class="panel-banner">🤝 CONSENSUS</div>
+      <div class="panel-number">12</div>
+      <img src="comic-assets/panel4-consensus.png" alt="Consensus">
+      <div class="bubble top-left" id="b12">"SHIPPED. Three rounds, three rewrites, one perfect email. That's AI Creative Shootout."</div>
+      <div class="caption">🤝 They shake hands. The copy is reborn.</div>
+    </div>
+  </div>
+
+  <div class="winner-bar" id="winner">
+    <h3>✅ CONSENSUS — Final Rewrite (after 3 rounds)</h3>
+    <div class="final-copy">
+      <strong>Subject:</strong> The chapter that changes everything<br><br>
+      <strong>Body:</strong><br>
+      Friend,<br><br>
+      America's greatest chapter hasn't been written yet — and patriots like YOU hold the pen.<br><br>
+      Right now, we're just $12,000 away from our goal to flip District 7. And thanks to a group of dedicated patriots, every dollar you give tonight is TRIPLED.<br><br>
+      <strong>Your $5 becomes $15. But only until midnight. ⏰</strong><br><br>
+      → <u>Rush your 3X-matched gift now</u><br><br>
+      <strong>P.S.</strong> Your 3X match expires at midnight tonight. Don't leave $10 on the table.
+    </div>
+  </div>
+</div>
+
+<script>
+const PANEL_DELAY = 800; // ms between panels in a round
+let currentRound = 0;
+let liveMode = false;
+
+const SIM_IMAGES = {
+  1:'comic-assets/panel1-patriot.png',2:'comic-assets/panel2-skeptic.png',3:'comic-assets/panel3-urgency.png',4:'comic-assets/panel4-consensus.png',
+  5:'comic-assets/panel1-patriot.png',6:'comic-assets/panel2-skeptic.png',7:'comic-assets/panel3-urgency.png',8:'comic-assets/panel4-consensus.png',
+  9:'comic-assets/panel1-patriot.png',10:'comic-assets/panel2-skeptic.png',11:'comic-assets/panel3-urgency.png',12:'comic-assets/panel4-consensus.png'
+};
+
+const LIVE_PROMPTS = {
+  1: "comic book panel, sin city style, high contrast black and white, superhero eagle-man in a suit pointing finger, dramatic lighting",
+  2: "comic book panel, sin city style, high contrast black and white, noir detective looking skeptical with magnifying glass",
+  3: "comic book panel, sin city style, high contrast black and white, angry man screaming into a megaphone, explosion background",
+  0: "comic book panel, sin city style, high contrast black and white, three diverse people shaking hands in agreement"
+};
+
+function toggleLive() {
+  liveMode = !liveMode;
+  const toggle = document.getElementById('modeToggle');
+  const icon = document.getElementById('modeIcon');
+  const text = document.getElementById('modeText');
+  if (liveMode) {
+    toggle.classList.add('live');
+    icon.textContent = '🔴';
+    text.textContent = 'Live Mode (Wavespeed FLUX)';
+  } else {
+    toggle.classList.remove('live');
+    icon.textContent = '⚪';
+    text.textContent = 'Simulation Mode';
+  }
+}
+
+const WAVESPEED_KEY = 'f0dbd67aefe3b626066d0753cf9cddd66259040b16f2c3c9c1e6e6bb117b0932';
+const WAVESPEED_PROXY = 'https://corsproxy.io/?' + encodeURIComponent('https://api.wavespeed.ai');
+
+async function fetchWavespeedImage(prompt) {
+  const submitUrl = WAVESPEED_PROXY + '/api/v3/wavespeed-ai/flux-schnell';
+  const res = await fetch(submitUrl, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + WAVESPEED_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, width: 1024, height: 576 })
+  });
+  const json = await res.json();
+  const taskId = json.data.id;
+
+  // Poll for result
+  const pollUrl = WAVESPEED_PROXY + '/api/v3/predictions/' + taskId;
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 1000));
+    const pr = await fetch(pollUrl, { headers: { 'Authorization': 'Bearer ' + WAVESPEED_KEY } });
+    const pj = await pr.json();
+    if (pj.data.status === 'completed') return pj.data.outputs[0];
+    if (pj.data.status === 'failed') throw new Error(pj.data.error || 'Generation failed');
+  }
+  throw new Error('Timeout waiting for image');
+}
+
+function getPanelSrc(panelNum) {
+  if (!liveMode) return SIM_IMAGES[panelNum];
+  return null; // handled async in revealRound
+}
+
+async function generate() {
+  const btn = document.getElementById('goBtn');
+  document.getElementById('resetBtn').style.display = 'inline-block';
+  document.getElementById('progress').style.display = 'block';
+
+  currentRound++;
+  btn.disabled = true;
+
+  if (currentRound === 1) await revealRound(1, [1,2,3,4], () => { btn.disabled = false; btn.textContent = '💥 GENERATE ROUND 2'; });
+  else if (currentRound === 2) await revealRound(2, [5,6,7,8], () => { btn.disabled = false; btn.textContent = '💥 GENERATE ROUND 3'; });
+  else if (currentRound === 3) await revealRound(3, [9,10,11,12], () => {
+    btn.style.display = 'none';
+    setTimeout(() => {
+      document.getElementById('winner').classList.add('show');
+      document.getElementById('bar').style.width = '100%';
+    }, 600);
+  });
+}
+
+async function revealRound(round, panels, onDone) {
+  const totalAll = 12;
+
+  // Show round title
+  const title = document.getElementById('roundTitle' + round);
+  title.classList.add('visible');
+  title.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  if (liveMode) {
+    // Kick off all 4 image generations in parallel
+    const keys = panels.map(p => p % 4);
+    const imagePromises = keys.map(k => fetchWavespeedImage(LIVE_PROMPTS[k]));
+    const imageUrls = await Promise.all(imagePromises);
+
+    panels.forEach((panelNum, i) => {
+      setTimeout(() => {
+        const pct = (panelNum / (totalAll + 1)) * 100;
+        document.getElementById('bar').style.width = pct + '%';
+        const img = document.getElementById('panel' + panelNum).querySelector('img');
+        img.src = imageUrls[i];
+        document.getElementById('load' + panelNum).classList.add('hide');
+        document.getElementById('panel' + panelNum).classList.add('visible');
+        setTimeout(() => { document.getElementById('b' + panelNum).classList.add('show'); }, 400);
+        document.getElementById('panel' + panelNum).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (i === panels.length - 1 && onDone) setTimeout(onDone, 600);
+      }, i * PANEL_DELAY);
+    });
+  } else {
+    panels.forEach((panelNum, i) => {
+      setTimeout(() => {
+        const pct = (panelNum / (totalAll + 1)) * 100;
+        document.getElementById('bar').style.width = pct + '%';
+        const img = document.getElementById('panel' + panelNum).querySelector('img');
+        img.src = getPanelSrc(panelNum);
+        document.getElementById('load' + panelNum).classList.add('hide');
+        document.getElementById('panel' + panelNum).classList.add('visible');
+        setTimeout(() => { document.getElementById('b' + panelNum).classList.add('show'); }, 400);
+        document.getElementById('panel' + panelNum).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (i === panels.length - 1 && onDone) setTimeout(onDone, 600);
+      }, i * PANEL_DELAY);
+    });
+  }
+}
+
+function resetAll() {
+  currentRound = 0;
+  const btn = document.getElementById('goBtn');
+  btn.style.display = '';
+  btn.disabled = false;
+  btn.textContent = '💥 GENERATE ROUND 1';
+  document.getElementById('resetBtn').style.display = 'none';
+  document.getElementById('progress').style.display = 'none';
+  document.getElementById('bar').style.width = '0';
+  document.getElementById('winner').classList.remove('show');
+  for (let i = 1; i <= 12; i++) {
+    document.getElementById('panel' + i).classList.remove('visible');
+    document.getElementById('load' + i).classList.remove('hide');
+    document.getElementById('b' + i).classList.remove('show');
+  }
+  for (let r = 1; r <= 3; r++) {
+    document.getElementById('roundTitle' + r).classList.remove('visible');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
