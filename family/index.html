@@ -3,490 +3,468 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Hart Family | Dashboard</title>
+    <title>The Hart Family Legacy Tree</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #0f172a;
-            --card: #1e293b;
-            --accent: #38bdf8;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(148, 163, 184, 0.2);
+            --line-color: rgba(148, 163, 184, 0.3);
             --gold: #fbbf24;
-            --green: #22c55e;
-            --purple: #a855f7;
-            --pink: #ec4899;
-            --text: #f1f5f9;
+            --gold-glow: rgba(251, 191, 36, 0.3);
+            --accent: #38bdf8;
+            --text: #f8fafc;
             --text-muted: #94a3b8;
         }
-        
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top center, #1e293b 0%, #0f172a 100%);
             color: var(--text);
             min-height: 100vh;
             padding: 2rem;
+            /* Allow scrolling for wide tree */
+            overflow: auto; 
         }
-        
-        .container { max-width: 1400px; margin: 0 auto; }
-        
-        header { text-align: center; margin-bottom: 2rem; }
-        
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
         h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, var(--accent), var(--purple));
+            font-family: 'Cinzel', serif;
+            font-size: 3.5rem;
+            background: linear-gradient(to right, #f59e0b, #fcd34d, #f59e0b);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px var(--gold-glow);
             margin-bottom: 0.5rem;
         }
-        
-        .subtitle { color: var(--text-muted); font-size: 1.1rem; }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Tree Logic - CSS Based */
+        .tree {
+            display: table; 
+            margin: 0 auto;
         }
         
-        .stat-card {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 1.25rem;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
+        .tree ul {
+            padding-top: 20px; 
+            position: relative;
+            transition: all 0.5s;
+            display: flex;
+            justify-content: center;
         }
         
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, var(--gold), var(--pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .tree li {
+            float: left; text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+            transition: all 0.5s;
         }
         
-        .stat-label { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem; }
+        /* We will use the vertical lines from ::before and ::after */
+        .tree li::before, .tree li::after{
+            content: '';
+            position: absolute; top: 0; right: 50%;
+            border-top: 2px solid var(--line-color);
+            width: 50%; height: 20px;
+        }
+        .tree li::after{
+            right: auto; left: 50%;
+            border-left: 2px solid var(--line-color);
+        }
         
-        .section { margin-bottom: 2.5rem; }
+        /* Remove connectors from single child */
+        .tree li:only-child::after, .tree li:only-child::before {
+            display: none;
+        }
+        .tree li:only-child{ padding-top: 0;}
         
-        .section-header {
+        /* Remove space from the top of single children */
+        .tree li:first-child::before, .tree li:last-child::after{
+            border: 0 none;
+        }
+        
+        /* Adding back the vertical connector to the last nodes */
+        .tree li:last-child::before{
+            border-right: 2px solid var(--line-color);
+            border-radius: 0 5px 0 0;
+        }
+        .tree li:first-child::after{
+            border-radius: 5px 0 0 0;
+        }
+        
+        /* Time to add downward connectors from parents */
+        .tree ul ul::before{
+            content: '';
+            position: absolute; top: 0; left: 50%;
+            border-left: 2px solid var(--line-color);
+            width: 0; height: 20px;
+        }
+        
+        .tree li a {
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1rem;
+            width: 260px;
+            text-align: left;
+            position: relative;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--gold);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 0 20px var(--gold-glow);
+            z-index: 20;
+        }
+
+        .card.root {
+            width: 320px;
+            background: linear-gradient(145deg, rgba(251, 191, 36, 0.1), rgba(30, 41, 59, 0.8));
+            border-color: rgba(251, 191, 36, 0.4);
+            margin-bottom: 10px;
+        }
+        
+        .card-header {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--accent);
+            margin-bottom: 0.5rem;
         }
-        
-        .section-title { font-size: 1.4rem; color: var(--accent); }
-        
-        .family-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 1rem;
-        }
-        
-        .person-card {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 1.25rem;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s;
-        }
-        
-        .person-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-            border-color: var(--accent);
-        }
-        
-        .person-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
-        
-        .person-emoji {
-            font-size: 2rem;
-            width: 50px;
-            height: 50px;
+
+        .avatar {
+            font-size: 1.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            width: 42px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255,255,255,0.05);
             border-radius: 10px;
         }
-        
-        .person-name { font-size: 1.15rem; font-weight: 600; }
-        .person-age { color: var(--accent); font-size: 1rem; }
-        .person-details { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.75rem; }
-        
-        .birthday-line {
+
+        .info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .info .role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .meta-row {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            background: rgba(251, 191, 36, 0.1);
-            border-radius: 6px;
-            font-size: 0.85rem;
+            justify-content: space-between;
         }
         
-        .birthday-soon { background: rgba(34, 197, 94, 0.2); animation: pulse 2s infinite; }
-        
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        
-        .days-count { font-weight: bold; color: var(--gold); }
-        
-        .next-birthday-banner {
-            background: linear-gradient(135deg, var(--green), #059669);
-            padding: 1.25rem;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 2rem;
+        .bday-pill {
+            background: rgba(255,255,255,0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
         }
         
-        .next-birthday-banner h3 { font-size: 1.3rem; margin-bottom: 0.25rem; }
-        
-        .anniversary-card {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2));
-            border: 1px solid var(--purple);
+        .next-bday {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s;
         }
         
-        .tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
+        .card:hover .next-bday { opacity: 1; transform: scale(1); }
+        .next-bday.soon { opacity: 1; transform: scale(1); animation: bounce 2s infinite; }
+
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+        /* Compact card for kids */
+        .card.kid {
+            width: 180px;
+            padding: 0.75rem;
         }
         
-        .tab {
-            padding: 0.5rem 1rem;
-            background: var(--card);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
+        .card.kid .avatar { width: 32px; height: 32px; font-size: 1.2rem; }
+        .card.kid h3 { font-size: 0.9rem; }
         
-        .tab:hover, .tab.active {
-            background: var(--accent);
-            color: #000;
-        }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        footer {
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-        
-        @media (max-width: 768px) {
-            body { padding: 1rem; }
-            h1 { font-size: 1.8rem; }
-            .family-grid { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        /* Adjust spacing for dense branches */
+        .tree li { padding: 20px 4px 0 4px; }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🏠 The Hart Family</h1>
-            <p class="subtitle">Four Generations Strong</p>
-        </header>
-        
-        <div id="next-birthday"></div>
-        
-        <div class="stats-grid" id="stats"></div>
-        
-        <div class="tabs" id="tabs"></div>
-        
-        <div id="content"></div>
-        
-        <footer>
-            <p>Built with ❤️ by Railstote 🦉 | <span id="last-updated"></span></p>
-        </footer>
+    <div class="header">
+        <h1>The Hart Family</h1>
+        <div class="subtitle">Four Generations of Legacy</div>
+        <div id="stats-bar" style="margin-top: 1rem; color: var(--accent); font-size: 0.9rem;"></div>
     </div>
-    
+
+    <div class="tree" id="family-tree"></div>
+
     <script>
+        // ==================== DATA ====================
         const today = new Date();
         
-        // ==================== FAMILY DATA ====================
-        
-        // Parents (Tom & Cheryln)
-        const parents = [
-            { name: "Tom", emoji: "👴", birthDate: new Date("1945-12-05"), details: "Dad" },
-            { name: "Cheryln", emoji: "👵", birthDate: new Date("1946-02-25"), details: "Mom" }
-        ];
-        
-        const parentAnniversary = { names: "Tom & Cheryln", date: new Date("1969-01-31"), emoji: "💍" };
-        
-        // Justin & Jenny
-        const justinJenny = [
-            { name: "Justin", emoji: "👨‍💼", birthDate: new Date("1972-10-20"), details: "The patriarch, 9 kids, head of creative @ DonorBureau" },
-            { name: "Jenny", emoji: "👩‍❤️‍👨", birthDate: new Date("1983-01-07"), details: "née Erickson, now Jenny Hart" }
-        ];
-        
-        // Siblings + Spouses
-        const siblings = [
-            { name: "Daria", emoji: "👩", birthDate: new Date("1974-06-24"), details: "Justin's sister", family: "daria" },
-            { name: "Jeremy", emoji: "👨", birthDate: new Date("1976-03-16"), details: "Daria's husband", family: "daria" },
-            { name: "Chris", emoji: "👨", birthDate: new Date("1978-05-24"), details: "Justin's brother", family: "chris" },
-            { name: "Suzanne", emoji: "👩", birthDate: new Date("1980-02-02"), details: "Chris's wife", family: "chris" },
-            { name: "Lauren", emoji: "👩", birthDate: new Date("1981-02-03"), details: "Justin's youngest sister", family: "lauren" },
-            { name: "Andy", emoji: "👨", birthDate: new Date("1981-11-30"), details: "Lauren's husband", family: "lauren" }
-        ];
-        
-        const siblingAnniversaries = [
-            { names: "Jeremy & Daria", date: new Date("2000-12-28"), emoji: "💒" },
-            { names: "Chris & Suzanne", date: new Date("2003-08-08"), emoji: "💒" },
-            { names: "Andy & Lauren", date: new Date("2007-08-11"), emoji: "💒" }
-        ];
-        
-        // Nieces & Nephews
-        const niecesNephews = [
-            // Daria & Jeremy's kids
-            { name: "Hannah", emoji: "👧", birthDate: new Date("2001-04-02"), details: "Daria & Jeremy's", family: "daria" },
-            { name: "Leah", emoji: "👧", birthDate: new Date("2004-04-28"), details: "Daria & Jeremy's", family: "daria" },
-            { name: "Nicolas", emoji: "👦", birthDate: new Date("2005-02-20"), details: "Daria & Jeremy's", family: "daria" },
-            { name: "Elisabeth", emoji: "👧", birthDate: new Date("2007-08-12"), details: "Daria & Jeremy's", family: "daria" },
-            // Chris & Suzanne's kids
-            { name: "Emma", emoji: "👧", birthDate: new Date("2006-05-19"), details: "Chris & Suzanne's", family: "chris" },
-            { name: "Joslyn", emoji: "👧", birthDate: new Date("2008-12-01"), details: "Chris & Suzanne's", family: "chris" },
-            { name: "Layla", emoji: "👧", birthDate: new Date("2010-03-29"), details: "Chris & Suzanne's", family: "chris" },
-            { name: "Holland", emoji: "👧", birthDate: new Date("2012-09-18"), details: "Chris & Suzanne's", family: "chris" },
-            // Lauren & Andy's kids
-            { name: "Chad", emoji: "👦", birthDate: new Date("2009-07-25"), details: "Lauren & Andy's", family: "lauren" },
-            { name: "Sean", emoji: "👦", birthDate: new Date("2014-06-01"), details: "Lauren & Andy's", family: "lauren" },
-            { name: "Tyler", emoji: "👦", birthDate: new Date("2014-12-02"), details: "Lauren & Andy's", family: "lauren" }
-        ];
-        
-        // Justin's Kids (9)
-        const justinsKids = [
-            { name: "Kestra", emoji: "👩‍👧‍👦", birthDate: new Date("1994-12-02"), details: "Married to Andrew, 4 kids, lives in Utah" },
-            { name: "McKaeln", emoji: "👨", birthDate: new Date("1997-07-13"), details: "Living in Orange County" },
-            { name: "Kaden", emoji: "🎮", birthDate: new Date("2003-03-04"), details: "Works at Best Buy, wants gaming industry" },
-            { name: "Hannah E.", emoji: "👩", birthDate: new Date("2003-09-26"), details: "Jenny's daughter (stepdaughter)" },
-            { name: "Gia", emoji: "🚗", birthDate: new Date("2008-03-24"), details: "Senior at Torrey Pines HS, aka Cordelia/Dia", aka: "Cordelia/Dia" },
-            { name: "Arya", emoji: "📚", birthDate: new Date("2017-04-24"), details: "Elementary school" },
-            { name: "Trinity", emoji: "🌟", birthDate: new Date("2018-12-07"), details: "Elementary school" },
-            { name: "Harley", emoji: "🎨", birthDate: new Date("2021-08-19"), details: "Preschool" },
-            { name: "Ellis", emoji: "👶", birthDate: new Date("2023-12-20"), details: "The youngest! Aka Ella", aka: "Ella" }
-        ];
-        
-        const kestraAnniversary = { names: "Kestra & Andrew", date: new Date("2016-09-09"), emoji: "💍" };
-        const andrewBday = { name: "Andrew", emoji: "👨", birthDate: new Date("1990-10-12"), details: "Kestra's husband" };
-        
-        // Grandkids (Kestra & Andrew's)
-        const grandkids = [
-            { name: "Malina", emoji: "👧", birthDate: new Date("2017-09-17"), details: "Grandchild #1" },
-            { name: "Alan", emoji: "👦", birthDate: new Date("2018-10-30"), details: "Grandchild #2" },
-            { name: "Ivan", emoji: "👦", birthDate: new Date("2023-01-13"), details: "Grandchild #3" },
-            { name: "Wilson", emoji: "👶", birthDate: new Date("2024-11-02"), details: "Grandchild #4 - newest!" }
-        ];
-        
-        // ==================== UTILITY FUNCTIONS ====================
-        
-        function calculateAge(birthDate) {
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+        // Helper: Calculate age
+        function getAge(dateStr) {
+            const birth = new Date(dateStr);
+            let age = today.getFullYear() - birth.getFullYear();
+            const m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
             return age;
         }
-        
-        function daysUntil(date) {
+
+        function getDaysUntil(dateStr) {
+            const birth = new Date(dateStr);
             const thisYear = today.getFullYear();
-            let next = new Date(thisYear, date.getMonth(), date.getDate());
-            if (next < today) next = new Date(thisYear + 1, date.getMonth(), date.getDate());
+            let next = new Date(thisYear, birth.getMonth(), birth.getDate());
+            if (next < today) next = new Date(thisYear + 1, birth.getMonth(), birth.getDate());
             return Math.ceil((next - today) / (1000 * 60 * 60 * 24));
         }
-        
-        function formatDate(date) {
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }
         
-        function getYears(date) {
-            return today.getFullYear() - date.getFullYear();
-        }
+        // Corrected Sean's Birthday: Jan 6, 2014
+        const treeData = {
+            name: "Tom & Cheryln",
+            role: "Patriarch & Matriarch",
+            emoji: "👴👵",
+            birthdays: [
+                { name: "Tom", date: "1945-12-05" },
+                { name: "Cheryln", date: "1946-02-25" }
+            ],
+            anniversary: "1969-01-31",
+            type: "root",
+            children: [
+                {
+                    name: "Justin & Jenny",
+                    role: "Eldest Son",
+                    emoji: "👨‍👩‍👧‍👦",
+                    birthdays: [
+                        { name: "Justin", date: "1972-10-20" },
+                        { name: "Jenny", date: "1983-01-07" }
+                    ],
+                    type: "couple",
+                    children: [
+                        {
+                            name: "Kestra & Andrew",
+                            role: "Daughter",
+                            emoji: "👩‍❤️‍👨",
+                            birthdays: [
+                                { name: "Kestra", date: "1994-12-02" },
+                                { name: "Andrew", date: "1990-10-12" }
+                            ],
+                            anniversary: "2016-09-09",
+                            type: "couple",
+                            children: [
+                                { name: "Malina", emoji: "👧", date: "2017-09-17", type: "kid" },
+                                { name: "Alan", emoji: "👦", date: "2018-10-30", type: "kid" },
+                                { name: "Ivan", emoji: "👦", date: "2023-01-13", type: "kid" },
+                                { name: "Wilson", emoji: "👶", date: "2024-11-02", type: "kid" }
+                            ]
+                        },
+                        { name: "McKaeln", emoji: "👨", date: "1997-07-13", type: "kid" },
+                        { name: "Kaden", emoji: "🎮", date: "2003-03-04", type: "kid" },
+                        { name: "Hannah E.", emoji: "👩", date: "2003-09-26", type: "kid" },
+                        { name: "Gia (Dia)", emoji: "🚗", date: "2008-03-24", type: "kid" },
+                        { name: "Arya", emoji: "📚", date: "2017-04-24", type: "kid" },
+                        { name: "Trinity", emoji: "🌟", date: "2018-12-07", type: "kid" },
+                        { name: "Harley", emoji: "🎨", date: "2021-08-19", type: "kid" },
+                        { name: "Ellis (Ella)", emoji: "👶", date: "2023-12-20", type: "kid" }
+                    ]
+                },
+                {
+                    name: "Daria & Jeremy",
+                    role: "Daughter",
+                    emoji: "👩‍❤️‍👨",
+                    birthdays: [
+                        { name: "Daria", date: "1974-06-24" },
+                        { name: "Jeremy", date: "1976-03-16" }
+                    ],
+                    anniversary: "2000-12-28",
+                    type: "couple",
+                    children: [
+                        { name: "Hannah", emoji: "👧", date: "2001-04-02", type: "kid" },
+                        { name: "Leah", emoji: "👧", date: "2004-04-28", type: "kid" },
+                        { name: "Nicolas", emoji: "👦", date: "2005-02-20", type: "kid" },
+                        { name: "Elisabeth", emoji: "👧", date: "2007-08-12", type: "kid" }
+                    ]
+                },
+                {
+                    name: "Chris & Suzanne",
+                    role: "Brother",
+                    emoji: "👨‍❤️‍👩",
+                    birthdays: [
+                        { name: "Chris", date: "1978-05-24" },
+                        { name: "Suzanne", date: "1980-02-02" }
+                    ],
+                    anniversary: "2003-08-08",
+                    type: "couple",
+                    children: [
+                        { name: "Emma", emoji: "👧", date: "2006-05-19", type: "kid" },
+                        { name: "Joslyn", emoji: "👧", date: "2008-12-01", type: "kid" },
+                        { name: "Layla", emoji: "👧", date: "2010-03-29", type: "kid" },
+                        { name: "Holland", emoji: "👧", date: "2012-09-18", type: "kid" }
+                    ]
+                },
+                {
+                    name: "Lauren & Andy",
+                    role: "Daughter",
+                    emoji: "👩‍❤️‍👨",
+                    birthdays: [
+                        { name: "Lauren", date: "1981-02-03" },
+                        { name: "Andy", date: "1981-11-30" }
+                    ],
+                    anniversary: "2007-08-11",
+                    type: "couple",
+                    children: [
+                        { name: "Chad", emoji: "👦", date: "2009-07-25", type: "kid" },
+                        { name: "Sean", emoji: "👦", date: "2014-01-06", type: "kid" },
+                        { name: "Tyler", emoji: "👦", date: "2014-12-02", type: "kid" }
+                    ]
+                }
+            ]
+        };
+
+        // ==================== RENDERER ====================
         
-        // ==================== RENDER FUNCTIONS ====================
-        
-        function renderPersonCard(person, showAge = true) {
-            const age = calculateAge(person.birthDate);
-            const days = daysUntil(person.birthDate);
-            const isSoon = days <= 30;
-            const turningAge = age + 1;
+        function renderCardContent(node) {
+            let html = `<div class="card-header"><div class="avatar">${node.emoji}</div>`;
+            html += `<div class="info"><h3>${node.name}</h3>`;
+            if (node.role) html += `<div class="role">${node.role}</div>`;
+            html += `</div></div>`;
             
-            return `
-                <div class="person-card">
-                    <div class="person-header">
-                        <div class="person-emoji">${person.emoji}</div>
-                        <div>
-                            <div class="person-name">${person.name}${person.aka ? ` <span style="color:var(--text-muted);font-size:0.8rem">(${person.aka})</span>` : ''}</div>
-                            ${showAge ? `<div class="person-age">${age} years old</div>` : ''}
-                        </div>
-                    </div>
-                    <div class="person-details">${person.details}</div>
-                    <div class="birthday-line ${isSoon ? 'birthday-soon' : ''}">
-                        🎂 <span class="days-count">${days}</span> days → turning ${turningAge} (${formatDate(person.birthDate)})
-                    </div>
-                </div>
-            `;
-        }
-        
-        function renderAnniversaryCard(ann) {
-            const days = daysUntil(ann.date);
-            const years = getYears(ann.date);
-            const isSoon = days <= 30;
+            // Meta
+            html += `<div class="meta">`;
             
-            return `
-                <div class="person-card anniversary-card">
-                    <div class="person-header">
-                        <div class="person-emoji">${ann.emoji}</div>
-                        <div>
-                            <div class="person-name">${ann.names}</div>
-                            <div class="person-age">${years} years married</div>
-                        </div>
-                    </div>
-                    <div class="birthday-line ${isSoon ? 'birthday-soon' : ''}">
-                        💕 <span class="days-count">${days}</span> days → year ${years + 1} (${formatDate(ann.date)})
-                    </div>
-                </div>
-            `;
-        }
-        
-        function renderStats() {
-            const allPeople = [...parents, ...justinJenny, ...siblings, ...niecesNephews, ...justinsKids, andrewBday, ...grandkids];
-            
-            document.getElementById('stats').innerHTML = `
-                <div class="stat-card"><div class="stat-number">4</div><div class="stat-label">Generations</div></div>
-                <div class="stat-card"><div class="stat-number">${allPeople.length}</div><div class="stat-label">Family Members</div></div>
-                <div class="stat-card"><div class="stat-number">9</div><div class="stat-label">Justin's Kids</div></div>
-                <div class="stat-card"><div class="stat-number">4</div><div class="stat-label">Grandkids</div></div>
-                <div class="stat-card"><div class="stat-number">11</div><div class="stat-label">Nieces/Nephews</div></div>
-            `;
-        }
-        
-        function renderNextBirthday() {
-            const allPeople = [...parents, ...justinJenny, ...siblings, ...niecesNephews, ...justinsKids, andrewBday, ...grandkids];
-            const sorted = allPeople.map(p => ({ ...p, days: daysUntil(p.birthDate) })).sort((a, b) => a.days - b.days);
-            const next = sorted[0];
-            const turningAge = calculateAge(next.birthDate) + 1;
-            
-            document.getElementById('next-birthday').innerHTML = `
-                <div class="next-birthday-banner">
-                    <h3>🎂 Next Birthday: ${next.name}!</h3>
-                    <p><strong>${next.days} days</strong> until ${next.name} turns <strong>${turningAge}</strong></p>
-                </div>
-            `;
-        }
-        
-        // Tab system
-        const tabs = [
-            { id: 'all', label: '👨‍👩‍👧‍👦 Everyone' },
-            { id: 'justins', label: '🏠 Justin\'s Kids' },
-            { id: 'grandkids', label: '👶 Grandkids' },
-            { id: 'extended', label: '👪 Extended' },
-            { id: 'upcoming', label: '📅 Upcoming' }
-        ];
-        
-        let activeTab = 'all';
-        
-        function renderTabs() {
-            document.getElementById('tabs').innerHTML = tabs.map(t => 
-                `<div class="tab ${t.id === activeTab ? 'active' : ''}" onclick="switchTab('${t.id}')">${t.label}</div>`
-            ).join('');
-        }
-        
-        function switchTab(tabId) {
-            activeTab = tabId;
-            renderTabs();
-            renderContent();
-        }
-        
-        function renderContent() {
-            let html = '';
-            
-            if (activeTab === 'all' || activeTab === 'justins') {
-                html += `
-                    <div class="section">
-                        <div class="section-header"><span class="section-title">👨‍👩‍👧‍👦 Justin & Jenny's Kids</span></div>
-                        <div class="family-grid">${justinsKids.map(p => renderPersonCard(p)).join('')}</div>
-                    </div>
-                `;
+            let people = node.birthdays;
+            if (!people && node.date) {
+                people = [{ name: node.name.split(' ')[0], date: node.date }];
+            } else if (!people) {
+                 people = [];
             }
             
-            if (activeTab === 'all' || activeTab === 'grandkids') {
-                html += `
-                    <div class="section">
-                        <div class="section-header"><span class="section-title">👶 Grandkids (Kestra & Andrew)</span></div>
-                        <div class="family-grid">
-                            ${renderPersonCard(andrewBday)}
-                            ${grandkids.map(p => renderPersonCard(p)).join('')}
-                            ${renderAnniversaryCard(kestraAnniversary)}
-                        </div>
-                    </div>
-                `;
-            }
+            let minDays = 999;
             
-            if (activeTab === 'all' || activeTab === 'extended') {
-                html += `
-                    <div class="section">
-                        <div class="section-header"><span class="section-title">👴👵 Parents</span></div>
-                        <div class="family-grid">
-                            ${parents.map(p => renderPersonCard(p)).join('')}
-                            ${renderAnniversaryCard(parentAnniversary)}
-                        </div>
-                    </div>
-                    <div class="section">
-                        <div class="section-header"><span class="section-title">👫 Justin & Jenny</span></div>
-                        <div class="family-grid">${justinJenny.map(p => renderPersonCard(p)).join('')}</div>
-                    </div>
-                    <div class="section">
-                        <div class="section-header"><span class="section-title">👪 Siblings & Spouses</span></div>
-                        <div class="family-grid">
-                            ${siblings.map(p => renderPersonCard(p)).join('')}
-                            ${siblingAnniversaries.map(a => renderAnniversaryCard(a)).join('')}
-                        </div>
-                    </div>
-                    <div class="section">
-                        <div class="section-header"><span class="section-title">👧👦 Nieces & Nephews</span></div>
-                        <div class="family-grid">${niecesNephews.map(p => renderPersonCard(p)).join('')}</div>
-                    </div>
-                `;
-            }
-            
-            if (activeTab === 'upcoming') {
-                const allPeople = [...parents, ...justinJenny, ...siblings, ...niecesNephews, ...justinsKids, andrewBday, ...grandkids];
-                const allAnniversaries = [parentAnniversary, ...siblingAnniversaries, kestraAnniversary];
+            people.forEach(p => {
+                const days = getDaysUntil(p.date);
+                const age = getAge(p.date);
+                if (days < minDays) minDays = days;
                 
-                const upcoming = [
-                    ...allPeople.map(p => ({ type: 'bday', person: p, days: daysUntil(p.birthDate) })),
-                    ...allAnniversaries.map(a => ({ type: 'ann', ann: a, days: daysUntil(a.date) }))
-                ].sort((a, b) => a.days - b.days).slice(0, 15);
-                
-                html += `
-                    <div class="section">
-                        <div class="section-header"><span class="section-title">📅 Next 15 Events</span></div>
-                        <div class="family-grid">
-                            ${upcoming.map(e => e.type === 'bday' ? renderPersonCard(e.person) : renderAnniversaryCard(e.ann)).join('')}
-                        </div>
-                    </div>
-                `;
+                html += `<div class="meta-row">
+                    <span>${p.name}</span>
+                    <span class="bday-pill">${age} (${formatDate(p.date)})</span>
+                </div>`;
+            });
+            
+            if (node.anniversary) {
+                const annDays = getDaysUntil(node.anniversary);
+                const years = getAge(node.anniversary);
+                html += `<div class="meta-row" style="color:var(--accent); margin-top:4px; padding-top:4px; border-top:1px dashed rgba(255,255,255,0.1)">
+                    <span>💍 Married</span>
+                    <span class="bday-pill">${years} yrs</span>
+                </div>`;
+                if (annDays < minDays) minDays = annDays;
             }
             
-            document.getElementById('content').innerHTML = html;
+            html += `</div>`;
+            
+            // Badge
+            if (minDays < 60) {
+                const label = minDays === 0 ? "TODAY!" : `${minDays} days`;
+                html += `<div class="next-bday ${minDays < 30 ? 'soon' : ''}">🎉 ${label}</div>`;
+            }
+            
+            return html;
+        }
+
+        function renderTree(node) {
+            let html = `<li>`;
+            html += `<a href="#">`;
+            html += `<div class="card ${node.type}">`;
+            html += renderCardContent(node);
+            html += `</div></a>`;
+            
+            if (node.children && node.children.length > 0) {
+                html += `<ul>`;
+                node.children.forEach(child => {
+                    html += renderTree(child);
+                });
+                html += `</ul>`;
+            }
+            
+            html += `</li>`;
+            return html;
+        }
+
+        const treeContainer = document.getElementById('family-tree');
+        treeContainer.innerHTML = `<ul>${renderTree(treeData)}</ul>`;
+        
+        // Count stats
+        function countNodes(node) {
+            let count = (node.birthdays && node.birthdays.length > 0) ? node.birthdays.length : 1;
+            if (node.children) {
+                node.children.forEach(c => count += countNodes(c));
+            }
+            return count;
         }
         
-        // Initialize
-        renderStats();
-        renderNextBirthday();
-        renderTabs();
-        renderContent();
-        document.getElementById('last-updated').textContent = today.toLocaleDateString('en-US', { 
-            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' 
-        });
+        const totalPeople = countNodes(treeData);
+        document.getElementById('stats-bar').innerHTML = `
+            ${totalPeople} Family Members · 4 Generations · One Legacy
+        `;
+
     </script>
 </body>
 </html>
