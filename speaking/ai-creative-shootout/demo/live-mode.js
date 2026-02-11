@@ -60,8 +60,10 @@ const LiveMode = (() => {
   }
 
   // Stream from OpenAI
+  // NOTE: OpenAI does NOT support CORS from browsers. We use a public CORS proxy as fallback.
   async function* streamOpenAI(systemPrompt, userPrompt, messages) {
     const key = getKeys().openai;
+    console.log('[LiveMode] OpenAI: starting request...');
     const body = {
       model: 'gpt-4o-mini',
       stream: true,
@@ -71,12 +73,31 @@ const LiveMode = (() => {
         { role: 'user', content: userPrompt }
       ]
     };
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) throw new Error(`OpenAI ${res.status}: ${await res.text()}`);
+
+    // Try direct first, then CORS proxy
+    let res;
+    try {
+      res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify(body)
+      });
+    } catch (corsErr) {
+      console.warn('[LiveMode] OpenAI direct fetch blocked (CORS). Trying corsproxy.io...');
+      toast('OpenAI CORS blocked — trying proxy...');
+      res = await fetch('https://corsproxy.io/?url=' + encodeURIComponent('https://api.openai.com/v1/chat/completions'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify(body)
+      });
+    }
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`[LiveMode] OpenAI error ${res.status}:`, errText);
+      toast(`OpenAI Error ${res.status}`);
+      throw new Error(`OpenAI ${res.status}: ${errText}`);
+    }
+    console.log('[LiveMode] OpenAI: streaming response...');
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
@@ -101,6 +122,7 @@ const LiveMode = (() => {
 
   // Stream from Gemini
   async function* streamGemini(systemPrompt, userPrompt, messages) {
+    console.log('[LiveMode] Gemini: starting request...');
     const key = getKeys().gemini;
     const contents = [];
     // Convert messages to Gemini format
@@ -120,7 +142,13 @@ const LiveMode = (() => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    if (!res.ok) throw new Error(`Gemini ${res.status}: ${await res.text()}`);
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`[LiveMode] Gemini error ${res.status}:`, errText);
+      toast(`Gemini Error ${res.status}`);
+      throw new Error(`Gemini ${res.status}: ${errText}`);
+    }
+    console.log('[LiveMode] Gemini: streaming response...');
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
@@ -141,8 +169,9 @@ const LiveMode = (() => {
     }
   }
 
-  // Stream from Anthropic (may fail CORS from browser)
+  // Stream from Anthropic
   async function* streamAnthropic(systemPrompt, userPrompt, messages) {
+    console.log('[LiveMode] Anthropic: starting request...');
     const key = getKeys().anthropic;
     const msgs = [...messages, { role: 'user', content: userPrompt }];
     // Ensure alternating roles
@@ -171,7 +200,13 @@ const LiveMode = (() => {
       },
       body: JSON.stringify(body)
     });
-    if (!res.ok) throw new Error(`Anthropic ${res.status}: ${await res.text()}`);
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`[LiveMode] Anthropic error ${res.status}:`, errText);
+      toast(`Anthropic Error ${res.status}`);
+      throw new Error(`Anthropic ${res.status}: ${errText}`);
+    }
+    console.log('[LiveMode] Anthropic: streaming response...');
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
@@ -194,7 +229,12 @@ const LiveMode = (() => {
   // Main stream function — picks the right API
   async function* streamCharacter(character, systemPrompt, userPrompt, conversationHistory) {
     const api = getApiForCharacter(character);
-    if (!api) throw new Error('No API key configured for ' + character);
+    if (!api) {
+      console.error(`[LiveMode] No API key for character: ${character}`);
+      toast(`No API key for ${character}`);
+      throw new Error('No API key configured for ' + character);
+    }
+    console.log(`[LiveMode] ${character} → using ${api} API`);
     const streamFn = { openai: streamOpenAI, gemini: streamGemini, anthropic: streamAnthropic }[api];
     yield* streamFn(systemPrompt, userPrompt, conversationHistory || []);
   }
