@@ -23,6 +23,9 @@ header p{color:var(--dim);margin-top:4px;font-size:.9em}
 .btn-reset{background:var(--surface);border:2px solid var(--dim);color:var(--dim);margin-left:12px;display:none}
 .btn-reset:hover{border-color:var(--text);color:var(--text)}
 .btn-back{background:var(--surface);border:2px solid var(--yellow);color:var(--yellow);margin-left:12px;text-decoration:none;font-weight:700;font-size:1em;padding:12px 20px;border-radius:8px}
+.mode-toggle{display:inline-block;margin-left:16px;padding:10px 20px;border:2px solid var(--cyan);border-radius:8px;cursor:pointer;font-weight:700;font-size:.95em;transition:all .3s;vertical-align:middle}
+.mode-toggle:hover{box-shadow:0 0 20px rgba(0,229,255,.4)}
+.mode-toggle.live{border-color:#ff2222;box-shadow:0 0 20px rgba(255,34,34,.5)}
 
 .progress{height:4px;background:var(--border);border-radius:2px;margin:12px 0;overflow:hidden;display:none}
 .progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--yellow));transition:width .5s;border-radius:2px}
@@ -107,6 +110,9 @@ header p{color:var(--dim);margin-top:4px;font-size:.9em}
     <button class="btn btn-go" id="goBtn" onclick="generate()">💥 GENERATE ROUND 1</button>
     <button class="btn btn-reset" id="resetBtn" onclick="resetAll()">↺ Reset</button>
     <a href="index.html" class="btn-back">← Back to Chat Mode</a>
+    <div class="mode-toggle" id="modeToggle" onclick="toggleLive()">
+      <span id="modeIcon">⚪</span> <span id="modeText">Simulation Mode</span>
+    </div>
   </div>
 
   <div class="progress" id="progress"><div class="progress-bar" id="bar"></div></div>
@@ -240,6 +246,44 @@ header p{color:var(--dim);margin-top:4px;font-size:.9em}
 <script>
 const PANEL_DELAY = 800; // ms between panels in a round
 let currentRound = 0;
+let liveMode = false;
+
+const SIM_IMAGES = {
+  1:'comic-assets/panel1-patriot.png',2:'comic-assets/panel2-skeptic.png',3:'comic-assets/panel3-urgency.png',4:'comic-assets/panel4-consensus.png',
+  5:'comic-assets/panel1-patriot.png',6:'comic-assets/panel2-skeptic.png',7:'comic-assets/panel3-urgency.png',8:'comic-assets/panel4-consensus.png',
+  9:'comic-assets/panel1-patriot.png',10:'comic-assets/panel2-skeptic.png',11:'comic-assets/panel3-urgency.png',12:'comic-assets/panel4-consensus.png'
+};
+
+const LIVE_PROMPTS = {
+  1: "comic book panel, sin city style, high contrast black and white, superhero eagle-man in a suit pointing finger, dramatic lighting",
+  2: "comic book panel, sin city style, high contrast black and white, noir detective looking skeptical with magnifying glass",
+  3: "comic book panel, sin city style, high contrast black and white, angry man screaming into a megaphone, explosion background",
+  0: "comic book panel, sin city style, high contrast black and white, three diverse people shaking hands in agreement"
+};
+
+function toggleLive() {
+  liveMode = !liveMode;
+  const toggle = document.getElementById('modeToggle');
+  const icon = document.getElementById('modeIcon');
+  const text = document.getElementById('modeText');
+  if (liveMode) {
+    toggle.classList.add('live');
+    icon.textContent = '🔴';
+    text.textContent = 'Live Mode (Pollinations.ai)';
+  } else {
+    toggle.classList.remove('live');
+    icon.textContent = '⚪';
+    text.textContent = 'Simulation Mode';
+  }
+}
+
+function getPanelSrc(panelNum) {
+  if (!liveMode) return SIM_IMAGES[panelNum];
+  const seed = Math.floor(Math.random() * 1000000);
+  const key = panelNum % 4; // 1=patriot, 2=skeptic, 3=urgency, 0=consensus
+  const prompt = LIVE_PROMPTS[key];
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=500&nologo=true&seed=${seed}`;
+}
 
 function generate() {
   const btn = document.getElementById('goBtn');
@@ -273,6 +317,9 @@ function revealRound(round, panels, onDone) {
     setTimeout(() => {
       const pct = (panelNum / (totalAll + 1)) * 100;
       document.getElementById('bar').style.width = pct + '%';
+      // Set image source based on mode
+      const img = document.getElementById('panel' + panelNum).querySelector('img');
+      img.src = getPanelSrc(panelNum);
       document.getElementById('load' + panelNum).classList.add('hide');
       document.getElementById('panel' + panelNum).classList.add('visible');
       setTimeout(() => {
