@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Creative Shootout</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap');
+:root{--bg:#0a0a0f;--surface:#14141f;--border:#1e1e2e;--cyan:#00e5ff;--magenta:#ff00e5;--yellow:#ffe500;--green:#00ff88;--text:#e0e0e0;--dim:#666}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+
+/* Header */
+header{text-align:center;padding:30px 0 20px}
+header h1{font-size:2.2em;font-weight:800;background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
+header p{color:var(--dim);margin-top:6px;font-size:.95em}
+
+/* Input area */
+.input-area{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin:20px 0;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.input-area textarea{flex:1;min-width:200px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:12px;font-family:'JetBrains Mono',monospace;font-size:.9em;resize:none;height:60px}
+.btn{padding:12px 24px;border:none;border-radius:8px;font-weight:700;font-size:.95em;cursor:pointer;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),var(--magenta));color:#000}
+.btn-primary:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(0,229,255,.3)}
+.btn-secondary{background:var(--surface);border:2px solid var(--yellow);color:var(--yellow)}
+.btn-secondary:hover{background:var(--yellow);color:#000}
+.btn-reset{background:var(--surface);border:2px solid var(--dim);color:var(--dim);font-size:.85em;padding:8px 16px}
+.btn-reset:hover{border-color:var(--text);color:var(--text)}
+.mode-toggle{display:flex;gap:8px;justify-content:center;margin:16px 0}
+
+/* Chat columns */
+.chat-view{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px}
+.column{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;min-height:400px;display:flex;flex-direction:column}
+.column-header{padding:14px 16px;font-weight:700;font-size:.95em;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.col-patriot .column-header{border-top:3px solid var(--cyan);color:var(--cyan)}
+.col-skeptic .column-header{border-top:3px solid var(--magenta);color:var(--magenta)}
+.col-urgency .column-header{border-top:3px solid var(--yellow);color:var(--yellow)}
+.column-body{padding:12px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.msg{padding:10px 14px;border-radius:10px;font-size:.88em;line-height:1.5;background:var(--bg);opacity:0;transform:translateY(8px);transition:all .3s}
+.msg.visible{opacity:1;transform:translateY(0)}
+.msg .label{font-weight:700;font-size:.75em;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.col-patriot .msg .label{color:var(--cyan)}
+.col-skeptic .msg .label{color:var(--magenta)}
+.col-urgency .msg .label{color:var(--yellow)}
+.typing-cursor{display:inline-block;width:2px;height:1em;background:currentColor;animation:blink .6s infinite;vertical-align:text-bottom;margin-left:2px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Winner bar */
+.winner-bar{display:none;margin-top:20px;background:linear-gradient(135deg,rgba(0,255,136,.1),rgba(0,229,255,.1));border:2px solid var(--green);border-radius:12px;padding:20px;text-align:center}
+.winner-bar h3{color:var(--green);font-size:1.1em;margin-bottom:8px}
+.winner-bar .final-copy{font-family:'JetBrains Mono',monospace;font-size:.95em;line-height:1.6;color:var(--text);background:var(--bg);padding:16px;border-radius:8px;margin-top:10px;text-align:left}
+.winner-bar.visible{display:block;animation:fadeUp .5s}
+
+/* Comic view */
+.comic-view{display:none;margin-top:16px}
+.comic-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.comic-panel{background:var(--surface);border:3px solid var(--border);border-radius:12px;padding:0;overflow:hidden;min-height:220px;position:relative}
+.panel-number{position:absolute;top:8px;left:10px;background:var(--bg);border:2px solid var(--dim);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8em;z-index:2}
+.panel-scene{padding:50px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.panel-character{font-size:3em}
+.speech-bubble{background:#fff;color:#111;padding:12px 16px;border-radius:16px;position:relative;font-size:.85em;line-height:1.4;font-weight:600;max-width:90%}
+.speech-bubble::after{content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);border:10px solid transparent;border-top-color:#fff}
+.panel-1{border-color:var(--cyan)}
+.panel-2{border-color:var(--magenta)}
+.panel-3{border-color:var(--yellow)}
+.panel-4{border-color:var(--green)}
+.panel-caption{color:var(--dim);font-size:.75em;font-style:italic;margin-top:4px}
+
+/* Progress */
+.progress{height:3px;background:var(--border);border-radius:2px;margin:12px 0;overflow:hidden}
+.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--yellow));transition:width .3s;border-radius:2px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* Responsive */
+@media(max-width:768px){
+  .chat-view{grid-template-columns:1fr}
+  .comic-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚡ AI Creative Shootout</h1>
+    <p>Three AI archetypes battle-test your fundraising copy in real time</p>
+  </header>
+
+  <div class="input-area">
+    <textarea id="userDraft" placeholder="Paste your draft copy here...">"The radical left is destroying America! Send $5 now!"</textarea>
+    <button class="btn btn-primary" id="runBtn" onclick="runShootout()">🚀 Run Shootout</button>
+    <button class="btn btn-reset" id="resetBtn" onclick="resetAll()" style="display:none">↺ Reset</button>
+  </div>
+
+  <div class="progress" id="progressWrap" style="display:none"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="mode-toggle" id="modeToggle" style="display:none">
+    <button class="btn btn-secondary" onclick="showChat()" id="chatBtn">💬 Chat Mode</button>
+    <button class="btn btn-secondary" onclick="showComic()" id="comicBtn">🎨 Comic Mode</button>
+  </div>
+
+  <!-- CHAT VIEW -->
+  <div class="chat-view" id="chatView">
+    <div class="column col-patriot">
+      <div class="column-header">🦅 The Patriot<span style="font-weight:400;color:var(--dim);font-size:.8em;margin-left:auto">Dignity · Honor · Greatness</span></div>
+      <div class="column-body" id="patriotChat"></div>
+    </div>
+    <div class="column col-skeptic">
+      <div class="column-header">🔍 The Skeptic<span style="font-weight:400;color:var(--dim);font-size:.8em;margin-left:auto">Proof · Clarity · Trust</span></div>
+      <div class="column-body" id="skepticChat"></div>
+    </div>
+    <div class="column col-urgency">
+      <div class="column-header">🔥 The Urgency<span style="font-weight:400;color:var(--dim);font-size:.8em;margin-left:auto">Action · Deadlines · CAPS</span></div>
+      <div class="column-body" id="urgencyChat"></div>
+    </div>
+  </div>
+
+  <!-- WINNER -->
+  <div class="winner-bar" id="winnerBar">
+    <h3>✅ CONSENSUS REACHED — Final Rewrite</h3>
+    <div class="final-copy" id="finalCopy"></div>
+  </div>
+
+  <!-- COMIC VIEW -->
+  <div class="comic-view" id="comicView">
+    <div class="comic-grid">
+      <div class="comic-panel panel-1">
+        <div class="panel-number">1</div>
+        <div class="panel-scene">
+          <div class="panel-character">🦅</div>
+          <div class="speech-bubble">"Where is the PROMISE? We need morning in America, not midnight!"</div>
+          <div class="panel-caption">The Patriot reads the draft and clutches his flag</div>
+        </div>
+      </div>
+      <div class="comic-panel panel-2">
+        <div class="panel-number">2</div>
+        <div class="panel-scene">
+          <div class="panel-character">🔍</div>
+          <div class="speech-bubble">"'Destroying'? Citation needed. This reads like a chain email from 2008."</div>
+          <div class="panel-caption">The Skeptic adjusts her glasses disapprovingly</div>
+        </div>
+      </div>
+      <div class="comic-panel panel-3">
+        <div class="panel-number">3</div>
+        <div class="panel-scene">
+          <div class="panel-character">🔥</div>
+          <div class="speech-bubble">"WHY IS NOTHING IN CAPS?! And where's the DEADLINE?! Add a 3X MATCH or I WALK!"</div>
+          <div class="panel-caption">The Urgency flips the table</div>
+        </div>
+      </div>
+      <div class="comic-panel panel-4">
+        <div class="panel-number">4</div>
+        <div class="panel-scene">
+          <div class="panel-character">🤝</div>
+          <div class="speech-bubble">"America's promise is worth fighting for. Your $5 becomes $15 — but only by midnight."</div>
+          <div class="panel-caption">They shake hands. The copy is reborn.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT = [
+  // Turn 1 — Initial reactions
+  {
+    turn: 1,
+    patriot: "Hold on. \"Destroying America\"? That's fear, not inspiration. Where is the PROMISE of greatness? I want to see a shining city on a hill, not a dumpster fire. This copy makes me want to hide, not donate.",
+    skeptic: "\"The radical left is destroying America\" — which part, specifically? The economy? Schools? This is vague fear-mongering. And \"Send $5 now\" — why $5? Why not $10? Why not explain what the $5 DOES? I smell a scam.",
+    urgency: "WEAK. This is SO WEAK. Where's the DEADLINE?! Where's the MATCH?! \"Send $5 now\" — NOW isn't urgent enough! I need a COUNTDOWN TIMER, a 3X MATCH, and an EXPIRATION or nobody clicks ANYTHING!"
+  },
+  // Turn 2 — User pushes back
+  {
+    turn: 2,
+    patriot: "Look, I get it — you want emotion. But POSITIVE emotion converts better. \"Protect the American Dream\" hits harder than \"they're destroying everything.\" Give people something to fight FOR.",
+    skeptic: "I ran the numbers on 400 fundraising emails. Specific claims outperform vague ones by 3.2x. \"Radical left\" is a buzzword — replace it with a specific policy or vote. Also, social proof: \"Join 47,000 patriots\" crushes \"Send $5.\"",
+    urgency: "OK here's what I need. THREE things: (1) A deadline — \"midnight tonight.\" (2) A match — \"3X MATCH.\" (3) A consequence — \"or this expires forever.\" That's the formula. THAT'S how you get clicks!"
+  },
+  // Turn 3 — They start riffing
+  {
+    turn: 3,
+    patriot: "What about this angle: \"America's greatest chapter hasn't been written yet — and YOU hold the pen.\" That's aspirational. That's Kennedy energy. People donate to HOPE, not despair.",
+    skeptic: "I actually... don't hate that, Patriot. But ground it. \"America's greatest chapter\" is still abstract. Tie it to a specific win: a bill, a candidate, a target number. \"We're $12,000 away from flipping District 7\" — THAT I can believe.",
+    urgency: "FINE. Keep your poetry. But add: \"Your $5 becomes $15 with tonight's 3X match — but this expires at MIDNIGHT.\" See? Hope + specifics + deadline. NOW we're cooking! 🔥"
+  },
+  // Turn 4 — Tension peaks
+  {
+    turn: 4,
+    patriot: "I love it but \"expires\" sounds like a coupon. We're not selling yogurt. How about: \"This moment won't wait.\" More gravitas. More weight.",
+    skeptic: "\"This moment won't wait\" is vague again. What moment? I'm pulling you back to Earth, Patriot. Also — has anyone considered a P.S. line? P.S. lines get 79% more reads than body copy. Put the match offer there.",
+    urgency: "YOU KNOW WHAT, SKEPTIC IS RIGHT ABOUT THE P.S. — I hate admitting it but the data doesn't lie. The P.S. is prime real estate. Put the countdown there. \"P.S. Your 3X match expires at midnight. Don't leave $10 on the table.\""
+  },
+  // Turn 5 — Coming together
+  {
+    turn: 5,
+    patriot: "I'm getting goosebumps. What if the subject line is: \"The chapter that changes everything\"? Opens with hope, creates curiosity. Then we deliver the goods inside.",
+    skeptic: "Test it against \"Your $5 = $15 tonight only\" as subject line B. Curiosity vs. specificity — let the data decide. But for the BODY copy, I think we're converging. I can live with this direction.",
+    urgency: "We're CLOSE. Let me draft the final. I'll keep Patriot's hope, Skeptic's proof, and MY deadline. Give me 10 seconds... 🔥🔥🔥"
+  },
+  // Turn 6 — The Winner
+  {
+    turn: 6,
+    patriot: "✅ That's it. That's the one. Dignity, specifics, and urgency — all in harmony. I'm proud of us.",
+    skeptic: "✅ Surprisingly... I approve. Every claim is grounded. The ask is clear. The P.S. is strong. Well done, team.",
+    urgency: "✅ FINALLY! SHIP IT! SHIP IT NOW BEFORE MIDNIGHT!! 🚀🔥"
+  }
+];
+
+const FINAL_COPY = `<strong>Subject:</strong> The chapter that changes everything\n\n<strong>Body:</strong>\nFriend,\n\nAmerica's greatest chapter hasn't been written yet — and YOU hold the pen.\n\nRight now, we're just $12,000 away from our goal to flip District 7. And thanks to a group of dedicated patriots, every dollar you give tonight is TRIPLED.\n\n<strong>Your $5 becomes $15. But only until midnight.</strong>\n\nJoin 47,000 Americans who are writing the next chapter — not with fear, but with action.\n\n→ <u>Rush your 3X-matched gift now</u>\n\n<strong>P.S.</strong> Your 3X match expires at midnight tonight. Don't leave $10 on the table — give your $5 now and make it count three times over.`;
+
+let running = false;
+
+function resetAll() {
+  running = false;
+  ['patriotChat','skepticChat','urgencyChat'].forEach(id => document.getElementById(id).innerHTML = '');
+  document.getElementById('winnerBar').classList.remove('visible');
+  document.getElementById('winnerBar').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('modeToggle').style.display = 'none';
+  document.getElementById('runBtn').style.display = '';
+  document.getElementById('resetBtn').style.display = 'none';
+  showChat();
+}
+
+function showChat() {
+  document.getElementById('chatView').style.display = 'grid';
+  document.getElementById('comicView').style.display = 'none';
+}
+
+function showComic() {
+  document.getElementById('chatView').style.display = 'none';
+  document.getElementById('comicView').style.display = 'block';
+}
+
+function addMsg(colId, text, turnLabel) {
+  return new Promise(resolve => {
+    const col = document.getElementById(colId);
+    const div = document.createElement('div');
+    div.className = 'msg';
+    div.innerHTML = `<div class="label">${turnLabel}</div><span class="msg-text"></span><span class="typing-cursor"></span>`;
+    col.appendChild(div);
+    requestAnimationFrame(() => div.classList.add('visible'));
+    const span = div.querySelector('.msg-text');
+    const cursor = div.querySelector('.typing-cursor');
+    let i = 0;
+    const speed = Math.max(8, 18 - Math.floor(text.length / 40));
+    const tick = () => {
+      if (i < text.length) {
+        span.textContent += text[i++];
+        col.scrollTop = col.scrollHeight;
+        setTimeout(tick, speed);
+      } else {
+        cursor.remove();
+        resolve();
+      }
+    };
+    tick();
+  });
+}
+
+async function runShootout() {
+  if (running) return;
+  running = true;
+  document.getElementById('runBtn').style.display = 'none';
+  document.getElementById('resetBtn').style.display = '';
+  document.getElementById('progressWrap').style.display = 'block';
+  const bar = document.getElementById('progressBar');
+
+  for (let i = 0; i < SCRIPT.length; i++) {
+    const s = SCRIPT[i];
+    bar.style.width = ((i + 1) / SCRIPT.length * 100) + '%';
+    const label = `Round ${s.turn}`;
+    // Run all 3 in parallel
+    await Promise.all([
+      addMsg('patriotChat', s.patriot, label),
+      addMsg('skepticChat', s.skeptic, label),
+      addMsg('urgencyChat', s.urgency, label)
+    ]);
+    if (!running) return;
+    await new Promise(r => setTimeout(r, 400));
+  }
+
+  // Show winner
+  const wb = document.getElementById('winnerBar');
+  document.getElementById('finalCopy').innerHTML = FINAL_COPY;
+  wb.style.display = 'block';
+  requestAnimationFrame(() => wb.classList.add('visible'));
+  document.getElementById('modeToggle').style.display = 'flex';
+}
+</script>
+</body>
+</html>
