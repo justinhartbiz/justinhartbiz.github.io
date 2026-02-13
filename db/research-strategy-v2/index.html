@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS/MMS Fundraising Strategy V2 2026 | DonorBureau</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f59e0b;
+            --accent-pink: #ec4899;
+            --accent-cyan: #06b6d4;
+            --accent-gold: #fbbf24;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #334155;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .dashboard { max-width: 1600px; margin: 0 auto; padding: 2rem; }
+        
+        header {
+            text-align: center;
+            padding: 2rem 0 3rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange));
+            color: var(--bg-dark);
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+            vertical-align: super;
+        }
+        
+        .subtitle { color: var(--text-secondary); font-size: 1.1rem; }
+        
+        .source-badges {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .source-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        .source-badge.chatgpt { border-color: var(--accent-green); }
+        .source-badge.gemini { border-color: var(--accent-blue); }
+        
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .nav-tab:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+        .nav-tab.active { background: var(--accent-blue); border-color: var(--accent-blue); color: white; }
+        .nav-tab.sources { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2)); }
+        .nav-tab.sources.active { background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); }
+        
+        /* Sections */
+        .section { display: none; }
+        .section.active { display: block; }
+        
+        /* Stats Grid */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        
+        .stat-value { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .stat-label { color: var(--text-secondary); font-size: 0.85rem; }
+        
+        .stat-green { color: var(--accent-green); }
+        .stat-blue { color: var(--accent-blue); }
+        .stat-purple { color: var(--accent-purple); }
+        .stat-orange { color: var(--accent-orange); }
+        .stat-cyan { color: var(--accent-cyan); }
+        .stat-gold { color: var(--accent-gold); }
+        
+        /* Grid layouts */
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        .card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .card-icon { font-size: 1.5rem; }
+        .card-title { font-size: 1.1rem; font-weight: 600; }
+        
+        /* Source attribution */
+        .source-tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .source-tag.chatgpt { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .source-tag.gemini { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+        .source-tag.both { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2)); color: var(--accent-gold); }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { color: var(--text-secondary); font-weight: 500; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { font-size: 0.95rem; }
+        
+        /* Pills */
+        .pill { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.8rem; font-weight: 500; }
+        .pill-green { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .pill-red { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+        .pill-blue { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+        .pill-purple { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+        .pill-orange { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
+        .pill-cyan { background: rgba(6, 182, 212, 0.2); color: var(--accent-cyan); }
+        .pill-gold { background: rgba(251, 191, 36, 0.2); color: var(--accent-gold); }
+        
+        /* Consensus Badge */
+        .consensus-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(59, 130, 246, 0.3));
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+        }
+        
+        /* Experiment Cards */
+        .exp-card {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+        
+        .exp-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .exp-number { background: var(--accent-purple); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; }
+        .exp-title { font-weight: 600; }
+        .exp-segment { font-size: 0.75rem; color: var(--text-muted); }
+        .exp-body { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .exp-metric { font-size: 0.85rem; color: var(--accent-cyan); }
+        .exp-risk { font-size: 0.75rem; color: var(--accent-orange); margin-top: 0.25rem; }
+        
+        /* Evidence Table */
+        .evidence-row { transition: background 0.2s; }
+        .evidence-row:hover { background: var(--bg-card-hover); }
+        
+        .strength-high { color: var(--accent-green); font-weight: 600; }
+        .strength-med { color: var(--accent-orange); }
+        .strength-low { color: var(--text-muted); }
+        
+        /* Formula box */
+        .formula-box {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        
+        .formula-hook { color: var(--accent-green); }
+        .formula-story { color: var(--accent-blue); }
+        .formula-bridge { color: var(--accent-purple); }
+        .formula-ask { color: var(--accent-orange); }
+        .formula-cta { color: var(--accent-pink); }
+        
+        /* Pattern cards */
+        .pattern-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border-left: 4px solid var(--accent-green);
+        }
+        
+        .pattern-card.negative { border-left-color: var(--accent-red); }
+        .pattern-name { font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .pattern-example { color: var(--text-secondary); font-size: 0.9rem; font-style: italic; }
+        .pattern-stat { color: var(--accent-green); font-size: 0.85rem; margin-top: 0.5rem; }
+        .pattern-card.negative .pattern-stat { color: var(--accent-red); }
+        
+        /* Chart containers */
+        .chart-container { position: relative; height: 300px; }
+        
+        /* Checklist */
+        .checklist { list-style: none; }
+        .checklist li { padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: flex-start; gap: 0.75rem; }
+        .checklist li:last-child { border-bottom: none; }
+        .check-icon { width: 20px; height: 20px; border-radius: 4px; border: 2px solid var(--accent-green); flex-shrink: 0; margin-top: 2px; }
+        
+        /* Timeline */
+        .timeline { position: relative; padding-left: 2rem; }
+        .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border-color); }
+        .timeline-item { position: relative; padding-bottom: 1.5rem; }
+        .timeline-item::before { content: ''; position: absolute; left: -1.5rem; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent-blue); }
+        .timeline-time { font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 0.25rem; }
+        .timeline-content { color: var(--text-secondary); }
+        
+        /* New finding highlight */
+        .new-finding {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .new-badge {
+            display: inline-block;
+            background: var(--accent-gold);
+            color: var(--bg-dark);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+        
+        footer a { color: var(--accent-blue); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .nav-tabs { gap: 0.25rem; }
+            .nav-tab { padding: 0.5rem 0.75rem; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>📱 SMS/MMS Strategy 2026 <span class="version-badge">V2</span></h1>
+            <p class="subtitle">Synthesized Evidence-Based Fundraising Playbook</p>
+            <div class="source-badges">
+                <div class="source-badge chatgpt">
+                    🟢 ChatGPT Pro — 78KB Research + 5,581 Creatives
+                </div>
+                <div class="source-badge gemini">
+                    🔵 Gemini Deep Think — 10 Academic Sources + 16 Experiments
+                </div>
+            </div>
+        </header>
+        
+        <!-- Navigation -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-section="overview">Overview</div>
+            <div class="nav-tab sources" data-section="sources">📚 Sources</div>
+            <div class="nav-tab" data-section="findings">Key Findings</div>
+            <div class="nav-tab" data-section="experiments">16 Experiments</div>
+            <div class="nav-tab" data-section="evidence">Evidence Table</div>
+            <div class="nav-tab" data-section="political">Political</div>
+            <div class="nav-tab" data-section="nonprofit">Nonprofit</div>
+            <div class="nav-tab" data-section="doavoid">Do/Avoid</div>
+            <div class="nav-tab" data-section="compliance">Compliance</div>
+        </div>
+        
+        <!-- OVERVIEW SECTION -->
+        <div class="section active" id="overview">
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value stat-green">95.1%</div>
+                    <div class="stat-label">Revenue from Top 10%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-blue">54.6%</div>
+                    <div class="stat-label">Revenue from Top 1%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-purple">16</div>
+                    <div class="stat-label">Experiments Queued</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-orange">10</div>
+                    <div class="stat-label">Academic Citations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-gold">8</div>
+                    <div class="stat-label">Consensus Findings</div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🎯</span>
+                    <span class="card-title">The Bottom Line</span>
+                </div>
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    <strong>SMS/MMS has structurally shifted from an acquisition engine to a retention-first stewardship channel.</strong> Hunt for monster creatives, cultivate before converting, treat compliance as existential.
+                </p>
+                <div class="formula-box">
+┌─────────────────────────────────────────────────────────┐
+│  TOP 1%  ████████████████████████████████  54.6%        │
+│  TOP 10% ████████████████████████████████████████ 95.1% │
+│  BOTTOM 75.9% of creatives → tested only once           │
+└─────────────────────────────────────────────────────────┘
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 1rem;">🤝 High-Confidence Consensus (Both Sources Agree)</h3>
+            <div class="grid-4">
+                <div class="card" style="border-top: 3px solid var(--accent-gold);">
+                    <div class="consensus-badge">✓ Consensus</div>
+                    <h4 style="margin: 0.75rem 0 0.5rem;">MMS > SMS</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">41% higher conversion (MissionWired) + 25% CV boost (Tatango)</p>
+                </div>
+                <div class="card" style="border-top: 3px solid var(--accent-gold);">
+                    <div class="consensus-badge">✓ Consensus</div>
+                    <h4 style="margin: 0.75rem 0 0.5rem;">Timing > Frequency</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Recency to deadline beats repetition (Emerald 2025)</p>
+                </div>
+                <div class="card" style="border-top: 3px solid var(--accent-gold);">
+                    <div class="consensus-badge">✓ Consensus</div>
+                    <h4 style="margin: 0.75rem 0 0.5rem;">Personalization Wins</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">r=+0.041 to +0.089 across all clients</p>
+                </div>
+                <div class="card" style="border-top: 3px solid var(--accent-gold);">
+                    <div class="consensus-badge">✓ Consensus</div>
+                    <h4 style="margin: 0.75rem 0 0.5rem;">Named > Org Voice</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">+40% performance vs organizational voice</p>
+                </div>
+                <div class="card" style="border-top: 3px solid var(--accent-gold);">
+                    <div class="consensus-badge">✓ Consensus</div>
+                    <h4 style="margin: 0.75rem 0 0.5rem;">Evening Sends (8-9pm)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">0.205% conversion peak — 37% better</p>
+                </div>
+                <div class="card" style="border-top: 3px solid var(--accent-gold);">
+                    <div class="consensus-badge">✓ Consensus</div>
+                    <h4 style="margin: 0.75rem 0 0.5rem;">10DLC = Existential</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Feb 2025 hard-block for unregistered traffic</p>
+                </div>
+                <div class="card" style="border-top: 3px solid var(--accent-gold);">
+                    <div class="consensus-badge">✓ Consensus</div>
+                    <h4 style="margin: 0.75rem 0 0.5rem;">Loss Framing (Emergencies)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">"If we fail, X gets cut" beats gain framing</p>
+                </div>
+                <div class="card" style="border-top: 3px solid var(--accent-gold);">
+                    <div class="consensus-badge">✓ Consensus</div>
+                    <h4 style="margin: 0.75rem 0 0.5rem;">Match Credibility</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Named matcher = 39% lift (Karlan RCT)</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SOURCES SECTION -->
+        <div class="section" id="sources">
+            <h2 style="margin-bottom: 1.5rem;">📚 Research Sources</h2>
+            
+            <div class="grid-2">
+                <div class="card" style="border: 2px solid var(--accent-green);">
+                    <div class="card-header">
+                        <span class="card-icon">🟢</span>
+                        <span class="card-title">ChatGPT Pro Executive Synthesis</span>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">78KB comprehensive research + DB forensics</p>
+                    
+                    <h4 style="margin-bottom: 0.5rem;">Primary Contributions:</h4>
+                    <ul style="color: var(--text-secondary); margin-left: 1.5rem; margin-bottom: 1rem;">
+                        <li>5,581+ creative analysis with Yield Index scoring</li>
+                        <li>Client-specific forensics (NCPD, SoldierStrong, SemperK9)</li>
+                        <li>Power phrases / poison phrases with exact YI scores</li>
+                        <li>Revenue distribution analysis (95.1% from top 10%)</li>
+                        <li>MissionWired 200M text benchmark integration</li>
+                    </ul>
+                    
+                    <h4 style="margin-bottom: 0.5rem;">Unique Findings:</h4>
+                    <table>
+                        <tr><td>Wife voice (NCPD)</td><td><span class="pill pill-green">72% of top tier</span></td></tr>
+                        <tr><td>Dana Perino 1st person</td><td><span class="pill pill-green">7x yield</span></td></tr>
+                        <tr><td>Event anchors (Dec 14)</td><td><span class="pill pill-green">$0.657/send</span></td></tr>
+                        <tr><td>"secret message"</td><td><span class="pill pill-green">YI 14.42</span></td></tr>
+                    </table>
+                </div>
+                
+                <div class="card" style="border: 2px solid var(--accent-blue);">
+                    <div class="card-header">
+                        <span class="card-icon">🔵</span>
+                        <span class="card-title">Gemini Deep Think</span>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">534-line memorandum + structured experiment design</p>
+                    
+                    <h4 style="margin-bottom: 0.5rem;">Primary Contributions:</h4>
+                    <ul style="color: var(--text-secondary); margin-left: 1.5rem; margin-bottom: 1rem;">
+                        <li>10 academic sources with strength ratings</li>
+                        <li>16 structured experiment hypotheses</li>
+                        <li>Rigorous literature review (32 search queries)</li>
+                        <li>WhatsApp/Signal transferability analysis</li>
+                        <li>Compliance/10DLC deep dive</li>
+                    </ul>
+                    
+                    <h4 style="margin-bottom: 0.5rem;">Unique Findings:</h4>
+                    <table>
+                        <tr><td>"Thank you in advance" backfires</td><td><span class="pill pill-blue">RCT 2025</span></td></tr>
+                        <tr><td>iOS Silent Inbox vCard fix</td><td><span class="pill pill-blue">L2 Data</span></td></tr>
+                        <tr><td>Collective matching > 1:1</td><td><span class="pill pill-blue">NEW</span></td></tr>
+                        <tr><td>54% lift from cultivation text</td><td><span class="pill pill-blue">Tatango</span></td></tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <span class="card-title">Source Confidence Matrix</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Finding</th>
+                            <th>ChatGPT Pro</th>
+                            <th>Gemini</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>MMS yields higher conversion</td>
+                            <td><span class="source-tag chatgpt">41% lift</span></td>
+                            <td><span class="source-tag gemini">25% higher CV</span></td>
+                            <td><span class="pill pill-gold">Very High</span></td>
+                        </tr>
+                        <tr>
+                            <td>Timing beats repetition</td>
+                            <td><span class="source-tag chatgpt">Confirmed</span></td>
+                            <td><span class="source-tag gemini">Emerald RCT</span></td>
+                            <td><span class="pill pill-gold">Very High</span></td>
+                        </tr>
+                        <tr>
+                            <td>Personalization wins</td>
+                            <td><span class="source-tag chatgpt">r=+0.041</span></td>
+                            <td><span class="source-tag gemini">Universal</span></td>
+                            <td><span class="pill pill-gold">Very High</span></td>
+                        </tr>
+                        <tr>
+                            <td>Wife voice (NCPD)</td>
+                            <td><span class="source-tag chatgpt">72% top tier</span></td>
+                            <td>—</td>
+                            <td><span class="pill pill-green">High (DB)</span></td>
+                        </tr>
+                        <tr>
+                            <td>"Thank you in advance" backfires</td>
+                            <td>—</td>
+                            <td><span class="source-tag gemini">RCT 2025</span></td>
+                            <td><span class="pill pill-blue">High (Academic)</span></td>
+                        </tr>
+                        <tr>
+                            <td>iOS Silent Inbox effect</td>
+                            <td>—</td>
+                            <td><span class="source-tag gemini">L2 Data</span></td>
+                            <td><span class="pill pill-orange">Medium</span></td>
+                        </tr>
+                        <tr>
+                            <td>Loss framing in emergencies</td>
+                            <td><span class="source-tag chatgpt">Implied</span></td>
+                            <td><span class="source-tag gemini">High Strength</span></td>
+                            <td><span class="pill pill-gold">Very High</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- FINDINGS SECTION -->
+        <div class="section" id="findings">
+            <h2 style="margin-bottom: 1.5rem;">🔬 The 15 Most Defensible Findings</h2>
+            
+            <h3 style="margin-bottom: 1rem; color: var(--accent-green);">Tier 1: High Strength (Multiple RCTs)</h3>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <div class="pattern-name">1. Impact Framing > Need Framing <span class="source-tag gemini">Gemini</span></div>
+                    <p style="color: var(--text-secondary);">"$15k builds a classroom" outperforms "We are $15k short"</p>
+                    <div class="new-finding">
+                        <strong>Action:</strong> Partition the impact — "Your $25 feeds a military family for a week"
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="pattern-name">2. Timing Trumps Repetition <span class="source-tag both">Both</span></div>
+                    <p style="color: var(--text-secondary);">Message recency (proximity to deadline) >> message frequency</p>
+                    <div class="new-finding">
+                        <strong>Action:</strong> Compress timelines, climax-timed single sends
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="pattern-name">3. "Thank You in Advance" Backfires <span class="source-tag gemini">Gemini</span> <span class="new-badge">NEW</span></div>
+                    <p style="color: var(--text-secondary);">2025 RCT: triggers psychological reactance and perceived coercion</p>
+                    <div class="new-finding" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
+                        <strong>⚠️ BAN this phrase from all scripts.</strong> Thank AFTER the gift.
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="pattern-name">4. "How" vs "Why" Framing <span class="source-tag gemini">Gemini</span></div>
+                    <p style="color: var(--text-secondary);">Instructional "How to help" outperforms abstract "Why we need help"</p>
+                    <div class="new-finding">
+                        <strong>Action:</strong> Focus deadline copy on HOW to donate, not WHY we need it
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="pattern-name">5. Out-Group Framing Kills <span class="source-tag gemini">Gemini</span></div>
+                    <p style="color: var(--text-secondary);">Stigmatized out-group appeals halved donation rates</p>
+                    <div class="new-finding" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
+                        <strong>Action:</strong> Use broad, universal narratives in cold SMS
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="pattern-name">6. Loss Framing in Emergencies <span class="source-tag both">Both</span></div>
+                    <p style="color: var(--text-secondary);">Loss-framed outperforms gain-framed in high-urgency contexts</p>
+                    <div class="new-finding">
+                        <strong>Action:</strong> "If we fail, X gets cut" for final 24h; gain framing for evergreen
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="pattern-name">7. Warm-Glow Crowding Out <span class="source-tag gemini">Gemini</span> <span class="new-badge">NEW</span></div>
+                    <p style="color: var(--text-secondary);">Heavy sweepstakes/subsidies depress core believer conversion</p>
+                    <div class="new-finding">
+                        <strong>Action:</strong> Avoid sweepstakes on high-value ideological donors
+                    </div>
+                </div>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1rem; color: var(--accent-orange);">Tier 2: Medium-High Strength</h3>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <div class="pattern-name">8. Cultivation Precedes Conversion <span class="source-tag gemini">Gemini</span></div>
+                    <p style="color: var(--text-secondary);">Impact text before ask = 54% increase in average gift</p>
+                    <div class="new-finding">
+                        <strong>Action:</strong> "Jab, jab, right hook" — 2 stewardship texts per 1 ask
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="pattern-name">9. iOS "Silent Inbox" Effect <span class="source-tag gemini">Gemini</span> <span class="new-badge">NEW</span></div>
+                    <p style="color: var(--text-secondary);">iOS routes unknown senders to silent folder</p>
+                    <div class="new-finding" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
+                        <strong>⚠️ MANDATORY vCard campaigns in welcome series</strong>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="pattern-name">10. Collective Matching > 1:1 <span class="source-tag gemini">Gemini</span> <span class="new-badge">NEW</span></div>
+                    <p style="color: var(--text-secondary);">"Every 50 donations unlocks $5,000" beats standard 2X match</p>
+                    <div class="new-finding">
+                        <strong>Test:</strong> Milestone-based matching framing
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="pattern-name">11. 3-Day MMS/SMS Sequence <span class="source-tag gemini">Gemini</span></div>
+                    <p style="color: var(--text-secondary);">MMS impact → SMS reminder within 3 days = 53% CV boost</p>
+                    <div class="new-finding">
+                        <strong>Action:</strong> Implement as standard for major campaigns
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- EXPERIMENTS SECTION -->
+        <div class="section" id="experiments">
+            <h2 style="margin-bottom: 1.5rem;">🧪 16 Experiments — Full Roadmap</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Source: Gemini Deep Think synthesis-table-2</p>
+            
+            <h3 style="margin-bottom: 1rem; color: var(--accent-purple);">Phase 1: Q1 2026 (Foundation)</h3>
+            <div class="grid-2">
+                <div class="exp-card">
+                    <div class="exp-header">
+                        <span class="exp-number">1</span>
+                        <span class="exp-title">Two-Step Consent</span>
+                        <span class="exp-segment">Cold</span>
+                    </div>
+                    <div class="exp-body">Reply before link reduces carrier filtering</div>
+                    <div>A: Link in 1st text | B: "Reply YES for link"</div>
+                    <div class="exp-metric">Metric: Gross Revenue</div>
+                    <div class="exp-risk">Risk: Safe; builds domain rep</div>
+                </div>
+                
+                <div class="exp-card">
+                    <div class="exp-header">
+                        <span class="exp-number">2</span>
+                        <span class="exp-title">Cultivation Sequence</span>
+                        <span class="exp-segment">Active</span>
+                    </div>
+                    <div class="exp-body">Impact MMS before ask increases CVR</div>
+                    <div>A: Ask Day 3 | B: MMS Day 1 + Ask Day 3</div>
+                    <div class="exp-metric">Metric: Conversion Rate</div>
+                    <div class="exp-risk">Risk: Higher send cost</div>
+                </div>
+                
+                <div class="exp-card">
+                    <div class="exp-header">
+                        <span class="exp-number">3</span>
+                        <span class="exp-title">Specific Amount Personalization</span>
+                        <span class="exp-segment">Active</span>
+                    </div>
+                    <div class="exp-body">Past amount reference outperforms generic</div>
+                    <div>A: "Match your $35 gift" | B: "Please donate"</div>
+                    <div class="exp-metric">Metric: Avg Gift</div>
+                    <div class="exp-risk">Risk: Requires clean CRM</div>
+                </div>
+                
+                <div class="exp-card">
+                    <div class="exp-header">
+                        <span class="exp-number">4</span>
+                        <span class="exp-title">Omnichannel Primer</span>
+                        <span class="exp-segment">Active</span>
+                    </div>
+                    <div class="exp-body">Text "heads up" boosts email CVR</div>
+                    <div>A: Email only | B: Text + Email</div>
+                    <div class="exp-metric">Metric: Email CVR</div>
+                    <div class="exp-risk">Risk: None</div>
+                </div>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1rem; color: var(--accent-cyan);">Phase 2: Q2 2026 (Optimization)</h3>
+            <div class="grid-2">
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1)); border-color: rgba(6, 182, 212, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-cyan);">5</span>
+                        <span class="exp-title">Warm Glow Protection</span>
+                        <span class="exp-segment">Mid-$$</span>
+                    </div>
+                    <div class="exp-body">Pure impact out-raises sweepstakes on high-LTV</div>
+                    <div>A: "Win a prize" | B: "Feel great supporting X"</div>
+                    <div class="exp-metric">Metric: 90-day LTV</div>
+                    <div class="exp-risk">Risk: Sweepstakes rules apply</div>
+                </div>
+                
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1)); border-color: rgba(6, 182, 212, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-cyan);">6</span>
+                        <span class="exp-title">Selfie vs Graphic</span>
+                        <span class="exp-segment">Warm</span>
+                    </div>
+                    <div class="exp-body">Lo-fi selfie outperforms produced graphic</div>
+                    <div>A: Graphic | B: Volunteer selfie</div>
+                    <div class="exp-metric">Metric: CTR</div>
+                    <div class="exp-risk">Risk: None</div>
+                </div>
+                
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1)); border-color: rgba(6, 182, 212, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-cyan);">7</span>
+                        <span class="exp-title">Commute vs Midday</span>
+                        <span class="exp-segment">General</span>
+                    </div>
+                    <div class="exp-body">Commute times outperform noon</div>
+                    <div>A: 12:00 PM | B: 8 AM or 5:30 PM</div>
+                    <div class="exp-metric">Metric: CTR</div>
+                    <div class="exp-risk">Risk: Respect TCPA hours</div>
+                </div>
+                
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1)); border-color: rgba(6, 182, 212, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-cyan);">8</span>
+                        <span class="exp-title">Pre-filled Cart</span>
+                        <span class="exp-segment">General</span>
+                    </div>
+                    <div class="exp-body">URL parameters increase form completion</div>
+                    <div>A: Blank form | B: Pre-filled</div>
+                    <div class="exp-metric">Metric: Completion Rate</div>
+                    <div class="exp-risk">Risk: Data privacy handling</div>
+                </div>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1rem; color: var(--accent-orange);">Phase 3: Q3 2026 (Scale)</h3>
+            <div class="grid-2">
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.1)); border-color: rgba(245, 158, 11, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-orange);">9</span>
+                        <span class="exp-title">SMS Upgrades</span>
+                        <span class="exp-segment">Active</span>
+                    </div>
+                    <div class="exp-body">SMS upgrade link converts higher than email</div>
+                    <div>A: Email upgrade | B: SMS upgrade</div>
+                    <div class="exp-metric">Metric: % Upgraded</div>
+                </div>
+                
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.1)); border-color: rgba(245, 158, 11, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-orange);">10</span>
+                        <span class="exp-title">Re-permissioning</span>
+                        <span class="exp-segment">Lapsed</span>
+                    </div>
+                    <div class="exp-body">"Reply YES to stay" protects deliverability</div>
+                    <div>A: Standard blast | B: Reply YES</div>
+                    <div class="exp-metric">Metric: Filter Rate</div>
+                    <div class="exp-risk">Risk: Large list purge</div>
+                </div>
+                
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.1)); border-color: rgba(245, 158, 11, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-orange);">11</span>
+                        <span class="exp-title">Local Geo-Targeting</span>
+                        <span class="exp-segment">General</span>
+                    </div>
+                    <div class="exp-body">City-specific proof beats national</div>
+                    <div>A: "Help America" | B: "Help [City]"</div>
+                    <div class="exp-metric">Metric: CVR</div>
+                </div>
+                
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.1)); border-color: rgba(245, 158, 11, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-orange);">12</span>
+                        <span class="exp-title">Audio Voice Memo</span>
+                        <span class="exp-segment">High-$$</span>
+                    </div>
+                    <div class="exp-body">Audio clips build deeper trust</div>
+                    <div>A: Text transcript | B: 15-sec audio</div>
+                    <div class="exp-metric">Metric: Reply Rate</div>
+                </div>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1rem; color: var(--accent-pink);">Phase 4: Q4 2026 (Year-End Blitz)</h3>
+            <div class="grid-2">
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1)); border-color: rgba(236, 72, 153, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-pink);">13</span>
+                        <span class="exp-title">Spam Trigger Evasion</span>
+                        <span class="exp-segment">General</span>
+                    </div>
+                    <div class="exp-body">Removing ALL CAPS decreases STOP rate</div>
+                    <div>A: "URGENT deadline" | B: "Quick deadline"</div>
+                    <div class="exp-metric">Metric: Opt-Out Rate</div>
+                </div>
+                
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1)); border-color: rgba(236, 72, 153, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-pink);">14</span>
+                        <span class="exp-title">Survey-to-Donate</span>
+                        <span class="exp-segment">Cold</span>
+                    </div>
+                    <div class="exp-body">1-question poll yields higher ROI than direct link</div>
+                    <div>A: Direct link | B: Poll → LP</div>
+                    <div class="exp-metric">Metric: Net Revenue</div>
+                </div>
+                
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1)); border-color: rgba(236, 72, 153, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-pink);">15</span>
+                        <span class="exp-title">Question-End Engagement</span>
+                        <span class="exp-segment">Warm</span>
+                    </div>
+                    <div class="exp-body">Question marks increase reply rates</div>
+                    <div>A: Declarative | B: Question</div>
+                    <div class="exp-metric">Metric: Reply Rate</div>
+                </div>
+                
+                <div class="exp-card" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1)); border-color: rgba(236, 72, 153, 0.3);">
+                    <div class="exp-header">
+                        <span class="exp-number" style="background: var(--accent-pink);">16</span>
+                        <span class="exp-title">Loss vs Gain Framing</span>
+                        <span class="exp-segment">Active</span>
+                    </div>
+                    <div class="exp-body">Loss outperforms gain in final 24h</div>
+                    <div>A: "Help us build X" | B: "If we fail, X is cut"</div>
+                    <div class="exp-metric">Metric: Total Raised</div>
+                    <div class="exp-risk">Risk: Fatigue if overused</div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 2rem; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
+                <h4 style="color: var(--accent-red); margin-bottom: 0.5rem;">⚠️ Stopping Rules (All Experiments)</h4>
+                <p>Halt if Variant B response drops &lt;2% or STOP rate exceeds 1.5%</p>
+                <p>Minimum N=5,000 per variant for statistical significance</p>
+            </div>
+        </div>
+        
+        <!-- EVIDENCE TABLE SECTION -->
+        <div class="section" id="evidence">
+            <h2 style="margin-bottom: 1.5rem;">📊 Evidence Table — 10 Academic Sources</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Source: Gemini Deep Think synthesis-table-1</p>
+            
+            <div class="card" style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                            <th>Type</th>
+                            <th>Year</th>
+                            <th>Key Finding</th>
+                            <th>Practical Implication</th>
+                            <th>Strength</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="evidence-row">
+                            <td><strong>Emerald Insight</strong></td>
+                            <td>Peer-Rev</td>
+                            <td>2025</td>
+                            <td>Message recency to deadline outweighs repetition frequency</td>
+                            <td>Shift to climax-timed single sends</td>
+                            <td class="strength-high">High</td>
+                        </tr>
+                        <tr class="evidence-row">
+                            <td><strong>Bruttel et al. (WZB Berlin)</strong></td>
+                            <td>Working Paper</td>
+                            <td>2025</td>
+                            <td>"Thank you in advance" decreases donations</td>
+                            <td>Remove anticipatory gratitude from all copy</td>
+                            <td class="strength-high">High</td>
+                        </tr>
+                        <tr class="evidence-row">
+                            <td><strong>Buttenheim et al. (PMC/NIH)</strong></td>
+                            <td>Peer-Rev</td>
+                            <td>2024</td>
+                            <td>"How" messages outperform "Why" for compliance</td>
+                            <td>Focus on HOW to donate, not WHY</td>
+                            <td class="strength-high">High</td>
+                        </tr>
+                        <tr class="evidence-row">
+                            <td><strong>Linos et al. (NYU Law)</strong></td>
+                            <td>Working Paper</td>
+                            <td>2022</td>
+                            <td>Out-group appeals halved donations</td>
+                            <td>Use broad, universal narratives</td>
+                            <td class="strength-high">High</td>
+                        </tr>
+                        <tr class="evidence-row">
+                            <td><strong>Bénabou & Henkel (NBER)</strong></td>
+                            <td>Peer-Rev</td>
+                            <td>2024</td>
+                            <td>Sweepstakes crowd out "warm-glow" giving</td>
+                            <td>Avoid sweepstakes on ideological donors</td>
+                            <td class="strength-high">High</td>
+                        </tr>
+                        <tr class="evidence-row">
+                            <td><strong>Chell et al. (Transfusion)</strong></td>
+                            <td>Peer-Rev</td>
+                            <td>2018</td>
+                            <td>Impact receipts increased retention to 70.3%</td>
+                            <td>Send operational receipt texts</td>
+                            <td class="strength-high">High</td>
+                        </tr>
+                        <tr class="evidence-row">
+                            <td><strong>Tatango (Insights)</strong></td>
+                            <td>Industry</td>
+                            <td>2025</td>
+                            <td>MMS + SMS 3-day sequences boost CV 53%</td>
+                            <td>3:1 mix stewardship to asks</td>
+                            <td class="strength-med">Medium</td>
+                        </tr>
+                        <tr class="evidence-row">
+                            <td><strong>CallHub / Twilio</strong></td>
+                            <td>Industry</td>
+                            <td>2025</td>
+                            <td>Unregistered 10DLC blocked; mismatched consent triggers</td>
+                            <td>Register EIN, separate opt-in paths</td>
+                            <td class="strength-high">High</td>
+                        </tr>
+                        <tr class="evidence-row">
+                            <td><strong>L2 Data</strong></td>
+                            <td>Industry</td>
+                            <td>2025</td>
+                            <td>iOS 26 routes unknown senders to silent inbox</td>
+                            <td>Run vCard "save to contacts" campaigns</td>
+                            <td class="strength-med">Medium</td>
+                        </tr>
+                        <tr class="evidence-row">
+                            <td><strong>AiSensy</strong></td>
+                            <td>Industry</td>
+                            <td>2025</td>
+                            <td>WhatsApp "Donation Concierge" yields 90% read rates</td>
+                            <td>Emulate conversational branching in P2P</td>
+                            <td class="strength-low">Low</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card" style="margin-top: 1.5rem; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3);">
+                <h4 style="color: var(--accent-orange); margin-bottom: 0.5rem;">⚠️ Conflict of Interest Note</h4>
+                <p>Industry reports from platforms (Tatango, CallHub, AiSensy) carry inherent vendor bias favoring expansion of messaging budgets. Quantitative metrics should be triangulated with internal holdout testing.</p>
+            </div>
+        </div>
+        
+        <!-- POLITICAL SECTION -->
+        <div class="section" id="political">
+            <h2 style="margin-bottom: 1.5rem;">🏛️ Political Playbook (NRSC, RNC, NRCC)</h2>
+            
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🏗️</span>
+                    <span class="card-title">Political Creative Formula</span>
+                    <span class="source-tag chatgpt">ChatGPT Pro</span>
+                </div>
+                <div class="formula-box">
+<span class="formula-hook">┌── HOOK (0-50 chars) ────────────────────────────────────┐</span>
+<span class="formula-hook">│  Curiosity gap OR guilt trigger OR deadline             │</span>
+<span class="formula-hook">│  "The NRSC sent you a secret message..."                │</span>
+<span class="formula-hook">└─────────────────────────────────────────────────────────┘</span>
+              ↓
+<span class="formula-story">┌── VERIFICATION ASK (not donation ask) ─────────────────┐</span>
+<span class="formula-story">│  "Verify your voter profile" / "Complete this audit"    │</span>
+<span class="formula-story">└─────────────────────────────────────────────────────────┘</span>
+              ↓
+<span class="formula-cta">┌── CTA with urgency ────────────────────────────────────┐</span>
+<span class="formula-cta">│  "within 15 minutes" / "before midnight"                │</span>
+<span class="formula-cta">│  >> [link]                                              │</span>
+<span class="formula-cta">└─────────────────────────────────────────────────────────┘</span>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">🔥</span>
+                        <span class="card-title">Power Phrases</span>
+                    </div>
+                    <table>
+                        <tr><td>"dead serious"</td><td><span class="pill pill-green">YI 24.94</span></td></tr>
+                        <tr><td>"reclaim your place"</td><td><span class="pill pill-green">YI 23.47</span></td></tr>
+                        <tr><td>"complete this now"</td><td><span class="pill pill-green">YI 24.88</span></td></tr>
+                        <tr><td>"secret message"</td><td><span class="pill pill-green">YI 14.42</span></td></tr>
+                        <tr><td>"we trusted you"</td><td><span class="pill pill-green">YI 8.06</span></td></tr>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">☠️</span>
+                        <span class="card-title">Poison Phrases</span>
+                    </div>
+                    <table>
+                        <tr><td>"with trump"</td><td><span class="pill pill-red">YI -16.72</span></td></tr>
+                        <tr><td>"to stand with"</td><td><span class="pill pill-red">YI -10.18</span></td></tr>
+                        <tr><td>"we should"</td><td><span class="pill pill-red">YI -8.64</span></td></tr>
+                        <tr><td>"first 100 days"</td><td><span class="pill pill-red">YI -4.73</span></td></tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <span class="card-title">Political Specs</span>
+                </div>
+                <table>
+                    <tr><th>Parameter</th><th>Optimal</th><th>Avoid</th></tr>
+                    <tr><td>Length</td><td>50-150 characters</td><td>300+ characters</td></tr>
+                    <tr><td>Channel</td><td>SMS (higher volume tolerance)</td><td>MMS for every send</td></tr>
+                    <tr><td>Frequency (normal)</td><td>2-3x/week</td><td>Daily without news hook</td></tr>
+                    <tr><td>Personalization</td><td>[firstname]</td><td>"Friend" / "Patriot"</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- NONPROFIT SECTION -->
+        <div class="section" id="nonprofit">
+            <h2 style="margin-bottom: 1.5rem;">🎗️ Nonprofit Playbook (NCPD, SoldierStrong, SemperK9, HeroBox)</h2>
+            
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🏗️</span>
+                    <span class="card-title">Nonprofit Creative Formula</span>
+                    <span class="source-tag chatgpt">ChatGPT Pro</span>
+                </div>
+                <div class="formula-box">
+<span class="formula-hook">┌── HOOK (0-50 chars) ────────────────────────────────────┐</span>
+<span class="formula-hook">│  Personal voice (spouse, celebrity, founder)            │</span>
+<span class="formula-hook">│  "Hi, this is Sarah, Jake's wife..."                    │</span>
+<span class="formula-hook">└─────────────────────────────────────────────────────────┘</span>
+              ↓
+<span class="formula-story">┌── STORY (50-200 chars) ────────────────────────────────┐</span>
+<span class="formula-story">│  Single named beneficiary with specific detail          │</span>
+<span class="formula-story">│  "On December 14, we'll lay wreaths beside..."          │</span>
+<span class="formula-story">└─────────────────────────────────────────────────────────┘</span>
+              ↓
+<span class="formula-bridge">┌── BRIDGE + ASK ────────────────────────────────────────┐</span>
+<span class="formula-bridge">│  "Your $25 isn't just a donation—it's..."              │</span>
+<span class="formula-bridge">└─────────────────────────────────────────────────────────┘</span>
+              ↓
+<span class="formula-cta">┌── CTA ─────────────────────────────────────────────────┐</span>
+<span class="formula-cta">│  >> [link]                                              │</span>
+<span class="formula-cta">└─────────────────────────────────────────────────────────┘</span>
+                </div>
+            </div>
+            
+            <div class="grid-4">
+                <div class="card" style="border-top: 3px solid var(--accent-blue);">
+                    <h4 style="margin-bottom: 1rem;">👮 NCPD</h4>
+                    <p><strong>Best:</strong> Wife/victim stories</p>
+                    <p><strong>Evidence:</strong> 72% of top tier</p>
+                    <p><strong>Length:</strong> 300-600 chars</p>
+                </div>
+                
+                <div class="card" style="border-top: 3px solid var(--accent-orange);">
+                    <h4 style="margin-bottom: 1rem;">💪 SoldierStrong</h4>
+                    <p><strong>Best:</strong> Dana Perino 1st person</p>
+                    <p><strong>Evidence:</strong> 7x yield</p>
+                    <p><strong>Length:</strong> 250-500 chars</p>
+                </div>
+                
+                <div class="card" style="border-top: 3px solid var(--accent-green);">
+                    <h4 style="margin-bottom: 1rem;">🐕 SemperK9</h4>
+                    <p><strong>Best:</strong> Event anchors, Named dogs</p>
+                    <p><strong>Evidence:</strong> $0.657/send</p>
+                    <p><strong>Length:</strong> 250-500 chars</p>
+                </div>
+                
+                <div class="card" style="border-top: 3px solid var(--accent-purple);">
+                    <h4 style="margin-bottom: 1rem;">📦 HeroBox</h4>
+                    <p><strong>Best:</strong> Deadline urgency</p>
+                    <p><strong>Unique:</strong> ! marks work here</p>
+                    <p><strong>Length:</strong> <250 chars</p>
+                </div>
+            </div>
+            
+            <div class="grid-2" style="margin-top: 1rem;">
+                <div class="pattern-card">
+                    <div class="pattern-name">✅ Winner: Event Anchor <span class="source-tag chatgpt">ChatGPT</span></div>
+                    <div class="pattern-example">"On December 14, we'll lay wreaths beside our fallen heroes..."</div>
+                    <div class="pattern-stat">$0.657/send — Best in entire dataset</div>
+                </div>
+                
+                <div class="pattern-card negative">
+                    <div class="pattern-name">❌ Loser: Fiction Voice <span class="source-tag chatgpt">ChatGPT</span></div>
+                    <div class="pattern-example">"Picture this: a shelter dog steps into the sunlight..."</div>
+                    <div class="pattern-stat">$0.008/send — Essentially zero</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- DO/AVOID SECTION -->
+        <div class="section" id="doavoid">
+            <h2 style="margin-bottom: 1.5rem;">✅ Do / ❌ Avoid / 🧪 Test</h2>
+            
+            <div class="grid-3">
+                <div class="card" style="border-top: 3px solid var(--accent-green);">
+                    <h3 style="color: var(--accent-green); margin-bottom: 1rem;">✅ DO (High Confidence)</h3>
+                    <table>
+                        <tr><td>Separate informational + promotional streams</td><td><span class="source-tag gemini">G</span></td></tr>
+                        <tr><td>Send vCards to iOS users in welcome</td><td><span class="source-tag gemini">G</span></td></tr>
+                        <tr><td>Use wife/spouse voice for nonprofit</td><td><span class="source-tag chatgpt">C</span></td></tr>
+                        <tr><td>Use Dana Perino for SoldierStrong</td><td><span class="source-tag chatgpt">C</span></td></tr>
+                        <tr><td>Use event date anchors</td><td><span class="source-tag chatgpt">C</span></td></tr>
+                        <tr><td>Name the matching donor</td><td><span class="source-tag both">Both</span></td></tr>
+                        <tr><td>Send 8-9pm</td><td><span class="source-tag both">Both</span></td></tr>
+                        <tr><td>Use "How to help" not "Why"</td><td><span class="source-tag gemini">G</span></td></tr>
+                        <tr><td>Cultivation text before ask</td><td><span class="source-tag gemini">G</span></td></tr>
+                        <tr><td>Agent intro in P2P</td><td><span class="source-tag gemini">G</span></td></tr>
+                    </table>
+                </div>
+                
+                <div class="card" style="border-top: 3px solid var(--accent-red);">
+                    <h3 style="color: var(--accent-red); margin-bottom: 1rem;">❌ AVOID (High Confidence)</h3>
+                    <table>
+                        <tr><td>"Thank you in advance"</td><td><span class="source-tag gemini">G</span></td></tr>
+                        <tr><td>ALL CAPS urgency</td><td><span class="source-tag both">Both</span></td></tr>
+                        <tr><td>Questions in SMS</td><td><span class="source-tag chatgpt">C</span></td></tr>
+                        <tr><td>Organizational voice</td><td><span class="source-tag chatgpt">C</span></td></tr>
+                        <tr><td>"Picture this:" fiction</td><td><span class="source-tag chatgpt">C</span></td></tr>
+                        <tr><td>"Our mission is rooted in..."</td><td><span class="source-tag chatgpt">C</span></td></tr>
+                        <tr><td>Generic "with Trump"</td><td><span class="source-tag chatgpt">C</span></td></tr>
+                        <tr><td>Out-group framing</td><td><span class="source-tag gemini">G</span></td></tr>
+                        <tr><td>Sweepstakes on ideological donors</td><td><span class="source-tag gemini">G</span></td></tr>
+                        <tr><td>bit.ly shorteners</td><td><span class="source-tag both">Both</span></td></tr>
+                    </table>
+                </div>
+                
+                <div class="card" style="border-top: 3px solid var(--accent-purple);">
+                    <h3 style="color: var(--accent-purple); margin-bottom: 1rem;">🧪 TEST NEXT (Medium)</h3>
+                    <table>
+                        <tr><td>Collective matching ("10 more unlocks $5k")</td><td><span class="source-tag gemini">G</span></td></tr>
+                        <tr><td>Voice memos in MMS</td><td><span class="source-tag chatgpt">C</span></td></tr>
+                        <tr><td>Opt-down option ("Text LESS")</td><td><span class="source-tag chatgpt">C</span></td></tr>
+                        <tr><td>Audio from beneficiary</td><td><span class="source-tag gemini">G</span></td></tr>
+                        <tr><td>Survey-first then ask</td><td><span class="source-tag gemini">G</span></td></tr>
+                        <tr><td>Pre-filled forms via URL</td><td><span class="source-tag gemini">G</span></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- COMPLIANCE SECTION -->
+        <div class="section" id="compliance">
+            <h2 style="margin-bottom: 1.5rem;">⚖️ Compliance Essentials</h2>
+            
+            <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 2rem;">
+                <div class="stat-card" style="border-top: 3px solid var(--accent-red);">
+                    <div class="stat-value stat-orange">Feb 17, 2026</div>
+                    <div class="stat-label">Political Vetting Deadline</div>
+                </div>
+                <div class="stat-card" style="border-top: 3px solid var(--accent-orange);">
+                    <div class="stat-value stat-red">Feb 2025</div>
+                    <div class="stat-label">10DLC Hard-Block</div>
+                </div>
+                <div class="stat-card" style="border-top: 3px solid var(--accent-green);">
+                    <div class="stat-value stat-green">100%</div>
+                    <div class="stat-label">Registration Required</div>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">📋</span>
+                        <span class="card-title">10DLC Non-Negotiables</span>
+                        <span class="source-tag gemini">Gemini</span>
+                    </div>
+                    <ul class="checklist">
+                        <li><div class="check-icon"></div>Brand registered with TCR (EIN verified)</li>
+                        <li><div class="check-icon"></div>Campaign use case registered</li>
+                        <li><div class="check-icon"></div>Sample messages submitted</li>
+                        <li><div class="check-icon"></div>Opt-in flow documented</li>
+                        <li><div class="check-icon"></div>Reseller ID included (NEW 2025)</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">⚠️</span>
+                        <span class="card-title">Consent Rules</span>
+                        <span class="source-tag gemini">Gemini</span>
+                    </div>
+                    <div class="new-finding" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
+                        <strong>⚠️ NEVER MIX CONSENT TYPES</strong>
+                        <p style="margin-top: 0.5rem;">Mismatched consent (informational → promotional) = leading TCPA violation</p>
+                    </div>
+                    <p style="margin-top: 1rem;"><strong>Informational:</strong> Updates, receipts, confirmations</p>
+                    <p><strong>Promotional:</strong> Fundraising asks, campaign appeals</p>
+                    <p style="margin-top: 0.5rem; color: var(--accent-orange);">Separate opt-in paths required.</p>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <span class="card-icon">✅</span>
+                    <span class="card-title">Required Opt-Out Keywords</span>
+                </div>
+                <p style="margin-bottom: 1rem;">Must be honored immediately:</p>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <span class="pill pill-blue">STOP</span>
+                    <span class="pill pill-blue">UNSUBSCRIBE</span>
+                    <span class="pill pill-blue">CANCEL</span>
+                    <span class="pill pill-blue">END</span>
+                    <span class="pill pill-blue">QUIT</span>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>SMS/MMS Fundraising Strategy V2 2026 | DonorBureau</p>
+            <p style="margin-top: 0.5rem;">
+                Synthesized from <strong>ChatGPT Pro Executive Synthesis</strong> (78KB + 5,581 creatives) and <strong>Gemini Deep Think</strong> (10 academic sources + 16 experiments)
+            </p>
+            <p style="margin-top: 0.5rem;">
+                <a href="DB-SMS-STRATEGY-V2-2026.md">Download Full Report (Markdown)</a>
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        // Tab navigation
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.section).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
