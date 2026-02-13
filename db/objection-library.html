@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Objection Library — Learning from Failures</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+    background: #0a0a0a; 
+    color: #e2e8f0; 
+    padding: 24px;
+    line-height: 1.5;
+}
+.header { 
+    text-align: center; 
+    margin-bottom: 32px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 24px;
+}
+h1 { font-size: 1.8rem; color: #f8fafc; margin-bottom: 8px; }
+.subtitle { color: #64748b; font-size: 0.9rem; }
+.search-box {
+    max-width: 600px;
+    margin: 0 auto 32px;
+}
+.search-input {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 1rem;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #f8fafc;
+    outline: none;
+}
+.search-input:focus { border-color: #3b82f6; }
+.search-input::placeholder { color: #64748b; }
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+.filter-btn {
+    padding: 8px 16px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+.filter-btn:hover { border-color: #3b82f6; color: #f8fafc; }
+.filter-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto 32px;
+}
+.stat-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+}
+.stat-value { font-size: 2rem; font-weight: 700; }
+.stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-top: 4px; }
+.red { color: #ef4444; }
+.orange { color: #f59e0b; }
+.yellow { color: #eab308; }
+.blue { color: #3b82f6; }
+.purple { color: #a855f7; }
+.tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 4px;
+}
+.tab {
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border-radius: 6px 6px 0 0;
+    transition: all 0.2s;
+}
+.tab:hover { color: #f8fafc; }
+.tab.active { background: #1e1e1e; color: #3b82f6; border-bottom: 2px solid #3b82f6; }
+.section { display: none; }
+.section.active { display: block; }
+.objection-grid {
+    display: grid;
+    gap: 16px;
+}
+.objection-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 16px;
+    display: none;
+}
+.objection-card.visible { display: block; }
+.objection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+.objection-type {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.type-zero-conversion { background: #450a0a; color: #fca5a5; }
+.type-high-unsubscribe { background: #451a03; color: #fdba74; }
+.type-low-engagement { background: #422006; color: #fcd34d; }
+.type-closed-lost { background: #1e1b4b; color: #a5b4fc; }
+.type-model-failure { background: #14532d; color: #86efac; }
+.objection-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #f8fafc;
+}
+.objection-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+.objection-body {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 12px;
+}
+.objection-lesson {
+    background: #1e293b;
+    border-left: 3px solid #3b82f6;
+    padding: 12px;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    border-radius: 0 6px 6px 0;
+}
+.objection-lesson strong { color: #fbbf24; }
+.count-badge {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-left: 8px;
+}
+.empty-state {
+    text-align: center;
+    padding: 48px;
+    color: #64748b;
+}
+h2 { font-size: 1.2rem; color: #f8fafc; margin-bottom: 16px; }
+.insight-box {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+.insight-title { color: #fbbf24; font-weight: 600; margin-bottom: 8px; }
+.insight-text { color: #cbd5e1; font-size: 0.9rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
+th { color: #64748b; font-weight: 500; font-size: 0.75rem; text-transform: uppercase; }
+td { color: #e2e8f0; }
+.creative-bad { color: #ef4444; }
+.creative-warn { color: #f59e0b; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>📚 Objection Library</h1>
+    <p class="subtitle">Learning from what didn't work — TLH + DonorBureau failures cataloged</p>
+</div>
+
+<div class="search-box">
+    <input type="text" class="search-input" id="searchInput" placeholder="Search objections, creatives, reasons...">
+</div>
+
+<div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">All Failures</button>
+    <button class="filter-btn" data-filter="zero-conversion">Zero Conversion</button>
+    <button class="filter-btn" data-filter="high-unsubscribe">High Unsubscribe</button>
+    <button class="filter-btn" data-filter="low-engagement">Low Engagement</button>
+    <button class="filter-btn" data-filter="closed-lost">Closed-Lost (TLH)</button>
+    <button class="filter-btn" data-filter="model-failure">Data Model</button>
+</div>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-value red">158</div>
+        <div class="stat-label">TLH Opps Lost</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value orange">830K</div>
+        <div class="stat-label">Zero Conv. Sends</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value yellow">18%</div>
+        <div class="stat-label">Max Unsub Rate</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value blue">0.07%</div>
+        <div class="stat-label">Worst CTR</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value purple">8</div>
+        <div class="stat-label">Model Failures</div>
+    </div>
+</div>
+
+<div class="tabs">
+    <button class="tab active" data-tab="objections">Objections</button>
+    <button class="tab" data-tab="creatives">Worst Creatives</button>
+    <button class="tab" data-tab="insights">Key Insights</button>
+</div>
+
+<div class="section active" id="objections">
+    <div class="objection-grid" id="objectionGrid">
+        
+        <!-- TLH CLOSED-LOST REASONS -->
+        <div class="objection-card visible" data-category="closed-lost" data-terms="too small size tiny minimum">
+            <div class="objection-header">
+                <span class="objection-type type-closed-lost">Closed-Lost</span>
+                <span class="objection-title">Estate "Too Small"</span>
+            </div>
+            <div class="objection-meta">
+                <span>📍 SD: 15 | OC: 18 | LA: 8</span>
+                <span>41 total (26% of losses)</span>
+            </div>
+            <div class="objection-body">
+                #1 killer in Orange County (37.5%) and LA (32%). Prospects had estates below TLH's minimum threshold. Sizing criteria may need market-specific adjustment.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Pre-qualify estate size earlier in funnel. OC/LA need lower minimums or referral partners for small estates.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="closed-lost" data-terms="decided not to sell cold feet timing">
+            <div class="objection-header">
+                <span class="objection-type type-closed-lost">Closed-Lost</span>
+                <span class="objection-title">Decided Not to Sell</span>
+            </div>
+            <div class="objection-meta">
+                <span>📍 SD: 20 | OC: 12 | LA: 7</span>
+                <span>39 total (25% of losses)</span>
+            </div>
+            <div class="objection-body">
+                Consistent across all markets. Cold feet, timing issues, or changed family circumstances. Often happens late in the funnel after significant investment.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Implement commitment checkpoints. Ask "What would cause you NOT to proceed?" early. Identify fence-sitters before investing resources.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="closed-lost" data-terms="competitor grasons alternative">
+            <div class="objection-header">
+                <span class="objection-type type-closed-lost">Closed-Lost</span>
+                <span class="objection-title">Went with Competitor</span>
+            </div>
+            <div class="objection-meta">
+                <span>📍 SD: 9 | OC: 3 | LA: 2</span>
+                <span>14 total (9% of losses)</span>
+            </div>
+            <div class="objection-body">
+                San Diego has the most competitor losses. Surprisingly low in OC despite Grasons' market presence. Indicates differentiation message may not be landing in SD.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> SD needs stronger competitive positioning. Ask "Who else are you talking to?" and customize pitch accordingly.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="closed-lost" data-terms="project difficulty hoarder cleanout complex">
+            <div class="objection-header">
+                <span class="objection-type type-closed-lost">Closed-Lost</span>
+                <span class="objection-title">Project Difficulty</span>
+            </div>
+            <div class="objection-meta">
+                <span>📍 SD: 12 | OC: 2 | LA: 3</span>
+                <span>17 total (11% of losses)</span>
+            </div>
+            <div class="objection-body">
+                Heavily concentrated in San Diego. Includes hoarder situations, multi-generational estates, and complex family dynamics that made execution impractical.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> SD may need complexity screening questions. Consider "difficult project" premium pricing tier or partner network.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="closed-lost" data-terms="stopped responding ghost no response">
+            <div class="objection-header">
+                <span class="objection-type type-closed-lost">Closed-Lost</span>
+                <span class="objection-title">Stopped Responding</span>
+            </div>
+            <div class="objection-meta">
+                <span>📍 SD: 8 | OC: 5 | LA: 2</span>
+                <span>15 total (9% of losses)</span>
+            </div>
+            <div class="objection-body">
+                Ghosting after initial engagement. Often correlates with "Decided not to sell" but without explicit communication.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Multi-channel follow-up cadence. After 3 failed contacts, send "Are we still good?" letter. Consider win-back campaigns.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="closed-lost" data-terms="hoa gated community restrictions condo">
+            <div class="objection-header">
+                <span class="objection-type type-closed-lost">Closed-Lost</span>
+                <span class="objection-title">HOA/Gated Community Restrictions</span>
+            </div>
+            <div class="objection-meta">
+                <span>📍 SD: 8 | OC: 2 | LA: 1</span>
+                <span>11 total (7% of losses)</span>
+            </div>
+            <div class="objection-body">
+                San Diego HOA restrictions are 4x more problematic than OC. Condos and gated communities often prohibit estate sales entirely.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Ask about HOA early. Build list of HOA-friendly venues/alternatives. Consider "private sale" model for restricted communities.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="closed-lost" data-terms="donate trash charity nothing of value">
+            <div class="objection-header">
+                <span class="objection-type type-closed-lost">Closed-Lost</span>
+                <span class="objection-title">Decided to Donate/Trash Items</span>
+            </div>
+            <div class="objection-meta">
+                <span>📍 SD: 4 | OC: 2 | LA: 0</span>
+                <span>6 total (4% of losses)</span>
+            </div>
+            <div class="objection-body">
+                Prospect concluded items weren't worth selling. Often after initial walkthrough revealed lower value than expected.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Set realistic expectations early. Offer "minimum viable sale" option. Partner with donation services for referral fee.
+            </div>
+        </div>
+        
+        <!-- DB ZERO CONVERSION CAMPAIGNS -->
+        <div class="objection-card visible" data-category="zero-conversion" data-terms="medicare advantage mam cr-62sms advocacy">
+            <div class="objection-header">
+                <span class="objection-type type-zero-conversion">Zero Conversion</span>
+                <span class="objection-title">Medicare Advocacy (Cr-62SMS) — 830K sent, 0 donors</span>
+            </div>
+            <div class="objection-meta">
+                <span>Client: Medicare Advantage Majority</span>
+                <span>23 campaigns</span>
+            </div>
+            <div class="objection-body">
+                Massive volume (830K sends) with zero direct donations. CTR ranged 0.41% to 0.96%. Campaign likely CPA-focused (acquisitions) rather than donation-focused, but ROI unclear.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Advocacy campaigns need different success metrics. If CPA-focused, track acquisitions not donors. Otherwise, creative/offer mismatch.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="zero-conversion" data-terms="sustainable rx pricing cr-56sms healthcare">
+            <div class="objection-header">
+                <span class="objection-type type-zero-conversion">Zero Conversion</span>
+                <span class="objection-title">Sustainable Rx Pricing (Cr-56SMS) — 275K sent, 0 donors</span>
+            </div>
+            <div class="objection-meta">
+                <span>Client: Campaign for Sustainable Rx Pricing</span>
+                <span>13 campaigns</span>
+            </div>
+            <div class="objection-body">
+                Targeting L2 Independent and Left Leaning lists with right-leaning infrastructure (WinRed). Political mismatch likely killing conversion.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Audience-platform alignment matters. Left-leaning audiences + WinRed = trust barrier. Test ActBlue or neutral platforms.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="zero-conversion" data-terms="shai fund nonprofit cr-02sms jewish">
+            <div class="objection-header">
+                <span class="objection-type type-zero-conversion">Zero Conversion</span>
+                <span class="objection-title">Shai Fund (Cr-02SMS) — 46K sent, 0 donors</span>
+            </div>
+            <div class="objection-meta">
+                <span>Client: Shai Fund</span>
+                <span>List: DB Donors</span>
+            </div>
+            <div class="objection-body">
+                Nonprofit campaign to general donor list. 0.58% CTR indicates creative resonance issue. Cause-specific audiences may be needed.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Cause-specific nonprofits need cause-aligned audiences. Test Jewish community lists or Israel-supporting segments.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="zero-conversion" data-terms="coalition empower future cr-40sms">
+            <div class="objection-header">
+                <span class="objection-type type-zero-conversion">Zero Conversion</span>
+                <span class="objection-title">Coalition Future (Cr-40SMS) — High unsubs, 0 donors</span>
+            </div>
+            <div class="objection-meta">
+                <span>Client: Coalition to Empower our Future</span>
+                <span>Unsub Rate: 11.24%</span>
+            </div>
+            <div class="objection-body">
+                13,995 sent with 11.24% unsubscribe rate — one of the highest in the dataset. Messaging clearly not resonating with DB Responders list.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> 11%+ unsub rate = audience rejection. Pause campaign immediately. Test completely different messaging or list segment.
+            </div>
+        </div>
+        
+        <!-- HIGH UNSUBSCRIBE CAMPAIGNS -->
+        <div class="objection-card visible" data-category="high-unsubscribe" data-terms="husted ohio senate cr-05sms">
+            <div class="objection-header">
+                <span class="objection-type type-high-unsubscribe">High Unsubscribe</span>
+                <span class="objection-title">Husted Ohio Senate (Cr-05SMS) — 18.23% unsub rate</span>
+            </div>
+            <div class="objection-meta">
+                <span>Client: Husted, John (OH-Sen)</span>
+                <span>List: DB Donors</span>
+                <span>Sent: 4,997</span>
+            </div>
+            <div class="objection-body">
+                Worst unsubscribe rate in the dataset. Nearly 1 in 5 recipients opted out. Campaign destroyed list value faster than it could generate donations.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> State-specific candidates to national lists = fatigue. Ohio candidates should target Ohio donors or use softer intro messaging.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="high-unsubscribe" data-terms="kiggans virginia va-02 cr-07sms">
+            <div class="objection-header">
+                <span class="objection-type type-high-unsubscribe">High Unsubscribe</span>
+                <span class="objection-title">Kiggans VA-02 (Cr-07SMS) — 17.24% unsub rate</span>
+            </div>
+            <div class="objection-meta">
+                <span>Client: Kiggans, Jen (VA-02)</span>
+                <span>List: DB Donors</span>
+                <span>Sent: 4,999</span>
+            </div>
+            <div class="objection-body">
+                Another hyper-local candidate (Virginia 2nd district) sent to national list. 17% unsubscribe rate with zero donors.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> District-level candidates need district-level lists. National sends are list-burners with no upside.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="high-unsubscribe" data-terms="jordan jim ohio cr-266sms">
+            <div class="objection-header">
+                <span class="objection-type type-high-unsubscribe">High Unsubscribe</span>
+                <span class="objection-title">Jim Jordan (Cr-266SMS) — 11.53% unsub, 3.42% CTR</span>
+            </div>
+            <div class="objection-meta">
+                <span>Client: Jordan, Jim (OH-4)</span>
+                <span>List: DB Donors</span>
+                <span>Sent: 5,004</span>
+            </div>
+            <div class="objection-body">
+                High-profile name drove good CTR (3.42%) but zero conversion and 11.53% unsubs. Clicks without conversion = offer problem, not awareness problem.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Famous names get clicks but not necessarily donations. Landing page/ask mismatch. Test lower first-ask amounts.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="high-unsubscribe" data-terms="senate leadership fund cr-55sms">
+            <div class="objection-header">
+                <span class="objection-type type-high-unsubscribe">High Unsubscribe</span>
+                <span class="objection-title">Senate Leadership Fund (Cr-55SMS) — 8.21% unsub</span>
+            </div>
+            <div class="objection-meta">
+                <span>Client: Senate Leadership Fund</span>
+                <span>List: DB Donors</span>
+                <span>Sent: 4,991</span>
+            </div>
+            <div class="objection-body">
+                PAC messaging to donor list with 8.21% unsubscribe rate. PAC fatigue evident — donors getting too many PAC asks.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> PAC frequency management needed. Track PAC sends per contact. Consider PAC suppression windows.
+            </div>
+        </div>
+        
+        <!-- LOW ENGAGEMENT CAMPAIGNS -->
+        <div class="objection-card visible" data-category="low-engagement" data-terms="hillsdale college em-176 email">
+            <div class="objection-header">
+                <span class="objection-type type-low-engagement">Low Engagement</span>
+                <span class="objection-title">Hillsdale College Email (Em-176) — 0.07% CTR</span>
+            </div>
+            <div class="objection-meta">
+                <span>Client: Hillsdale College</span>
+                <span>List: American Liberty News</span>
+                <span>Sent: 71,027</span>
+            </div>
+            <div class="objection-body">
+                Lowest CTR in the dataset at 0.07%. 71K sends, only ~50 clicks. Email creative or subject line completely missed.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Sub-0.1% CTR = deliverability problem OR subject line failure. Check spam rates first, then A/B test subjects.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="low-engagement" data-terms="cpa acquisitions cold audience">
+            <div class="objection-header">
+                <span class="objection-type type-low-engagement">Low Engagement</span>
+                <span class="objection-title">CPA Acquisitions List Pattern — Consistent 0.5-0.8% CTR</span>
+            </div>
+            <div class="objection-meta">
+                <span>Multiple Clients</span>
+                <span>List: CPA Acquisitions</span>
+            </div>
+            <div class="objection-body">
+                CPA Acquisitions list shows consistent sub-1% CTR across campaigns. Coalition Future, Sustainable Rx, and others all underperform on this list.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> CPA Acquisitions list may be exhausted or poorly matched. Consider list hygiene audit or retirement.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="low-engagement" data-terms="l2 soft suppressions stops">
+            <div class="objection-header">
+                <span class="objection-type type-low-engagement">Low Engagement</span>
+                <span class="objection-title">L2 Soft Suppressions — Predictably Bad</span>
+            </div>
+            <div class="objection-meta">
+                <span>Multiple Clients</span>
+                <span>Lists: 1-2 STOPS, 3-8 STOPS, 9+ STOPS</span>
+            </div>
+            <div class="objection-body">
+                Suppression tiers show expected degradation: 9+ STOPS has 0.41% CTR and 8%+ unsub rates. These are burned contacts being re-burned.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> STOP-count lists are last resort only. Expected ROI should account for high unsub/complaint costs.
+            </div>
+        </div>
+        
+        <!-- DATA MODEL FAILURES -->
+        <div class="objection-card visible" data-category="model-failure" data-terms="property account salesforce data model">
+            <div class="objection-header">
+                <span class="objection-type type-model-failure">Data Model</span>
+                <span class="objection-title">Property Account Anti-Pattern (TLH SF)</span>
+            </div>
+            <div class="objection-meta">
+                <span>System: TLH Salesforce</span>
+                <span>Impact: High</span>
+            </div>
+            <div class="objection-body">
+                Using "Property Account" record type when properties are not accounts. Causes reporting confusion, automation conflicts, and prevents proper Account hierarchies.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Don't overload objects with record types for different entity types. Properties need their own object.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="model-failure" data-terms="contact person account duplicate">
+            <div class="objection-header">
+                <span class="objection-type type-model-failure">Data Model</span>
+                <span class="objection-title">Contact + Person Account Confusion (TLH SF)</span>
+            </div>
+            <div class="objection-meta">
+                <span>System: TLH Salesforce</span>
+                <span>Records: 9,301 Contacts + Person Accounts</span>
+            </div>
+            <div class="objection-body">
+                Same humans exist in both Contact and Person Account objects. No single source of truth for "who is this person." Duplicates guaranteed.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Pick ONE pattern for people records. Person Account or Contact, not both. Merge and migrate.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="model-failure" data-terms="property lead mls">
+            <div class="objection-header">
+                <span class="objection-type type-model-failure">Data Model</span>
+                <span class="objection-title">Property Lead Misuse (TLH SF)</span>
+            </div>
+            <div class="objection-meta">
+                <span>System: TLH Salesforce</span>
+                <span>Record Type: Property (on Lead object)</span>
+            </div>
+            <div class="objection-body">
+                A property is not a lead. MLS data represents physical assets, not people expressing interest. This causes lifecycle confusion and automation complexity.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> Create separate MLS Lead object for property data. Reserve Lead object for people-based interest signals.
+            </div>
+        </div>
+        
+        <div class="objection-card visible" data-category="model-failure" data-terms="record type proliferation">
+            <div class="objection-header">
+                <span class="objection-type type-model-failure">Data Model</span>
+                <span class="objection-title">Record Type Proliferation (TLH SF)</span>
+            </div>
+            <div class="objection-meta">
+                <span>System: TLH Salesforce</span>
+                <span>Account: 8 types | Lead: 4 types</span>
+            </div>
+            <div class="objection-body">
+                When objects need 8+ record types, they're being asked to do too much. Record types should distinguish workflows, not entity types.
+            </div>
+            <div class="objection-lesson">
+                <strong>💡 Lesson:</strong> If record types represent different "things" (not just different processes), you need separate objects.
+            </div>
+        </div>
+        
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+        No objections match your search. Try different terms.
+    </div>
+</div>
+
+<div class="section" id="creatives">
+    <h2>Worst Performing Creatives (Zero Conversion, High Volume)</h2>
+    <div class="insight-box">
+        <div class="insight-title">⚠️ Why This Matters</div>
+        <div class="insight-text">These creatives have sent 10K+ messages with 0% conversion rate. They're burning list value without generating ROI. Consider retiring or completely reworking.</div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Creative</th>
+                <th>Total Sent</th>
+                <th>Donors</th>
+                <th>Revenue</th>
+                <th>Conv Rate</th>
+                <th>Campaigns</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="creative-bad">
+                <td>Cr-62SMS</td>
+                <td>830,394</td>
+                <td>0</td>
+                <td>$8,958 (CPA)</td>
+                <td>0.00%</td>
+                <td>23</td>
+            </tr>
+            <tr class="creative-bad">
+                <td>Cr-20SMSb</td>
+                <td>341,107</td>
+                <td>0</td>
+                <td>$3,984 (CPA)</td>
+                <td>0.00%</td>
+                <td>27</td>
+            </tr>
+            <tr class="creative-bad">
+                <td>Cr-56SMS</td>
+                <td>275,057</td>
+                <td>0</td>
+                <td>$1,415 (CPA)</td>
+                <td>0.00%</td>
+                <td>13</td>
+            </tr>
+            <tr class="creative-bad">
+                <td>Cr-23SMS</td>
+                <td>98,441</td>
+                <td>0</td>
+                <td>$452 (CPA)</td>
+                <td>0.00%</td>
+                <td>6</td>
+            </tr>
+            <tr class="creative-bad">
+                <td>Cr-36SMS</td>
+                <td>80,588</td>
+                <td>0</td>
+                <td>$235</td>
+                <td>0.00%</td>
+                <td>9</td>
+            </tr>
+            <tr class="creative-warn">
+                <td>Cr-148SMS</td>
+                <td>64,263</td>
+                <td>0</td>
+                <td>$585 (CPA)</td>
+                <td>0.00%</td>
+                <td>6</td>
+            </tr>
+            <tr class="creative-warn">
+                <td>Cr-87SMS</td>
+                <td>57,955</td>
+                <td>0</td>
+                <td>$1,365 (CPA)</td>
+                <td>0.00%</td>
+                <td>5</td>
+            </tr>
+            <tr class="creative-warn">
+                <td>Cr-09</td>
+                <td>43,768</td>
+                <td>0</td>
+                <td>$1,062 (CPA)</td>
+                <td>0.00%</td>
+                <td>5</td>
+            </tr>
+            <tr class="creative-warn">
+                <td>Cr-03b</td>
+                <td>40,993</td>
+                <td>0</td>
+                <td>$847 (CPA)</td>
+                <td>0.00%</td>
+                <td>8</td>
+            </tr>
+            <tr class="creative-warn">
+                <td>Cr-02c</td>
+                <td>35,666</td>
+                <td>0</td>
+                <td>$465</td>
+                <td>0.00%</td>
+                <td>8</td>
+            </tr>
+        </tbody>
+    </table>
+    <p style="margin-top:16px;color:#64748b;font-size:0.85rem;">
+        Note: Some campaigns track CPA (acquisitions) rather than donations. Check campaign goals before assuming failure.
+    </p>
+</div>
+
+<div class="section" id="insights">
+    <h2>Key Insights from Failures</h2>
+    
+    <div class="insight-box">
+        <div class="insight-title">📊 TLH Estate Sales — Top 3 Fixable Problems</div>
+        <div class="insight-text">
+            <strong>1. "Too Small" (26% of losses)</strong> — OC and LA have different sizing economics than SD. Market-specific minimums could capture 30+ additional deals annually.<br><br>
+            <strong>2. "Decided Not to Sell" (25%)</strong> — Late-funnel dropout indicates commitment isn't being tested early. Add explicit "commitment checkpoint" at day 7.<br><br>
+            <strong>3. "Stopped Responding" (9%)</strong> — Ghost rate reducible with multi-channel follow-up and explicit "status check" touchpoints.
+        </div>
+    </div>
+    
+    <div class="insight-box">
+        <div class="insight-title">📱 DB SMS Campaigns — Failure Patterns</div>
+        <div class="insight-text">
+            <strong>1. Audience-Platform Mismatch</strong> — Left-leaning audiences on WinRed (right-leaning platform) consistently underperform. Political infrastructure matters.<br><br>
+            <strong>2. Local Candidates, National Lists</strong> — OH-4, VA-02, and similar hyper-local candidates sent to national lists hit 15-18% unsub rates. Geographic targeting required.<br><br>
+            <strong>3. CPA vs. Donation Confusion</strong> — Many "zero donor" campaigns are CPA-focused. Success metrics need explicit definition before launch.
+        </div>
+    </div>
+    
+    <div class="insight-box">
+        <div class="insight-title">🗃️ Data Model Lessons (TLH Salesforce)</div>
+        <div class="insight-text">
+            <strong>1. Don't Overload Objects</strong> — 8 Account record types = modeling failure. If record types represent different entity types, create separate objects.<br><br>
+            <strong>2. Single Source of Truth</strong> — Contact AND Person Account = guaranteed duplicates. Pick one pattern and migrate.<br><br>
+            <strong>3. Automation Surface Area</strong> — 183 flows + 43 triggers on confused data model = compounding tech debt. Fix the model before adding more automation.
+        </div>
+    </div>
+    
+    <div class="insight-box">
+        <div class="insight-title">📈 Lists to Avoid or Audit</div>
+        <div class="insight-text">
+            <strong>• L2 Soft Suppressions (9+ STOPS)</strong> — 0.41% CTR, 8%+ unsub. These are burned contacts.<br>
+            <strong>• CPA Acquisitions</strong> — Consistent sub-1% CTR across multiple clients. Needs hygiene audit.<br>
+            <strong>• L2 Independent Leaning + WinRed</strong> — Political mismatch kills conversion.
+        </div>
+    </div>
+</div>
+
+<script>
+// Search functionality
+const searchInput = document.getElementById('searchInput');
+const cards = document.querySelectorAll('.objection-card');
+const emptyState = document.getElementById('emptyState');
+
+function filterCards() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+    let visibleCount = 0;
+    
+    cards.forEach(card => {
+        const terms = card.dataset.terms.toLowerCase();
+        const category = card.dataset.category;
+        const text = card.textContent.toLowerCase();
+        
+        const matchesSearch = searchTerm === '' || terms.includes(searchTerm) || text.includes(searchTerm);
+        const matchesFilter = activeFilter === 'all' || category === activeFilter;
+        
+        if (matchesSearch && matchesFilter) {
+            card.classList.add('visible');
+            visibleCount++;
+        } else {
+            card.classList.remove('visible');
+        }
+    });
+    
+    emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+}
+
+searchInput.addEventListener('input', filterCards);
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterCards();
+    });
+});
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+    });
+});
+</script>
+
+</body>
+</html>

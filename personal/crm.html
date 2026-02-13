@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Justin's Relationship Radar</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface-hover: #21262d;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --yellow: #d29922;
+            --orange: #db6d28;
+            --red: #f85149;
+            --purple: #a371f7;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 1.8em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .dashboard { grid-template-columns: 1fr; }
+        }
+        
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card h2 {
+            font-size: 1.1em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .badge {
+            font-size: 0.75em;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        .badge-green { background: rgba(63, 185, 80, 0.15); color: var(--green); }
+        .badge-yellow { background: rgba(210, 153, 34, 0.15); color: var(--yellow); }
+        .badge-orange { background: rgba(219, 109, 40, 0.15); color: var(--orange); }
+        .badge-red { background: rgba(248, 81, 73, 0.15); color: var(--red); }
+        .badge-purple { background: rgba(163, 113, 247, 0.15); color: var(--purple); }
+        
+        .contact-list {
+            list-style: none;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        
+        .contact-item:hover {
+            background: var(--surface-hover);
+        }
+        
+        .contact-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .avatar-family { background: linear-gradient(135deg, #f85149, #ff7b72); }
+        .avatar-work { background: linear-gradient(135deg, #58a6ff, #79c0ff); }
+        .avatar-friend { background: linear-gradient(135deg, #a371f7, #bc8cff); }
+        .avatar-new { background: linear-gradient(135deg, #3fb950, #56d364); }
+        
+        .contact-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .contact-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .contact-context {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .contact-time {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            text-align: right;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+        
+        .priority-section {
+            grid-column: 1 / -1;
+        }
+        
+        .priority-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .priority-card {
+            background: var(--surface-hover);
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 3px solid var(--orange);
+        }
+        
+        .priority-card h3 {
+            font-size: 1em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .priority-card p {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        
+        .priority-card .suggestion {
+            font-size: 0.85em;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            grid-column: 1 / -1;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+        
+        .section-divider {
+            border: none;
+            height: 1px;
+            background: var(--border);
+            margin: 10px 0;
+        }
+        
+        .channel-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--surface-hover);
+            color: var(--text-muted);
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🫂 Relationship Radar</h1>
+        <p class="subtitle">Last scan: <span id="lastScan">Feb 13, 2026 6:29 AM PST</span> • Tracking connections across iMessage & Email</p>
+    </header>
+
+    <div class="dashboard">
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-number" style="color: var(--green)">24</div>
+                <div class="stat-label">Active this week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: var(--yellow)">8</div>
+                <div class="stat-label">Drifting (2-4 wks)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: var(--red)">3</div>
+                <div class="stat-label">Need attention</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: var(--purple)">156</div>
+                <div class="stat-label">Total in network</div>
+            </div>
+        </div>
+
+        <!-- Priority Reconnections -->
+        <div class="card priority-section">
+            <div class="card-header">
+                <h2>🎯 Reconnection Priorities</h2>
+                <span class="badge badge-orange">Action needed</span>
+            </div>
+            <div class="priority-grid">
+                <div class="priority-card">
+                    <h3>Jenny Kefauver</h3>
+                    <p>Last contact: Dec 10, 2025 (65 days ago) • Met at Rumble happy hour</p>
+                    <div class="suggestion">💡 Follow up on "wonderful to see you" email</div>
+                </div>
+                <div class="priority-card">
+                    <h3>Ken Truong (NTD)</h3>
+                    <p>Recent inbound: Feb 12 • Sent biolab infographic, no response yet</p>
+                    <div class="suggestion">💡 Thank him for the tip, ask if there's a story angle</div>
+                </div>
+                <div class="priority-card">
+                    <h3>Margaret Adams</h3>
+                    <p>Feb 11 — Thanked you for your book, unread</p>
+                    <div class="suggestion">💡 Reader outreach — personal note goes far</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Family & Inner Circle -->
+        <div class="card">
+            <div class="card-header">
+                <h2>❤️ Inner Circle</h2>
+                <span class="badge badge-green">All good</span>
+            </div>
+            <ul class="contact-list">
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-family">👩</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Sarah</div>
+                        <div class="contact-context">"You're the best dad ever" • Kids & life updates</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">💬 iMessage</span><br>
+                        Today 6:30 AM
+                    </div>
+                </li>
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-family">👨‍👩‍👧‍👦</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Fam Group</div>
+                        <div class="contact-context">Baby micies & summer camp signup 😂</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">💬 iMessage</span><br>
+                        Today 1:56 AM
+                    </div>
+                </li>
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-family">👦</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Kaden</div>
+                        <div class="contact-context">Portfolio site launch • kaden-hart.me</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">💬 iMessage</span><br>
+                        Today 1:44 AM
+                    </div>
+                </li>
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-family">👦</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Connor</div>
+                        <div class="contact-context">Work scheduling, TLH support</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">💬 iMessage</span><br>
+                        Feb 11
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Work - DonorBureau -->
+        <div class="card">
+            <div class="card-header">
+                <h2>💼 DonorBureau</h2>
+                <span class="badge badge-green">Active</span>
+            </div>
+            <ul class="contact-list">
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-work">TD</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Tracy Dietz</div>
+                        <div class="contact-context">SLF - DB coordination</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">📧 Email</span><br>
+                        Feb 12
+                    </div>
+                </li>
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-work">MH</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Matt Hafer</div>
+                        <div class="contact-context">Survey follow-up</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">📧 Email</span><br>
+                        Feb 12
+                    </div>
+                </li>
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-work">JC</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Justin Cuddy</div>
+                        <div class="contact-context">9/11 Legacy Foundation content • Semper K9</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">📧 Email</span><br>
+                        Feb 11
+                    </div>
+                </li>
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-work">EP</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Emily Peartree</div>
+                        <div class="contact-context">Creative reviews (D.A.R.E., Semper K9)</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">📧 Email</span><br>
+                        Feb 12
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Work - TLH.AI Group -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🏠 TLH.AI Team</h2>
+                <span class="badge badge-green">Active</span>
+            </div>
+            <ul class="contact-list">
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-work">PW</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Paul Williamson</div>
+                        <div class="contact-context">Claude Teams plan, X links</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">💬 iMessage</span><br>
+                        Today 6:40 AM
+                    </div>
+                </li>
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-work">TN</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Tran Nguyen</div>
+                        <div class="contact-context">AI security docs, workflow optimization</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">💬 iMessage</span><br>
+                        Today 7:53 AM
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Creative Network -->
+        <div class="card">
+            <div class="card-header">
+                <h2>✨ Creative Network</h2>
+                <span class="badge badge-yellow">Some drifting</span>
+            </div>
+            <ul class="contact-list">
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-friend">GM</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Gray Moore</div>
+                        <div class="contact-context">Empire of Ideas positioning discussion</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">📧 Email</span><br>
+                        Feb 12
+                    </div>
+                </li>
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-friend">JR</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Jeneva Rose</div>
+                        <div class="contact-context">Author — recent exchange</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">📧 Email</span><br>
+                        Feb 10
+                    </div>
+                </li>
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-new">JD</div>
+                    <div class="contact-info">
+                        <div class="contact-name">James @ Dante AI</div>
+                        <div class="contact-context">AI founder connection</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">📧 Email</span><br>
+                        Feb 11
+                    </div>
+                </li>
+                <li class="contact-item" style="opacity: 0.7">
+                    <div class="contact-avatar avatar-friend">JK</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Jenny Kefauver ⚠️</div>
+                        <div class="contact-context">"Wonderful to see you!" — PR/media</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">📧 Email</span><br>
+                        Dec 10 ❗
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Active Collaborator -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🤝 Active Collaborator</h2>
+                <span class="badge badge-purple">In progress</span>
+            </div>
+            <ul class="contact-list">
+                <li class="contact-item">
+                    <div class="contact-avatar avatar-friend">📱</div>
+                    <div class="contact-info">
+                        <div class="contact-name">+1 (415) 218-5785</div>
+                        <div class="contact-context">Slack sync • Draft work in progress</div>
+                    </div>
+                    <div class="contact-time">
+                        <span class="channel-indicator">💬 iMessage</span><br>
+                        Feb 10
+                    </div>
+                </li>
+            </ul>
+            <hr class="section-divider">
+            <p style="font-size: 0.85em; color: var(--text-muted); padding: 10px;">
+                💡 <strong>Who is this?</strong> You've had multiple calls and Slack messages with this person. Consider adding them to contacts.
+            </p>
+        </div>
+
+        <!-- Recent Outbound Activity -->
+        <div class="card full-width">
+            <div class="card-header">
+                <h2>📤 Your Recent Outreach</h2>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                <div style="padding: 15px; background: var(--surface-hover); border-radius: 8px;">
+                    <div style="font-weight: 500; margin-bottom: 5px;">Op-ed Submissions</div>
+                    <div style="font-size: 0.85em; color: var(--text-muted);">
+                        "The Machine That Does the Work" → MIT Tech Review, The Hill<br>
+                        "The Call Is Coming from Inside the Codebase" → Active
+                    </div>
+                    <div style="font-size: 0.8em; color: var(--accent); margin-top: 8px;">Feb 10-11</div>
+                </div>
+                <div style="padding: 15px; background: var(--surface-hover); border-radius: 8px;">
+                    <div style="font-weight: 500; margin-bottom: 5px;">DonorBureau Creative</div>
+                    <div style="font-size: 0.85em; color: var(--text-muted);">
+                        9/11 Legacy Foundation content review<br>
+                        Semper K9 SMS creative (Cr-234)
+                    </div>
+                    <div style="font-size: 0.8em; color: var(--accent); margin-top: 8px;">Feb 10-11</div>
+                </div>
+                <div style="padding: 15px; background: var(--surface-hover); border-radius: 8px;">
+                    <div style="font-weight: 500; margin-bottom: 5px;">New AI Connections</div>
+                    <div style="font-size: 0.85em; color: var(--text-muted);">
+                        3 outbound "New AI Connection" emails<br>
+                        Sent Feb 11
+                    </div>
+                    <div style="font-size: 0.8em; color: var(--green); margin-top: 8px;">Building network ✓</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Data from iMessage (imsg) & Gmail (gog) • Built by Railstote 🦉</p>
+        <p style="margin-top: 5px;">Run <code>imsg chats</code> and <code>gog gmail messages search</code> to refresh</p>
+    </footer>
+
+    <script>
+        // Update last scan time to now
+        document.getElementById('lastScan').textContent = new Date().toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            timeZoneName: 'short'
+        });
+    </script>
+</body>
+</html>

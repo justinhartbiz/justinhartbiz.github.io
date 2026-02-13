@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DonorBureau Daily Briefing</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-secondary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--bg-card);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .metric-change {
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .metric-change.positive { color: var(--accent-green); }
+        .metric-change.negative { color: var(--accent-red); }
+
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--bg-card);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .icon-green { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .icon-yellow { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
+        .icon-blue { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+        .icon-purple { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .creative-name {
+            font-weight: 500;
+            color: var(--accent-blue);
+        }
+
+        .client-name {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .yield-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .yield-high {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .yield-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-yellow);
+        }
+
+        .yield-low {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        .anomaly-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+        }
+
+        .anomaly-spike { border-left-color: var(--accent-green); }
+        .anomaly-drop { border-left-color: var(--accent-red); }
+
+        .anomaly-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .anomaly-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .anomaly-type {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .type-spike {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .type-drop {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        .anomaly-detail {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .action-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .action-priority {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .priority-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        .priority-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-yellow);
+        }
+
+        .priority-low {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .action-content {
+            flex: 1;
+        }
+
+        .action-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .action-detail {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .client-row {
+            display: grid;
+            grid-template-columns: 2fr repeat(5, 1fr);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--bg-card);
+            align-items: center;
+        }
+
+        .client-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .client-header {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .client-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .client-info .name {
+            font-weight: 500;
+        }
+
+        .client-info .agency {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .mini-chart {
+            height: 30px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .mini-bar {
+            width: 4px;
+            background: var(--accent-blue);
+            border-radius: 2px;
+            min-height: 4px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--bg-card);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 16px;
+            color: var(--accent-red);
+            text-align: center;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .refresh-note {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            padding: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+            .client-row { grid-template-columns: 1fr; gap: 8px; }
+            table { display: block; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">DB</div>
+                <div>
+                    <h1>Daily Briefing</h1>
+                    <div class="subtitle" id="date-display">Loading...</div>
+                </div>
+            </div>
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                <span id="refresh-status">Auto-refresh: 5 min</span>
+            </div>
+        </header>
+
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                Fetching campaign data...
+            </div>
+        </div>
+
+        <div class="refresh-note">
+            Data refreshes automatically every 5 minutes. Last updated: <span id="last-update">--</span>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = '20c6f3a8-d40c-40e4-bd5e-a4d1d0db63b7';
+        const API_BASE = 'https://dashboard.donorbureau.com/api';
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-US').format(num);
+        }
+
+        function formatYield(yieldPer1000) {
+            return '$' + yieldPer1000.toFixed(2) + '/K';
+        }
+
+        function getYieldClass(yieldPer1000) {
+            if (yieldPer1000 >= 20) return 'yield-high';
+            if (yieldPer1000 >= 8) return 'yield-medium';
+            return 'yield-low';
+        }
+
+        function getYesterday() {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            return d.toISOString().split('T')[0];
+        }
+
+        function getWeekAgo() {
+            const d = new Date();
+            d.setDate(d.getDate() - 7);
+            return d.toISOString().split('T')[0];
+        }
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        async function fetchCampaigns(startDate, endDate) {
+            const url = `${API_BASE}/Campaign/Summary?startDate=${startDate}&endDate=${endDate}`;
+            const response = await fetch(url, {
+                headers: { 'apikey': API_KEY }
+            });
+            if (!response.ok) throw new Error(`API error: ${response.status}`);
+            return response.json();
+        }
+
+        function calculateMetrics(campaigns, targetDate) {
+            const dayCampaigns = campaigns.filter(c => c.launchDate.startsWith(targetDate));
+            
+            return {
+                totalSent: dayCampaigns.reduce((sum, c) => sum + (c.sent || 0), 0),
+                totalRevenue: dayCampaigns.reduce((sum, c) => sum + (c.estimatedRevenue || 0), 0),
+                totalDonors: dayCampaigns.reduce((sum, c) => sum + (c.donors || 0), 0),
+                campaignCount: dayCampaigns.length,
+                campaigns: dayCampaigns
+            };
+        }
+
+        function getTopCreatives(campaigns) {
+            const creativeMap = new Map();
+            
+            campaigns.forEach(c => {
+                if (!c.sent || c.sent < 1000) return;
+                
+                const key = c.creative;
+                if (!creativeMap.has(key)) {
+                    creativeMap.set(key, {
+                        creative: c.creative,
+                        client: c.clientName,
+                        sent: 0,
+                        revenue: 0,
+                        donors: 0,
+                        campaigns: []
+                    });
+                }
+                
+                const entry = creativeMap.get(key);
+                entry.sent += c.sent;
+                entry.revenue += c.estimatedRevenue || 0;
+                entry.donors += c.donors || 0;
+                entry.campaigns.push(c);
+            });
+            
+            return Array.from(creativeMap.values())
+                .map(c => ({
+                    ...c,
+                    yieldPer1000: c.sent > 0 ? (c.revenue / c.sent) * 1000 : 0
+                }))
+                .filter(c => c.revenue > 0)
+                .sort((a, b) => b.yieldPer1000 - a.yieldPer1000)
+                .slice(0, 10);
+        }
+
+        function detectAnomalies(yesterdayCampaigns, weekCampaigns) {
+            const anomalies = [];
+            const yesterdayDate = getYesterday();
+            
+            // Group by client
+            const clientYesterday = new Map();
+            const clientWeek = new Map();
+            
+            yesterdayCampaigns.forEach(c => {
+                if (!clientYesterday.has(c.clientName)) {
+                    clientYesterday.set(c.clientName, { revenue: 0, sent: 0 });
+                }
+                clientYesterday.get(c.clientName).revenue += c.estimatedRevenue || 0;
+                clientYesterday.get(c.clientName).sent += c.sent || 0;
+            });
+            
+            // Get weekly average (excluding yesterday)
+            weekCampaigns.filter(c => !c.launchDate.startsWith(yesterdayDate)).forEach(c => {
+                if (!clientWeek.has(c.clientName)) {
+                    clientWeek.set(c.clientName, { revenue: 0, sent: 0, days: new Set() });
+                }
+                const entry = clientWeek.get(c.clientName);
+                entry.revenue += c.estimatedRevenue || 0;
+                entry.sent += c.sent || 0;
+                entry.days.add(c.launchDate.split('T')[0]);
+            });
+            
+            clientYesterday.forEach((yData, client) => {
+                const wData = clientWeek.get(client);
+                if (!wData || wData.days.size < 3) return;
+                
+                const avgDailyRevenue = wData.revenue / wData.days.size;
+                const avgDailySent = wData.sent / wData.days.size;
+                
+                if (avgDailyRevenue === 0) return;
+                
+                const revenueChange = ((yData.revenue - avgDailyRevenue) / avgDailyRevenue) * 100;
+                
+                if (revenueChange > 50 && yData.revenue > 100) {
+                    anomalies.push({
+                        type: 'spike',
+                        client,
+                        metric: 'revenue',
+                        change: revenueChange,
+                        yesterday: yData.revenue,
+                        average: avgDailyRevenue,
+                        detail: `Revenue spiked ${Math.round(revenueChange)}% above 6-day avg (${formatCurrency(yData.revenue)} vs ${formatCurrency(avgDailyRevenue)})`
+                    });
+                } else if (revenueChange < -50 && avgDailyRevenue > 100) {
+                    anomalies.push({
+                        type: 'drop',
+                        client,
+                        metric: 'revenue',
+                        change: revenueChange,
+                        yesterday: yData.revenue,
+                        average: avgDailyRevenue,
+                        detail: `Revenue dropped ${Math.abs(Math.round(revenueChange))}% below 6-day avg (${formatCurrency(yData.revenue)} vs ${formatCurrency(avgDailyRevenue)})`
+                    });
+                }
+            });
+            
+            return anomalies.sort((a, b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 8);
+        }
+
+        function generateActions(topCreatives, anomalies, clientSummary) {
+            const actions = [];
+            
+            // Scale up winners
+            const topWinner = topCreatives[0];
+            if (topWinner && topWinner.yieldPer1000 > 15) {
+                actions.push({
+                    priority: 'high',
+                    title: `Scale ${topWinner.creative} for ${topWinner.client}`,
+                    detail: `Yielding ${formatYield(topWinner.yieldPer1000)} — consider increasing volume or expanding to new lists`
+                });
+            }
+            
+            // Address drops
+            const drops = anomalies.filter(a => a.type === 'drop');
+            drops.slice(0, 2).forEach(drop => {
+                actions.push({
+                    priority: 'high',
+                    title: `Investigate ${drop.client} performance drop`,
+                    detail: drop.detail + ' — check creative fatigue, list quality, or delivery issues'
+                });
+            });
+            
+            // Capitalize on spikes
+            const spikes = anomalies.filter(a => a.type === 'spike');
+            spikes.slice(0, 2).forEach(spike => {
+                actions.push({
+                    priority: 'medium',
+                    title: `Capitalize on ${spike.client} momentum`,
+                    detail: spike.detail + ' — extend campaign or test similar creative'
+                });
+            });
+            
+            // Low performers to pause
+            const lowPerformers = topCreatives.filter(c => c.yieldPer1000 < 3 && c.sent > 10000);
+            if (lowPerformers.length > 0) {
+                actions.push({
+                    priority: 'medium',
+                    title: 'Review underperforming creatives',
+                    detail: `${lowPerformers.length} creative(s) with <$3/K yield — consider pausing or refreshing`
+                });
+            }
+            
+            // General recommendations
+            if (actions.length < 5) {
+                actions.push({
+                    priority: 'low',
+                    title: 'Test new creative variants',
+                    detail: 'Top performers may benefit from A/B testing subject lines or copy tweaks'
+                });
+            }
+            
+            return actions.slice(0, 6);
+        }
+
+        function getClientSummary(campaigns) {
+            const clientMap = new Map();
+            
+            campaigns.forEach(c => {
+                if (!clientMap.has(c.clientName)) {
+                    clientMap.set(c.clientName, {
+                        name: c.clientName,
+                        agency: c.agencyName,
+                        sent: 0,
+                        revenue: 0,
+                        donors: 0,
+                        campaigns: 0
+                    });
+                }
+                
+                const entry = clientMap.get(c.clientName);
+                entry.sent += c.sent || 0;
+                entry.revenue += c.estimatedRevenue || 0;
+                entry.donors += c.donors || 0;
+                entry.campaigns++;
+            });
+            
+            return Array.from(clientMap.values())
+                .map(c => ({
+                    ...c,
+                    yieldPer1000: c.sent > 0 ? (c.revenue / c.sent) * 1000 : 0
+                }))
+                .sort((a, b) => b.revenue - a.revenue)
+                .slice(0, 15);
+        }
+
+        function renderDashboard(data) {
+            const { metrics, topCreatives, anomalies, actions, clientSummary, yesterdayDate } = data;
+            
+            const content = document.getElementById('content');
+            
+            content.innerHTML = `
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Campaigns</div>
+                        <div class="metric-value">${formatNumber(metrics.campaignCount)}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Messages Sent</div>
+                        <div class="metric-value">${(metrics.totalSent / 1000000).toFixed(2)}M</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Est. Revenue</div>
+                        <div class="metric-value">${formatCurrency(metrics.totalRevenue)}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Donors</div>
+                        <div class="metric-value">${formatNumber(metrics.totalDonors)}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Avg Yield</div>
+                        <div class="metric-value">${metrics.totalSent > 0 ? formatYield((metrics.totalRevenue / metrics.totalSent) * 1000) : '$0.00/K'}</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <div class="section-icon icon-green">🏆</div>
+                            Top Performing Creatives (by Yield)
+                        </div>
+                    </div>
+                    ${topCreatives.length > 0 ? `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Creative</th>
+                                <th>Client</th>
+                                <th>Sent</th>
+                                <th>Revenue</th>
+                                <th>Donors</th>
+                                <th>Yield/1K</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${topCreatives.map(c => `
+                            <tr>
+                                <td><span class="creative-name">${c.creative}</span></td>
+                                <td>${c.client}</td>
+                                <td>${formatNumber(c.sent)}</td>
+                                <td>${formatCurrency(c.revenue)}</td>
+                                <td>${c.donors}</td>
+                                <td><span class="yield-badge ${getYieldClass(c.yieldPer1000)}">${formatYield(c.yieldPer1000)}</span></td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    ` : '<div class="no-data">No creative data with revenue for yesterday</div>'}
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <div class="section-icon icon-yellow">⚡</div>
+                            Anomalies Detected
+                        </div>
+                    </div>
+                    ${anomalies.length > 0 ? anomalies.map(a => `
+                    <div class="anomaly-card anomaly-${a.type}">
+                        <div class="anomaly-header">
+                            <span class="anomaly-title">${a.client}</span>
+                            <span class="anomaly-type type-${a.type}">${a.type === 'spike' ? '📈 Spike' : '📉 Drop'}</span>
+                        </div>
+                        <div class="anomaly-detail">${a.detail}</div>
+                    </div>
+                    `).join('') : '<div class="no-data">No significant anomalies detected — performance within normal ranges</div>'}
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <div class="section-icon icon-blue">✅</div>
+                            Recommended Actions for Today
+                        </div>
+                    </div>
+                    ${actions.map(a => `
+                    <div class="action-card">
+                        <div class="action-priority priority-${a.priority}">${a.priority === 'high' ? '!' : a.priority === 'medium' ? '→' : '○'}</div>
+                        <div class="action-content">
+                            <div class="action-title">${a.title}</div>
+                            <div class="action-detail">${a.detail}</div>
+                        </div>
+                    </div>
+                    `).join('')}
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <div class="section-icon icon-purple">📊</div>
+                            Client-by-Client Summary
+                        </div>
+                    </div>
+                    <div class="client-row client-header">
+                        <div>Client</div>
+                        <div>Campaigns</div>
+                        <div>Sent</div>
+                        <div>Revenue</div>
+                        <div>Donors</div>
+                        <div>Yield</div>
+                    </div>
+                    ${clientSummary.map(c => `
+                    <div class="client-row">
+                        <div class="client-info">
+                            <span class="name">${c.name}</span>
+                            <span class="agency">${c.agency || 'N/A'}</span>
+                        </div>
+                        <div>${c.campaigns}</div>
+                        <div>${formatNumber(c.sent)}</div>
+                        <div>${formatCurrency(c.revenue)}</div>
+                        <div>${c.donors}</div>
+                        <div><span class="yield-badge ${getYieldClass(c.yieldPer1000)}">${formatYield(c.yieldPer1000)}</span></div>
+                    </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.getElementById('date-display').textContent = formatDate(yesterdayDate);
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        }
+
+        function showError(message) {
+            document.getElementById('content').innerHTML = `
+                <div class="error">
+                    <strong>Error loading data:</strong> ${message}<br>
+                    <small>Will retry in 5 minutes</small>
+                </div>
+            `;
+        }
+
+        async function loadDashboard() {
+            try {
+                const yesterdayDate = getYesterday();
+                const weekAgoDate = getWeekAgo();
+                
+                const weekCampaigns = await fetchCampaigns(weekAgoDate, yesterdayDate);
+                const metrics = calculateMetrics(weekCampaigns, yesterdayDate);
+                const topCreatives = getTopCreatives(metrics.campaigns);
+                const anomalies = detectAnomalies(metrics.campaigns, weekCampaigns);
+                const clientSummary = getClientSummary(metrics.campaigns);
+                const actions = generateActions(topCreatives, anomalies, clientSummary);
+                
+                renderDashboard({
+                    metrics,
+                    topCreatives,
+                    anomalies,
+                    actions,
+                    clientSummary,
+                    yesterdayDate
+                });
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                showError(error.message);
+            }
+        }
+
+        // Initial load
+        loadDashboard();
+
+        // Auto-refresh every 5 minutes
+        setInterval(loadDashboard, 5 * 60 * 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rational Ground - Subscriber Deep Dive</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #3b82f6;
+            --success: #22c55e;
+            --warning: #eab308;
+            --danger: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #334155;
+        }
+        h1 { font-size: 2rem; margin-bottom: 8px; }
+        .subtitle { color: var(--muted); font-size: 1rem; }
+        .updated { color: var(--accent); font-size: 0.85rem; margin-top: 8px; }
+        
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .kpi {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .kpi-value.success { color: var(--success); }
+        .kpi-value.warning { color: var(--warning); }
+        .kpi-label {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        
+        /* Section Grid */
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card h3 {
+            font-size: 1rem;
+            color: var(--muted);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th { color: var(--muted); font-weight: 500; font-size: 0.85rem; }
+        td { font-size: 0.9rem; }
+        .num { text-align: right; font-variant-numeric: tabular-nums; }
+        
+        /* Segments */
+        .segment {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #334155;
+        }
+        .segment:last-child { border-bottom: none; }
+        .segment-name { font-weight: 500; }
+        .segment-count {
+            background: var(--accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .segment-count.warning { background: var(--warning); color: #000; }
+        .segment-count.danger { background: var(--danger); }
+        .segment-count.success { background: var(--success); }
+        
+        /* Progress Bars */
+        .progress-bar {
+            height: 8px;
+            background: #334155;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Insights */
+        .insight {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid var(--accent);
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+        }
+        .insight-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .insight-text {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        
+        /* Full Width */
+        .full-width { grid-column: 1 / -1; }
+        
+        /* Source Attribution */
+        .source-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+        .source-name {
+            color: var(--text);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .source-bar {
+            flex: 1;
+            margin: 0 15px;
+            height: 20px;
+            background: #334155;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .source-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        .source-count {
+            color: var(--muted);
+            min-width: 30px;
+            text-align: right;
+        }
+
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .section-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Rational Ground Subscriber Deep Dive</h1>
+            <p class="subtitle">Paid Subscriber Analysis — 286 Active Paid Members</p>
+            <p class="updated">Data exported: February 13, 2026 06:06 UTC</p>
+        </header>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi">
+                <div class="kpi-value">286</div>
+                <div class="kpi-label">Paid Subscribers</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value success">$74,215</div>
+                <div class="kpi-label">Lifetime Revenue</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value">$259</div>
+                <div class="kpi-label">Avg Revenue/Sub</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value success">3.9</div>
+                <div class="kpi-label">Avg Tenure (Years)</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value">41</div>
+                <div class="kpi-label">Avg Emails Opened (6mo)</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value warning">22%</div>
+                <div class="kpi-label">Never Open Emails</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="section-grid">
+            <!-- Subscriber Types -->
+            <div class="card">
+                <h3>📋 Subscriber Types</h3>
+                <div class="chart-container">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tenure Distribution -->
+            <div class="card">
+                <h3>⏳ Tenure Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="tenureChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Activity Levels -->
+            <div class="card">
+                <h3>🔥 Activity Levels (30d)</h3>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Revenue Brackets -->
+            <div class="card">
+                <h3>💰 Lifetime Revenue Brackets</h3>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Behavioral Segments -->
+            <div class="card">
+                <h3>🎯 Behavioral Segments</h3>
+                <div class="segment">
+                    <span class="segment-name">🌟 Super Fans (opens 75%+, comments)</span>
+                    <span class="segment-count success">63</span>
+                </div>
+                <div class="segment">
+                    <span class="segment-name">📖 Silent Readers (opens regularly, no engagement)</span>
+                    <span class="segment-count">142</span>
+                </div>
+                <div class="segment">
+                    <span class="segment-name">💤 Dormant (0 opens in 6mo)</span>
+                    <span class="segment-count danger">63</span>
+                </div>
+                <div class="segment">
+                    <span class="segment-name">🎁 Sharers (1+ shares)</span>
+                    <span class="segment-count warning">61</span>
+                </div>
+                <div class="segment">
+                    <span class="segment-name">🏛️ Founding Members</span>
+                    <span class="segment-count success">10</span>
+                </div>
+            </div>
+
+            <!-- Top Paid Sources -->
+            <div class="card">
+                <h3>📈 Conversion Sources (Free → Paid)</h3>
+                <div class="source-item">
+                    <span class="source-name">Direct / Subscribe Widget</span>
+                    <div class="source-bar"><div class="source-fill" style="width:100%"></div></div>
+                    <span class="source-count">112</span>
+                </div>
+                <div class="source-item">
+                    <span class="source-name">Email Coupon/Checkout</span>
+                    <div class="source-bar"><div class="source-fill" style="width:44%"></div></div>
+                    <span class="source-count">50</span>
+                </div>
+                <div class="source-item">
+                    <span class="source-name">Paywall Prompts</span>
+                    <div class="source-bar"><div class="source-fill" style="width:13%"></div></div>
+                    <span class="source-count">15</span>
+                </div>
+                <div class="source-item">
+                    <span class="source-name">Twitter (t.co)</span>
+                    <div class="source-bar"><div class="source-fill" style="width:13%"></div></div>
+                    <span class="source-count">15</span>
+                </div>
+                <div class="source-item">
+                    <span class="source-name">substack.com Discovery</span>
+                    <div class="source-bar"><div class="source-fill" style="width:13%"></div></div>
+                    <span class="source-count">15</span>
+                </div>
+                <div class="source-item">
+                    <span class="source-name">rationalground.com</span>
+                    <div class="source-bar"><div class="source-fill" style="width:11%"></div></div>
+                    <span class="source-count">12</span>
+                </div>
+            </div>
+
+            <!-- Key Insights -->
+            <div class="card full-width">
+                <h3>💡 Key Insights</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                    <div class="insight">
+                        <div class="insight-title">🎖️ Loyal Legacy Base</div>
+                        <div class="insight-text">178 subscribers (62%) have been paid for 4+ years. This is exceptionally rare retention — your core audience is deeply committed.</div>
+                    </div>
+                    <div class="insight">
+                        <div class="insight-title">📧 Email Opens Are Strong</div>
+                        <div class="insight-text">78% of paid subs open at least one email in 6 months. Average is 41 emails opened. Your content resonates with those who pay.</div>
+                    </div>
+                    <div class="insight">
+                        <div class="insight-title">⚠️ 22% Dormant Risk</div>
+                        <div class="insight-text">63 paid subscribers (22%) haven't opened a single email in 6 months. Re-engagement campaign opportunity or natural churn candidates.</div>
+                    </div>
+                    <div class="insight">
+                        <div class="insight-title">🔄 Email Coupons Convert</div>
+                        <div class="insight-text">50 subscribers (17%) converted via email campaigns with coupons. This is your #2 conversion channel after direct subscription.</div>
+                    </div>
+                    <div class="insight">
+                        <div class="insight-title">🐦 Twitter Still Delivers</div>
+                        <div class="insight-text">46 subs originally came from Twitter (t.co), 15 converted directly from Twitter. Platform remains valuable despite algorithm changes.</div>
+                    </div>
+                    <div class="insight">
+                        <div class="insight-title">🇺🇸 US Dominated</div>
+                        <div class="insight-text">92% of paid subscribers (264/286) are US-based. Canada (5) and UK (3) are distant second and third.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Free Sources -->
+            <div class="card">
+                <h3>🚪 Original Free Subscription Sources</h3>
+                <table>
+                    <thead>
+                        <tr><th>Source</th><th class="num">Count</th><th class="num">%</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>rationalground.com</td><td class="num">84</td><td class="num">29%</td></tr>
+                        <tr><td>Twitter (t.co)</td><td class="num">46</td><td class="num">16%</td></tr>
+                        <tr><td>Direct Link</td><td class="num">40</td><td class="num">14%</td></tr>
+                        <tr><td>Substack Signup Flow</td><td class="num">33</td><td class="num">12%</td></tr>
+                        <tr><td>Import (Legacy)</td><td class="num">11</td><td class="num">4%</td></tr>
+                        <tr><td>Substack App</td><td class="num">8</td><td class="num">3%</td></tr>
+                        <tr><td>Post Page CTA</td><td class="num">7</td><td class="num">2%</td></tr>
+                        <tr><td>Post End CTA</td><td class="num">6</td><td class="num">2%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Geographic Distribution -->
+            <div class="card">
+                <h3>🌎 Geographic Distribution</h3>
+                <table>
+                    <thead>
+                        <tr><th>Country</th><th class="num">Subs</th><th class="num">%</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>🇺🇸 United States</td><td class="num">264</td><td class="num">92.3%</td></tr>
+                        <tr><td>🇨🇦 Canada</td><td class="num">5</td><td class="num">1.7%</td></tr>
+                        <tr><td>🇬🇧 United Kingdom</td><td class="num">3</td><td class="num">1.0%</td></tr>
+                        <tr><td>🌍 Other (13 countries)</td><td class="num">14</td><td class="num">4.9%</td></tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 15px; color: var(--muted); font-size: 0.85rem;">
+                    Other countries: Korea, Australia, Costa Rica, Dominica, Romania, Sweden, Puerto Rico, Japan, Ireland, Israel, Mexico
+                </div>
+            </div>
+
+            <!-- Engagement Breakdown -->
+            <div class="card">
+                <h3>📊 Engagement Breakdown</h3>
+                <table>
+                    <thead>
+                        <tr><th>Metric</th><th class="num">Total</th><th class="num">Avg</th><th class="num">Active %</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Emails Opened (6mo)</td><td class="num">11,692</td><td class="num">40.9</td><td class="num">78%</td></tr>
+                        <tr><td>Links Clicked</td><td class="num">~350</td><td class="num">1.2</td><td class="num">~25%</td></tr>
+                        <tr><td>Post Views</td><td class="num">793</td><td class="num">2.8</td><td class="num">35%</td></tr>
+                        <tr><td>Comments</td><td class="num">502</td><td class="num">1.8</td><td class="num">22%</td></tr>
+                        <tr><td>Shares</td><td class="num">278</td><td class="num">1.0</td><td class="num">21%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="card full-width">
+                <h3>🎯 Recommended Actions</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid var(--success);">
+                        <strong style="color: var(--success);">Re-engage Dormant 63</strong>
+                        <p style="color: var(--muted); font-size: 0.9rem; margin-top: 8px;">Send personalized "We miss you" campaign to the 63 subscribers who haven't opened in 6mo. Include exclusive content or AMA invite.</p>
+                    </div>
+                    <div style="background: rgba(234, 179, 8, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid var(--warning);">
+                        <strong style="color: var(--warning);">Activate the Sharers</strong>
+                        <p style="color: var(--muted); font-size: 0.9rem; margin-top: 8px;">61 subs have shared before. Ask them directly for referrals — they're proven evangelists. Consider referral rewards.</p>
+                    </div>
+                    <div style="background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid var(--accent);">
+                        <strong style="color: var(--accent);">Celebrate Founding Members</strong>
+                        <p style="color: var(--muted); font-size: 0.9rem; margin-top: 8px;">10 Founding Members have generated $4,200+ in revenue. Exclusive "founder update" or early access could deepen loyalty.</p>
+                    </div>
+                    <div style="background: rgba(168, 85, 247, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #a855f7;">
+                        <strong style="color: #a855f7;">Double Down on Email Coupons</strong>
+                        <p style="color: var(--muted); font-size: 0.9rem; margin-top: 8px;">17% of paid conversions came from email campaigns with coupons. Test more aggressive coupon campaigns to free list.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Revenue Subscribers -->
+            <div class="card full-width">
+                <h3>💎 Highest Value Subscribers (by Lifetime Revenue)</h3>
+                <table>
+                    <thead>
+                        <tr><th>Name</th><th>Type</th><th class="num">Revenue</th><th class="num">Tenure</th><th class="num">Opens (6mo)</th><th class="num">Comments</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Karen Iacovelli (Legallady4)</td><td>Founding</td><td class="num">$840</td><td class="num">4.0 yrs</td><td class="num">40</td><td class="num">12</td></tr>
+                        <tr><td>CE Harrison</td><td>Founding</td><td class="num">$840</td><td class="num">4.0 yrs</td><td class="num">0</td><td class="num">0</td></tr>
+                        <tr><td>Tracey Hausel</td><td>Founding</td><td class="num">$512</td><td class="num">3.3 yrs</td><td class="num">56</td><td class="num">0</td></tr>
+                        <tr><td>Brian Flandermeyer</td><td>Founding</td><td class="num">$420</td><td class="num">3.2 yrs</td><td class="num">110</td><td class="num">0</td></tr>
+                        <tr><td>Wes Burrow</td><td>Monthly</td><td class="num">$364</td><td class="num">4.3 yrs</td><td class="num">102</td><td class="num">0</td></tr>
+                        <tr><td>Scott Andrews</td><td>Monthly</td><td class="num">$371</td><td class="num">4.4 yrs</td><td class="num">54</td><td class="num">0</td></tr>
+                        <tr><td>DM (diviya@magaro.org)</td><td>Monthly</td><td class="num">$364</td><td class="num">4.3 yrs</td><td class="num">0</td><td class="num">0</td></tr>
+                        <tr><td>Carl Liggio</td><td>Monthly</td><td class="num">$364</td><td class="num">4.8 yrs</td><td class="num">182</td><td class="num">0</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer style="text-align: center; padding: 20px; color: var(--muted); font-size: 0.85rem;">
+            Generated by OpenClaw • Data from Substack export • February 13, 2026
+        </footer>
+    </div>
+
+    <script>
+        // Chart.js defaults
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+
+        // Subscriber Types Pie
+        new Chart(document.getElementById('typeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Yearly ($70)', 'Monthly ($7)', 'Founding ($210)', 'Comp', 'Author'],
+                datasets: [{
+                    data: [229, 43, 10, 3, 1],
+                    backgroundColor: ['#3b82f6', '#22c55e', '#eab308', '#94a3b8', '#a855f7'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } }
+                }
+            }
+        });
+
+        // Tenure Distribution
+        new Chart(document.getElementById('tenureChart'), {
+            type: 'bar',
+            data: {
+                labels: ['<1 yr', '1-2 yrs', '2-3 yrs', '3-4 yrs', '4-5 yrs', '5+ yrs'],
+                datasets: [{
+                    label: 'Subscribers',
+                    data: [7, 26, 26, 49, 121, 57],
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#334155' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Activity Levels
+        new Chart(document.getElementById('activityChart'), {
+            type: 'bar',
+            data: {
+                labels: ['0 (None)', '1 (Minimal)', '2 (Light)', '3 (Moderate)', '4 (High)', '5 (Super)'],
+                datasets: [{
+                    label: 'Subscribers',
+                    data: [81, 18, 18, 54, 55, 60],
+                    backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#10b981', '#3b82f6'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#334155' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Revenue Distribution
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: {
+                labels: ['$0-49', '$50-99', '$100-149', '$150-199', '$200-249', '$250-299', '$300-349', '$350+'],
+                datasets: [{
+                    label: 'Subscribers',
+                    data: [5, 15, 72, 16, 33, 26, 5, 105],
+                    backgroundColor: '#22c55e',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#334155' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

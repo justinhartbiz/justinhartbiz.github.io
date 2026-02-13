@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏛️ Workspace Archaeology Report - Feb 13, 2026</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --yellow: #d29922;
+            --red: #f85149;
+            --purple: #a371f7;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { 
+            color: var(--accent); 
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        h2 { color: var(--text); margin-top: 40px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-value { font-size: 2.5em; font-weight: bold; color: var(--accent); }
+        .stat-label { color: var(--text-muted); font-size: 0.9em; }
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .section-header {
+            background: var(--bg);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-title { font-weight: 600; font-size: 1.1em; }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        .badge-red { background: rgba(248,81,73,0.2); color: var(--red); }
+        .badge-yellow { background: rgba(210,153,34,0.2); color: var(--yellow); }
+        .badge-green { background: rgba(63,185,80,0.2); color: var(--green); }
+        .badge-purple { background: rgba(163,113,247,0.2); color: var(--purple); }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: var(--bg);
+            color: var(--text-muted);
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover { color: var(--accent); }
+        th.sorted-asc::after { content: ' ↑'; }
+        th.sorted-desc::after { content: ' ↓'; }
+        tr:hover { background: rgba(88,166,255,0.05); }
+        .path {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.85em;
+            color: var(--accent);
+            cursor: pointer;
+        }
+        .path:hover { text-decoration: underline; }
+        .size { color: var(--yellow); font-family: monospace; }
+        .date { color: var(--text-muted); }
+        .rec {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .rec-archive { background: rgba(163,113,247,0.2); color: var(--purple); }
+        .rec-delete { background: rgba(248,81,73,0.2); color: var(--red); }
+        .rec-resurrect { background: rgba(63,185,80,0.2); color: var(--green); }
+        .rec-review { background: rgba(210,153,34,0.2); color: var(--yellow); }
+        .folder-card {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .folder-card:last-child { border-bottom: none; }
+        .folder-name { font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+        .folder-desc { color: var(--text-muted); font-size: 0.9em; margin-bottom: 10px; }
+        .folder-stats { font-size: 0.85em; color: var(--text-muted); }
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+        .filter-bar input {
+            flex: 1;
+            padding: 8px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+        }
+        .filter-bar input:focus { outline: none; border-color: var(--accent); }
+        .summary-box {
+            background: rgba(88,166,255,0.1);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-box h3 { margin-top: 0; color: var(--accent); }
+        .insight { margin: 10px 0; padding-left: 20px; border-left: 3px solid var(--border); }
+        .chart-bar {
+            height: 20px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        .chart-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--green) 0%, var(--yellow) 50%, var(--red) 100%);
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            th, td { padding: 8px 12px; font-size: 0.85em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏛️ Workspace Archaeology Report</h1>
+        <p style="color: var(--text-muted)">Generated: Feb 13, 2026 06:30 PST | Workspace: ~/.openclaw/workspace/</p>
+
+        <div class="summary-box">
+            <h3>📊 Executive Summary</h3>
+            <p>Scanned <strong>1,847 files</strong> (excluding node_modules) totaling <strong>2.1 GB</strong>.</p>
+            <div class="insight">
+                <strong>🔍 Key Finding:</strong> This workspace was largely created/reorganized in the last 2 weeks. Most "old" content has been archived intentionally. The real opportunities are in <strong>large media files</strong> and <strong>duplicate/redundant content</strong>.
+            </div>
+            <div class="insight">
+                <strong>💾 Storage Hogs:</strong> 724 MB in video files (mostly archived hymn drafts + HeyGen explainer). Consider cloud archiving.
+            </div>
+            <div class="insight">
+                <strong>🏆 Buried Gold:</strong> Found compelling content in <code>archive/old-images/</code> (sacred art for music videos), <code>dory-project/</code> (polished article assets), and <code>rg/chapter-drafting/</code> (book chapters in progress).
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">1,847</div>
+                <div class="stat-label">Total Files</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">2.1 GB</div>
+                <div class="stat-label">Total Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">67</div>
+                <div class="stat-label">Large Files (>1MB)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">5</div>
+                <div class="stat-label">Folders with Hidden Gems</div>
+            </div>
+        </div>
+
+        <h2>🗿 Largest Files (Potential Dead Weight)</h2>
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">Files over 5MB - sorted by size</span>
+                <span class="badge badge-red">724 MB in video/media</span>
+            </div>
+            <div class="filter-bar">
+                <input type="text" id="largeFilter" placeholder="Filter by path..." onkeyup="filterTable('largeTable', this.value)">
+            </div>
+            <table id="largeTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('largeTable', 0)">Path</th>
+                        <th onclick="sortTable('largeTable', 1)">Size</th>
+                        <th onclick="sortTable('largeTable', 2)">Last Modified</th>
+                        <th>Recommendation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">blogs/ai-operator-article/heygen-explainer.mp4</td>
+                        <td class="size">99.6 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-archive">Archive to Cloud</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">personal/headshots/JUSTINHART_HEADSHOT.zip</td>
+                        <td class="size">56.0 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-delete">Delete (unpacked)</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">skills/fedreg-pipeline/output/schedule-f-2026-02-06/schedule-f-video.mp4</td>
+                        <td class="size">42.7 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-review">Review Usage</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">skills/fedreg-pipeline/output/FR-2026-02-05/video.mp4</td>
+                        <td class="size">40.3 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-review">Review Usage</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">gfl/i-stand-all-amazed/audio/I Stand All Amazed.wav</td>
+                        <td class="size">43.9 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-archive">Archive to Cloud</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">dory-project/openclaw-dory-video.mp4</td>
+                        <td class="size">33.2 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-archive">Archive to Cloud</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">skills/fedreg-pipeline/output/FR-2026-02-05/podcast.mp3</td>
+                        <td class="size">33.3 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-review">Review Usage</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">drafts/bhattacharya-clip1-vindication-vertical.mp4</td>
+                        <td class="size">21.9 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-resurrect">Use This!</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">drafts/bhattacharya-clip1-vindication.mp4</td>
+                        <td class="size">13.9 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-resurrect">Use This!</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">tlh/estatesales-net-data/2024/November and December.xlsx</td>
+                        <td class="size">17.8 MB</td>
+                        <td class="date">Feb 11</td>
+                        <td><span class="rec rec-archive">Archive</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">db/DB-dash.xlsx</td>
+                        <td class="size">13.7 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-review">Is this current?</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">personal/headshots/JUSTINHART_HEADSHOT/hartheadshots_01.jpg</td>
+                        <td class="size">12.7 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-review">Compress?</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">personal/images/kaden/kaden-between-worlds.png</td>
+                        <td class="size">6.6 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-resurrect">Great for portfolio</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">personal/images/kaden/kaden-worldbuilder-study.png</td>
+                        <td class="size">6.1 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-resurrect">Great for portfolio</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">dory-project/dory-banner.png</td>
+                        <td class="size">5.6 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-review">Compress</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">justinhart.biz-repo/tlh/paul-speaker/paul-headshot-pro.png</td>
+                        <td class="size">5.2 MB</td>
+                        <td class="date">Feb 8</td>
+                        <td><span class="rec rec-review">Compress</span></td>
+                    </tr>
+                    <tr>
+                        <td class="path" onclick="copyPath(this)">db/political/slf/2026-02-10-slf-scorched-earth-header.png</td>
+                        <td class="size">5.3 MB</td>
+                        <td class="date">Feb 12</td>
+                        <td><span class="rec rec-review">Compress</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>🏆 Buried Gold (Content Worth Resurrecting)</h2>
+        <div class="section">
+            <div class="folder-card">
+                <div class="folder-name">📁 archive/old-images/i-stand-all-amazed-drafts/</div>
+                <div class="folder-desc">
+                    <strong>196 MB</strong> of stunning sacred art + 22 video clips for the hymn video project. 
+                    High-quality Midjourney images of Christ in Gethsemane, portraits, and abstract interpretations.
+                </div>
+                <div class="folder-stats">
+                    19 PNG images (5-10 MB each) • 22 MP4 videos • Python scripts for batch processing
+                </div>
+                <div style="margin-top: 10px">
+                    <span class="rec rec-resurrect">RESURRECT</span> - These could power the "I Stand All Amazed" video or be repurposed for other content
+                </div>
+            </div>
+            <div class="folder-card">
+                <div class="folder-name">📁 rg/chapter-drafting/</div>
+                <div class="folder-desc">
+                    <strong>Screwtape-style book chapters</strong> in progress. Multiple AI model outputs (Opus, Gemini, OpenAI) ready for synthesis.
+                </div>
+                <div class="folder-stats">
+                    chapter-01-MERGED.md (17KB final draft) • chapter-02-PREP.md • shootout drafts from multiple models
+                </div>
+                <div style="margin-top: 10px">
+                    <span class="rec rec-resurrect">RESURRECT</span> - Book project appears stalled but has solid foundation
+                </div>
+            </div>
+            <div class="folder-card">
+                <div class="folder-name">📁 drafts/bhattacharya-*</div>
+                <div class="folder-desc">
+                    <strong>Ready-to-post content</strong> about Jay Bhattacharya's Senate testimony. Video clips already edited in both horizontal and vertical formats.
+                </div>
+                <div class="folder-stats">
+                    Blog draft (13KB) • Vertical video (21.9 MB) • Quote snippets • Charts already generated
+                </div>
+                <div style="margin-top: 10px">
+                    <span class="rec rec-resurrect">PUBLISH NOW</span> - Timely content that's 90% done
+                </div>
+            </div>
+            <div class="folder-card">
+                <div class="folder-name">📁 dory-project/</div>
+                <div class="folder-desc">
+                    <strong>Complete article package</strong> for Hello AI about the Dory Memory system. Has diagrams, banner image, video, and multiple draft versions.
+                </div>
+                <div class="folder-stats">
+                    hello-ai-article.md • workspace-structure diagram • data-flow diagram • NotebookLM video (33 MB)
+                </div>
+                <div style="margin-top: 10px">
+                    <span class="rec rec-review">REVIEW</span> - Did this get published? If not, it's ready
+                </div>
+            </div>
+            <div class="folder-card">
+                <div class="folder-name">📁 gfl/i-stand-all-amazed/</div>
+                <div class="folder-desc">
+                    <strong>Complete music video production kit</strong>. 37 scene frames, generated videos, audio track, and production documentation.
+                </div>
+                <div class="folder-stats">
+                    37 frame images • 30+ video clips • WAV audio • VIDEO-PRODUCTION-PACKAGE.md
+                </div>
+                <div style="margin-top: 10px">
+                    <span class="rec rec-resurrect">FINISH THIS</span> - Project is 80% complete, just needs final assembly
+                </div>
+            </div>
+        </div>
+
+        <h2>🗑️ Recommended Deletions</h2>
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">Files that can safely be removed</span>
+                <span class="badge badge-green">~100 MB recoverable</span>
+            </div>
+            <table id="deleteTable">
+                <thead>
+                    <tr>
+                        <th>Path</th>
+                        <th>Size</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="path">personal/headshots/JUSTINHART_HEADSHOT.zip</td>
+                        <td class="size">56.0 MB</td>
+                        <td>Already unpacked - files exist in folder</td>
+                    </tr>
+                    <tr>
+                        <td class="path">**/.DS_Store (34 files)</td>
+                        <td class="size">~500 KB</td>
+                        <td>macOS metadata - add to .gitignore</td>
+                    </tr>
+                    <tr>
+                        <td class="path">**/__pycache__/** </td>
+                        <td class="size">~200 KB</td>
+                        <td>Python cache - auto-regenerates</td>
+                    </tr>
+                    <tr>
+                        <td class="path">research/~$x_on_openclaw.docx</td>
+                        <td class="size">162 B</td>
+                        <td>Word temp file - close the doc</td>
+                    </tr>
+                    <tr>
+                        <td class="path">memory/~$ckupsession_20260212.docx</td>
+                        <td class="size">162 B</td>
+                        <td>Word temp file</td>
+                    </tr>
+                    <tr>
+                        <td class="path">db/political/nrsc/~$NRSC-creatives_thru_202602.xlsx</td>
+                        <td class="size">165 B</td>
+                        <td>Excel temp file</td>
+                    </tr>
+                    <tr>
+                        <td class="path">*.bak files (SOUL.md.bak, etc)</td>
+                        <td class="size">~25 KB</td>
+                        <td>Backup files - originals exist</td>
+                    </tr>
+                    <tr>
+                        <td class="path">openclaw-studio/.next/dev/cache/**</td>
+                        <td class="size">~150 MB</td>
+                        <td>Next.js cache - regenerates on build</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>📦 Archive Candidates</h2>
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">Move to cloud storage to free ~500 MB</span>
+                <span class="badge badge-purple">Good for cold storage</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Folder</th>
+                        <th>Size</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="path">archive/old-images/i-stand-all-amazed-drafts/videos/</td>
+                        <td class="size">162 MB</td>
+                        <td>Generated videos - can recreate from images</td>
+                    </tr>
+                    <tr>
+                        <td class="path">tlh/estatesales-net-data/2024/</td>
+                        <td class="size">~50 MB</td>
+                        <td>Historical data - rarely accessed</td>
+                    </tr>
+                    <tr>
+                        <td class="path">tlh/estatesales-net-data/2025/</td>
+                        <td class="size">~30 MB</td>
+                        <td>Historical data - keep 2026 local</td>
+                    </tr>
+                    <tr>
+                        <td class="path">justinhart.biz-repo/gfl/temp/</td>
+                        <td class="size">~5 MB</td>
+                        <td>Temp files from generation</td>
+                    </tr>
+                    <tr>
+                        <td class="path">skills/fedreg-pipeline/output/</td>
+                        <td class="size">~120 MB</td>
+                        <td>Generated output - reproducible</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>📊 Folder Size Breakdown</h2>
+        <div class="section">
+            <div style="padding: 20px;">
+                <div style="display: flex; align-items: center; margin: 15px 0;">
+                    <div style="width: 200px; font-family: monospace;">gfl/ (hymn videos)</div>
+                    <div class="chart-bar" style="flex: 1; margin: 0 15px;">
+                        <div class="chart-fill" style="width: 35%; background: var(--purple);"></div>
+                    </div>
+                    <div style="width: 80px; text-align: right;">~300 MB</div>
+                </div>
+                <div style="display: flex; align-items: center; margin: 15px 0;">
+                    <div style="width: 200px; font-family: monospace;">archive/</div>
+                    <div class="chart-bar" style="flex: 1; margin: 0 15px;">
+                        <div class="chart-fill" style="width: 28%; background: var(--yellow);"></div>
+                    </div>
+                    <div style="width: 80px; text-align: right;">~250 MB</div>
+                </div>
+                <div style="display: flex; align-items: center; margin: 15px 0;">
+                    <div style="width: 200px; font-family: monospace;">skills/</div>
+                    <div class="chart-bar" style="flex: 1; margin: 0 15px;">
+                        <div class="chart-fill" style="width: 20%; background: var(--green);"></div>
+                    </div>
+                    <div style="width: 80px; text-align: right;">~180 MB</div>
+                </div>
+                <div style="display: flex; align-items: center; margin: 15px 0;">
+                    <div style="width: 200px; font-family: monospace;">personal/</div>
+                    <div class="chart-bar" style="flex: 1; margin: 0 15px;">
+                        <div class="chart-fill" style="width: 15%; background: var(--accent);"></div>
+                    </div>
+                    <div style="width: 80px; text-align: right;">~130 MB</div>
+                </div>
+                <div style="display: flex; align-items: center; margin: 15px 0;">
+                    <div style="width: 200px; font-family: monospace;">blogs/</div>
+                    <div class="chart-bar" style="flex: 1; margin: 0 15px;">
+                        <div class="chart-fill" style="width: 13%; background: var(--red);"></div>
+                    </div>
+                    <div style="width: 80px; text-align: right;">~115 MB</div>
+                </div>
+                <div style="display: flex; align-items: center; margin: 15px 0;">
+                    <div style="width: 200px; font-family: monospace;">tlh/</div>
+                    <div class="chart-bar" style="flex: 1; margin: 0 15px;">
+                        <div class="chart-fill" style="width: 12%; background: var(--green);"></div>
+                    </div>
+                    <div style="width: 80px; text-align: right;">~100 MB</div>
+                </div>
+                <div style="display: flex; align-items: center; margin: 15px 0;">
+                    <div style="width: 200px; font-family: monospace;">db/</div>
+                    <div class="chart-bar" style="flex: 1; margin: 0 15px;">
+                        <div class="chart-fill" style="width: 10%; background: var(--purple);"></div>
+                    </div>
+                    <div style="width: 80px; text-align: right;">~90 MB</div>
+                </div>
+            </div>
+        </div>
+
+        <h2>🎯 Action Items</h2>
+        <div class="section">
+            <div style="padding: 20px;">
+                <ol style="margin: 0; padding-left: 20px;">
+                    <li style="margin: 15px 0;">
+                        <strong>Delete the headshot ZIP</strong> (~56 MB) - files already extracted
+                        <br><code style="color: var(--accent);">rm personal/headshots/JUSTINHART_HEADSHOT.zip</code>
+                    </li>
+                    <li style="margin: 15px 0;">
+                        <strong>Clean temp files</strong> (~1 MB)
+                        <br><code style="color: var(--accent);">find . -name '~$*' -delete && find . -name '.DS_Store' -delete</code>
+                    </li>
+                    <li style="margin: 15px 0;">
+                        <strong>Finish the Bhattacharya blog</strong> - content is ready, just needs to be published
+                    </li>
+                    <li style="margin: 15px 0;">
+                        <strong>Complete "I Stand All Amazed" video</strong> - all assets exist, needs final assembly
+                    </li>
+                    <li style="margin: 15px 0;">
+                        <strong>Move 2024 estate sales data to archive</strong> - rarely accessed, ~50 MB recoverable
+                    </li>
+                    <li style="margin: 15px 0;">
+                        <strong>Consider cloud archiving videos</strong> - heygen-explainer.mp4 alone is 100 MB
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <div style="text-align: center; color: var(--text-muted); padding: 40px 0; border-top: 1px solid var(--border); margin-top: 40px;">
+            <p>Generated by OpenClaw Workspace Archaeology Scan</p>
+            <p style="font-size: 0.9em;">Click any path to copy to clipboard</p>
+        </div>
+    </div>
+
+    <script>
+        function sortTable(tableId, colIndex) {
+            const table = document.getElementById(tableId);
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const th = table.querySelectorAll('th')[colIndex];
+            const isAsc = th.classList.contains('sorted-asc');
+            
+            // Clear all sort indicators
+            table.querySelectorAll('th').forEach(h => {
+                h.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            
+            rows.sort((a, b) => {
+                let aVal = a.cells[colIndex].textContent;
+                let bVal = b.cells[colIndex].textContent;
+                
+                // Handle size sorting
+                if (colIndex === 1 && aVal.includes('MB')) {
+                    aVal = parseFloat(aVal);
+                    bVal = parseFloat(bVal);
+                }
+                
+                if (aVal < bVal) return isAsc ? 1 : -1;
+                if (aVal > bVal) return isAsc ? -1 : 1;
+                return 0;
+            });
+            
+            th.classList.add(isAsc ? 'sorted-desc' : 'sorted-asc');
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function filterTable(tableId, query) {
+            const table = document.getElementById(tableId);
+            const rows = table.querySelectorAll('tbody tr');
+            const lowerQuery = query.toLowerCase();
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(lowerQuery) ? '' : 'none';
+            });
+        }
+
+        function copyPath(element) {
+            const path = element.textContent;
+            navigator.clipboard.writeText(path).then(() => {
+                const original = element.textContent;
+                element.textContent = '✓ Copied!';
+                element.style.color = 'var(--green)';
+                setTimeout(() => {
+                    element.textContent = original;
+                    element.style.color = '';
+                }, 1500);
+            });
+        }
+    </script>
+</body>
+</html>

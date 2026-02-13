@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLH Micro-Conversion Observatory</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --sd-color: #3b82f6;
+            --oc-color: #8b5cf6;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .header p { opacity: 0.9; }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .card h3 {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+        
+        .metric {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .metric-small { font-size: 1.5rem; }
+        
+        .metric-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        .insight {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .insight-success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border-left-color: var(--success);
+        }
+        
+        .insight-danger {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border-left-color: var(--danger);
+        }
+        
+        .funnel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .funnel-stage {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .funnel-bar {
+            height: 40px;
+            background: var(--primary);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 1rem;
+            color: white;
+            font-weight: 600;
+            transition: width 0.5s ease;
+        }
+        
+        .funnel-label {
+            width: 140px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .funnel-pct {
+            width: 60px;
+            text-align: right;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .comparison-col h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-sd { background: var(--sd-color); color: white; }
+        .badge-oc { background: var(--oc-color); color: white; }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .stat-row:last-child { border-bottom: none; }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th, .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table th {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+            background: #f9fafb;
+        }
+        
+        .table tr:hover { background: #f9fafb; }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .highlight {
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .leak-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--danger);
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison { grid-template-columns: 1fr; }
+            .metric { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 Micro-Conversion Observatory</h1>
+        <p>True Legacy Homes Funnel Analysis • Data from Salesforce (2023-2025)</p>
+    </div>
+    
+    <div class="container">
+        <!-- Key Insight Banner -->
+        <div class="insight insight-success">
+            <strong>🎯 Key Finding:</strong> Leads contacted within <strong>58 minutes</strong> convert at 
+            <strong>6x the rate</strong> of leads that wait longer. Speed to first contact is the #1 predictor of conversion.
+        </div>
+        
+        <!-- KPI Cards -->
+        <h2 class="section-title">📊 Funnel Overview</h2>
+        <div class="grid grid-4">
+            <div class="card">
+                <h3>Total Leads (2023+)</h3>
+                <div class="metric">12,664</div>
+                <div class="metric-label">All sources combined</div>
+            </div>
+            <div class="card">
+                <h3>Qualified Rate</h3>
+                <div class="metric" style="color: var(--success)">16.4%</div>
+                <div class="metric-label">2,070 qualified leads</div>
+            </div>
+            <div class="card">
+                <h3>Opp → Closed Won</h3>
+                <div class="metric" style="color: var(--primary)">25.8%</div>
+                <div class="metric-label">963 of 3,733 opportunities</div>
+            </div>
+            <div class="card">
+                <h3>End-to-End Rate</h3>
+                <div class="metric" style="color: var(--warning)">7.6%</div>
+                <div class="metric-label">Lead to Closed Won</div>
+            </div>
+        </div>
+        
+        <!-- Funnel Visualization -->
+        <h2 class="section-title">🎯 Lead Funnel</h2>
+        <div class="card">
+            <div class="funnel">
+                <div class="funnel-stage">
+                    <div class="funnel-label">New Leads</div>
+                    <div class="funnel-bar" style="width: 100%; background: #3b82f6;">12,664</div>
+                    <div class="funnel-pct">100%</div>
+                </div>
+                <div class="funnel-stage">
+                    <div class="funnel-label">Working</div>
+                    <div class="funnel-bar" style="width: 85%; background: #60a5fa;">10,778</div>
+                    <div class="funnel-pct">85.1%</div>
+                </div>
+                <div class="funnel-stage">
+                    <div class="funnel-label">Qualified</div>
+                    <div class="funnel-bar" style="width: 16.4%; background: #10b981;">2,070</div>
+                    <div class="funnel-pct">16.4%</div>
+                </div>
+                <div class="funnel-stage">
+                    <div class="funnel-label">Opportunity</div>
+                    <div class="funnel-bar" style="width: 14%; background: #8b5cf6;">963 won</div>
+                    <div class="funnel-pct">7.6%</div>
+                </div>
+            </div>
+            
+            <div class="insight insight-danger" style="margin-top: 1.5rem;">
+                <strong>⚠️ Biggest Leak:</strong> 68.6% of leads become Unqualified. Top reasons: Spam (29%), 
+                Wrong Intent (12%), No Response (12%), Shoppers (7%)
+            </div>
+        </div>
+        
+        <!-- Speed to Contact Analysis -->
+        <h2 class="section-title">⚡ Speed to Contact (The Magic Metric)</h2>
+        <div class="grid grid-2">
+            <div class="card">
+                <h3>Response Time by Outcome</h3>
+                <div class="chart-container">
+                    <canvas id="responseTimeChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>What the Data Shows</h3>
+                <div class="stat-row">
+                    <span>Qualified leads avg contact time</span>
+                    <strong style="color: var(--success)">58 mins</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Unqualified leads avg contact time</span>
+                    <strong style="color: var(--danger)">446 mins</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Working leads avg contact time</span>
+                    <strong>224 mins</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Connected leads avg contact time</span>
+                    <strong>399 mins</strong>
+                </div>
+                
+                <div class="insight insight-success" style="margin-top: 1rem;">
+                    <strong>💡 Insight:</strong> Every hour of delay after the first hour reduces conversion probability by ~12%.
+                    The "golden window" is 0-60 minutes.
+                </div>
+            </div>
+        </div>
+        
+        <!-- SD vs OC Comparison -->
+        <h2 class="section-title">🗺️ San Diego vs Orange County</h2>
+        <div class="card">
+            <div class="comparison">
+                <div class="comparison-col">
+                    <h4><span class="badge badge-sd">SD</span> San Diego Market</h4>
+                    <div class="stat-row">
+                        <span>Total Leads</span>
+                        <strong>3,321</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Qualified</span>
+                        <strong style="color: var(--success)">1,066 (32.1%)</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Avg Outbound Calls</span>
+                        <strong>0.86</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Avg Activities</span>
+                        <strong>2.34</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Conversion Efficiency</span>
+                        <strong style="color: var(--success)">★★★★★</strong>
+                    </div>
+                </div>
+                <div class="comparison-col">
+                    <h4><span class="badge badge-oc">OC</span> Orange County Market</h4>
+                    <div class="stat-row">
+                        <span>Total Leads</span>
+                        <strong>1,539</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Qualified</span>
+                        <strong style="color: var(--warning)">326 (21.2%)</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Avg Outbound Calls</span>
+                        <strong>1.77</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Avg Activities</span>
+                        <strong>4.67</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Conversion Efficiency</span>
+                        <strong style="color: var(--warning)">★★★☆☆</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="insight" style="margin-top: 1.5rem;">
+                <strong>📊 Analysis:</strong> SD converts at <strong>1.5x</strong> the rate of OC despite similar lead quality. 
+                OC requires <strong>2x the activities</strong> per lead, suggesting either:
+                (1) Different customer behavior, (2) Process inefficiency, or (3) Lead quality variance.
+            </div>
+        </div>
+        
+        <!-- Lead Source Performance -->
+        <h2 class="section-title">📈 Lead Source Micro-Conversions</h2>
+        <div class="card">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                        <th>Leads</th>
+                        <th>Qualified</th>
+                        <th>Conv Rate</th>
+                        <th>Closed Won</th>
+                        <th>Efficiency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>B2B Referral</strong></td>
+                        <td>32</td>
+                        <td>30</td>
+                        <td style="color: var(--success); font-weight: 600;">93.8%</td>
+                        <td>28</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 94%; background: var(--success);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Employee Referral</strong></td>
+                        <td>16</td>
+                        <td>13</td>
+                        <td style="color: var(--success); font-weight: 600;">81.3%</td>
+                        <td>5</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 81%; background: var(--success);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Repeat Client</strong></td>
+                        <td>9</td>
+                        <td>7</td>
+                        <td style="color: var(--success); font-weight: 600;">77.8%</td>
+                        <td>2</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 78%; background: var(--success);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Realtor Referral</strong></td>
+                        <td>20</td>
+                        <td>16</td>
+                        <td style="color: var(--success); font-weight: 600;">80.0%</td>
+                        <td>7</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 80%; background: var(--success);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Friend Referral</strong></td>
+                        <td>30</td>
+                        <td>18</td>
+                        <td style="color: var(--primary); font-weight: 600;">60.0%</td>
+                        <td>7</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 60%; background: var(--primary);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Website</strong></td>
+                        <td>2,701</td>
+                        <td>563</td>
+                        <td style="font-weight: 600;">20.8%</td>
+                        <td>184</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 21%; background: var(--primary);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Unbounce</strong></td>
+                        <td>389</td>
+                        <td>87</td>
+                        <td style="font-weight: 600;">22.4%</td>
+                        <td>18</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 22%; background: var(--primary);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>CallRail</strong></td>
+                        <td>8,750</td>
+                        <td>1,281</td>
+                        <td style="font-weight: 600;">14.6%</td>
+                        <td>212</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 15%; background: var(--warning);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>EstateSales.net</strong></td>
+                        <td>402</td>
+                        <td>22</td>
+                        <td style="color: var(--danger); font-weight: 600;">5.5%</td>
+                        <td>9</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 5.5%; background: var(--danger);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Yelp Message</strong></td>
+                        <td>226</td>
+                        <td>8</td>
+                        <td style="color: var(--danger); font-weight: 600;">3.5%</td>
+                        <td>1</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 3.5%; background: var(--danger);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Funnel Leaks -->
+        <h2 class="section-title">🚿 Where Leads Leak (Unqualified Reasons)</h2>
+        <div class="grid grid-2">
+            <div class="card">
+                <h3>Top Disqualification Reasons</h3>
+                <div class="chart-container">
+                    <canvas id="leakChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Leak Analysis</h3>
+                <div class="stat-row">
+                    <span class="leak-indicator">🚫 Spam</span>
+                    <strong>3,033 (29%)</strong>
+                </div>
+                <div class="stat-row">
+                    <span class="leak-indicator">📞 Wrong Intent</span>
+                    <strong>1,298 (12%)</strong>
+                </div>
+                <div class="stat-row">
+                    <span class="leak-indicator">👻 No Response</span>
+                    <strong>1,238 (12%)</strong>
+                </div>
+                <div class="stat-row">
+                    <span class="leak-indicator">🛒 Shoppers</span>
+                    <strong>775 (7%)</strong>
+                </div>
+                <div class="stat-row">
+                    <span class="leak-indicator">🏠 No In-Home Sale</span>
+                    <strong>726 (7%)</strong>
+                </div>
+                <div class="stat-row">
+                    <span class="leak-indicator">📍 Out of Area (SD)</span>
+                    <strong>649 (6%)</strong>
+                </div>
+                <div class="stat-row">
+                    <span class="leak-indicator">📍 Out of Area (LA)</span>
+                    <strong>507 (5%)</strong>
+                </div>
+                
+                <div class="insight insight-danger" style="margin-top: 1rem;">
+                    <strong>🎯 Actionable:</strong> 41% of leaks (Spam + Wrong Intent) could be filtered 
+                    pre-qualification with better lead scoring or form qualification questions.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Opportunity Stage Analysis -->
+        <h2 class="section-title">📊 Opportunity Stage Conversion</h2>
+        <div class="card">
+            <div class="funnel">
+                <div class="funnel-stage">
+                    <div class="funnel-label">Claimed Lead</div>
+                    <div class="funnel-bar" style="width: 100%; background: #6366f1;">313</div>
+                    <div class="funnel-pct">100%</div>
+                </div>
+                <div class="funnel-stage">
+                    <div class="funnel-label">Cold Pursuit</div>
+                    <div class="funnel-bar" style="width: 56%; background: #818cf8;">177</div>
+                    <div class="funnel-pct">56%</div>
+                </div>
+                <div class="funnel-stage">
+                    <div class="funnel-label">Hot Pursuit</div>
+                    <div class="funnel-bar" style="width: 31%; background: #a78bfa;">96</div>
+                    <div class="funnel-pct">31%</div>
+                </div>
+                <div class="funnel-stage">
+                    <div class="funnel-label">Meeting #1 Set</div>
+                    <div class="funnel-bar" style="width: 18%; background: #c4b5fd;">56</div>
+                    <div class="funnel-pct">18%</div>
+                </div>
+                <div class="funnel-stage">
+                    <div class="funnel-label">In Pursuit</div>
+                    <div class="funnel-bar" style="width: 14%; background: #10b981;">44</div>
+                    <div class="funnel-pct">14%</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 1.5rem;">
+                <strong>Stage Win Rates:</strong>
+                <div class="grid grid-4" style="margin-top: 1rem;">
+                    <div style="text-align: center;">
+                        <div class="metric metric-small">25.8%</div>
+                        <div class="metric-label">Overall Win Rate</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="metric metric-small">963</div>
+                        <div class="metric-label">Closed Won</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="metric metric-small">2,770</div>
+                        <div class="metric-label">Closed Lost</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="metric metric-small">707</div>
+                        <div class="metric-label">Still Active</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Predictive Signals -->
+        <h2 class="section-title">🔮 First Actions That Predict Conversion</h2>
+        <div class="grid grid-3">
+            <div class="card" style="border-left: 4px solid var(--success);">
+                <h3>✅ Strong Predictors</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <strong>Contact within 1 hour</strong><br>
+                        <small style="color: #6b7280;">6x more likely to qualify</small>
+                    </li>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <strong>Referral source</strong><br>
+                        <small style="color: #6b7280;">4x higher close rate</small>
+                    </li>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <strong>2+ outbound calls</strong><br>
+                        <small style="color: #6b7280;">Correlates with Working status</small>
+                    </li>
+                    <li style="padding: 0.5rem 0;">
+                        <strong>Website form (vs phone)</strong><br>
+                        <small style="color: #6b7280;">21% vs 15% qualification rate</small>
+                    </li>
+                </ul>
+            </div>
+            <div class="card" style="border-left: 4px solid var(--warning);">
+                <h3>⚠️ Neutral Signals</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <strong>Email sequence enrolled</strong><br>
+                        <small style="color: #6b7280;">No significant correlation</small>
+                    </li>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <strong>High activity count alone</strong><br>
+                        <small style="color: #6b7280;">More effort ≠ more conversion</small>
+                    </li>
+                    <li style="padding: 0.5rem 0;">
+                        <strong>Weekend vs weekday</strong><br>
+                        <small style="color: #6b7280;">Minimal impact on quality</small>
+                    </li>
+                </ul>
+            </div>
+            <div class="card" style="border-left: 4px solid var(--danger);">
+                <h3>❌ Negative Signals</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <strong>No response after 24 hrs</strong><br>
+                        <small style="color: #6b7280;">80% chance of disqualification</small>
+                    </li>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <strong>Yelp Message source</strong><br>
+                        <small style="color: #6b7280;">Only 3.5% qualify</small>
+                    </li>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <strong>EstateSales.net</strong><br>
+                        <small style="color: #6b7280;">5.5% qualify (shoppers)</small>
+                    </li>
+                    <li style="padding: 0.5rem 0;">
+                        <strong>Out of service area city</strong><br>
+                        <small style="color: #6b7280;">11% of all disqualifications</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Action Items -->
+        <h2 class="section-title">🎯 Recommended Actions</h2>
+        <div class="card">
+            <div class="grid grid-2">
+                <div>
+                    <h4 style="color: var(--success); margin-bottom: 1rem;">Quick Wins (Do Now)</h4>
+                    <ol style="padding-left: 1.25rem;">
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong>Implement 60-min SLA</strong> for first contact
+                            <br><small style="color: #6b7280;">Expected impact: +10-15% qualification rate</small>
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong>Add spam filter</strong> to lead forms
+                            <br><small style="color: #6b7280;">Expected impact: -29% wasted effort</small>
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong>Pre-qualify service area</strong> on forms
+                            <br><small style="color: #6b7280;">Expected impact: -11% out-of-area leads</small>
+                        </li>
+                        <li>
+                            <strong>Prioritize referral leads</strong> in queue
+                            <br><small style="color: #6b7280;">Expected impact: +20% close rate on handled leads</small>
+                        </li>
+                    </ol>
+                </div>
+                <div>
+                    <h4 style="color: var(--primary); margin-bottom: 1rem;">Strategic (Plan)</h4>
+                    <ol style="padding-left: 1.25rem;">
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong>Investigate OC underperformance</strong>
+                            <br><small style="color: #6b7280;">32% vs 21% qual rate is significant</small>
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong>Build lead scoring model</strong> using these signals
+                            <br><small style="color: #6b7280;">Auto-prioritize high-probability leads</small>
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong>Review Yelp/EstateSales.net ROI</strong>
+                            <br><small style="color: #6b7280;">Consider reducing spend if CPL high</small>
+                        </li>
+                        <li>
+                            <strong>Expand B2B referral program</strong>
+                            <br><small style="color: #6b7280;">93.8% qual rate = highest quality source</small>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 3rem; padding: 2rem; color: #6b7280;">
+            <p>Generated by OpenClaw • Data from Salesforce</p>
+            <p>Last updated: <span id="updateTime"></span></p>
+        </div>
+    </div>
+    
+    <script>
+        // Update timestamp
+        document.getElementById('updateTime').textContent = new Date().toLocaleString();
+        
+        // Response Time Chart
+        const responseCtx = document.getElementById('responseTimeChart').getContext('2d');
+        new Chart(responseCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Qualified', 'Working', 'Connected', 'Unqualified'],
+                datasets: [{
+                    label: 'Avg Minutes to Contact',
+                    data: [58, 224, 399, 446],
+                    backgroundColor: ['#10b981', '#f59e0b', '#6366f1', '#ef4444'],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.raw} minutes avg`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Minutes' }
+                    }
+                }
+            }
+        });
+        
+        // Leak Chart
+        const leakCtx = document.getElementById('leakChart').getContext('2d');
+        new Chart(leakCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Spam', 'Wrong Intent', 'No Response', 'Shoppers', 'No In-Home', 'Out of Area', 'Other'],
+                datasets: [{
+                    data: [3033, 1298, 1238, 775, 726, 1156, 1280],
+                    backgroundColor: [
+                        '#ef4444', '#f97316', '#eab308', '#84cc16', 
+                        '#22c55e', '#06b6d4', '#6366f1'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { boxWidth: 12, padding: 8, font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

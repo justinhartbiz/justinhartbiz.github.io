@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLH Lead Scorecard</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .header-meta {
+            text-align: right;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .refresh-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+        
+        .refresh-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+        
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .stat-change {
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        .stat-change.positive { color: var(--success); }
+        .stat-change.negative { color: var(--danger); }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .metric {
+            text-align: center;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        
+        .region-sd .metric-value { color: var(--success); }
+        .region-oc .metric-value { color: var(--warning); }
+        
+        .progress-bar {
+            height: 8px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .reason-list {
+            list-style: none;
+        }
+        
+        .reason-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .reason-item:last-child {
+            border-bottom: none;
+        }
+        
+        .reason-name {
+            font-size: 14px;
+            flex: 1;
+        }
+        
+        .reason-count {
+            font-weight: 600;
+            margin-left: 12px;
+        }
+        
+        .reason-bar {
+            width: 100px;
+            height: 6px;
+            background: var(--bg);
+            border-radius: 3px;
+            margin-left: 12px;
+            overflow: hidden;
+        }
+        
+        .reason-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        
+        .lead-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .lead-table th {
+            text-align: left;
+            padding: 12px 16px;
+            background: var(--bg);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .lead-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+        
+        .lead-table tr:hover td {
+            background: var(--bg);
+        }
+        
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .score-high {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .score-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .score-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-new {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-working {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-connected {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-qualified {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+        
+        .priority-flag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--danger);
+            font-weight: 500;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .tab-bar {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .tab {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        
+        .insight-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .insight-card.alert {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        }
+        
+        .insight-card.success {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        }
+        
+        .insight-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .insight-value {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+            color: var(--text-muted);
+        }
+        
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .hidden { display: none; }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .header-meta {
+                text-align: center;
+                margin-top: 12px;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div>
+            <h1>🏠 TLH Lead Scorecard</h1>
+            <p style="opacity: 0.8; font-size: 14px; margin-top: 4px;">True Legacy Homes - Lead Intelligence Dashboard</p>
+        </div>
+        <div class="header-meta">
+            <div id="lastUpdated">Loading...</div>
+            <button class="refresh-btn" onclick="refreshData()">↻ Refresh Data</button>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Key Metrics -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">Active Leads</div>
+                <div class="stat-value" id="activeLeads">--</div>
+                <div class="stat-change" id="activeLeadsChange"></div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">Needs Attention Today</div>
+                <div class="stat-value" id="needsAttention" style="color: var(--danger)">--</div>
+                <div class="stat-change">New + no activity in 24h</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">Conversion Rate (12mo)</div>
+                <div class="stat-value" id="conversionRate">--</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="conversionProgress" style="width: 0%; background: var(--success);"></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">SD vs OC Performance</div>
+                <div class="metric-grid">
+                    <div class="metric region-sd">
+                        <div class="metric-value" id="sdWinRate">--</div>
+                        <div class="metric-label">San Diego Win Rate</div>
+                    </div>
+                    <div class="metric region-oc">
+                        <div class="metric-value" id="ocWinRate">--</div>
+                        <div class="metric-label">Orange County Win Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Insights -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-title">🎯 Today's Insights</div>
+            <div class="insights-grid" id="insights">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+        
+        <!-- Two Column: Unqualified Reasons + High Priority Leads -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">📊 Unqualified Reason Patterns</div>
+                <ul class="reason-list" id="reasonsList">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">⚡ Lead Source Performance</div>
+                <ul class="reason-list" id="sourcesList">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Lead Table -->
+        <div class="card" style="margin-top: 24px; overflow-x: auto;">
+            <div class="section-header">
+                <div class="section-title">🔥 Leads Needing Attention</div>
+                <div class="tab-bar">
+                    <div class="tab active" onclick="filterLeads('all', this)">All</div>
+                    <div class="tab" onclick="filterLeads('new', this)">New</div>
+                    <div class="tab" onclick="filterLeads('high-score', this)">High Score</div>
+                    <div class="tab" onclick="filterLeads('stale', this)">Stale</div>
+                </div>
+            </div>
+            
+            <table class="lead-table">
+                <thead>
+                    <tr>
+                        <th>Score</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>City</th>
+                        <th>Source</th>
+                        <th>Owner</th>
+                        <th>Created</th>
+                        <th>Last Activity</th>
+                        <th>Flags</th>
+                    </tr>
+                </thead>
+                <tbody id="leadsTable">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        // Scoring algorithm for lead likelihood to close
+        function scoreLead(lead) {
+            let score = 50; // Base score
+            
+            // Priority boost
+            if (lead.Priority__c === 'Immediate') score += 15;
+            
+            // Quality boost
+            if (lead.Lead_Quality__c === 'Eligible') score += 10;
+            
+            // Status progression
+            if (lead.Status === 'Connected') score += 20;
+            else if (lead.Status === 'Working') score += 10;
+            else if (lead.Status === 'New') score += 5;
+            
+            // Region boost (SD performs better)
+            if (lead.City === 'San Diego') score += 10;
+            else if (lead.City === 'Orange County') score -= 5;
+            
+            // Source quality
+            if (lead.LeadSource === 'Website') score += 10;
+            else if (lead.LeadSource === 'Friend Referral' || lead.LeadSource === 'Realtor Referral') score += 15;
+            
+            // Recency penalty
+            const createdDate = new Date(lead.CreatedDate);
+            const daysSinceCreated = (Date.now() - createdDate) / (1000 * 60 * 60 * 24);
+            if (daysSinceCreated > 7) score -= 10;
+            if (daysSinceCreated > 14) score -= 10;
+            
+            // Activity penalty
+            if (lead.LastActivityDate) {
+                const lastActivity = new Date(lead.LastActivityDate);
+                const daysSinceActivity = (Date.now() - lastActivity) / (1000 * 60 * 60 * 24);
+                if (daysSinceActivity > 3) score -= 10;
+                if (daysSinceActivity > 7) score -= 10;
+            } else {
+                score -= 15; // No activity at all
+            }
+            
+            // Contacted boost
+            if (lead.Left_Main__Contacted__c) score += 10;
+            
+            return Math.max(0, Math.min(100, score));
+        }
+        
+        function getScoreClass(score) {
+            if (score >= 70) return 'score-high';
+            if (score >= 40) return 'score-medium';
+            return 'score-low';
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+        
+        function formatRelativeTime(dateStr) {
+            if (!dateStr) return 'Never';
+            const date = new Date(dateStr);
+            const days = Math.floor((Date.now() - date) / (1000 * 60 * 60 * 24));
+            if (days === 0) return 'Today';
+            if (days === 1) return 'Yesterday';
+            return `${days}d ago`;
+        }
+        
+        function needsAttention(lead) {
+            if (lead.Status === 'New') return true;
+            if (!lead.LastActivityDate) return true;
+            const lastActivity = new Date(lead.LastActivityDate);
+            const daysSinceActivity = (Date.now() - lastActivity) / (1000 * 60 * 60 * 24);
+            return daysSinceActivity > 1;
+        }
+        
+        // Data storage
+        let allLeads = [];
+        let currentFilter = 'all';
+        
+        // Mock data refresh - in production, this would call sf CLI
+        async function refreshData() {
+            document.getElementById('lastUpdated').textContent = 'Refreshing...';
+            
+            // Simulated data based on actual Salesforce query results
+            const data = {
+                leads: [
+                    {Id: "00QaZ00000a9nuPUAQ", Name: "HERNANDEZ R.", Status: "New", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-13T03:27:28.000+0000", Phone: "6193143659", City: "San Diego", Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: null},
+                    {Id: "00QaZ00000a7xmbUAA", Name: "Kevin Walker", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-12T22:21:30.000+0000", Phone: "5626912481", City: null, Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-12"},
+                    {Id: "00QaZ00000a77o3UAA", Name: "Maria Valdez", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-12T21:11:56.000+0000", Phone: "5753077235", City: null, Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-12"},
+                    {Id: "00QaZ00000a6lQyUAI", Name: "PREFERRED PLUMB", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-12T20:04:55.000+0000", Phone: "8586998581", City: "San Diego", Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-12"},
+                    {Id: "00QaZ00000a4pDjUAI", Name: "James", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-12T17:16:12.000+0000", Phone: "5622852025", City: null, Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-12"},
+                    {Id: "00QaZ00000a564sUAA", Name: "BERUMEN VICTOR", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-12T17:11:12.000+0000", Phone: "6196947111", City: "San Diego", Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-12"},
+                    {Id: "00QaZ00000a4z0AUAQ", Name: "HERNANDEZ ABEL", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-12T15:56:37.000+0000", Phone: "9494827474", City: "Orange County", Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-12"},
+                    {Id: "00QaZ00000Zz4XBUAZ", Name: "Ingrid Moore", Status: "Connected", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-12T00:37:51.000+0000", Phone: "6108444040", City: null, Priority__c: null, Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-11"},
+                    {Id: "00QaZ00000ZyVcgUAF", Name: "Jose oscar Moreno Gonzalez", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-11T22:54:10.000+0000", Phone: "7759907941", City: null, Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-12"},
+                    {Id: "00QaZ00000ZyCBrUAN", Name: "Megan Friddle", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-11T22:44:01.000+0000", Phone: "8147696514", City: null, Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-12"},
+                    {Id: "00QaZ00000Zx5NiUAJ", Name: "Carole Sidell", Status: "Connected", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-11T20:46:33.000+0000", Phone: "9094501090", City: "San Bernardino", Priority__c: null, Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-11"},
+                    {Id: "00QaZ00000ZwWMkUAN", Name: "RODRIGUEZ A.", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-11T20:42:38.000+0000", Phone: "6262671505", City: "Los Angeles", Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-11"},
+                    {Id: "00QaZ00000ZwgQvUAJ", Name: "ARELLANO LAURA", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-11T19:38:36.000+0000", Phone: "6194362497", City: "San Diego", Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-11"},
+                    {Id: "00QaZ00000ZvirPUAR", Name: "FARBOD FAMILY", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-11T18:12:55.000+0000", Phone: "6194353185", City: "San Diego", Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-11"},
+                    {Id: "00QaZ00000Zv1rHUAR", Name: "PITTS KATHLEEN", Status: "Working", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-11T17:24:32.000+0000", Phone: "6572265783", City: "Orange County", Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-12"},
+                    {Id: "00QaZ00000ZvNVBUA3", Name: "Robert Barela", Status: "Working", LeadSource: "Website", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-11T17:10:47.000+0000", Phone: "7143061305", City: null, Priority__c: "Immediate", Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-12"},
+                    {Id: "00QaZ00000ZbIxxUAF", Name: "WHITE MARK", Status: "Connected", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-09T20:26:51.000+0000", Phone: "6262216262", City: "Los Angeles", Priority__c: null, Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-13"},
+                    {Id: "00QaZ00000Za1axUAB", Name: "Susan Lawson", Status: "Connected", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-09T17:33:34.000+0000", Phone: "7605186978", City: "San Diego", Priority__c: null, Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-09"},
+                    {Id: "00QaZ00000Zo8eEUAR", Name: "MARK BRADSHAW", Status: "Connected", LeadSource: "CallRail", "Owner.Name": "Jonathan Sotelo", CreatedDate: "2026-02-11T00:58:16.000+0000", Phone: "6197022511", City: "San Diego", Priority__c: null, Lead_Quality__c: "Eligible", Left_Main__Contacted__c: false, LastActivityDate: "2026-02-11"},
+                ],
+                stats: {
+                    active: { New: 1, Working: 78, Connected: 9, Qualified: 1 },
+                    conversion: { total: 5012, converted: 692 },
+                    regional: {
+                        sd: { total: 956, converted: 162 },
+                        oc: { total: 330, converted: 1 }
+                    }
+                },
+                unqualifiedReasons: [
+                    { reason: "Spam", count: 3110 },
+                    { reason: "Calling about something other than sale", count: 1322 },
+                    { reason: "No Response", count: 1298 },
+                    { reason: "Did not want in-home estate sale/Covid", count: 847 },
+                    { reason: "Shopper", count: 776 },
+                    { reason: "Out-of-service area", count: 689 },
+                    { reason: "Out-of-service area LA", count: 516 },
+                    { reason: "Bad Data", count: 432 },
+                    { reason: "Lost-Too small & no RE oppty", count: 318 },
+                    { reason: "Other (fill in)", count: 281 }
+                ],
+                sources: [
+                    { source: "CallRail", count: 7741 },
+                    { source: "Website", count: 2223 },
+                    { source: "EstateSales.net", count: 379 },
+                    { source: "Unbounce", count: 348 },
+                    { source: "Yelp Message", count: 218 },
+                    { source: "Yelp Phone #", count: 40 },
+                    { source: "Other", count: 14 }
+                ]
+            };
+            
+            renderDashboard(data);
+        }
+        
+        function renderDashboard(data) {
+            allLeads = data.leads.map(l => ({...l, score: scoreLead(l)}));
+            allLeads.sort((a, b) => b.score - a.score);
+            
+            // Update metrics
+            const activeTotal = Object.values(data.stats.active).reduce((a,b) => a+b, 0);
+            document.getElementById('activeLeads').textContent = activeTotal;
+            document.getElementById('activeLeadsChange').innerHTML = `<span class="positive">↑ ${data.stats.active.New} new today</span>`;
+            
+            // Needs attention
+            const attentionCount = allLeads.filter(needsAttention).length;
+            document.getElementById('needsAttention').textContent = attentionCount;
+            
+            // Conversion rate
+            const convRate = ((data.stats.conversion.converted / data.stats.conversion.total) * 100).toFixed(1);
+            document.getElementById('conversionRate').textContent = convRate + '%';
+            document.getElementById('conversionProgress').style.width = convRate + '%';
+            
+            // Regional performance
+            const sdRate = ((data.stats.regional.sd.converted / data.stats.regional.sd.total) * 100).toFixed(1);
+            const ocRate = ((data.stats.regional.oc.converted / data.stats.regional.oc.total) * 100).toFixed(1);
+            document.getElementById('sdWinRate').textContent = sdRate + '%';
+            document.getElementById('ocWinRate').textContent = ocRate + '%';
+            
+            // Insights
+            const insights = [];
+            if (data.stats.active.New > 0) {
+                insights.push({type: 'alert', title: `${data.stats.active.New} New Lead${data.stats.active.New > 1 ? 's' : ''}`, value: 'Needs immediate contact'});
+            }
+            insights.push({type: 'success', title: 'SD Outperforming OC', value: `${sdRate}% vs ${ocRate}% win rate`});
+            insights.push({type: 'warning', title: 'Top DQ Reason: Spam', value: `${((data.unqualifiedReasons[0].count / 10906) * 100).toFixed(0)}% of unqualified leads`});
+            insights.push({type: 'warning', title: 'No Response Issue', value: `${data.unqualifiedReasons[2].count} leads lost to no response`});
+            
+            document.getElementById('insights').innerHTML = insights.map(i => `
+                <div class="insight-card ${i.type}">
+                    <div class="insight-title">${i.title}</div>
+                    <div class="insight-value">${i.value}</div>
+                </div>
+            `).join('');
+            
+            // Unqualified reasons
+            const maxReason = Math.max(...data.unqualifiedReasons.map(r => r.count));
+            document.getElementById('reasonsList').innerHTML = data.unqualifiedReasons.slice(0, 8).map(r => `
+                <li class="reason-item">
+                    <span class="reason-name">${r.reason}</span>
+                    <span class="reason-count">${r.count.toLocaleString()}</span>
+                    <div class="reason-bar">
+                        <div class="reason-bar-fill" style="width: ${(r.count / maxReason * 100)}%"></div>
+                    </div>
+                </li>
+            `).join('');
+            
+            // Sources
+            const maxSource = Math.max(...data.sources.map(s => s.count));
+            document.getElementById('sourcesList').innerHTML = data.sources.map(s => `
+                <li class="reason-item">
+                    <span class="reason-name">${s.source}</span>
+                    <span class="reason-count">${s.count.toLocaleString()}</span>
+                    <div class="reason-bar">
+                        <div class="reason-bar-fill" style="width: ${(s.count / maxSource * 100)}%; background: var(--success);"></div>
+                    </div>
+                </li>
+            `).join('');
+            
+            // Leads table
+            renderLeadsTable(allLeads);
+            
+            // Update timestamp
+            document.getElementById('lastUpdated').textContent = `Updated: ${new Date().toLocaleString()}`;
+        }
+        
+        function renderLeadsTable(leads) {
+            document.getElementById('leadsTable').innerHTML = leads.map(lead => {
+                const flags = [];
+                if (lead.Status === 'New') flags.push('🆕 New');
+                if (!lead.Left_Main__Contacted__c) flags.push('📞 Not contacted');
+                if (lead.Priority__c === 'Immediate') flags.push('⚡ Priority');
+                if (needsAttention(lead) && lead.Status !== 'New') flags.push('⏰ Stale');
+                
+                return `
+                    <tr data-status="${lead.Status.toLowerCase()}" data-score="${lead.score}" data-stale="${needsAttention(lead)}">
+                        <td><span class="score-badge ${getScoreClass(lead.score)}">${lead.score}</span></td>
+                        <td><strong>${lead.Name}</strong></td>
+                        <td><span class="status-badge status-${lead.Status.toLowerCase()}">${lead.Status}</span></td>
+                        <td>${lead.City || '-'}</td>
+                        <td>${lead.LeadSource}</td>
+                        <td>${lead['Owner.Name'] || lead.Owner?.Name || '-'}</td>
+                        <td>${formatDate(lead.CreatedDate)}</td>
+                        <td>${formatRelativeTime(lead.LastActivityDate)}</td>
+                        <td>${flags.length > 0 ? `<span class="priority-flag">${flags.join(' ')}</span>` : '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function filterLeads(filter, el) {
+            currentFilter = filter;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            
+            let filtered = [...allLeads];
+            
+            if (filter === 'new') {
+                filtered = filtered.filter(l => l.Status === 'New');
+            } else if (filter === 'high-score') {
+                filtered = filtered.filter(l => l.score >= 70);
+            } else if (filter === 'stale') {
+                filtered = filtered.filter(l => needsAttention(l));
+            }
+            
+            renderLeadsTable(filtered);
+        }
+        
+        // Initialize
+        refreshData();
+    </script>
+</body>
+</html>

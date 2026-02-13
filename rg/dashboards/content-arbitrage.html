@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Arbitrage Dashboard | Rational Ground</title>
+    <style>
+        :root {
+            --rg-orange: #ff6b35;
+            --rg-dark: #1a1a2e;
+            --rg-purple: #4a4e69;
+            --card-bg: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--rg-dark) 0%, var(--rg-purple) 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: var(--rg-dark);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--rg-purple);
+            font-size: 1.1rem;
+        }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--rg-orange);
+        }
+        
+        .stat-label {
+            color: var(--rg-purple);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .section h2 {
+            color: var(--rg-dark);
+            border-bottom: 3px solid var(--rg-orange);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .priority-high { background: var(--danger); color: white; }
+        .priority-medium { background: var(--warning); color: #333; }
+        .priority-low { background: var(--info); color: white; }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .content-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--rg-orange);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .content-card h3 {
+            color: var(--rg-dark);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .content-card p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .tag {
+            display: inline-block;
+            background: #e9ecef;
+            color: var(--rg-purple);
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            margin: 2px;
+        }
+        
+        .tag.evergreen { background: #d4edda; color: #155724; }
+        .tag.twitter { background: #cce5ff; color: #004085; }
+        .tag.linkedin { background: #d1ecf1; color: #0c5460; }
+        .tag.helloai { background: #f8d7da; color: #721c24; }
+        
+        .action-link {
+            display: inline-block;
+            color: var(--rg-orange);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+        
+        .action-link:hover {
+            text-decoration: underline;
+        }
+        
+        .quote-box {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+            padding: 15px 20px;
+            margin: 15px 0;
+            font-style: italic;
+            color: #856404;
+        }
+        
+        .thread-card {
+            background: linear-gradient(135deg, #1da1f2 0%, #0d8ecf 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+        
+        .thread-card h4 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        
+        .thread-card .tweet-count {
+            background: rgba(255,255,255,0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: var(--rg-dark);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .leverage-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+        }
+        
+        .leverage-score.high { color: var(--success); }
+        .leverage-score.medium { color: var(--warning); }
+        .leverage-score.low { color: var(--danger); }
+        
+        .screwtape-section {
+            background: linear-gradient(135deg, #2d1b4e 0%, #1a1a2e 100%);
+            color: white;
+        }
+        
+        .screwtape-section h2 {
+            color: white;
+            border-color: #9b59b6;
+        }
+        
+        .banger-quote {
+            background: rgba(155, 89, 182, 0.2);
+            border-left: 3px solid #9b59b6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .banger-quote blockquote {
+            font-style: italic;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .banger-source {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        footer {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            padding: 30px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔥 Content Arbitrage Dashboard</h1>
+            <p class="subtitle">Rational Ground Archive Analysis — Opportunities for Repurposing & Leverage</p>
+            <p style="margin-top: 10px; color: #666;">Generated: February 13, 2026 | Archive: 882+ posts (July 2020 - Feb 2026)</p>
+        </header>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-number">882</div>
+                <div class="stat-label">Total Archive Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">47</div>
+                <div class="stat-label">Evergreen Candidates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">23</div>
+                <div class="stat-label">Twitter Thread Ideas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">15</div>
+                <div class="stat-label">LinkedIn Articles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">20</div>
+                <div class="stat-label">Top Bangers (Quotes)</div>
+            </div>
+        </div>
+
+        <!-- SECTION: TOP EVERGREEN CONTENT -->
+        <section class="section">
+            <h2>🌲 Evergreen Content — Ready for Republishing</h2>
+            <p style="margin-bottom: 20px; color: #666;">These posts contain timeless insights that remain relevant. Perfect for republishing, updating, or converting to other formats.</p>
+            
+            <div class="content-grid">
+                <div class="content-card">
+                    <span class="priority-badge priority-high">🔥🔥🔥 BEST</span>
+                    <h3>The Complete Reckoning: 150+ Studies on Devastating Harms of COVID Lockdown Policies</h3>
+                    <p>Master resource compiling 150+ peer-reviewed studies. THE definitive reference document.</p>
+                    <span class="tag evergreen">Evergreen</span>
+                    <span class="tag linkedin">LinkedIn</span>
+                    <span class="tag">Research</span>
+                    <br><a href="https://www.rationalground.com/p/the-complete-reckoning-150-studies" class="action-link">View Original →</a>
+                </div>
+                
+                <div class="content-card">
+                    <span class="priority-badge priority-high">🔥🔥🔥 BEST</span>
+                    <h3>78 Studies Show: Very Little Evidence that Masking Works</h3>
+                    <p>Comprehensive compilation of mask studies. Reference-grade content that will remain relevant for years.</p>
+                    <span class="tag evergreen">Evergreen</span>
+                    <span class="tag linkedin">LinkedIn</span>
+                    <span class="tag">Evidence</span>
+                    <br><a href="https://www.rationalground.com/p/78-studies-show-very-little-evidence" class="action-link">View Original →</a>
+                </div>
+                
+                <div class="content-card">
+                    <span class="priority-badge priority-high">🔥🔥 HIGH</span>
+                    <h3>The Ultimate Guide to Dr. Fauci</h3>
+                    <p>Comprehensive documentation of Fauci's contradictions and failures. Historical record.</p>
+                    <span class="tag evergreen">Evergreen</span>
+                    <span class="tag twitter">Twitter</span>
+                    <span class="tag">Documentation</span>
+                    <br><a href="https://www.rationalground.com/p/the-ultimate-guide-to-dr-fauci" class="action-link">View Original →</a>
+                </div>
+                
+                <div class="content-card">
+                    <span class="priority-badge priority-high">🔥🔥 HIGH</span>
+                    <h3>30+ Examples of Covid Hypocrisy</h3>
+                    <p>Master list with receipts. "Rules for thee" documented. Will age well as historical record.</p>
+                    <span class="tag evergreen">Evergreen</span>
+                    <span class="tag twitter">Twitter</span>
+                    <span class="tag">Accountability</span>
+                    <br><a href="https://www.rationalground.com/p/30-examples-of-covid-hypocrisy" class="action-link">View Original →</a>
+                </div>
+                
+                <div class="content-card">
+                    <span class="priority-badge priority-medium">🔥 MEDIUM</span>
+                    <h3>Everything You Need to Know About the Lab Leak</h3>
+                    <p>Comprehensive synopsis by Pat Fidopiastis. Timeline and evidence. Historical document.</p>
+                    <span class="tag evergreen">Evergreen</span>
+                    <span class="tag linkedin">LinkedIn</span>
+                    <br><a href="https://www.rationalground.com/p/everything-you-need-to-know-about" class="action-link">View Original →</a>
+                </div>
+                
+                <div class="content-card">
+                    <span class="priority-badge priority-medium">🔥 MEDIUM</span>
+                    <h3>The Ultimate School Board Letter</h3>
+                    <p>Every link, chart, and study needed to fight school masking. Template for future use.</p>
+                    <span class="tag evergreen">Evergreen</span>
+                    <span class="tag">Template</span>
+                    <br><a href="https://www.rationalground.com/p/the-ultimate-school-board-letter" class="action-link">View Original →</a>
+                </div>
+                
+                <div class="content-card">
+                    <span class="priority-badge priority-medium">🔥 MEDIUM</span>
+                    <h3>COVID-19 and Children: ALL the Answers You Need</h3>
+                    <p>One-stop resource on children and COVID. Parent resource that remains relevant.</p>
+                    <span class="tag evergreen">Evergreen</span>
+                    <span class="tag">Resource</span>
+                    <br><a href="https://www.rationalground.com/p/covid-19-and-children-all-the-answers" class="action-link">View Original →</a>
+                </div>
+                
+                <div class="content-card">
+                    <span class="priority-badge priority-medium">🔥 MEDIUM</span>
+                    <h3>How the "Unvaccinated" Got It Right</h3>
+                    <p>Vindication piece. The persecuted were correct. Powerful retrospective content.</p>
+                    <span class="tag evergreen">Evergreen</span>
+                    <span class="tag twitter">Twitter</span>
+                    <br><a href="https://www.rationalground.com/p/how-the-unvaccinated-got-it-right" class="action-link">View Original →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: HELLO AI CANDIDATES -->
+        <section class="section">
+            <h2>🤖 Hello AI Candidates — Cross-Platform Potential</h2>
+            <p style="margin-bottom: 20px; color: #666;">Content that can be reframed for the Hello AI brand (AI/data/business focus). The Rational Ground account was previously named "Hello AI".</p>
+            
+            <table>
+                <tr>
+                    <th>Title</th>
+                    <th>Angle for Hello AI</th>
+                    <th>Leverage Score</th>
+                </tr>
+                <tr>
+                    <td><strong>Using ChatGPT to Prove Lockdowns Sucked</strong></td>
+                    <td>AI analysis of policy failures — "How AI Can Fact-Check Government Claims"</td>
+                    <td><span class="leverage-score high">★★★★★ HIGH</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Lying with Statistics in New York</strong></td>
+                    <td>Data literacy / statistical manipulation detection — "How to Spot Bad Data"</td>
+                    <td><span class="leverage-score high">★★★★★ HIGH</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Are Vaccinations REALLY Our Way Out? (Population-level data)</strong></td>
+                    <td>Data analysis at scale — "What Population Data Really Shows"</td>
+                    <td><span class="leverage-score high">★★★★☆ HIGH</span></td>
+                </tr>
+                <tr>
+                    <td><strong>What predicts vaccine hesitancy? Politics or age?</strong></td>
+                    <td>Correlation vs. causation tutorial — "How Media Gets Causation Wrong"</td>
+                    <td><span class="leverage-score high">★★★★☆ HIGH</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Red COVID Nonsense</strong></td>
+                    <td>Debunking flawed statistical narratives — "The Danger of Confounding Variables"</td>
+                    <td><span class="leverage-score medium">★★★☆☆ MED</span></td>
+                </tr>
+                <tr>
+                    <td><strong>CDC vaccination survey analysis</strong></td>
+                    <td>Survey methodology critique — "How to Read Government Survey Data"</td>
+                    <td><span class="leverage-score medium">★★★☆☆ MED</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Perspective on COVID-19 Mortality (look up YOUR age)</strong></td>
+                    <td>Interactive data tools — "Building Risk Calculators for Real Decisions"</td>
+                    <td><span class="leverage-score medium">★★★☆☆ MED</span></td>
+                </tr>
+                <tr>
+                    <td><strong>The Censorship Industrial Complex</strong></td>
+                    <td>AI moderation / content filtering — "How AI-Powered Censorship Works"</td>
+                    <td><span class="leverage-score high">★★★★☆ HIGH</span></td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- SECTION: TWITTER THREAD CANDIDATES -->
+        <section class="section">
+            <h2>🐦 Twitter Thread Candidates</h2>
+            <p style="margin-bottom: 20px; color: #666;">High-impact content that breaks naturally into tweet-sized chunks. Optimized for engagement and shareability.</p>
+            
+            <div class="content-grid">
+                <div class="thread-card">
+                    <h4>🧵 "30 Examples of COVID Hypocrisy" Thread</h4>
+                    <span class="tweet-count">~35 tweets</span>
+                    <p style="margin-top: 10px; opacity: 0.9;">Each example = 1 tweet with photo. Built-in virality. "Rules for thee" always performs.</p>
+                </div>
+                
+                <div class="thread-card">
+                    <h4>🧵 "The Screwtape Bangers" Thread</h4>
+                    <span class="tweet-count">~20 tweets</span>
+                    <p style="margin-top: 10px; opacity: 0.9;">Best quotes from Screwtape Letters. Each quote is a standalone thought. Perfect for quote tweets.</p>
+                </div>
+                
+                <div class="thread-card">
+                    <h4>🧵 "What They Said vs. What Happened" Thread</h4>
+                    <span class="tweet-count">~25 tweets</span>
+                    <p style="margin-top: 10px; opacity: 0.9;">Prediction receipts. Expert quotes + actual outcomes. Screenshot-heavy. High engagement format.</p>
+                </div>
+                
+                <div class="thread-card">
+                    <h4>🧵 "The Complete Timeline of Fauci's Contradictions"</h4>
+                    <span class="tweet-count">~30 tweets</span>
+                    <p style="margin-top: 10px; opacity: 0.9;">From "masks don't work" to "double mask." Dated quotes with sources. Evergreen engagement.</p>
+                </div>
+                
+                <div class="thread-card">
+                    <h4>🧵 "Six Years Ago Today: The Cover-Up Began"</h4>
+                    <span class="tweet-count">~15 tweets</span>
+                    <p style="margin-top: 10px; opacity: 0.9;">Feb 1, 2020 teleconference. Names, dates, decisions. Perfect for anniversary posting.</p>
+                </div>
+                
+                <div class="thread-card">
+                    <h4>🧵 "How We Knew Masks Didn't Work: 78 Studies"</h4>
+                    <span class="tweet-count">~20 tweets</span>
+                    <p style="margin-top: 10px; opacity: 0.9;">Study highlights with key findings. Academic credibility. Shareable evidence.</p>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">💎 Top 10 Standalone Tweet Ideas (From Screwtape Bangers)</h3>
+            
+            <div class="quote-box">
+                "The virus will do what viruses do. Our business is to make the <em>image</em> of this danger torture their minds more than the thing itself."
+            </div>
+            
+            <div class="quote-box">
+                "We have convinced them that love means treating their neighbor as a threat."
+            </div>
+            
+            <div class="quote-box">
+                "The emergency is no longer an event; it is a condition."
+            </div>
+            
+            <div class="quote-box">
+                "A sternly worded decree from a health minister, and they fold like wet paper."
+            </div>
+            
+            <div class="quote-box">
+                "The mask, you might say, has slipped. And I do not mean the cloth one."
+            </div>
+        </section>
+
+        <!-- SECTION: LINKEDIN ARTICLES -->
+        <section class="section">
+            <h2>💼 LinkedIn Article Candidates</h2>
+            <p style="margin-bottom: 20px; color: #666;">Professional-toned content suitable for LinkedIn's business audience. Focus on policy analysis, leadership failures, and institutional critique.</p>
+            
+            <table>
+                <tr>
+                    <th>Source Post</th>
+                    <th>LinkedIn Angle</th>
+                    <th>Target Audience</th>
+                </tr>
+                <tr>
+                    <td><strong>The Complete Reckoning: 150+ Studies</strong></td>
+                    <td>"What 150 Studies Taught Us About Crisis Policy-Making"</td>
+                    <td>Executives, Policy Analysts</td>
+                </tr>
+                <tr>
+                    <td><strong>March 29, 2020: A Day of Infamy</strong></td>
+                    <td>"The Decision That Changed Everything: A Leadership Case Study"</td>
+                    <td>Leaders, Decision-makers</td>
+                </tr>
+                <tr>
+                    <td><strong>What They Meant by Essential and Nonessential</strong></td>
+                    <td>"Who Got to Decide Your Job Didn't Matter?"</td>
+                    <td>HR, Small Business Owners</td>
+                </tr>
+                <tr>
+                    <td><strong>Government Failures Here and Abroad</strong></td>
+                    <td>"Nursing Home Policies: A Global Leadership Failure Analysis"</td>
+                    <td>Healthcare, Policy</td>
+                </tr>
+                <tr>
+                    <td><strong>School Closures Led to Catastrophic Learning Loss</strong></td>
+                    <td>"The True Cost of 'Abundance of Caution'"</td>
+                    <td>Education, Parents</td>
+                </tr>
+                <tr>
+                    <td><strong>The Censorship Industrial Complex</strong></td>
+                    <td>"When Platforms Become Gatekeepers: Lessons for Business"</td>
+                    <td>Tech, Marketing, Communications</td>
+                </tr>
+                <tr>
+                    <td><strong>Public Health Elites Deserve Accountability</strong></td>
+                    <td>"Why 'Pandemic Amnesty' Sets a Dangerous Precedent"</td>
+                    <td>Leadership, Ethics</td>
+                </tr>
+                <tr>
+                    <td><strong>How Did the Experts Turn Everything Upside Down?</strong></td>
+                    <td>"The Danger of Expertise Without Accountability"</td>
+                    <td>Executives, Consultants</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- SECTION: SCREWTAPE BANGERS -->
+        <section class="section screwtape-section">
+            <h2>👹 Screwtape Bangers — Top 20 Quotable Lines</h2>
+            <p style="margin-bottom: 20px; opacity: 0.8;">The most powerful lines from The Covid Screwtape Letters. Perfect for social media, book promotion, and pull quotes.</p>
+            
+            <div class="banger-quote">
+                <blockquote>"The virus will do what viruses do. Our business is to make the <em>image</em> of this danger torture their minds more than the thing itself."</blockquote>
+                <div class="banger-source">— Prologue | THE book jacket quote</div>
+            </div>
+            
+            <div class="banger-quote">
+                <blockquote>"The Enemy's great command is to 'love your neighbor as yourself.' We have convinced them that love means treating their neighbor as a threat."</blockquote>
+                <div class="banger-source">— Chapter 2: The Mask as Talisman</div>
+            </div>
+            
+            <div class="banger-quote">
+                <blockquote>"Two weeks' sounds like nothing. A brief sacrifice. A Lenten fast, if you will, though this one has no Easter in sight."</blockquote>
+                <div class="banger-source">— Chapter 1: Two Weeks to Flatten the Curve</div>
+            </div>
+            
+            <div class="banger-quote">
+                <blockquote>"The genius is that the lie refutes itself in a way that strengthens belief. If the curve does not flatten, it is because the humans did not comply enough."</blockquote>
+                <div class="banger-source">— Chapter 1 | Unfalsifiable logic</div>
+            </div>
+            
+            <div class="banger-quote">
+                <blockquote>"The same people who once prided themselves on their compassion, who spoke of equity and inclusion and social justice, are now cheering as a minority is systematically excluded from society. The mask, you might say, has slipped. And I do not mean the cloth one."</blockquote>
+                <div class="banger-source">— Chapter 8: The Unclean Class | Dark humor gold</div>
+            </div>
+            
+            <div class="banger-quote">
+                <blockquote>"Nothing binds a congregation more tightly than a creed built entirely on errors they are too embarrassed ever to renounce."</blockquote>
+                <div class="banger-source">— Prologue | Why they can never admit it</div>
+            </div>
+            
+            <div class="banger-quote">
+                <blockquote>"The lab coat replaces the clerical collar. The peer-reviewed journal replaces the sacred text. The 'expert' replaces the priest. And the phrase 'studies show' replaces 'thus saith the Lord.'"</blockquote>
+                <div class="banger-source">— Chapter 4: The Science™</div>
+            </div>
+            
+            <div class="banger-quote">
+                <blockquote>"When you approach a checkpoint, you are not asserting your right to pass. You are asking permission. You are presenting your credentials and hoping they will be deemed sufficient. You are, in essence, bowing."</blockquote>
+                <div class="banger-source">— Chapter 7: Papers, Please</div>
+            </div>
+            
+            <div class="banger-quote">
+                <blockquote>"Worship through a screen is no more satisfying than a meal through a photograph."</blockquote>
+                <div class="banger-source">— Chapter 3: The Closing of the Churches</div>
+            </div>
+            
+            <div class="banger-quote">
+                <blockquote>"The emergency is no longer an event; it is a condition."</blockquote>
+                <div class="banger-source">— Chapter 10: The Perpetual Emergency | Simple. Final. Terrifying.</div>
+            </div>
+        </section>
+
+        <!-- SECTION: QUICK WINS -->
+        <section class="section">
+            <h2>⚡ Quick Wins — Minimal Effort, Maximum Leverage</h2>
+            <p style="margin-bottom: 20px; color: #666;">Content that can be repurposed today with minimal editing.</p>
+            
+            <table>
+                <tr>
+                    <th>Action</th>
+                    <th>Source</th>
+                    <th>Output</th>
+                    <th>Effort</th>
+                </tr>
+                <tr>
+                    <td>Post Screwtape quotes daily</td>
+                    <td>screwtape-bangers.md</td>
+                    <td>20+ days of Twitter content</td>
+                    <td>⚡ 5 min/day</td>
+                </tr>
+                <tr>
+                    <td>Repost "30 Examples of Hypocrisy"</td>
+                    <td>Existing post</td>
+                    <td>Twitter thread (always relevant)</td>
+                    <td>⚡ 10 min</td>
+                </tr>
+                <tr>
+                    <td>Update "150+ Studies" post with 2025-26 additions</td>
+                    <td>Complete Reckoning post</td>
+                    <td>Refreshed evergreen resource</td>
+                    <td>🕐 1 hour</td>
+                </tr>
+                <tr>
+                    <td>Create "What We Learned" LinkedIn article</td>
+                    <td>Multiple posts</td>
+                    <td>Professional retrospective piece</td>
+                    <td>🕐 2 hours</td>
+                </tr>
+                <tr>
+                    <td>Anniversary posts (Feb 1, March 15, etc.)</td>
+                    <td>Timeline posts</td>
+                    <td>Annual engagement opportunities</td>
+                    <td>⚡ 15 min each</td>
+                </tr>
+                <tr>
+                    <td>Publish Chapter 3 (Churches) on RG</td>
+                    <td>Manuscript</td>
+                    <td>New RG content from existing writing</td>
+                    <td>⚡ 30 min</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- SECTION: CONTENT CATEGORIES -->
+        <section class="section">
+            <h2>📚 Archive by Category — Full Inventory</h2>
+            <p style="margin-bottom: 20px; color: #666;">Complete categorization of source posts for the Screwtape project and beyond.</p>
+            
+            <div style="column-count: 2; column-gap: 30px;">
+                <div style="break-inside: avoid; margin-bottom: 20px;">
+                    <h4 style="color: var(--rg-orange);">🔬 Origins / Lab Leak (10 posts)</h4>
+                    <ul style="font-size: 0.9rem; color: #666; padding-left: 20px;">
+                        <li>Six Years Ago Today, They Chose the Lie</li>
+                        <li>The Smoking Gun: U.S. Funded COVID's Patient Zero</li>
+                        <li>Everything You Need to Know About the Lab Leak</li>
+                        <li>The CIA Finally Joins the Obvious Truth</li>
+                    </ul>
+                </div>
+                
+                <div style="break-inside: avoid; margin-bottom: 20px;">
+                    <h4 style="color: var(--rg-orange);">🔒 Lockdowns (9 posts)</h4>
+                    <ul style="font-size: 0.9rem; color: #666; padding-left: 20px;">
+                        <li>The Complete Reckoning: 150+ Studies</li>
+                        <li>March 29, 2020: A Day of Infamy</li>
+                        <li>Twenty Grim Realities Unearthed by Lockdowns</li>
+                        <li>The Data is In! Lockdowns Didn't Do Anything</li>
+                    </ul>
+                </div>
+                
+                <div style="break-inside: avoid; margin-bottom: 20px;">
+                    <h4 style="color: var(--rg-orange);">😷 Masks (10 posts)</h4>
+                    <ul style="font-size: 0.9rem; color: #666; padding-left: 20px;">
+                        <li>78 Studies Show: Very Little Evidence</li>
+                        <li>MASKS. DON'T. WORK</li>
+                        <li>NY Times: Mask Mandates DO NOT Work</li>
+                        <li>Your Mask Study Cheatsheet</li>
+                    </ul>
+                </div>
+                
+                <div style="break-inside: avoid; margin-bottom: 20px;">
+                    <h4 style="color: var(--rg-orange);">💉 Vaccines (10 posts)</h4>
+                    <ul style="font-size: 0.9rem; color: #666; padding-left: 20px;">
+                        <li>FDA Finally Admits: At Least 10 Kids Died</li>
+                        <li>The Ultimate Vaccine List of Links</li>
+                        <li>388 Studies of Post-Vaccine Myocarditis</li>
+                        <li>DNA Contamination in mRNA Vaccines</li>
+                    </ul>
+                </div>
+                
+                <div style="break-inside: avoid; margin-bottom: 20px;">
+                    <h4 style="color: var(--rg-orange);">👨‍⚕️ Fauci / Experts (10 posts)</h4>
+                    <ul style="font-size: 0.9rem; color: #666; padding-left: 20px;">
+                        <li>The Ultimate Guide to Dr. Fauci</li>
+                        <li>Biden Pardons Fauci</li>
+                        <li>Audio: Dr. Fauci LIES About Covid Origins</li>
+                        <li>Hubris Unmasked: Dr. Fauci's Narcissism</li>
+                    </ul>
+                </div>
+                
+                <div style="break-inside: avoid; margin-bottom: 20px;">
+                    <h4 style="color: var(--rg-orange);">🤫 Censorship (12 posts)</h4>
+                    <ul style="font-size: 0.9rem; color: #666; padding-left: 20px;">
+                        <li>The Censorship Industrial Complex</li>
+                        <li>CTIL Files: Military Contractors Planned Censorship</li>
+                        <li>Twitter Files Parts 1-10</li>
+                        <li>Missouri v. Biden Victory</li>
+                    </ul>
+                </div>
+                
+                <div style="break-inside: avoid; margin-bottom: 20px;">
+                    <h4 style="color: var(--rg-orange);">👶 Children (11 posts)</h4>
+                    <ul style="font-size: 0.9rem; color: #666; padding-left: 20px;">
+                        <li>School Closures Led to Catastrophic Learning Loss</li>
+                        <li>The Truth about Randi Weingarten</li>
+                        <li>Generation Covid: Documentary</li>
+                        <li>COVID-19 and Children: All the Answers</li>
+                    </ul>
+                </div>
+                
+                <div style="break-inside: avoid; margin-bottom: 20px;">
+                    <h4 style="color: var(--rg-orange);">🎭 Hypocrisy (6 posts)</h4>
+                    <ul style="font-size: 0.9rem; color: #666; padding-left: 20px;">
+                        <li>NYC's Covid Czar Drug-Fueled Orgies</li>
+                        <li>30+ Examples of Covid Hypocrisy</li>
+                        <li>Rules for Thee, Not for Me</li>
+                        <li>Public Health Elites: No Amnesty</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: CONTENT CALENDAR IDEAS -->
+        <section class="section">
+            <h2>📅 Anniversary Content Calendar</h2>
+            <p style="margin-bottom: 20px; color: #666;">Key dates for "On This Day" content from the archive.</p>
+            
+            <table>
+                <tr>
+                    <th>Date</th>
+                    <th>Event</th>
+                    <th>Content Angle</th>
+                </tr>
+                <tr>
+                    <td>Feb 1</td>
+                    <td>2020 Teleconference that launched cover-up</td>
+                    <td>"6 Years Ago Today" thread</td>
+                </tr>
+                <tr>
+                    <td>March 15</td>
+                    <td>"15 Days to Slow the Spread" announced</td>
+                    <td>"Remember when they said 2 weeks?"</td>
+                </tr>
+                <tr>
+                    <td>March 29</td>
+                    <td>Decision to extend lockdowns</td>
+                    <td>"The Day They Changed America"</td>
+                </tr>
+                <tr>
+                    <td>Easter</td>
+                    <td>Churches closed Easter 2020</td>
+                    <td>Screwtape Chapter 3 content</td>
+                </tr>
+                <tr>
+                    <td>July 4</td>
+                    <td>Independence Day during lockdowns</td>
+                    <td>"Freedom vs. Safety" retrospective</td>
+                </tr>
+                <tr>
+                    <td>Nov 9</td>
+                    <td>Pfizer vaccine announced</td>
+                    <td>"What they promised vs. delivered"</td>
+                </tr>
+                <tr>
+                    <td>Dec 14</td>
+                    <td>First vaccines administered</td>
+                    <td>Vaccine timeline retrospective</td>
+                </tr>
+            </table>
+        </section>
+
+        <footer>
+            <p>Content Arbitrage Dashboard | Rational Ground Archive Analysis</p>
+            <p>Generated by OpenClaw Subagent • February 13, 2026</p>
+            <p style="margin-top: 10px;"><strong>Free leverage is the best leverage. 🔥</strong></p>
+        </footer>
+    </div>
+</body>
+</html>

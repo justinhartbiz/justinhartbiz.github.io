@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Scanner — External Intelligence Dashboard</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-dim: #8b949e;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --yellow: #d29922;
+            --red: #f85149;
+            --purple: #a371f7;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 24px;
+            line-height: 1.5;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        h1 { font-size: 1.75rem; font-weight: 600; }
+        .timestamp { color: var(--text-dim); font-size: 0.875rem; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .card-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .icon-domain { background: var(--purple); }
+        .icon-news { background: var(--accent); }
+        .icon-sms { background: var(--green); }
+        .icon-substack { background: var(--yellow); }
+        
+        .item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .item:last-child { border-bottom: none; }
+        .item-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .item-meta {
+            font-size: 0.813rem;
+            color: var(--text-dim);
+        }
+        .item-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.813rem;
+        }
+        .item-link:hover { text-decoration: underline; }
+        
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .badge-critical { background: var(--red); color: #fff; }
+        .badge-warning { background: var(--yellow); color: #000; }
+        .badge-ok { background: var(--green); color: #000; }
+        .badge-info { background: var(--accent); color: #000; }
+        
+        .countdown {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+        .countdown.critical { color: var(--red); }
+        .countdown.warning { color: var(--yellow); }
+        .countdown.ok { color: var(--green); }
+        
+        .domain-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .domain-row:last-child { border-bottom: none; }
+        .domain-info { flex: 1; }
+        .domain-name { font-weight: 500; }
+        .domain-date { font-size: 0.813rem; color: var(--text-dim); }
+        
+        .trend-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .trend-item:last-child { border-bottom: none; }
+        .trend-icon {
+            font-size: 1.25rem;
+        }
+        .trend-content { flex: 1; }
+        
+        .refresh-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .refresh-btn:hover { opacity: 0.9; }
+        
+        @media (max-width: 480px) {
+            .grid { grid-template-columns: 1fr; }
+            body { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📡 Signal Scanner</h1>
+        <div>
+            <span class="timestamp" id="lastUpdated">Last updated: --</span>
+            <button class="refresh-btn" onclick="location.reload()">↻ Refresh</button>
+        </div>
+    </div>
+    
+    <div class="grid">
+        <!-- Domain Expirations -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon icon-domain">🌐</div>
+                <h2>Domain Expirations</h2>
+            </div>
+            <div id="domains">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+        
+        <!-- DB Client News -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon icon-news">📰</div>
+                <h2>DB Client News Mentions</h2>
+            </div>
+            <div id="clientNews">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+        
+        <!-- Nonprofit SMS Activity -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon icon-sms">💬</div>
+                <h2>Nonprofit SMS Landscape</h2>
+            </div>
+            <div id="smsActivity">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+        
+        <!-- Substack Trends -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon icon-substack">📝</div>
+                <h2>Substack Political/COVID Trends</h2>
+            </div>
+            <div id="substackTrends">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data snapshot from 2026-02-13 search
+        const data = {
+            domains: [
+                { name: 'thesecondchancefamily.com', expires: '2026-03-02', notes: 'Tracked domain' },
+                { name: 'yourdnasays.com', expires: '2026-03-07', notes: 'Tracked domain' }
+            ],
+            clientNews: [
+                {
+                    client: 'NCPC (National Capital Poison Center)',
+                    headline: 'Call Center Closure Announcement — Transition to All-Digital Poison Control',
+                    url: 'https://www.poison.org/press/national-capital-poison-center-call-center-closure',
+                    date: 'Recent',
+                    sentiment: 'major-change'
+                },
+                {
+                    client: 'SemperK9',
+                    headline: 'Official Charity Partner for 2026 Tokyo Marathon',
+                    url: 'https://www.semperk9.org/run/',
+                    date: 'Feb 2025',
+                    sentiment: 'positive'
+                },
+                {
+                    client: 'SemperK9',
+                    headline: 'Annual 5K at National Museum of the Marine Corps — May 2026',
+                    url: 'https://princewilliamliving.com/service-dogs-veterans-and-workplace-rights-semper-k9s-mission-in-action/',
+                    date: 'Aug 2025',
+                    sentiment: 'positive'
+                },
+                {
+                    client: 'SoldierStrong',
+                    headline: '2025 SoldierScholar Recipients Announced',
+                    url: 'https://www.globenewswire.com/news-release/2026/01/06/3213806/31705/en/SoldierStrong-Announces-Annual-SoldierScholar-Recipients-For-2025.html',
+                    date: 'Jan 6, 2026',
+                    sentiment: 'positive'
+                },
+                {
+                    client: 'SoldierStrong',
+                    headline: '2025 Individual Commitment to Service Award Recipients',
+                    url: 'https://www.globenewswire.com/news-release/2026/01/14/3218840/31705/en/SoldierStrong-Announces-2025-Recipients-of-Annual-Individual-Commitment-to-Service-Award.html',
+                    date: 'Jan 14, 2026',
+                    sentiment: 'positive'
+                },
+                {
+                    client: 'NRSC',
+                    headline: 'NRSC v. FEC Case Activity at SCOTUSblog',
+                    url: 'https://www.scotusblog.com/cases/case-files/national-republican-senatorial-committee-v-federal-election-commission/',
+                    date: 'Feb 2026',
+                    sentiment: 'legal'
+                },
+                {
+                    client: 'NRSC',
+                    headline: '2026 Election Cycle: $650M Raised by Party Committees (as of Nov 2025)',
+                    url: 'https://ballotpedia.org/National_Republican_Senatorial_Committee',
+                    date: 'Nov 2025',
+                    sentiment: 'neutral'
+                }
+            ],
+            smsLandscape: [
+                {
+                    trend: 'Mass Texting Services Growing',
+                    detail: 'Tatango, Mogli, DonorPerfect expanding nonprofit SMS tools. Short codes + auto opt-in collection.',
+                    url: 'https://www.tatango.com/blog/mass-texting-service-for-nonprofits/',
+                    relevance: 'high'
+                },
+                {
+                    trend: 'Text-to-Give Keywords',
+                    detail: 'Custom codes (DONATE, GIVE) with automated responses becoming standard.',
+                    url: 'https://www.funraise.org/features/text-engagement',
+                    relevance: 'high'
+                },
+                {
+                    trend: 'Urgency Campaigns',
+                    detail: 'Timed campaigns with deadlines + follow-up sequences driving conversions.',
+                    url: 'https://www.donorperfect.com/nonprofit-technology-blog/featured/sms-text-fundraising/',
+                    relevance: 'medium'
+                },
+                {
+                    trend: 'Salesforce Integration',
+                    detail: 'Mogli SMS integrating directly with nonprofit Salesforce instances.',
+                    url: 'https://www.mogli.com/sms-solutions/nonprofit',
+                    relevance: 'medium'
+                }
+            ],
+            substackTrends: [
+                {
+                    title: 'Vaccine Policy Reset Coverage',
+                    author: 'Popular Rationalism',
+                    summary: 'January 2026 vaccine schedule changes framed as trust restoration after COVID-era policies. Measles outbreaks (2,065 cases in 2025) linked to trust erosion.',
+                    url: 'https://popularrationalism.substack.com/p/the-schedule-is-the-signal-why-the',
+                    date: 'Jan 6, 2026'
+                },
+                {
+                    title: 'Healthcare Tipping Point 2026',
+                    author: 'The Cranky Yankee',
+                    summary: 'Government health risk protection questioned. Vaccine ideology battles intensifying. Insurance costs threatening coverage for millions.',
+                    url: 'https://thecrankyyankee.substack.com/p/in-2026-health-care-faces-a-tipping',
+                    date: 'Jan 4, 2026'
+                },
+                {
+                    title: '10 Political Digital Trends for 2026',
+                    author: 'Anchor Change',
+                    summary: 'AI platforms opening to political use flagged as wildcard. Relational organizing via Substack growing.',
+                    url: 'https://anchorchange.substack.com/p/the-10-political-digital-trends-im',
+                    date: 'Nov 5, 2025'
+                },
+                {
+                    title: 'Top Political Commentary',
+                    author: 'Various',
+                    summary: 'Glenn Greenwald, Heather Cox Richardson remain top voices. Historical context + critical analysis driving engagement.',
+                    url: 'https://substack.com/top/news',
+                    date: 'Current'
+                }
+            ]
+        };
+
+        function calculateDaysUntil(dateStr) {
+            const expiry = new Date(dateStr);
+            const now = new Date();
+            const diff = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+            return diff;
+        }
+
+        function renderDomains() {
+            const container = document.getElementById('domains');
+            container.innerHTML = data.domains.map(d => {
+                const days = calculateDaysUntil(d.expires);
+                let statusClass = 'ok';
+                if (days <= 7) statusClass = 'critical';
+                else if (days <= 30) statusClass = 'warning';
+                
+                return `
+                    <div class="domain-row">
+                        <span class="countdown ${statusClass}">${days}d</span>
+                        <div class="domain-info">
+                            <div class="domain-name">${d.name}</div>
+                            <div class="domain-date">Expires: ${d.expires}</div>
+                        </div>
+                        <span class="badge badge-${statusClass === 'ok' ? 'ok' : statusClass}">${days <= 7 ? 'CRITICAL' : days <= 30 ? 'SOON' : 'OK'}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderClientNews() {
+            const container = document.getElementById('clientNews');
+            container.innerHTML = data.clientNews.map(n => {
+                let badge = '';
+                if (n.sentiment === 'positive') badge = '<span class="badge badge-ok">Positive</span>';
+                else if (n.sentiment === 'major-change') badge = '<span class="badge badge-warning">Major Change</span>';
+                else if (n.sentiment === 'legal') badge = '<span class="badge badge-info">Legal</span>';
+                
+                return `
+                    <div class="item">
+                        <div class="item-title">${n.client} ${badge}</div>
+                        <div class="item-meta">${n.headline}</div>
+                        <a href="${n.url}" target="_blank" class="item-link">${n.date} → View Source</a>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSmsActivity() {
+            const container = document.getElementById('smsActivity');
+            container.innerHTML = data.smsLandscape.map(s => {
+                const badge = s.relevance === 'high' 
+                    ? '<span class="badge badge-ok">High Relevance</span>'
+                    : '<span class="badge badge-info">Monitor</span>';
+                return `
+                    <div class="item">
+                        <div class="item-title">${s.trend} ${badge}</div>
+                        <div class="item-meta">${s.detail}</div>
+                        <a href="${s.url}" target="_blank" class="item-link">Read More →</a>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSubstackTrends() {
+            const container = document.getElementById('substackTrends');
+            container.innerHTML = data.substackTrends.map(t => `
+                <div class="trend-item">
+                    <div class="trend-icon">📊</div>
+                    <div class="trend-content">
+                        <div class="item-title">${t.title}</div>
+                        <div class="item-meta">${t.author} • ${t.date}</div>
+                        <div class="item-meta" style="margin-top:4px">${t.summary}</div>
+                        <a href="${t.url}" target="_blank" class="item-link">Read →</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateTimestamp() {
+            document.getElementById('lastUpdated').textContent = 
+                'Last updated: ' + new Date().toLocaleString('en-US', {
+                    month: 'short', day: 'numeric', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+        }
+
+        // Initialize
+        renderDomains();
+        renderClientNews();
+        renderSmsActivity();
+        renderSubstackTrends();
+        updateTimestamp();
+    </script>
+</body>
+</html>
