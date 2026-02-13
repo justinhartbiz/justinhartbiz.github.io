@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLH Objection Library Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-hover: #1f3460;
+            --accent-primary: #e94560;
+            --accent-secondary: #0f3460;
+            --accent-gold: #f39c12;
+            --accent-green: #00d9a5;
+            --accent-blue: #3498db;
+            --accent-purple: #9b59b6;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6c6c7c;
+            --border-color: #2a2a4a;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 0 30px rgba(233, 69, 96, 0.2);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+            padding: 2rem 3rem;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-section h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-section p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            min-width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            width: 100%;
+            outline: none;
+            padding: 0.25rem;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-icon {
+            color: var(--text-muted);
+            margin-right: 0.5rem;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Summary Stats */
+        .summary-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--card-accent, var(--accent-primary));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .stat-card.losses { --card-accent: var(--accent-primary); }
+        .stat-card.top-reason { --card-accent: var(--accent-gold); }
+        .stat-card.sd-rate { --card-accent: var(--accent-green); }
+        .stat-card.oc-rate { --card-accent: var(--accent-blue); }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-sublabel {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-header h2::before {
+            content: '';
+            width: 4px;
+            height: 28px;
+            background: var(--accent-primary);
+            border-radius: 2px;
+        }
+
+        /* Filter Pills */
+        .filter-pills {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-pill:hover, .filter-pill.active {
+            background: var(--accent-primary);
+            color: var(--text-primary);
+            border-color: var(--accent-primary);
+        }
+
+        /* Objection Cards */
+        .objection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .objection-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .objection-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--accent-primary);
+        }
+
+        .objection-card.hidden {
+            display: none;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-rank {
+            background: var(--accent-primary);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .card-title-section {
+            flex: 1;
+            margin-left: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .card-percentage {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Market Distribution */
+        .market-dist {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .market-badge {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            border: 1px solid var(--border-color);
+        }
+
+        .market-badge .label {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .market-badge .value {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 0.25rem;
+        }
+
+        .market-badge.sd .value { color: var(--accent-green); }
+        .market-badge.oc .value { color: var(--accent-blue); }
+        .market-badge.la .value { color: var(--accent-purple); }
+
+        /* Lesson Box */
+        .lesson-box {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1) 0%, rgba(243, 156, 18, 0.05) 100%);
+            border-left: 3px solid var(--accent-gold);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .lesson-label {
+            color: var(--accent-gold);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Action Items */
+        .action-items {
+            margin-top: 1rem;
+        }
+
+        .action-header {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+
+        .action-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .action-item:last-child {
+            border-bottom: none;
+        }
+
+        .action-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+        }
+
+        .action-checkbox:hover {
+            border-color: var(--accent-green);
+        }
+
+        .action-checkbox.checked {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .action-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .action-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .action-item.completed .action-text {
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        /* Market Comparison Section */
+        .chart-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-container {
+            height: 400px;
+            position: relative;
+        }
+
+        /* Data Model Failures */
+        .failures-section {
+            margin-bottom: 3rem;
+        }
+
+        .failure-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .failure-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-left: 4px solid var(--accent-primary);
+            transition: all 0.3s ease;
+        }
+
+        .failure-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .failure-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .failure-title::before {
+            content: '⚠️';
+        }
+
+        .failure-desc {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .failure-lesson {
+            background: rgba(233, 69, 96, 0.1);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--accent-primary);
+        }
+
+        /* Top Fixable Problems */
+        .fixable-section {
+            background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .fixable-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .fixable-card {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fixable-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-gold));
+        }
+
+        .fixable-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            opacity: 0.3;
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+        }
+
+        .fixable-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            padding-right: 2rem;
+        }
+
+        .fixable-impact {
+            color: var(--accent-gold);
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+
+        .fixable-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 1.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .objection-grid, .failure-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .objection-card, .stat-card, .failure-card, .fixable-card {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 10;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1>📊 TLH Objection Library</h1>
+                <p>Learning from Closed-Lost Opportunities</p>
+            </div>
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="Search objections, lessons, actions...">
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Summary Stats -->
+        <section class="summary-section">
+            <div class="stat-card losses">
+                <div class="stat-value">158</div>
+                <div class="stat-label">Total Opps Lost</div>
+                <div class="stat-sublabel">Across all markets</div>
+            </div>
+            <div class="stat-card top-reason">
+                <div class="stat-value">26%</div>
+                <div class="stat-label">Top Reason</div>
+                <div class="stat-sublabel">"Too Small" estates</div>
+            </div>
+            <div class="stat-card sd-rate">
+                <div class="stat-value">25%</div>
+                <div class="stat-label">SD Win Rate</div>
+                <div class="stat-sublabel">Best performing market</div>
+            </div>
+            <div class="stat-card oc-rate">
+                <div class="stat-value">8%</div>
+                <div class="stat-label">OC Win Rate</div>
+                <div class="stat-sublabel">Needs improvement</div>
+            </div>
+        </section>
+
+        <!-- Market Comparison Chart -->
+        <section class="chart-section">
+            <div class="section-header">
+                <h2>Market Comparison</h2>
+                <div class="filter-pills">
+                    <span class="filter-pill active" data-filter="all">All Markets</span>
+                    <span class="filter-pill" data-filter="sd">San Diego</span>
+                    <span class="filter-pill" data-filter="oc">Orange County</span>
+                    <span class="filter-pill" data-filter="la">Los Angeles</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="marketChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Closed-Lost Reasons -->
+        <section class="objections-section">
+            <div class="section-header">
+                <h2>Closed-Lost Reasons</h2>
+            </div>
+            <div class="objection-grid" id="objection-grid">
+                <!-- Card 1: Too Small -->
+                <div class="objection-card" data-keywords="small size minimum threshold oc orange county la los angeles pre-qualify intake">
+                    <div class="card-header">
+                        <div class="card-rank">1</div>
+                        <div class="card-title-section">
+                            <div class="card-title">Estate "Too Small"</div>
+                            <div class="card-meta">
+                                <span>41 opps</span>
+                                <span>•</span>
+                                <span>#1 in OC & LA</span>
+                            </div>
+                        </div>
+                        <div class="card-percentage">26%</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="market-dist">
+                            <div class="market-badge sd"><span class="label">SD</span><span class="value">15</span></div>
+                            <div class="market-badge oc"><span class="label">OC</span><span class="value">18</span></div>
+                            <div class="market-badge la"><span class="label">LA</span><span class="value">8</span></div>
+                        </div>
+                        <div class="lesson-box">
+                            <div class="lesson-label">💡 Key Lesson</div>
+                            <div class="lesson-text">Pre-qualify estate size earlier in funnel. OC/LA need lower minimums or referral partners for small estates.</div>
+                        </div>
+                        <div class="action-items">
+                            <div class="action-header">Action Items</div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Add estate size question to intake form</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Define market-specific minimums (SD vs OC vs LA)</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Build referral partner network for sub-threshold estates</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Decided Not to Sell -->
+                <div class="objection-card" data-keywords="decided sell cold feet timing family commitment checkpoint fence-sitter">
+                    <div class="card-header">
+                        <div class="card-rank">2</div>
+                        <div class="card-title-section">
+                            <div class="card-title">Decided Not to Sell</div>
+                            <div class="card-meta">
+                                <span>39 opps</span>
+                                <span>•</span>
+                                <span>Consistent all markets</span>
+                            </div>
+                        </div>
+                        <div class="card-percentage">25%</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="market-dist">
+                            <div class="market-badge sd"><span class="label">SD</span><span class="value">20</span></div>
+                            <div class="market-badge oc"><span class="label">OC</span><span class="value">12</span></div>
+                            <div class="market-badge la"><span class="label">LA</span><span class="value">7</span></div>
+                        </div>
+                        <div class="lesson-box">
+                            <div class="lesson-label">💡 Key Lesson</div>
+                            <div class="lesson-text">Implement commitment checkpoints. Ask "What would cause you NOT to proceed?" early. Identify fence-sitters before investing resources.</div>
+                        </div>
+                        <div class="action-items">
+                            <div class="action-header">Action Items</div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Add Day 7 "commitment checkpoint" call</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Create "fence-sitter" identification criteria</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Build early exit detection into cadence</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Project Difficulty -->
+                <div class="objection-card" data-keywords="project difficulty hoarder complex family dynamics san diego premium pricing">
+                    <div class="card-header">
+                        <div class="card-rank">3</div>
+                        <div class="card-title-section">
+                            <div class="card-title">Project Difficulty</div>
+                            <div class="card-meta">
+                                <span>17 opps</span>
+                                <span>•</span>
+                                <span>Heavy in SD</span>
+                            </div>
+                        </div>
+                        <div class="card-percentage">11%</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="market-dist">
+                            <div class="market-badge sd"><span class="label">SD</span><span class="value">12</span></div>
+                            <div class="market-badge oc"><span class="label">OC</span><span class="value">2</span></div>
+                            <div class="market-badge la"><span class="label">LA</span><span class="value">3</span></div>
+                        </div>
+                        <div class="lesson-box">
+                            <div class="lesson-label">💡 Key Lesson</div>
+                            <div class="lesson-text">SD may need complexity screening questions. Consider "difficult project" premium pricing tier or partner network.</div>
+                        </div>
+                        <div class="action-items">
+                            <div class="action-header">Action Items</div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Add complexity screening questions for SD leads</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Define "difficult project" pricing tier</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Build partner network for hoarder/complex situations</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Stopped Responding -->
+                <div class="objection-card" data-keywords="stopped responding ghost ghosting follow-up multi-channel win-back">
+                    <div class="card-header">
+                        <div class="card-rank">4</div>
+                        <div class="card-title-section">
+                            <div class="card-title">Stopped Responding</div>
+                            <div class="card-meta">
+                                <span>15 opps</span>
+                                <span>•</span>
+                                <span>Ghosting after engagement</span>
+                            </div>
+                        </div>
+                        <div class="card-percentage">9%</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="market-dist">
+                            <div class="market-badge sd"><span class="label">SD</span><span class="value">8</span></div>
+                            <div class="market-badge oc"><span class="label">OC</span><span class="value">5</span></div>
+                            <div class="market-badge la"><span class="label">LA</span><span class="value">2</span></div>
+                        </div>
+                        <div class="lesson-box">
+                            <div class="lesson-label">💡 Key Lesson</div>
+                            <div class="lesson-text">Multi-channel follow-up cadence. After 3 failed contacts, send "Are we still good?" letter. Consider win-back campaigns.</div>
+                        </div>
+                        <div class="action-items">
+                            <div class="action-header">Action Items</div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Implement 3-strike ghost detection</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Create "Are we still good?" letter template</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Build 90-day win-back campaign</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5: Competitor -->
+                <div class="objection-card" data-keywords="competitor grasons competitive positioning discovery differentiation">
+                    <div class="card-header">
+                        <div class="card-rank">5</div>
+                        <div class="card-title-section">
+                            <div class="card-title">Went with Competitor</div>
+                            <div class="card-meta">
+                                <span>14 opps</span>
+                                <span>•</span>
+                                <span>Most in SD</span>
+                            </div>
+                        </div>
+                        <div class="card-percentage">9%</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="market-dist">
+                            <div class="market-badge sd"><span class="label">SD</span><span class="value">9</span></div>
+                            <div class="market-badge oc"><span class="label">OC</span><span class="value">3</span></div>
+                            <div class="market-badge la"><span class="label">LA</span><span class="value">2</span></div>
+                        </div>
+                        <div class="lesson-box">
+                            <div class="lesson-label">💡 Key Lesson</div>
+                            <div class="lesson-text">SD needs stronger competitive positioning. Ask "Who else are you talking to?" and customize pitch accordingly.</div>
+                        </div>
+                        <div class="action-items">
+                            <div class="action-header">Action Items</div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Add "who else are you considering?" to discovery</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Create competitor comparison one-pager</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Train team on SD competitive differentiation</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 6: HOA Restrictions -->
+                <div class="objection-card" data-keywords="hoa gated community condo restrictions venue private sale">
+                    <div class="card-header">
+                        <div class="card-rank">6</div>
+                        <div class="card-title-section">
+                            <div class="card-title">HOA/Gated Community</div>
+                            <div class="card-meta">
+                                <span>11 opps</span>
+                                <span>•</span>
+                                <span>SD 4x worse than OC</span>
+                            </div>
+                        </div>
+                        <div class="card-percentage">7%</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="market-dist">
+                            <div class="market-badge sd"><span class="label">SD</span><span class="value">8</span></div>
+                            <div class="market-badge oc"><span class="label">OC</span><span class="value">2</span></div>
+                            <div class="market-badge la"><span class="label">LA</span><span class="value">1</span></div>
+                        </div>
+                        <div class="lesson-box">
+                            <div class="lesson-label">💡 Key Lesson</div>
+                            <div class="lesson-text">Ask about HOA early. Build list of HOA-friendly venues/alternatives. Consider "private sale" model for restricted communities.</div>
+                        </div>
+                        <div class="action-items">
+                            <div class="action-header">Action Items</div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Add HOA question to intake form</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Build HOA-friendly venue database</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Create "private sale" service option</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 7: Donate/Trash -->
+                <div class="objection-card" data-keywords="donate trash donation value expectations minimum viable walkthrough">
+                    <div class="card-header">
+                        <div class="card-rank">7</div>
+                        <div class="card-title-section">
+                            <div class="card-title">Decided to Donate/Trash</div>
+                            <div class="card-meta">
+                                <span>6 opps</span>
+                                <span>•</span>
+                                <span>Value perception issue</span>
+                            </div>
+                        </div>
+                        <div class="card-percentage">4%</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="market-dist">
+                            <div class="market-badge sd"><span class="label">SD</span><span class="value">4</span></div>
+                            <div class="market-badge oc"><span class="label">OC</span><span class="value">2</span></div>
+                            <div class="market-badge la"><span class="label">LA</span><span class="value">0</span></div>
+                        </div>
+                        <div class="lesson-box">
+                            <div class="lesson-label">💡 Key Lesson</div>
+                            <div class="lesson-text">Set realistic expectations early. Offer "minimum viable sale" option. Partner with donation services for referral fee.</div>
+                        </div>
+                        <div class="action-items">
+                            <div class="action-header">Action Items</div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Create pre-walkthrough value expectations guide</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Define "minimum viable sale" service tier</span>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-checkbox" onclick="toggleAction(this)"></div>
+                                <span class="action-text">Partner with donation services (tax receipt value prop)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Top 3 Fixable Problems -->
+        <section class="fixable-section">
+            <div class="section-header">
+                <h2>🎯 Top 3 Fixable Problems</h2>
+            </div>
+            <div class="fixable-grid">
+                <div class="fixable-card">
+                    <div class="fixable-number">1</div>
+                    <div class="fixable-title">"Too Small" (26% of losses)</div>
+                    <div class="fixable-impact">+30 deals/year potential</div>
+                    <div class="fixable-desc">OC and LA have different sizing economics than SD. Market-specific minimums could capture 30+ additional deals annually.</div>
+                </div>
+                <div class="fixable-card">
+                    <div class="fixable-number">2</div>
+                    <div class="fixable-title">"Decided Not to Sell" (25%)</div>
+                    <div class="fixable-impact">Day 7 checkpoint needed</div>
+                    <div class="fixable-desc">Late-funnel dropout indicates commitment isn't being tested early. Add explicit "commitment checkpoint" at day 7.</div>
+                </div>
+                <div class="fixable-card">
+                    <div class="fixable-number">3</div>
+                    <div class="fixable-title">"Stopped Responding" (9%)</div>
+                    <div class="fixable-impact">Reducible with follow-up</div>
+                    <div class="fixable-desc">Ghost rate reducible with multi-channel follow-up and explicit "status check" touchpoints.</div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="progress-label">
+                <span>Action Items Completed</span>
+                <span id="progress-text">0 of 21</span>
+            </div>
+        </section>
+
+        <!-- Data Model Failures -->
+        <section class="failures-section">
+            <div class="section-header">
+                <h2>⚠️ Data Model Failures (Salesforce)</h2>
+            </div>
+            <div class="failure-grid">
+                <div class="failure-card">
+                    <div class="failure-title">Property Account Anti-Pattern</div>
+                    <div class="failure-desc">Using "Property Account" record type when properties are not accounts. Causes reporting confusion, automation conflicts, and prevents proper Account hierarchies.</div>
+                    <div class="failure-lesson">💡 Don't overload objects with record types for different entity types. Properties need their own object.</div>
+                </div>
+                <div class="failure-card">
+                    <div class="failure-title">Contact + Person Account Confusion</div>
+                    <div class="failure-desc">Same humans exist in both Contact and Person Account objects. 9,301 records with no single source of truth.</div>
+                    <div class="failure-lesson">💡 Pick ONE pattern for people records. Person Account or Contact, not both. Merge and migrate.</div>
+                </div>
+                <div class="failure-card">
+                    <div class="failure-title">Property Lead Misuse</div>
+                    <div class="failure-desc">A property is not a lead. MLS data represents physical assets, not people expressing interest.</div>
+                    <div class="failure-lesson">💡 Create separate MLS Lead object for property data. Reserve Lead object for people-based interest signals.</div>
+                </div>
+                <div class="failure-card">
+                    <div class="failure-title">Record Type Proliferation</div>
+                    <div class="failure-desc">Account: 8 record types | Lead: 4 record types. When objects need 8+ record types, they're being asked to do too much.</div>
+                    <div class="failure-lesson">💡 If record types represent different "things" (not just different processes), you need separate objects.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>TLH Objection Library Dashboard • Last updated: February 13, 2026</p>
+    </footer>
+
+    <script>
+        // Chart.js - Market Comparison
+        const ctx = document.getElementById('marketChart').getContext('2d');
+        
+        const chartData = {
+            labels: ['Too Small', 'Decided Not to Sell', 'Project Difficulty', 'Stopped Responding', 'Competitor', 'HOA Restrictions', 'Donate/Trash'],
+            datasets: [
+                {
+                    label: 'San Diego',
+                    data: [15, 20, 12, 8, 9, 8, 4],
+                    backgroundColor: 'rgba(0, 217, 165, 0.8)',
+                    borderColor: 'rgba(0, 217, 165, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                },
+                {
+                    label: 'Orange County',
+                    data: [18, 12, 2, 5, 3, 2, 2],
+                    backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                },
+                {
+                    label: 'Los Angeles',
+                    data: [8, 7, 3, 2, 2, 1, 0],
+                    backgroundColor: 'rgba(155, 89, 182, 0.8)',
+                    borderColor: 'rgba(155, 89, 182, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                }
+            ]
+        };
+
+        const marketChart = new Chart(ctx, {
+            type: 'bar',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#a0a0b0',
+                            font: { size: 13 },
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1a1a2e',
+                        titleColor: '#ffffff',
+                        bodyColor: '#a0a0b0',
+                        borderColor: '#2a2a4a',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        padding: 12
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(42, 42, 74, 0.5)',
+                        },
+                        ticks: {
+                            color: '#6c6c7c',
+                            font: { size: 11 }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(42, 42, 74, 0.5)',
+                        },
+                        ticks: {
+                            color: '#6c6c7c',
+                            font: { size: 11 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Filter Pills
+        document.querySelectorAll('.filter-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.dataset.filter;
+                const datasets = marketChart.data.datasets;
+                
+                if (filter === 'all') {
+                    datasets.forEach(ds => ds.hidden = false);
+                } else {
+                    datasets.forEach(ds => {
+                        if (filter === 'sd') ds.hidden = ds.label !== 'San Diego';
+                        else if (filter === 'oc') ds.hidden = ds.label !== 'Orange County';
+                        else if (filter === 'la') ds.hidden = ds.label !== 'Los Angeles';
+                    });
+                }
+                marketChart.update();
+            });
+        });
+
+        // Action Item Toggle
+        function toggleAction(checkbox) {
+            checkbox.classList.toggle('checked');
+            checkbox.closest('.action-item').classList.toggle('completed');
+            updateProgress();
+            saveState();
+        }
+
+        // Progress Tracking
+        function updateProgress() {
+            const total = document.querySelectorAll('.action-checkbox').length;
+            const completed = document.querySelectorAll('.action-checkbox.checked').length;
+            const percentage = (completed / total) * 100;
+            
+            document.getElementById('progress-fill').style.width = percentage + '%';
+            document.getElementById('progress-text').textContent = `${completed} of ${total}`;
+        }
+
+        // Search Functionality
+        document.getElementById('search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.objection-card');
+            
+            cards.forEach(card => {
+                const keywords = card.dataset.keywords || '';
+                const text = card.textContent.toLowerCase();
+                const matches = text.includes(searchTerm) || keywords.includes(searchTerm);
+                
+                card.classList.toggle('hidden', !matches && searchTerm !== '');
+            });
+        });
+
+        // Local Storage for persistence
+        function saveState() {
+            const checked = [];
+            document.querySelectorAll('.action-checkbox').forEach((cb, i) => {
+                if (cb.classList.contains('checked')) checked.push(i);
+            });
+            localStorage.setItem('tlh-objection-actions', JSON.stringify(checked));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('tlh-objection-actions');
+            if (saved) {
+                const checked = JSON.parse(saved);
+                document.querySelectorAll('.action-checkbox').forEach((cb, i) => {
+                    if (checked.includes(i)) {
+                        cb.classList.add('checked');
+                        cb.closest('.action-item').classList.add('completed');
+                    }
+                });
+            }
+            updateProgress();
+        }
+
+        // Initialize
+        loadState();
+    </script>
+</body>
+</html>

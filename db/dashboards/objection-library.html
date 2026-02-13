@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DonorBureau Objection Library | Campaign Intelligence</title>
+    <style>
+        :root {
+            --bg-primary: #0f0f13;
+            --bg-secondary: #1a1a24;
+            --bg-tertiary: #252533;
+            --bg-hover: #2d2d3d;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --accent-red: #ff4757;
+            --accent-red-dim: #ff475733;
+            --accent-orange: #ffa502;
+            --accent-orange-dim: #ffa50233;
+            --accent-yellow: #ffd93d;
+            --accent-green: #26de81;
+            --accent-blue: #4dabf7;
+            --accent-purple: #9775fa;
+            --border-color: #2a2a3a;
+            --gradient-red: linear-gradient(135deg, #ff4757, #ff6b81);
+            --gradient-orange: linear-gradient(135deg, #ffa502, #ffbe0b);
+            --gradient-blue: linear-gradient(135deg, #4dabf7, #74c0fc);
+            --gradient-purple: linear-gradient(135deg, #9775fa, #b197fc);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-red);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo span {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        /* Search */
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            width: 320px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .stat-card.red::before { background: var(--gradient-red); }
+        .stat-card.orange::before { background: var(--gradient-orange); }
+        .stat-card.blue::before { background: var(--gradient-blue); }
+        .stat-card.purple::before { background: var(--gradient-purple); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card.red .stat-value { color: var(--accent-red); }
+        .stat-card.orange .stat-value { color: var(--accent-orange); }
+        .stat-card.blue .stat-value { color: var(--accent-blue); }
+        .stat-card.purple .stat-value { color: var(--accent-purple); }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            background: var(--bg-secondary);
+            padding: 0.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-tab:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-tab.active {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .nav-tab .badge {
+            background: var(--accent-red);
+            color: white;
+            padding: 0.1rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        /* Section */
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .campaign-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .campaign-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            border-color: var(--accent-blue);
+        }
+
+        .campaign-card.danger {
+            border-left: 4px solid var(--accent-red);
+        }
+
+        .campaign-card.warning {
+            border-left: 4px solid var(--accent-orange);
+        }
+
+        .campaign-card.info {
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .card-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-badge.danger {
+            background: var(--accent-red-dim);
+            color: var(--accent-red);
+        }
+
+        .card-badge.warning {
+            background: var(--accent-orange-dim);
+            color: var(--accent-orange);
+        }
+
+        /* Metrics Row */
+        .metrics-row {
+            display: flex;
+            gap: 1.5rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .metric-value.danger { color: var(--accent-red); }
+        .metric-value.warning { color: var(--accent-orange); }
+        .metric-value.success { color: var(--accent-green); }
+
+        .metric-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Volume Bar */
+        .volume-bar-container {
+            margin: 1rem 0;
+        }
+
+        .volume-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .volume-bar {
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .volume-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .volume-bar-fill.high { background: var(--gradient-red); }
+        .volume-bar-fill.medium { background: var(--gradient-orange); }
+        .volume-bar-fill.low { background: var(--gradient-blue); }
+
+        /* Lesson Box */
+        .lesson-box {
+            background: linear-gradient(135deg, rgba(77, 171, 247, 0.1), rgba(151, 117, 250, 0.1));
+            border: 1px solid rgba(77, 171, 247, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .lesson-box .icon {
+            margin-right: 0.5rem;
+        }
+
+        .lesson-box p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        th:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        th.sorted::after {
+            content: ' ▼';
+            font-size: 0.7rem;
+        }
+
+        th.sorted.asc::after {
+            content: ' ▲';
+        }
+
+        td {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        .cell-creative {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.85rem;
+            color: var(--accent-purple);
+        }
+
+        .cell-number {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .cell-danger {
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        .cell-warning {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        /* Kill Criteria Section */
+        .kill-criteria {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .kill-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s;
+        }
+
+        .kill-card:hover {
+            border-color: var(--accent-red);
+            background: var(--bg-hover);
+        }
+
+        .kill-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .kill-icon.red {
+            background: var(--accent-red-dim);
+        }
+
+        .kill-icon.orange {
+            background: var(--accent-orange-dim);
+        }
+
+        .kill-content h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .kill-content .threshold {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-red);
+        }
+
+        .kill-content .action {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Patterns Section */
+        .patterns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .pattern-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pattern-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gradient-purple);
+        }
+
+        .pattern-number {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--bg-tertiary);
+        }
+
+        .pattern-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pattern-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Lists to Avoid */
+        .lists-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .list-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .list-item:hover {
+            border-color: var(--accent-orange);
+        }
+
+        .list-name {
+            font-weight: 600;
+        }
+
+        .list-issue {
+            color: var(--accent-orange);
+            font-size: 0.9rem;
+        }
+
+        .list-action {
+            background: var(--bg-tertiary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Filter Pills */
+        .filter-pills {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-pill:hover, .filter-pill.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .no-results .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 4rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .search-input { width: 100%; }
+            .cards-grid { grid-template-columns: 1fr; }
+            .metrics-row { flex-wrap: wrap; }
+            .list-item { grid-template-columns: 1fr; gap: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <div>
+                    <h1>Objection Library</h1>
+                    <span>DonorBureau Campaign Intelligence</span>
+                </div>
+            </div>
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search campaigns, lists, patterns...">
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-card red">
+                <div class="stat-value">830K+</div>
+                <div class="stat-label">Zero Conversion Sends</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="stat-value">18.23%</div>
+                <div class="stat-label">Worst Unsub Rate</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-value">0.07%</div>
+                <div class="stat-label">Worst CTR</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-value">10</div>
+                <div class="stat-label">Worst Creatives</div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-section="zero-conversion">
+                🚫 Zero Conversion <span class="badge">4</span>
+            </button>
+            <button class="nav-tab" data-section="high-unsub">
+                🔴 High Unsubs <span class="badge">4</span>
+            </button>
+            <button class="nav-tab" data-section="low-engagement">
+                📉 Low Engagement
+            </button>
+            <button class="nav-tab" data-section="worst-creatives">
+                ⚠️ Worst Creatives
+            </button>
+            <button class="nav-tab" data-section="lists-avoid">
+                🚷 Lists to Avoid
+            </button>
+            <button class="nav-tab" data-section="kill-criteria">
+                ☠️ Kill Criteria
+            </button>
+            <button class="nav-tab" data-section="failure-patterns">
+                📋 Failure Patterns
+            </button>
+        </div>
+
+        <!-- Zero Conversion Section -->
+        <div class="section active" id="zero-conversion">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="icon" style="background: var(--gradient-red);">🚫</span>
+                    Zero Conversion Campaigns
+                </h2>
+            </div>
+            
+            <div class="cards-grid" id="zeroConversionCards">
+                <!-- Medicare Advocacy -->
+                <div class="campaign-card danger searchable" data-keywords="medicare advocacy cr-62 sms cpa acquisitions">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Medicare Advocacy (Cr-62SMS)</div>
+                            <div class="card-subtitle">Medicare Advantage Majority · 23 campaigns</div>
+                        </div>
+                        <span class="card-badge danger">0 Donors</span>
+                    </div>
+                    <div class="volume-bar-container">
+                        <div class="volume-bar-label">
+                            <span>Send Volume</span>
+                            <span>830,394</span>
+                        </div>
+                        <div class="volume-bar">
+                            <div class="volume-bar-fill high" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">830K</div>
+                            <div class="metric-label">Sent</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">0</div>
+                            <div class="metric-label">Donors</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value warning">0.41-0.96%</div>
+                            <div class="metric-label">CTR Range</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> Advocacy campaigns need different success metrics. If CPA-focused, track acquisitions not donors. Otherwise, creative/offer mismatch.</p>
+                    </div>
+                </div>
+
+                <!-- Sustainable Rx Pricing -->
+                <div class="campaign-card danger searchable" data-keywords="sustainable rx pricing cr-56 sms winred actblue political mismatch">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Sustainable Rx Pricing (Cr-56SMS)</div>
+                            <div class="card-subtitle">Campaign for Sustainable Rx Pricing · 13 campaigns</div>
+                        </div>
+                        <span class="card-badge danger">0 Donors</span>
+                    </div>
+                    <div class="volume-bar-container">
+                        <div class="volume-bar-label">
+                            <span>Send Volume</span>
+                            <span>275,057</span>
+                        </div>
+                        <div class="volume-bar">
+                            <div class="volume-bar-fill high" style="width: 33%;"></div>
+                        </div>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">275K</div>
+                            <div class="metric-label">Sent</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">0</div>
+                            <div class="metric-label">Donors</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value warning">L2 Left</div>
+                            <div class="metric-label">List</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> Audience-platform alignment matters. Left-leaning audiences + WinRed = trust barrier. Test ActBlue or neutral platforms.</p>
+                    </div>
+                </div>
+
+                <!-- Shai Fund -->
+                <div class="campaign-card danger searchable" data-keywords="shai fund cr-02 sms nonprofit jewish israel db donors">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Shai Fund (Cr-02SMS)</div>
+                            <div class="card-subtitle">Shai Fund · DB Donors</div>
+                        </div>
+                        <span class="card-badge danger">0 Donors</span>
+                    </div>
+                    <div class="volume-bar-container">
+                        <div class="volume-bar-label">
+                            <span>Send Volume</span>
+                            <span>46,000</span>
+                        </div>
+                        <div class="volume-bar">
+                            <div class="volume-bar-fill medium" style="width: 5.5%;"></div>
+                        </div>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">46K</div>
+                            <div class="metric-label">Sent</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">0</div>
+                            <div class="metric-label">Donors</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">0.58%</div>
+                            <div class="metric-label">CTR</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> Cause-specific nonprofits need cause-aligned audiences. Test Jewish community lists or Israel-supporting segments.</p>
+                    </div>
+                </div>
+
+                <!-- Coalition Future -->
+                <div class="campaign-card danger searchable" data-keywords="coalition future cr-40 sms high unsub db responders">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Coalition Future (Cr-40SMS)</div>
+                            <div class="card-subtitle">Coalition to Empower our Future · DB Responders</div>
+                        </div>
+                        <span class="card-badge danger">11.24% Unsub</span>
+                    </div>
+                    <div class="volume-bar-container">
+                        <div class="volume-bar-label">
+                            <span>Send Volume</span>
+                            <span>13,995</span>
+                        </div>
+                        <div class="volume-bar">
+                            <div class="volume-bar-fill low" style="width: 1.7%;"></div>
+                        </div>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">14K</div>
+                            <div class="metric-label">Sent</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">0</div>
+                            <div class="metric-label">Donors</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">11.24%</div>
+                            <div class="metric-label">Unsub Rate</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> 11%+ unsub rate = audience rejection. Pause campaign immediately. Test completely different messaging or list segment.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- High Unsub Section -->
+        <div class="section" id="high-unsub">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="icon" style="background: var(--gradient-orange);">🔴</span>
+                    High Unsubscribe Campaigns
+                </h2>
+            </div>
+            
+            <div class="filter-pills">
+                <button class="filter-pill active" data-filter="all">All</button>
+                <button class="filter-pill" data-filter="10+">10%+ (Critical)</button>
+                <button class="filter-pill" data-filter="5-10">5-10% (Warning)</button>
+            </div>
+            
+            <div class="cards-grid" id="highUnsubCards">
+                <!-- Husted -->
+                <div class="campaign-card danger searchable" data-keywords="husted john ohio senate oh-sen cr-05 db donors" data-unsub="18.23">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Husted Ohio Senate (Cr-05SMS)</div>
+                            <div class="card-subtitle">John Husted (OH-Sen) · DB Donors</div>
+                        </div>
+                        <span class="card-badge danger">🚨 18.23%</span>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">4,997</div>
+                            <div class="metric-label">Sent</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">18.23%</div>
+                            <div class="metric-label">Unsub Rate</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">0</div>
+                            <div class="metric-label">Donors</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> State-specific candidates to national lists = fatigue. Ohio candidates should target Ohio donors or use softer intro messaging.</p>
+                    </div>
+                </div>
+
+                <!-- Kiggans -->
+                <div class="campaign-card danger searchable" data-keywords="kiggans jen virginia va-02 cr-07 db donors" data-unsub="17.24">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Kiggans VA-02 (Cr-07SMS)</div>
+                            <div class="card-subtitle">Jen Kiggans (VA-02) · DB Donors</div>
+                        </div>
+                        <span class="card-badge danger">🚨 17.24%</span>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">4,999</div>
+                            <div class="metric-label">Sent</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">17.24%</div>
+                            <div class="metric-label">Unsub Rate</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">0</div>
+                            <div class="metric-label">Donors</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> District-level candidates need district-level lists. National sends are list-burners with no upside.</p>
+                    </div>
+                </div>
+
+                <!-- Jim Jordan -->
+                <div class="campaign-card danger searchable" data-keywords="jordan jim ohio oh-4 cr-266 db donors famous clicks" data-unsub="11.53">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Jim Jordan (Cr-266SMS)</div>
+                            <div class="card-subtitle">Jim Jordan (OH-4) · DB Donors</div>
+                        </div>
+                        <span class="card-badge danger">11.53%</span>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">5,004</div>
+                            <div class="metric-label">Sent</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">11.53%</div>
+                            <div class="metric-label">Unsub Rate</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value success">3.42%</div>
+                            <div class="metric-label">CTR</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> Famous names get clicks but not necessarily donations. Landing page/ask mismatch. Test lower first-ask amounts.</p>
+                    </div>
+                </div>
+
+                <!-- Senate Leadership Fund -->
+                <div class="campaign-card warning searchable" data-keywords="senate leadership fund pac cr-55 db donors fatigue" data-unsub="8.21">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Senate Leadership Fund (Cr-55SMS)</div>
+                            <div class="card-subtitle">Senate Leadership Fund · DB Donors</div>
+                        </div>
+                        <span class="card-badge warning">8.21%</span>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">4,991</div>
+                            <div class="metric-label">Sent</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value warning">8.21%</div>
+                            <div class="metric-label">Unsub Rate</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">PAC</div>
+                            <div class="metric-label">Type</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> PAC frequency management needed. Track PAC sends per contact. Consider PAC suppression windows.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Engagement Section -->
+        <div class="section" id="low-engagement">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="icon" style="background: var(--gradient-blue);">📉</span>
+                    Low Engagement Patterns
+                </h2>
+            </div>
+            
+            <div class="cards-grid">
+                <!-- Hillsdale College -->
+                <div class="campaign-card info searchable" data-keywords="hillsdale college email em-176 american liberty news ctr deliverability">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Hillsdale College (Em-176)</div>
+                            <div class="card-subtitle">Email · American Liberty News</div>
+                        </div>
+                        <span class="card-badge danger">0.07% CTR</span>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">71,027</div>
+                            <div class="metric-label">Sent</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">0.07%</div>
+                            <div class="metric-label">CTR</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">~50</div>
+                            <div class="metric-label">Clicks</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> Sub-0.1% CTR = deliverability problem OR subject line failure. Check spam rates first, then A/B test subjects.</p>
+                    </div>
+                </div>
+
+                <!-- CPA Acquisitions Pattern -->
+                <div class="campaign-card info searchable" data-keywords="cpa acquisitions list pattern multiple clients exhausted hygiene">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">CPA Acquisitions List Pattern</div>
+                            <div class="card-subtitle">Multiple Clients · Consistent underperformance</div>
+                        </div>
+                        <span class="card-badge warning">0.5-0.8% CTR</span>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">Multiple</div>
+                            <div class="metric-label">Campaigns</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value warning">&lt;1%</div>
+                            <div class="metric-label">Avg CTR</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">Pattern</div>
+                            <div class="metric-label">Type</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> CPA Acquisitions list may be exhausted or poorly matched. Consider list hygiene audit or retirement.</p>
+                    </div>
+                </div>
+
+                <!-- L2 Soft Suppressions -->
+                <div class="campaign-card warning searchable" data-keywords="l2 soft suppressions stops burned contacts 1-2 3-8 9+ tiers">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">L2 Soft Suppressions Pattern</div>
+                            <div class="card-subtitle">1-2 STOPS → 3-8 STOPS → 9+ STOPS</div>
+                        </div>
+                        <span class="card-badge danger">8%+ Unsubs</span>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">9+ STOPS</div>
+                            <div class="metric-label">Worst Tier</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">0.41%</div>
+                            <div class="metric-label">CTR</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value danger">8%+</div>
+                            <div class="metric-label">Unsub</div>
+                        </div>
+                    </div>
+                    <div class="lesson-box">
+                        <p><span class="icon">💡</span> <strong>Lesson:</strong> STOP-count lists are last resort only. Expected ROI should account for high unsub/complaint costs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Worst Creatives Section -->
+        <div class="section" id="worst-creatives">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="icon" style="background: var(--gradient-orange);">⚠️</span>
+                    Worst Performing Creatives
+                </h2>
+            </div>
+            
+            <div class="table-container">
+                <table id="creativesTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="creative">Creative</th>
+                            <th data-sort="sent" class="sorted">Total Sent</th>
+                            <th data-sort="donors">Donors</th>
+                            <th data-sort="revenue">Revenue</th>
+                            <th data-sort="conv">Conv Rate</th>
+                            <th data-sort="campaigns">Campaigns</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="searchable" data-keywords="cr-62sms medicare advocacy cpa">
+                            <td class="cell-creative">Cr-62SMS</td>
+                            <td class="cell-number">830,394</td>
+                            <td class="cell-danger">0</td>
+                            <td class="cell-number">$8,958 <small>(CPA)</small></td>
+                            <td class="cell-danger">0.00%</td>
+                            <td>23</td>
+                        </tr>
+                        <tr class="searchable" data-keywords="cr-20smsb cpa">
+                            <td class="cell-creative">Cr-20SMSb</td>
+                            <td class="cell-number">341,107</td>
+                            <td class="cell-danger">0</td>
+                            <td class="cell-number">$3,984 <small>(CPA)</small></td>
+                            <td class="cell-danger">0.00%</td>
+                            <td>27</td>
+                        </tr>
+                        <tr class="searchable" data-keywords="cr-56sms sustainable rx pricing cpa">
+                            <td class="cell-creative">Cr-56SMS</td>
+                            <td class="cell-number">275,057</td>
+                            <td class="cell-danger">0</td>
+                            <td class="cell-number">$1,415 <small>(CPA)</small></td>
+                            <td class="cell-danger">0.00%</td>
+                            <td>13</td>
+                        </tr>
+                        <tr class="searchable" data-keywords="cr-23sms cpa">
+                            <td class="cell-creative">Cr-23SMS</td>
+                            <td class="cell-number">98,441</td>
+                            <td class="cell-danger">0</td>
+                            <td class="cell-number">$452 <small>(CPA)</small></td>
+                            <td class="cell-danger">0.00%</td>
+                            <td>6</td>
+                        </tr>
+                        <tr class="searchable" data-keywords="cr-36sms">
+                            <td class="cell-creative">Cr-36SMS</td>
+                            <td class="cell-number">80,588</td>
+                            <td class="cell-danger">0</td>
+                            <td class="cell-number">$235</td>
+                            <td class="cell-danger">0.00%</td>
+                            <td>9</td>
+                        </tr>
+                        <tr class="searchable" data-keywords="cr-148sms cpa">
+                            <td class="cell-creative">Cr-148SMS</td>
+                            <td class="cell-number">64,263</td>
+                            <td class="cell-danger">0</td>
+                            <td class="cell-number">$585 <small>(CPA)</small></td>
+                            <td class="cell-danger">0.00%</td>
+                            <td>6</td>
+                        </tr>
+                        <tr class="searchable" data-keywords="cr-87sms cpa">
+                            <td class="cell-creative">Cr-87SMS</td>
+                            <td class="cell-number">57,955</td>
+                            <td class="cell-danger">0</td>
+                            <td class="cell-number">$1,365 <small>(CPA)</small></td>
+                            <td class="cell-danger">0.00%</td>
+                            <td>5</td>
+                        </tr>
+                        <tr class="searchable" data-keywords="cr-09 cpa">
+                            <td class="cell-creative">Cr-09</td>
+                            <td class="cell-number">43,768</td>
+                            <td class="cell-danger">0</td>
+                            <td class="cell-number">$1,062 <small>(CPA)</small></td>
+                            <td class="cell-danger">0.00%</td>
+                            <td>5</td>
+                        </tr>
+                        <tr class="searchable" data-keywords="cr-03b cpa">
+                            <td class="cell-creative">Cr-03b</td>
+                            <td class="cell-number">40,993</td>
+                            <td class="cell-danger">0</td>
+                            <td class="cell-number">$847 <small>(CPA)</small></td>
+                            <td class="cell-danger">0.00%</td>
+                            <td>8</td>
+                        </tr>
+                        <tr class="searchable" data-keywords="cr-02c">
+                            <td class="cell-creative">Cr-02c</td>
+                            <td class="cell-number">35,666</td>
+                            <td class="cell-danger">0</td>
+                            <td class="cell-number">$465</td>
+                            <td class="cell-danger">0.00%</td>
+                            <td>8</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="lesson-box" style="margin-top: 1.5rem; max-width: 800px;">
+                <p><span class="icon">💡</span> <strong>Note:</strong> Some campaigns track CPA (acquisitions) rather than donations. Check campaign goals before assuming failure.</p>
+            </div>
+        </div>
+
+        <!-- Lists to Avoid Section -->
+        <div class="section" id="lists-avoid">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="icon" style="background: var(--gradient-red);">🚷</span>
+                    Lists to Avoid or Audit
+                </h2>
+            </div>
+            
+            <div class="lists-grid">
+                <div class="list-item searchable" data-keywords="l2 soft suppressions 9+ stops burned">
+                    <div>
+                        <div class="list-name">L2 Soft Suppressions (9+ STOPS)</div>
+                        <div class="list-issue">0.41% CTR, 8%+ unsub</div>
+                    </div>
+                    <div class="list-action">🚨 Last resort only</div>
+                </div>
+                
+                <div class="list-item searchable" data-keywords="cpa acquisitions hygiene exhausted">
+                    <div>
+                        <div class="list-name">CPA Acquisitions</div>
+                        <div class="list-issue">Sub-1% CTR across clients</div>
+                    </div>
+                    <div class="list-action">🔍 Hygiene audit or retire</div>
+                </div>
+                
+                <div class="list-item searchable" data-keywords="l2 independent leaning winred actblue platform mismatch">
+                    <div>
+                        <div class="list-name">L2 Independent Leaning + WinRed</div>
+                        <div class="list-issue">Political platform mismatch</div>
+                    </div>
+                    <div class="list-action">🔄 Use different platform</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kill Criteria Section -->
+        <div class="section" id="kill-criteria">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="icon" style="background: var(--gradient-red);">☠️</span>
+                    When to Kill a Campaign
+                </h2>
+            </div>
+            
+            <div class="kill-criteria">
+                <div class="kill-card searchable" data-keywords="unsub unsubscribe rate pause investigate">
+                    <div class="kill-icon orange">📊</div>
+                    <div class="kill-content">
+                        <h4>Unsub Rate</h4>
+                        <div class="threshold">&gt; 5%</div>
+                        <div class="action">⏸️ Pause and investigate</div>
+                    </div>
+                </div>
+                
+                <div class="kill-card searchable" data-keywords="unsub unsubscribe rate kill immediately critical">
+                    <div class="kill-icon red">🚨</div>
+                    <div class="kill-content">
+                        <h4>Unsub Rate</h4>
+                        <div class="threshold">&gt; 10%</div>
+                        <div class="action">☠️ Kill immediately</div>
+                    </div>
+                </div>
+                
+                <div class="kill-card searchable" data-keywords="ctr click through rate test creative">
+                    <div class="kill-icon orange">👆</div>
+                    <div class="kill-content">
+                        <h4>CTR</h4>
+                        <div class="threshold">&lt; 0.5%</div>
+                        <div class="action">🔄 Test new creative</div>
+                    </div>
+                </div>
+                
+                <div class="kill-card searchable" data-keywords="ctr click through rate deliverability spam">
+                    <div class="kill-icon red">📧</div>
+                    <div class="kill-content">
+                        <h4>CTR</h4>
+                        <div class="threshold">&lt; 0.2%</div>
+                        <div class="action">🔍 Check deliverability</div>
+                    </div>
+                </div>
+                
+                <div class="kill-card searchable" data-keywords="zero conversion 50k sends re-evaluate offer audience">
+                    <div class="kill-icon red">💸</div>
+                    <div class="kill-content">
+                        <h4>Zero Conversion</h4>
+                        <div class="threshold">&gt; 50K sends</div>
+                        <div class="action">🎯 Re-evaluate offer/audience</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Failure Patterns Section -->
+        <div class="section" id="failure-patterns">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="icon" style="background: var(--gradient-purple);">📋</span>
+                    Failure Patterns Summary
+                </h2>
+            </div>
+            
+            <div class="patterns-grid">
+                <div class="pattern-card searchable" data-keywords="audience platform mismatch winred actblue left right political infrastructure">
+                    <div class="pattern-number">1</div>
+                    <div class="pattern-title">
+                        <span>🎯</span> Audience-Platform Mismatch
+                    </div>
+                    <div class="pattern-description">
+                        Left-leaning audiences on WinRed (right-leaning platform) consistently underperform. Political infrastructure matters.
+                    </div>
+                </div>
+                
+                <div class="pattern-card searchable" data-keywords="local candidates national lists geographic targeting oh va district state">
+                    <div class="pattern-number">2</div>
+                    <div class="pattern-title">
+                        <span>📍</span> Local Candidates, National Lists
+                    </div>
+                    <div class="pattern-description">
+                        OH-4, VA-02, and similar hyper-local candidates sent to national lists hit 15-18% unsub rates. Geographic targeting required.
+                    </div>
+                </div>
+                
+                <div class="pattern-card searchable" data-keywords="cpa donation confusion metrics acquisitions success definition">
+                    <div class="pattern-number">3</div>
+                    <div class="pattern-title">
+                        <span>📊</span> CPA vs. Donation Confusion
+                    </div>
+                    <div class="pattern-description">
+                        Many "zero donor" campaigns are CPA-focused. Success metrics need explicit definition before launch.
+                    </div>
+                </div>
+                
+                <div class="pattern-card searchable" data-keywords="high profile famous name clicks conversion landing page ask mismatch jim jordan">
+                    <div class="pattern-number">4</div>
+                    <div class="pattern-title">
+                        <span>⭐</span> High-Profile Name ≠ High Conversion
+                    </div>
+                    <div class="pattern-description">
+                        Famous names (Jim Jordan) get clicks but not donations. Clicks without conversion = landing page / ask mismatch.
+                    </div>
+                </div>
+                
+                <div class="pattern-card searchable" data-keywords="pac fatigue frequency management suppression windows senate leadership">
+                    <div class="pattern-number">5</div>
+                    <div class="pattern-title">
+                        <span>😴</span> PAC Fatigue
+                    </div>
+                    <div class="pattern-description">
+                        PAC sends to donor lists showing elevated unsub rates. Frequency management needed.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>DonorBureau Objection Library · Last updated: 2026-02-13 · SMS/MMS Political & Nonprofit Fundraising Intelligence</p>
+    </footer>
+
+    <script>
+        // Tab Navigation
+        const tabs = document.querySelectorAll('.nav-tab');
+        const sections = document.querySelectorAll('.section');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const sectionId = tab.dataset.section;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                sections.forEach(s => s.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(sectionId).classList.add('active');
+            });
+        });
+
+        // Search Functionality
+        const searchInput = document.getElementById('searchInput');
+        
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const searchables = document.querySelectorAll('.searchable');
+            
+            if (query === '') {
+                searchables.forEach(el => {
+                    el.style.display = '';
+                });
+                return;
+            }
+            
+            searchables.forEach(el => {
+                const keywords = el.dataset.keywords || '';
+                const text = el.textContent.toLowerCase();
+                const matches = keywords.includes(query) || text.includes(query);
+                el.style.display = matches ? '' : 'none';
+            });
+            
+            // Show all sections when searching
+            if (query.length > 0) {
+                sections.forEach(s => s.classList.add('active'));
+                tabs.forEach(t => t.classList.remove('active'));
+            }
+        });
+
+        // Filter Pills (High Unsub Section)
+        const filterPills = document.querySelectorAll('.filter-pill');
+        
+        filterPills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                const filter = pill.dataset.filter;
+                
+                filterPills.forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                
+                const cards = document.querySelectorAll('#highUnsubCards .campaign-card');
+                
+                cards.forEach(card => {
+                    const unsub = parseFloat(card.dataset.unsub);
+                    
+                    if (filter === 'all') {
+                        card.style.display = '';
+                    } else if (filter === '10+') {
+                        card.style.display = unsub >= 10 ? '' : 'none';
+                    } else if (filter === '5-10') {
+                        card.style.display = (unsub >= 5 && unsub < 10) ? '' : 'none';
+                    }
+                });
+            });
+        });
+
+        // Table Sorting
+        const table = document.getElementById('creativesTable');
+        const headers = table.querySelectorAll('th[data-sort]');
+        let currentSort = { column: 'sent', asc: false };
+
+        const sortData = {
+            creative: ['Cr-62SMS', 'Cr-20SMSb', 'Cr-56SMS', 'Cr-23SMS', 'Cr-36SMS', 'Cr-148SMS', 'Cr-87SMS', 'Cr-09', 'Cr-03b', 'Cr-02c'],
+            sent: [830394, 341107, 275057, 98441, 80588, 64263, 57955, 43768, 40993, 35666],
+            donors: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            revenue: [8958, 3984, 1415, 452, 235, 585, 1365, 1062, 847, 465],
+            conv: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            campaigns: [23, 27, 13, 6, 9, 6, 5, 5, 8, 8]
+        };
+
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const column = header.dataset.sort;
+                const asc = currentSort.column === column ? !currentSort.asc : false;
+                currentSort = { column, asc };
+                
+                headers.forEach(h => {
+                    h.classList.remove('sorted', 'asc');
+                });
+                header.classList.add('sorted');
+                if (asc) header.classList.add('asc');
+                
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                
+                // Create index array and sort
+                const indices = rows.map((_, i) => i);
+                indices.sort((a, b) => {
+                    const valA = sortData[column][a];
+                    const valB = sortData[column][b];
+                    
+                    if (typeof valA === 'string') {
+                        return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                    return asc ? valA - valB : valB - valA;
+                });
+                
+                // Reorder rows
+                indices.forEach(i => tbody.appendChild(rows[i]));
+                
+                // Update sortData arrays to match new order
+                Object.keys(sortData).forEach(key => {
+                    const newArr = indices.map(i => sortData[key][i]);
+                    sortData[key] = newArr;
+                });
+            });
+        });
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement !== searchInput) {
+                e.preventDefault();
+                searchInput.focus();
+            }
+            if (e.key === 'Escape') {
+                searchInput.blur();
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+            }
+        });
+    </script>
+</body>
+</html>
