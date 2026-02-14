@@ -6,217 +6,363 @@
     <title>TLH AI Marketing Team — Architecture</title>
     <style>
         :root {
-            --primary: #1e3a5f;
-            --secondary: #2d5a87;
+            --bg: #0a0a0f;
+            --card-bg: rgba(255,255,255,0.03);
+            --card-border: rgba(255,255,255,0.08);
+            --card-hover: rgba(255,255,255,0.06);
             --accent: #00a5a5;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --light: #f8f9fa;
-            --dark: #2c3e50;
-            --text: #333;
-            --muted: #6c757d;
+            --accent-glow: rgba(0,165,165,0.3);
+            --text: #e4e4e7;
+            --text-muted: #a1a1aa;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --purple: #a855f7;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             line-height: 1.6;
             color: var(--text);
-            background: var(--light);
+            background: var(--bg);
+            min-height: 100vh;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(0,165,165,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(168,85,247,0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         .hero {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
             color: white;
-            padding: 4rem 2rem;
+            padding: 5rem 2rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .hero h1 { font-size: 2.5rem; margin-bottom: 1rem; }
-        .hero .subtitle { font-size: 1.25rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, var(--accent-glow) 0%, transparent 40%);
+            animation: pulse-glow 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
 
         .container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
 
         .goal-box {
-            background: white;
-            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(0,165,165,0.1) 0%, rgba(168,85,247,0.05) 100%);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
             padding: 2rem;
-            margin: -3rem auto 2rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            border-left: 5px solid var(--accent);
+            margin: -4rem auto 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px var(--accent-glow);
             font-size: 1.1rem;
+            text-align: center;
         }
 
-        section {
-            background: white;
-            border-radius: 12px;
+        .goal-box strong { color: var(--accent); }
+
+        /* Glass card */
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
             padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .glass-card:hover {
+            background: var(--card-hover);
+            border-color: rgba(0,165,165,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
 
         section h2 {
-            color: var(--primary);
             font-size: 1.5rem;
             margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--accent);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        section h2::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 2px;
         }
 
         section h3 {
-            color: var(--secondary);
-            margin: 1.5rem 0 1rem;
+            color: var(--accent);
+            margin: 2rem 0 1rem;
+            font-size: 1.2rem;
         }
 
+        /* Bento grid */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .bento-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .bento-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .bento-card .role {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .bento-card .person {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .bento-card .functions {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        .flow-node {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            margin: 0.5rem 0;
+        }
+
+        .flow-node.main {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .flow-connector {
+            width: 2px;
+            height: 20px;
+            background: var(--accent);
+            margin: 0 auto;
+        }
+
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .flow-mini {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 1rem 0;
+            font-size: 0.95rem;
         }
 
         th, td {
-            padding: 0.75rem 1rem;
+            padding: 0.875rem 1rem;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--card-border);
         }
 
         th {
-            background: var(--light);
-            color: var(--primary);
+            background: rgba(0,165,165,0.1);
+            color: var(--accent);
             font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
         }
 
-        .architecture-diagram {
-            background: #1a1a2e;
-            color: #0f0;
-            padding: 2rem;
-            border-radius: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            overflow-x: auto;
-            white-space: pre;
-            line-height: 1.4;
+        tr:hover td {
+            background: var(--card-bg);
         }
 
+        /* Agent cards */
         .agent-card {
-            background: var(--light);
-            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
             padding: 1.5rem;
             margin: 1rem 0;
-            border-left: 4px solid var(--accent);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--purple));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .agent-card:hover::before {
+            opacity: 1;
         }
 
         .agent-card h4 {
-            color: var(--primary);
-            margin-bottom: 0.75rem;
             font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .agent-card .augments {
-            background: #fff3cd;
-            color: #856404;
+        .agent-card .badge {
+            background: rgba(0,165,165,0.15);
+            color: var(--accent);
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
-            font-size: 0.8rem;
-            display: inline-block;
-            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
 
         .agent-card ul {
-            margin-left: 1.5rem;
-            margin-top: 0.5rem;
+            margin: 1rem 0 0 1.5rem;
+            color: var(--text-muted);
         }
 
-        .agent-card li { margin: 0.25rem 0; }
+        .agent-card li { margin: 0.375rem 0; }
 
-        .phase-timeline {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .phase-card {
-            background: white;
-            border: 2px solid #e8e8e8;
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-
-        .phase-card h4 {
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .phase-card .weeks {
-            color: var(--accent);
-            font-weight: 600;
+        .agent-card .cadence {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--card-border);
             font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
-        .phase-card ul {
-            list-style: none;
-        }
-
-        .phase-card li {
-            padding: 0.25rem 0;
-            padding-left: 1.5rem;
-            position: relative;
-        }
-
-        .phase-card li::before {
-            content: "□";
-            position: absolute;
-            left: 0;
             color: var(--accent);
         }
 
-        .savings-grid {
+        /* Steps */
+        .steps-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin: 1.5rem 0;
         }
 
-        @media (max-width: 768px) {
-            .savings-grid { grid-template-columns: 1fr; }
-        }
-
-        .savings-card {
-            background: var(--light);
-            padding: 1.5rem;
+        .step-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
             border-radius: 12px;
+            padding: 1.5rem;
             text-align: center;
         }
 
-        .savings-card.highlight {
-            background: linear-gradient(135deg, var(--accent) 0%, #008080 100%);
-            color: white;
-        }
-
-        .savings-card .value {
-            font-size: 2rem;
+        .step-card .number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: 700;
-            color: var(--primary);
+            margin: 0 auto 1rem;
+            font-size: 1.1rem;
         }
 
-        .savings-card.highlight .value { color: white; }
-
-        .savings-card .label {
-            color: var(--muted);
-            font-size: 0.9rem;
+        .step-card strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #fff;
         }
 
-        .savings-card.highlight .label { color: rgba(255,255,255,0.9); }
+        .step-card p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
 
-        .approval-table tr.yes td:first-child { color: var(--success); font-weight: 600; }
-        .approval-table tr.no td:first-child { color: var(--muted); }
-
-        .benefits-list {
+        /* Benefits */
+        .benefits-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
             margin: 1.5rem 0;
         }
@@ -226,59 +372,198 @@
             align-items: center;
             gap: 0.75rem;
             padding: 1rem;
-            background: var(--light);
+            background: var(--card-bg);
             border-radius: 8px;
+            font-size: 0.9rem;
         }
 
         .benefit-item .icon {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
         }
 
-        .questions-box {
-            background: #e3f2fd;
+        /* Phase timeline */
+        .phase-timeline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .phase-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
             border-radius: 12px;
             padding: 1.5rem;
-            margin: 1.5rem 0;
+            position: relative;
         }
 
-        .questions-box h4 {
-            color: var(--primary);
+        .phase-card::before {
+            content: '';
+            position: absolute;
+            top: 1.5rem;
+            right: -0.75rem;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .phase-timeline > .phase-card:not(:last-child)::before {
+                display: block;
+            }
+        }
+
+        .phase-card h4 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .phase-card .weeks {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.85rem;
             margin-bottom: 1rem;
         }
 
-        .questions-box ol {
-            margin-left: 1.5rem;
+        .phase-card ul {
+            list-style: none;
+            font-size: 0.9rem;
+            color: var(--text-muted);
         }
 
-        .questions-box li {
-            margin: 0.5rem 0;
+        .phase-card li {
+            padding: 0.25rem 0;
+            padding-left: 1rem;
+            position: relative;
         }
 
+        .phase-card li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        /* Savings */
+        .savings-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        @media (max-width: 600px) {
+            .savings-grid { grid-template-columns: 1fr; }
+        }
+
+        .savings-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .savings-card.highlight {
+            background: linear-gradient(135deg, rgba(0,165,165,0.2), rgba(168,85,247,0.1));
+            border-color: var(--accent);
+        }
+
+        .savings-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .savings-card.highlight .value {
+            color: var(--accent);
+        }
+
+        .savings-card .label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Status badges */
         .status-badge {
             display: inline-block;
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
             font-size: 0.8rem;
-            font-weight: 600;
+            font-weight: 500;
         }
 
-        .status-badge.have { background: #d4edda; color: #155724; }
-        .status-badge.unknown { background: #fff3cd; color: #856404; }
-        .status-badge.pending { background: #cce5ff; color: #004085; }
+        .status-badge.have {
+            background: rgba(34,197,94,0.15);
+            color: var(--success);
+        }
+
+        .status-badge.unknown {
+            background: rgba(245,158,11,0.15);
+            color: var(--warning);
+        }
+
+        .status-badge.pending {
+            background: rgba(168,85,247,0.15);
+            color: var(--purple);
+        }
+
+        /* Questions */
+        .questions-box {
+            background: rgba(168,85,247,0.08);
+            border: 1px solid rgba(168,85,247,0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .questions-box h4 {
+            color: var(--purple);
+            margin-bottom: 1rem;
+        }
+
+        .questions-box ol {
+            margin-left: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .questions-box li {
+            margin: 0.75rem 0;
+            font-size: 0.95rem;
+        }
 
         footer {
             text-align: center;
-            padding: 2rem;
-            color: var(--muted);
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--card-border);
+            margin-top: 3rem;
         }
 
-        footer a { color: var(--primary); }
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .goal-box { margin-top: -2rem; }
+            .bento-grid { grid-template-columns: 1fr 1fr; }
+        }
     </style>
 </head>
 <body>
     <div class="hero">
-        <h1>🤖 TLH AI Marketing Team</h1>
-        <p class="subtitle">AI agent architecture to augment Brett + Debbie's marketing functions</p>
+        <div class="hero-content">
+            <h1>🤖 TLH AI Marketing Team</h1>
+            <p class="subtitle">AI agent architecture to augment Brett + Debbie's marketing functions</p>
+        </div>
     </div>
 
     <div class="container">
@@ -288,117 +573,97 @@
 
         <section>
             <h2>Current Team Structure</h2>
-            <table>
-                <tr>
-                    <th>Role</th>
-                    <th>Person</th>
-                    <th>Core Functions</th>
-                </tr>
-                <tr>
-                    <td><strong>CMO</strong></td>
-                    <td>Justin</td>
-                    <td>Strategy, SDR oversight, high-level direction</td>
-                </tr>
-                <tr>
-                    <td><strong>Marketing Ops</strong></td>
-                    <td>Brett</td>
-                    <td>Website, email, blog/SEO, UX/UI, SF architecture</td>
-                </tr>
-                <tr>
-                    <td><strong>Design/Social</strong></td>
-                    <td>Debbie</td>
-                    <td>Social posts, estate sale listings, reviews, QA, design</td>
-                </tr>
-                <tr>
-                    <td><strong>Ads</strong></td>
-                    <td>Jason</td>
-                    <td>Google Ads management, budget allocation</td>
-                </tr>
-            </table>
+            <div class="bento-grid">
+                <div class="bento-card">
+                    <div class="role">CMO</div>
+                    <div class="person">Justin</div>
+                    <div class="functions">Strategy, SDR oversight, high-level direction</div>
+                </div>
+                <div class="bento-card">
+                    <div class="role">Marketing Ops</div>
+                    <div class="person">Brett</div>
+                    <div class="functions">Website, email, blog/SEO, UX/UI, SF architecture</div>
+                </div>
+                <div class="bento-card">
+                    <div class="role">Design/Social</div>
+                    <div class="person">Debbie</div>
+                    <div class="functions">Social posts, estate sale listings, reviews, QA, design</div>
+                </div>
+                <div class="bento-card">
+                    <div class="role">Ads</div>
+                    <div class="person">Jason</div>
+                    <div class="functions">Google Ads management, budget allocation</div>
+                </div>
+            </div>
         </section>
 
         <section>
             <h2>Proposed AI Agent Architecture</h2>
-            <div class="architecture-diagram">┌─────────────────────────────────────────────────────────────────────────┐
-│                         JUSTIN (CMO)                                    │
-│                   Strategy · SDR Oversight · Approvals                  │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    🦉 TLH ORCHESTRATOR AGENT                            │
-│                       (Main OpenClaw Session)                           │
-│  • Dispatch tasks to specialist agents · Aggregate weekly reports       │
-│  • Human escalation for approvals · Coordinate cross-agent workflows    │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-        ┌───────────────────────────┼───────────────────────────┐
-        │                           │                           │
-        ▼                           ▼                           ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ FUNCTIONAL      │  │ MARKET          │  │ GROWTH          │  │ VISIBILITY      │
-│ AGENTS          │  │ AGENTS          │  │                 │  │                 │
-├─────────────────┤  ├─────────────────┤  ├─────────────────┤  ├─────────────────┤
-│ 📝 Content      │  │ 🍊 Orange County│  │ 🤝 Business Dev │  │ 🎙️ Media/PR     │
-│ 📣 Social       │  │ 🌴 San Diego    │  │                 │  │                 │
-│ 🏠 Listings     │  │ 🌆 Los Angeles  │  │ • Attorneys     │  │ • Podcast ads   │
-│ 📊 Analytics    │  │                 │  │ • Fiduciaries   │  │ • Guest spots   │
-│ 📢 Ads          │  │ Local SEO,      │  │ • Realtors      │  │ • Speaking      │
-│                 │  │ events, news    │  │ • Senior Living │  │ • Paul's brand  │
-└─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘
-                                    │
-                                    ▼
-                     ┌─────────────────────────────┐
-                     │     🔧 SYSTEMS ACCESS       │
-                     │  Salesforce · WordPress     │
-                     │  Social · Email · Google Ads│
-                     │  LinkedIn · CRM · Outreach  │
-                     └─────────────────────────────┘</div>
+            <div class="flow-diagram">
+                <div class="flow-node main">
+                    <strong>👤 JUSTIN (CMO)</strong><br>
+                    <small>Strategy · SDR Oversight · Approvals</small>
+                </div>
+                <div class="flow-connector"></div>
+                <div class="flow-node main" style="border-color: var(--accent);">
+                    <strong>🦉 TLH ORCHESTRATOR AGENT</strong><br>
+                    <small>Dispatch tasks · Aggregate reports · Coordinate workflows</small>
+                </div>
+                <div class="flow-connector"></div>
+                <div class="flow-grid">
+                    <div class="flow-mini"><strong>📝 Content</strong><br>Blog · SEO · Email</div>
+                    <div class="flow-mini"><strong>📣 Social</strong><br>Posts · Reviews</div>
+                    <div class="flow-mini"><strong>🏠 Listings</strong><br>Syndication</div>
+                    <div class="flow-mini"><strong>📊 Analytics</strong><br>Reporting</div>
+                    <div class="flow-mini"><strong>📢 Ads</strong><br>Google Ads</div>
+                    <div class="flow-mini"><strong>🌴 Markets</strong><br>SD · OC · LA</div>
+                    <div class="flow-mini"><strong>🤝 Growth</strong><br>BD · Partners</div>
+                    <div class="flow-mini"><strong>🎙️ PR</strong><br>Media · Speaking</div>
+                </div>
+            </div>
         </section>
 
         <section>
             <h2>How Agents Work</h2>
-            <p>AI agents are specialized assistants that can perform tasks autonomously while keeping humans in the loop for approvals. Here's the pattern:</p>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
-                <div style="background: var(--light); padding: 1.25rem; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">1️⃣</div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="number">1</div>
                     <strong>Trigger</strong>
-                    <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Schedule, event, or human request kicks off the agent</p>
+                    <p>Schedule, event, or human request kicks off the agent</p>
                 </div>
-                <div style="background: var(--light); padding: 1.25rem; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">2️⃣</div>
+                <div class="step-card">
+                    <div class="number">2</div>
                     <strong>Execute</strong>
-                    <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Agent gathers data, creates content, or takes action</p>
+                    <p>Agent gathers data, creates content, or takes action</p>
                 </div>
-                <div style="background: var(--light); padding: 1.25rem; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">3️⃣</div>
+                <div class="step-card">
+                    <div class="number">3</div>
                     <strong>Review</strong>
-                    <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Draft goes to staging for human approval (when needed)</p>
+                    <p>Draft goes to staging for human approval (when needed)</p>
                 </div>
-                <div style="background: var(--light); padding: 1.25rem; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">4️⃣</div>
+                <div class="step-card">
+                    <div class="number">4</div>
                     <strong>Publish</strong>
-                    <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Approved work goes live automatically</p>
+                    <p>Approved work goes live automatically</p>
                 </div>
             </div>
 
             <h3>Example: Blog Post Workflow</h3>
-            <div style="background: #f0f4f8; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; line-height: 1.8;">
-                <span style="color: var(--muted);">Monday 8 AM →</span> Orchestrator dispatches "Write blog on probate timeline"<br>
-                <span style="color: var(--muted);">Monday 8:05 AM →</span> Content Agent researches topic, writes draft with SEO<br>
-                <span style="color: var(--muted);">Monday 8:10 AM →</span> Draft posted to WordPress as "Pending Review"<br>
-                <span style="color: var(--muted);">Monday 8:11 AM →</span> Justin gets Telegram notification with preview link<br>
-                <span style="color: var(--muted);">Monday 10:30 AM →</span> Justin replies "approved" or "change the intro"<br>
-                <span style="color: var(--muted);">Monday 10:31 AM →</span> Agent publishes (or revises and resubmits)
+            <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; font-family: monospace; font-size: 0.9rem; line-height: 1.8; border: 1px solid var(--card-border);">
+                <span style="color: var(--text-muted);">Monday 8 AM →</span> Orchestrator dispatches "Write blog on probate timeline"<br>
+                <span style="color: var(--text-muted);">Monday 8:05 AM →</span> Content Agent researches topic, writes draft with SEO<br>
+                <span style="color: var(--text-muted);">Monday 8:10 AM →</span> Draft posted to WordPress as "Pending Review"<br>
+                <span style="color: var(--text-muted);">Monday 8:11 AM →</span> Justin gets notification with preview link<br>
+                <span style="color: var(--text-muted);">Monday 10:30 AM →</span> Justin replies "approved" or "change the intro"<br>
+                <span style="color: var(--text-muted);">Monday 10:31 AM →</span> Agent publishes (or revises and resubmits)
             </div>
 
             <h3>Key Principles</h3>
-            <ul style="margin: 1rem 0 0 1.5rem;">
-                <li><strong>Human-in-the-loop:</strong> Sensitive actions require approval before going live</li>
-                <li><strong>Transparent:</strong> Every action is logged; you can see what agents did and why</li>
-                <li><strong>Interruptible:</strong> Agents can be paused or overridden at any time</li>
-                <li><strong>Auditable:</strong> Full history of all decisions and outputs</li>
+            <ul style="margin: 1rem 0 0 1.5rem; color: var(--text-muted);">
+                <li><strong style="color: #fff;">Human-in-the-loop:</strong> Sensitive actions require approval before going live</li>
+                <li><strong style="color: #fff;">Transparent:</strong> Every action is logged; you can see what agents did and why</li>
+                <li><strong style="color: #fff;">Interruptible:</strong> Agents can be paused or overridden at any time</li>
+                <li><strong style="color: #fff;">Auditable:</strong> Full history of all decisions and outputs</li>
             </ul>
         </section>
 
@@ -406,8 +671,7 @@
             <h2>Agent Specifications</h2>
 
             <div class="agent-card">
-                <h4>🦉 TLH Orchestrator (Main Session)</h4>
-                <span class="augments">Coordinator — New Role</span>
+                <h4>🦉 TLH Orchestrator <span class="badge">Coordinator — New Role</span></h4>
                 <p><strong>Functions:</strong></p>
                 <ul>
                     <li>Morning briefing (what's due today, what's blocked)</li>
@@ -416,12 +680,11 @@
                     <li>Dispatch tasks to sub-agents</li>
                     <li>Monitor agent outputs for quality</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> 30min heartbeat · 8 AM daily briefing · Friday weekly rollup</p>
+                <p class="cadence"><strong>Cadence:</strong> 30min heartbeat · 8 AM daily briefing · Friday weekly rollup</p>
             </div>
 
             <div class="agent-card">
-                <h4>📝 Content Agent</h4>
-                <span class="augments">Blog · SEO · Email</span>
+                <h4>📝 Content Agent <span class="badge">Blog · SEO · Email</span></h4>
                 <p><strong>Functions:</strong></p>
                 <ul>
                     <li>Write blog posts (target 90%+ SEO score)</li>
@@ -430,12 +693,11 @@
                     <li>Content calendar management</li>
                     <li>SEO keyword research and optimization</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> 1-2 blog posts/week · Email per estate sale · Monthly theme planning</p>
+                <p class="cadence"><strong>Cadence:</strong> 1-2 blog posts/week · Email per estate sale · Monthly theme planning</p>
             </div>
 
             <div class="agent-card">
-                <h4>📣 Social Agent</h4>
-                <span class="augments">Social Media · Reviews</span>
+                <h4>📣 Social Agent <span class="badge">Social Media · Reviews</span></h4>
                 <p><strong>Functions:</strong></p>
                 <ul>
                     <li>Create and schedule social posts</li>
@@ -444,12 +706,11 @@
                     <li>Monitor and respond to reviews</li>
                     <li>Engagement tracking</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Daily review check · Per-sale announcements · 3-5 brand posts/week</p>
+                <p class="cadence"><strong>Cadence:</strong> Daily review check · Per-sale announcements · 3-5 brand posts/week</p>
             </div>
 
             <div class="agent-card">
-                <h4>🏠 Listings Agent</h4>
-                <span class="augments">Listings · Syndication</span>
+                <h4>🏠 Listings Agent <span class="badge">Listings · Syndication</span></h4>
                 <p><strong>Functions:</strong></p>
                 <ul>
                     <li>Create estate sale pages on TLH website</li>
@@ -458,12 +719,11 @@
                     <li>Listing QA (accuracy, completeness)</li>
                     <li>Last-minute update monitoring</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Per estate sale · Daily monitoring · Weekly QA audit</p>
+                <p class="cadence"><strong>Cadence:</strong> Per estate sale · Daily monitoring · Weekly QA audit</p>
             </div>
 
             <div class="agent-card">
-                <h4>📊 Analytics Agent</h4>
-                <span class="augments">Reporting · Attribution</span>
+                <h4>📊 Analytics Agent <span class="badge">Reporting · Attribution</span></h4>
                 <p><strong>Functions:</strong></p>
                 <ul>
                     <li>Salesforce lead/opp reporting</li>
@@ -472,12 +732,11 @@
                     <li>Weekly performance dashboard</li>
                     <li>Anomaly detection and alerts</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Daily lead check · Weekly full report · Monthly deep-dive</p>
+                <p class="cadence"><strong>Cadence:</strong> Daily lead check · Weekly full report · Monthly deep-dive</p>
             </div>
 
             <div class="agent-card">
-                <h4>📢 Ads Agent</h4>
-                <span class="augments">Google Ads · Paid Media</span>
+                <h4>📢 Ads Agent <span class="badge">Google Ads · Paid Media</span></h4>
                 <p>Augments paid advertising management with AI-driven optimization and reporting.</p>
                 <p><strong>Functions:</strong></p>
                 <ul>
@@ -488,15 +747,14 @@
                     <li>Ad copy testing and optimization</li>
                     <li>CPA tracking and alerts when thresholds exceeded</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Daily performance check · Weekly optimization recommendations · Monthly budget review</p>
+                <p class="cadence"><strong>Cadence:</strong> Daily performance check · Weekly optimization · Monthly budget review</p>
             </div>
 
-            <h3 style="margin-top: 2rem; color: var(--primary);">Market Agents</h3>
-            <p style="margin-bottom: 1rem;">Each market gets a dedicated agent for local optimization.</p>
+            <h3 style="margin-top: 2rem;">Market Agents</h3>
+            <p style="margin-bottom: 1rem; color: var(--text-muted);">Each market gets a dedicated agent for local optimization.</p>
 
             <div class="agent-card">
-                <h4>🌴 San Diego Agent</h4>
-                <span class="augments">SD County · Local Market</span>
+                <h4>🌴 San Diego Agent <span class="badge">SD County · Local Market</span></h4>
                 <p><strong>Functions:</strong></p>
                 <ul>
                     <li>Local SEO optimization (neighborhood pages, local keywords)</li>
@@ -505,12 +763,11 @@
                     <li>SD competitor monitoring</li>
                     <li>Local partnership coordination</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Weekly local content · Monthly market report · Ongoing SEO</p>
+                <p class="cadence"><strong>Cadence:</strong> Weekly local content · Monthly market report · Ongoing SEO</p>
             </div>
 
             <div class="agent-card">
-                <h4>🍊 Orange County Agent</h4>
-                <span class="augments">OC · Local Market</span>
+                <h4>🍊 Orange County Agent <span class="badge">OC · Local Market</span></h4>
                 <p><strong>Functions:</strong></p>
                 <ul>
                     <li>Local SEO optimization for OC neighborhoods</li>
@@ -519,12 +776,11 @@
                     <li>OC competitor monitoring</li>
                     <li>Local partnership coordination</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Weekly local content · Monthly market report · Ongoing SEO</p>
+                <p class="cadence"><strong>Cadence:</strong> Weekly local content · Monthly market report · Ongoing SEO</p>
             </div>
 
             <div class="agent-card">
-                <h4>🌆 Los Angeles Agent</h4>
-                <span class="augments">LA County · Expansion Market</span>
+                <h4>🌆 Los Angeles Agent <span class="badge">LA County · Expansion Market</span></h4>
                 <p><strong>Functions:</strong></p>
                 <ul>
                     <li>LA market research and opportunity analysis</li>
@@ -533,14 +789,13 @@
                     <li>LA-specific content development</li>
                     <li>Partnership target identification</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Monthly research reports · Expansion readiness tracking</p>
+                <p class="cadence"><strong>Cadence:</strong> Monthly research reports · Expansion readiness tracking</p>
             </div>
 
-            <h3 style="margin-top: 2rem; color: var(--primary);">Growth Agent</h3>
+            <h3 style="margin-top: 2rem;">Growth Agent</h3>
 
             <div class="agent-card">
-                <h4>🤝 Business Development Agent</h4>
-                <span class="augments">Partnerships · Outreach</span>
+                <h4>🤝 Business Development Agent <span class="badge">Partnerships · Outreach</span></h4>
                 <p>Manages outreach to key referral partners and tracks relationship pipeline.</p>
                 <p><strong>Functions:</strong></p>
                 <ul>
@@ -551,25 +806,24 @@
                     <li>Referral program administration</li>
                     <li>Partner portal and communications</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Daily outreach activities · Weekly pipeline review · Monthly partner reports</p>
+                <p class="cadence"><strong>Cadence:</strong> Daily outreach · Weekly pipeline review · Monthly partner reports</p>
             </div>
 
-            <h3 style="margin-top: 2rem; color: var(--primary);">Visibility Agent</h3>
+            <h3 style="margin-top: 2rem;">Visibility Agent</h3>
 
             <div class="agent-card">
-                <h4>🎙️ Media & PR Agent</h4>
-                <span class="augments">Podcasts · Speaking · Thought Leadership</span>
+                <h4>🎙️ Media & PR Agent <span class="badge">Podcasts · Speaking · Thought Leadership</span></h4>
                 <p>Manages Paul's visibility and TLH brand presence in media.</p>
                 <p><strong>Functions:</strong></p>
                 <ul>
-                    <li>Podcast advertising management (iHeart, etc.) — scheduling, tracking, optimization</li>
-                    <li>Podcast guest opportunity sourcing — find shows where Paul should appear</li>
-                    <li>Speaking engagement pipeline — conferences, senior living events, industry panels</li>
+                    <li>Podcast advertising management (iHeart, etc.)</li>
+                    <li>Podcast guest opportunity sourcing</li>
+                    <li>Speaking engagement pipeline</li>
                     <li>Paul's LinkedIn thought leadership content</li>
                     <li>Press release and media outreach</li>
-                    <li>Industry publication bylines and contributed articles</li>
+                    <li>Industry publication bylines</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Cadence:</strong> Weekly media monitoring · Monthly speaking pipeline review · Quarterly PR calendar</p>
+                <p class="cadence"><strong>Cadence:</strong> Weekly media monitoring · Monthly pipeline review · Quarterly PR calendar</p>
             </div>
         </section>
 
@@ -592,83 +846,65 @@
             </div>
 
             <h3>Beyond Cost Savings</h3>
-            <div class="benefits-list">
-                <div class="benefit-item">
-                    <span class="icon">🌙</span>
-                    <span>24/7 operation (no timezone constraints)</span>
-                </div>
-                <div class="benefit-item">
-                    <span class="icon">⚡</span>
-                    <span>Faster turnaround (minutes vs. hours/days)</span>
-                </div>
-                <div class="benefit-item">
-                    <span class="icon">✓</span>
-                    <span>Consistent quality (no training curve)</span>
-                </div>
-                <div class="benefit-item">
-                    <span class="icon">📈</span>
-                    <span>Scalable (same agents for new markets)</span>
-                </div>
-                <div class="benefit-item">
-                    <span class="icon">📋</span>
-                    <span>Full attribution and logging</span>
-                </div>
-                <div class="benefit-item">
-                    <span class="icon">🔄</span>
-                    <span>Instant pivots (no retraining)</span>
-                </div>
+            <div class="benefits-grid">
+                <div class="benefit-item"><span class="icon">🌙</span>24/7 operation</div>
+                <div class="benefit-item"><span class="icon">⚡</span>Faster turnaround</div>
+                <div class="benefit-item"><span class="icon">✓</span>Consistent quality</div>
+                <div class="benefit-item"><span class="icon">📈</span>Scalable</div>
+                <div class="benefit-item"><span class="icon">📋</span>Full attribution</div>
+                <div class="benefit-item"><span class="icon">🔄</span>Instant pivots</div>
             </div>
         </section>
 
         <section>
             <h2>Human-in-the-Loop Points</h2>
-            <table class="approval-table">
+            <table>
                 <tr>
                     <th>Action</th>
                     <th>Approval Required?</th>
                     <th>Notes</th>
                 </tr>
-                <tr class="yes">
-                    <td>✅ Blog post publish</td>
+                <tr>
+                    <td style="color: var(--success);">✅ Blog post publish</td>
                     <td>Yes</td>
                     <td>Justin reviews before live</td>
                 </tr>
-                <tr class="no">
+                <tr>
                     <td>Social post (brand)</td>
                     <td>Optional</td>
                     <td>Can auto-post with templates</td>
                 </tr>
-                <tr class="no">
+                <tr>
                     <td>Social post (estate sale)</td>
                     <td>No</td>
                     <td>Templated, auto-publish</td>
                 </tr>
-                <tr class="yes">
-                    <td>✅ Email send</td>
+                <tr>
+                    <td style="color: var(--success);">✅ Email send</td>
                     <td>Yes</td>
                     <td>Review before large sends</td>
                 </tr>
-                <tr class="yes">
-                    <td>✅ Review response</td>
+                <tr>
+                    <td style="color: var(--success);">✅ Review response</td>
                     <td>Yes</td>
                     <td>Sensitive — human review</td>
                 </tr>
-                <tr class="no">
+                <tr>
                     <td>Listing creation</td>
                     <td>No</td>
                     <td>Templated, auto-publish</td>
                 </tr>
-                <tr class="no">
+                <tr>
                     <td>Report delivery</td>
                     <td>No</td>
                     <td>Automated to Justin</td>
                 </tr>
-                <tr class="yes">
-                    <td>✅ Ad budget changes</td>
+                <tr>
+                    <td style="color: var(--success);">✅ Ad budget changes</td>
                     <td>Yes</td>
                     <td>Human approval for spend changes</td>
                 </tr>
-                <tr class="no">
+                <tr>
                     <td>Ad performance alerts</td>
                     <td>No</td>
                     <td>Automated notifications</td>
@@ -795,11 +1031,11 @@
 
         <section>
             <h2>Next Steps</h2>
-            <ol style="margin-left: 1.5rem; font-size: 1.1rem;">
-                <li style="margin: 0.75rem 0;"><strong>Immediate:</strong> Answer the questions above</li>
-                <li style="margin: 0.75rem 0;"><strong>This week:</strong> Audit system access, get credentials</li>
-                <li style="margin: 0.75rem 0;"><strong>Next week:</strong> Deploy Analytics Agent (prove value fast)</li>
-                <li style="margin: 0.75rem 0;"><strong>Ongoing:</strong> Phase rollout per timeline above</li>
+            <ol style="margin-left: 1.5rem; font-size: 1.1rem; color: var(--text-muted);">
+                <li style="margin: 0.75rem 0;"><strong style="color: #fff;">Immediate:</strong> Answer the questions above</li>
+                <li style="margin: 0.75rem 0;"><strong style="color: #fff;">This week:</strong> Audit system access, get credentials</li>
+                <li style="margin: 0.75rem 0;"><strong style="color: #fff;">Next week:</strong> Deploy Analytics Agent (prove value fast)</li>
+                <li style="margin: 0.75rem 0;"><strong style="color: #fff;">Ongoing:</strong> Phase rollout per timeline above</li>
             </ol>
         </section>
     </div>
