@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OC/LA Estate Sales Market Share</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e4e4e4;
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle { color: #888; margin-bottom: 30px; }
+        .chart-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+        .stat-card h3 { font-size: 0.85rem; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+        .stat-card .value { font-size: 2rem; font-weight: 700; }
+        .stat-card.grasons .value { color: #ff6b6b; }
+        .stat-card.tlh .value { color: #00ff88; }
+        .stat-card.other .value { color: #888; }
+        .insight {
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,255,136,0.1));
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .insight h3 { color: #00d4ff; margin-bottom: 12px; }
+        .insight ul { list-style: none; }
+        .insight li { padding: 6px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 OC/LA Estate Sales Market Share</h1>
+        <p class="subtitle">Grasons (Combined OC/LA) vs True Legacy Homes vs Others — Monthly Trend</p>
+
+        <div class="chart-container">
+            <canvas id="marketChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="shareChart"></canvas>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="insight" id="insights"></div>
+    </div>
+
+    <script>
+        const data = [
+            {"month": "2024-10", "Grasons": 19, "TLH": 2, "Other": 130},
+            {"month": "2024-11", "Grasons": 27, "TLH": 4, "Other": 217},
+            {"month": "2024-12", "Grasons": 12, "TLH": 3, "Other": 129},
+            {"month": "2025-01", "Grasons": 22, "TLH": 3, "Other": 116},
+            {"month": "2025-02", "Grasons": 27, "TLH": 4, "Other": 165},
+            {"month": "2025-03", "Grasons": 25, "TLH": 3, "Other": 186},
+            {"month": "2025-04", "Grasons": 29, "TLH": 5, "Other": 188},
+            {"month": "2025-05", "Grasons": 32, "TLH": 5, "Other": 232},
+            {"month": "2025-06", "Grasons": 30, "TLH": 3, "Other": 184},
+            {"month": "2025-09", "Grasons": 4, "TLH": 3, "Other": 41},
+            {"month": "2025-10", "Grasons": 29, "TLH": 8, "Other": 214},
+            {"month": "2025-11", "Grasons": 25, "TLH": 6, "Other": 129},
+            {"month": "2025-12", "Grasons": 18, "TLH": 5, "Other": 143},
+            {"month": "2026-01", "Grasons": 20, "TLH": 6, "Other": 160}
+        ];
+
+        // Filter out months with very low data (July/Aug 2025)
+        const filteredData = data.filter(d => (d.Grasons + d.TLH + d.Other) > 20);
+
+        const labels = filteredData.map(d => {
+            const [year, month] = d.month.split('-');
+            const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${monthNames[parseInt(month)]} '${year.slice(2)}`;
+        });
+
+        // Grouped bar chart - Grasons vs TLH only
+        const ctx1 = document.getElementById('marketChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Grasons (OC/LA)',
+                        data: filteredData.map(d => d.Grasons),
+                        backgroundColor: '#ff6b6b',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'True Legacy Homes',
+                        data: filteredData.map(d => d.TLH),
+                        backgroundColor: '#00ff88',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Grasons vs TLH — Estate Sales in OC/LA',
+                        color: '#fff',
+                        font: { size: 16 }
+                    },
+                    legend: {
+                        labels: { color: '#ccc' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#888' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    },
+                    y: {
+                        ticks: { color: '#888' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    }
+                }
+            }
+        });
+
+        // Head-to-head share line chart (Grasons vs TLH only)
+        const shareData = filteredData.map(d => {
+            const total = d.Grasons + d.TLH;
+            return {
+                grasons: (d.Grasons / total * 100).toFixed(1),
+                tlh: (d.TLH / total * 100).toFixed(1)
+            };
+        });
+
+        const ctx2 = document.getElementById('shareChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Grasons Market Share %',
+                        data: shareData.map(d => d.grasons),
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255,107,107,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'TLH Market Share %',
+                        data: shareData.map(d => d.tlh),
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0,255,136,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Head-to-Head: TLH Share vs Grasons (OC/LA)',
+                        color: '#fff',
+                        font: { size: 16 }
+                    },
+                    legend: {
+                        labels: { color: '#ccc' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#888' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    },
+                    y: {
+                        ticks: { color: '#888', callback: v => v + '%' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        min: 0,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Calculate totals (Grasons vs TLH only)
+        const totals = filteredData.reduce((acc, d) => {
+            acc.grasons += d.Grasons;
+            acc.tlh += d.TLH;
+            return acc;
+        }, { grasons: 0, tlh: 0 });
+
+        const total = totals.grasons + totals.tlh;
+
+        document.getElementById('statsGrid').innerHTML = `
+            <div class="stat-card grasons">
+                <h3>Grasons Total</h3>
+                <div class="value">${totals.grasons}</div>
+                <div style="color:#888">${(totals.grasons/total*100).toFixed(1)}% of head-to-head</div>
+            </div>
+            <div class="stat-card tlh">
+                <h3>TLH Total</h3>
+                <div class="value">${totals.tlh}</div>
+                <div style="color:#888">${(totals.tlh/total*100).toFixed(1)}% of head-to-head</div>
+            </div>
+            <div class="stat-card">
+                <h3>Grasons : TLH Ratio</h3>
+                <div class="value" style="color:#00d4ff">${(totals.grasons/totals.tlh).toFixed(1)}x</div>
+                <div style="color:#888">Grasons runs ${(totals.grasons/totals.tlh).toFixed(1)}x more sales</div>
+            </div>
+            <div class="stat-card">
+                <h3>TLH Best Month</h3>
+                <div class="value" style="color:#00ff88">Oct '25</div>
+                <div style="color:#888">8 sales (27% vs Grasons)</div>
+            </div>
+        `;
+
+        // Recent trend (head-to-head only)
+        const recent3 = filteredData.slice(-3);
+        const recentTLH = recent3.reduce((sum, d) => sum + d.TLH, 0);
+        const recentGrasons = recent3.reduce((sum, d) => sum + d.Grasons, 0);
+        const recentShare = (recentTLH / (recentTLH + recentGrasons) * 100).toFixed(1);
+
+        const older3 = filteredData.slice(-6, -3);
+        const olderTLH = older3.reduce((sum, d) => sum + d.TLH, 0);
+        const olderGrasons = older3.reduce((sum, d) => sum + d.Grasons, 0);
+        const olderShare = (olderTLH / (olderTLH + olderGrasons) * 100).toFixed(1);
+
+        document.getElementById('insights').innerHTML = `
+            <h3>🔍 Key Insights (Grasons vs TLH Head-to-Head)</h3>
+            <ul>
+                <li><strong>Grasons dominates OC/LA</strong> — running ${(totals.grasons/totals.tlh).toFixed(1)}x more sales than TLH</li>
+                <li><strong>TLH recent trend:</strong> ${recentShare}% of Grasons+TLH (last 3 months) vs ${olderShare}% (prior 3 months) — ${parseFloat(recentShare) > parseFloat(olderShare) ? '📈 gaining ground' : '📉 losing ground'}</li>
+                <li><strong>TLH best month:</strong> Oct 2025 — 8 sales vs 29 Grasons (22% head-to-head share)</li>
+                <li><strong>The gap:</strong> TLH needs ~${Math.round(totals.grasons/14)} sales/month to match Grasons' OC/LA volume</li>
+            </ul>
+        `;
+    </script>
+</body>
+</html>

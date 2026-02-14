@@ -1,0 +1,2291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLH Estate Sale Intelligence Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --navy: #1a365d;
+            --navy-light: #2c5282;
+            --gold: #d69e2e;
+            --gold-light: #ecc94b;
+            --gray-50: #f7fafc;
+            --gray-100: #edf2f7;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e0;
+            --gray-500: #718096;
+            --gray-700: #4a5568;
+            --gray-800: #2d3748;
+            --gray-900: #1a202c;
+            --green: #38a169;
+            --green-light: #48bb78;
+            --red: #e53e3e;
+            --red-light: #fc8181;
+            --blue: #3182ce;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--gray-100);
+            color: var(--gray-800);
+            line-height: 1.5;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gold);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: var(--navy);
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+        
+        .stats-row {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+        
+        nav {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .tabs {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab {
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-500);
+        }
+        
+        .tab:hover {
+            color: var(--navy);
+            background: var(--gray-50);
+        }
+        
+        .tab.active {
+            color: var(--navy);
+            border-bottom-color: var(--gold);
+            background: var(--gray-50);
+        }
+        
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        
+        .panel {
+            display: none;
+        }
+        
+        .panel.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--navy);
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        
+        tr:hover {
+            background: var(--gray-50);
+        }
+        
+        .highlight {
+            background: linear-gradient(135deg, rgba(214, 158, 46, 0.15), rgba(214, 158, 46, 0.05)) !important;
+            font-weight: 600;
+        }
+        
+        .highlight td {
+            color: var(--navy);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-sd {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-oc {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-la {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .badge-hot {
+            background: var(--red);
+            color: white;
+        }
+        
+        .badge-growing {
+            background: var(--green);
+            color: white;
+        }
+        
+        .badge-declining {
+            background: var(--red);
+            color: white;
+        }
+        
+        .badge-stable {
+            background: var(--gray-500);
+            color: white;
+        }
+        
+        .badge-diy {
+            background: #faf5ff;
+            color: #6b21a8;
+        }
+        
+        .badge-tlh {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy);
+        }
+        
+        .heatmap-cell {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        .heat-1 { background: #c6f6d5; }
+        .heat-2 { background: #9ae6b4; }
+        .heat-3 { background: #68d391; }
+        .heat-4 { background: #48bb78; }
+        .heat-5 { background: #38a169; }
+        .heat-6 { background: #f6ad55; }
+        .heat-7 { background: #ed8936; }
+        .heat-8 { background: #dd6b20; }
+        .heat-9 { background: #fc8181; }
+        .heat-10 { background: #e53e3e; }
+        
+        .filter-row {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            border-color: var(--navy);
+        }
+        
+        .filter-btn.active {
+            background: var(--navy);
+            color: white;
+            border-color: var(--navy);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .metric-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+        
+        .trend-up {
+            color: var(--green);
+        }
+        
+        .trend-down {
+            color: var(--red);
+        }
+        
+        .insight-box {
+            background: linear-gradient(135deg, rgba(214, 158, 46, 0.1), rgba(214, 158, 46, 0.05));
+            border-left: 4px solid var(--gold);
+            padding: 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1rem;
+        }
+        
+        .insight-title {
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 0.25rem;
+        }
+        
+        .scroll-table {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .franchise-card {
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .franchise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .franchise-name {
+            font-weight: 600;
+            color: var(--navy);
+        }
+        
+        .franchise-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+        
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+        
+        .tag {
+            background: var(--gray-100);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--gray-700);
+        }
+        
+        .address-list {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .stats-row {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-body {
+                padding: 1rem;
+                overflow-x: auto;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+        
+        .search-box {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            width: 200px;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            font-size: 0.75rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">TLH</div>
+                <div>
+                    <h1>Estate Sale Intelligence Dashboard</h1>
+                    <div class="subtitle">True Legacy Homes | Market Analytics</div>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat">
+                    <div class="stat-value">2,836</div>
+                    <div class="stat-label">Total Sales</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">130</div>
+                    <div class="stat-label">TLH Sales</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">4.58%</div>
+                    <div class="stat-label">Market Share</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">#2</div>
+                    <div class="stat-label">Ranking (SoCal)</div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <nav>
+        <div class="tabs">
+            <div class="tab active" data-panel="heatmap">🗺️ Zip Code Heat Map</div>
+            <div class="tab" data-panel="contagion">🔥 Hot Zone Tracker</div>
+            <div class="tab" data-panel="competitors">📊 Competitor Intel</div>
+            <div class="tab" data-panel="seasonal">📅 Seasonal Patterns</div>
+            <div class="tab" data-panel="diy">🎯 DIY Opportunities</div>
+            <div class="tab" data-panel="grasons">🏆 Grasons Analysis</div>
+            <div class="tab" data-panel="oc-deepdive">🔍 OC Deep Dive</div>
+            <div class="tab" data-panel="seo-intel">📈 SEO Intel</div>
+        </div>
+    </nav>
+    
+    <main>
+        <!-- ZIP CODE HEAT MAP -->
+        <div id="heatmap" class="panel active">
+            <div class="insight-box">
+                <div class="insight-title">💡 Google Ads Geotargeting Insight</div>
+                La Jolla (92037) leads with 66 sales - ideal for premium targeting. Focus ad spend on top 20 zips which represent 40%+ of all activity.
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Top Zip Codes by Volume</span>
+                        <div class="filter-row">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="SD">SD</button>
+                            <button class="filter-btn" data-filter="OC">OC</button>
+                            <button class="filter-btn" data-filter="LA">LA</button>
+                        </div>
+                    </div>
+                    <div class="card-body scroll-table">
+                        <table id="zip-table">
+                            <thead>
+                                <tr>
+                                    <th>Heat</th>
+                                    <th>Zip</th>
+                                    <th>Neighborhood</th>
+                                    <th>Region</th>
+                                    <th>Sales</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Regional Distribution</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="region-chart"></canvas>
+                        </div>
+                        <div class="grid-3" style="margin-top: 1rem;">
+                            <div class="metric-card" style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
+                                <div class="metric-value">753</div>
+                                <div class="metric-label">San Diego</div>
+                            </div>
+                            <div class="metric-card" style="background: linear-gradient(135deg, #92400e, #f59e0b);">
+                                <div class="metric-value">638</div>
+                                <div class="metric-label">Orange County</div>
+                            </div>
+                            <div class="metric-card" style="background: linear-gradient(135deg, #991b1b, #ef4444);">
+                                <div class="metric-value">1,445</div>
+                                <div class="metric-label">Los Angeles</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">TLH Stronghold Zip Codes</span>
+                </div>
+                <div class="card-body">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Zip</th>
+                                <th>Neighborhood</th>
+                                <th>TLH Sales</th>
+                                <th>Total Market</th>
+                                <th>TLH Share</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="highlight">
+                                <td>92111</td>
+                                <td>Clairemont</td>
+                                <td>7</td>
+                                <td>15</td>
+                                <td><strong>46.7%</strong></td>
+                            </tr>
+                            <tr class="highlight">
+                                <td>92037</td>
+                                <td>La Jolla</td>
+                                <td>7</td>
+                                <td>66</td>
+                                <td>10.6%</td>
+                            </tr>
+                            <tr class="highlight">
+                                <td>92109</td>
+                                <td>Pacific Beach</td>
+                                <td>6</td>
+                                <td>17</td>
+                                <td><strong>35.3%</strong></td>
+                            </tr>
+                            <tr class="highlight">
+                                <td>92078</td>
+                                <td>San Marcos</td>
+                                <td>5</td>
+                                <td>32</td>
+                                <td>15.6%</td>
+                            </tr>
+                            <tr class="highlight">
+                                <td>92009</td>
+                                <td>Carlsbad</td>
+                                <td>5</td>
+                                <td>23</td>
+                                <td><strong>21.7%</strong></td>
+                            </tr>
+                            <tr class="highlight">
+                                <td>91941</td>
+                                <td>La Mesa</td>
+                                <td>5</td>
+                                <td>32</td>
+                                <td>15.6%</td>
+                            </tr>
+                            <tr class="highlight">
+                                <td>91942</td>
+                                <td>La Mesa</td>
+                                <td>5</td>
+                                <td>23</td>
+                                <td><strong>21.7%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- HOT ZONE TRACKER -->
+        <div id="contagion" class="panel">
+            <div class="insight-box">
+                <div class="insight-title">🔥 Neighborhood Contagion Effect</div>
+                When one home has an estate sale, neighbors often follow within 3-6 months. These "hot zones" show clusters of 3+ sales in a single quarter - prime targets for door-knocking and direct mail campaigns.
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Active Hot Zones (3+ Sales in Quarter)</span>
+                </div>
+                <div class="card-body scroll-table">
+                    <table id="hotzone-table">
+                        <thead>
+                            <tr>
+                                <th>Intensity</th>
+                                <th>Neighborhood</th>
+                                <th>Zip</th>
+                                <th>Period</th>
+                                <th>Sales</th>
+                                <th>Region</th>
+                                <th>Sample Addresses</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Hot Zone Concentration by Region</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="hotzone-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🎯 Outreach Recommendations</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="insight-box">
+                            <div class="insight-title">La Jolla 92037</div>
+                            18 sales in Q2 2025 alone. Deploy direct mail to 0.5mi radius of recent sale addresses. High-value market.
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">Rancho Palos Verdes 90275</div>
+                            15 sales in Q2 2025. Affluent area with aging demographics. Partner with local senior services.
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">Costa Mesa 92627</div>
+                            14 sales in Q4 2025. Growing cluster - consider establishing OC presence here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- COMPETITOR INTELLIGENCE -->
+        <div id="competitors" class="panel">
+            <div class="insight-box">
+                <div class="insight-title">📊 Market Position</div>
+                TLH is #2 in SoCal behind only "Privately Listed" (DIY sales). In San Diego specifically, TLH holds <strong>12.08% market share</strong> - nearly 3x the next competitor.
+            </div>
+            
+            <div class="grid-3" style="margin-bottom: 1.5rem;">
+                <div class="metric-card">
+                    <div class="metric-value">12.1%</div>
+                    <div class="metric-label">SD Market Share</div>
+                </div>
+                <div class="metric-card" style="background: linear-gradient(135deg, var(--gold), var(--gold-light));">
+                    <div class="metric-value" style="color: var(--navy);">4.2%</div>
+                    <div class="metric-label" style="color: var(--navy);">OC Market Share</div>
+                </div>
+                <div class="metric-card" style="background: linear-gradient(135deg, var(--gray-700), var(--gray-500));">
+                    <div class="metric-value">0.8%</div>
+                    <div class="metric-label">LA Market Share</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Market Share by Company</span>
+                    <div class="filter-row">
+                        <button class="filter-btn market-filter active" data-market="SD">San Diego</button>
+                        <button class="filter-btn market-filter" data-market="OC">Orange County</button>
+                        <button class="filter-btn market-filter" data-market="LA">Los Angeles</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="market-share-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🎯 Weakness Targets (Declining Competitors)</span>
+                    </div>
+                    <div class="card-body scroll-table">
+                        <table id="declining-table">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Region</th>
+                                    <th>Change</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📈 Growing Competitors (Watch List)</span>
+                    </div>
+                    <div class="card-body scroll-table">
+                        <table id="growing-table">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Region</th>
+                                    <th>Growth</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">TLH Trend Analysis</span>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="tlh-trend-chart"></canvas>
+                    </div>
+                    <div class="insight-box" style="margin-top: 1rem;">
+                        <div class="insight-title">⚠️ LA Opportunity</div>
+                        TLH has 200% growth in LA (3 → 9 sales recent period). Momentum is building - consider dedicated LA expansion push.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SEASONAL PATTERNS -->
+        <div id="seasonal" class="panel">
+            <div class="insight-box">
+                <div class="insight-title">📅 Optimal Marketing Windows</div>
+                <strong>Peak Seasons:</strong> Oct-Nov (highest volume), Feb-June (steady demand). <strong>Dead Zones:</strong> July (summer slump), December (holiday pause). Plan budget allocation accordingly.
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Monthly Volume by Market</span>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 350px;">
+                        <canvas id="seasonal-chart"></canvas>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-box" style="background: #3b82f6;"></div>
+                            <span>San Diego</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box" style="background: #f59e0b;"></div>
+                            <span>Orange County</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box" style="background: #ef4444;"></div>
+                            <span>Los Angeles</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">San Diego Seasonality</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 200px;">
+                            <canvas id="sd-seasonal-chart"></canvas>
+                        </div>
+                        <div class="insight-box" style="margin-top: 1rem;">
+                            Peak: <strong>Oct-Nov</strong> (109+94 sales)<br>
+                            Low: <strong>July</strong> (14 sales)
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Orange County Seasonality</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 200px;">
+                            <canvas id="oc-seasonal-chart"></canvas>
+                        </div>
+                        <div class="insight-box" style="margin-top: 1rem;">
+                            Peak: <strong>Oct-Nov</strong> (94+91 sales)<br>
+                            Low: <strong>July-Aug</strong> (0 data)
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Los Angeles Seasonality</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 200px;">
+                            <canvas id="la-seasonal-chart"></canvas>
+                        </div>
+                        <div class="insight-box" style="margin-top: 1rem;">
+                            Peak: <strong>Oct</strong> (229 sales)<br>
+                            Low: <strong>July-Aug</strong> (0 data)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📈 Monthly Trend Over Time</span>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="monthly-trend-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- DIY OPPORTUNITIES -->
+        <div id="diy" class="panel">
+            <div class="insight-box">
+                <div class="insight-title">🎯 DIY Conversion Strategy</div>
+                <strong>433 families</strong> (15.3% of market) chose to run their own estate sale. These represent potential clients who either didn't know about professional services or had a bad experience. Target with education-focused outreach.
+            </div>
+            
+            <div class="grid-3" style="margin-bottom: 1.5rem;">
+                <div class="metric-card" style="background: linear-gradient(135deg, #6b21a8, #a855f7);">
+                    <div class="metric-value">433</div>
+                    <div class="metric-label">DIY Sales</div>
+                </div>
+                <div class="metric-card" style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
+                    <div class="metric-value">156</div>
+                    <div class="metric-label">SD (20.7%)</div>
+                </div>
+                <div class="metric-card" style="background: linear-gradient(135deg, #991b1b, #ef4444);">
+                    <div class="metric-value">233</div>
+                    <div class="metric-label">LA (16.1%)</div>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Top DIY Zip Codes</span>
+                    </div>
+                    <div class="card-body scroll-table">
+                        <table id="diy-zip-table">
+                            <thead>
+                                <tr>
+                                    <th>Zip</th>
+                                    <th>Neighborhood</th>
+                                    <th>DIY Sales</th>
+                                    <th>Region</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Recent DIY Listings (Outreach Targets)</span>
+                    </div>
+                    <div class="card-body scroll-table">
+                        <table id="diy-recent-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Address</th>
+                                    <th>Neighborhood</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📋 DIY Outreach Playbook</span>
+                </div>
+                <div class="card-body">
+                    <div class="grid-3">
+                        <div class="insight-box">
+                            <div class="insight-title">1. Post-Sale Follow-up</div>
+                            Contact 2-3 weeks after DIY sale ends. Ask how it went. Offer free consultation for "next time" or neighbors.
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">2. Neighbor Notification</div>
+                            When DIY sale happens, send postcards to 50 nearest homes: "Notice your neighbor had a sale? We make it easier."
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">3. High-Volume Zips</div>
+                            92104 (North Park) has 13 DIY sales - run a targeted Facebook/Google campaign in that zip with case study content.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- GRASONS ANALYSIS -->
+        <div id="grasons" class="panel">
+            <div class="insight-box">
+                <div class="insight-title">🏆 Grasons Dominance Analysis</div>
+                Grasons operates <strong>12+ franchises</strong> in SoCal with <strong>248 total sales</strong>. Their Elite franchise alone (93 sales) rivals TLH's total volume. Key insight: They've achieved coverage through territorial franchising.
+            </div>
+            
+            <div class="grid-3" style="margin-bottom: 1.5rem;">
+                <div class="metric-card" style="background: linear-gradient(135deg, #065f46, #10b981);">
+                    <div class="metric-value">248</div>
+                    <div class="metric-label">Grasons Total</div>
+                </div>
+                <div class="metric-card" style="background: linear-gradient(135deg, var(--gold), var(--gold-light));">
+                    <div class="metric-value" style="color: var(--navy);">130</div>
+                    <div class="metric-label" style="color: var(--navy);">TLH Total</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">1.9x</div>
+                    <div class="metric-label">Grasons Lead</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Grasons Franchise Breakdown</span>
+                </div>
+                <div class="card-body">
+                    <div id="grasons-franchises"></div>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">OC Franchise Territories</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="franchise-card">
+                            <div class="franchise-header">
+                                <div class="franchise-name">Grasons Elite Estate Sale Services</div>
+                                <div class="franchise-count">93</div>
+                            </div>
+                            <div class="tag-list">
+                                <span class="tag">Anaheim Hills</span>
+                                <span class="tag">Fullerton</span>
+                                <span class="tag">Placentia</span>
+                                <span class="tag">Irvine</span>
+                                <span class="tag">Orange</span>
+                                <span class="tag">Mission Viejo</span>
+                                <span class="tag">Laguna Niguel</span>
+                            </div>
+                        </div>
+                        <div class="franchise-card">
+                            <div class="franchise-header">
+                                <div class="franchise-name">Grasons Elite North OC</div>
+                                <div class="franchise-count">45</div>
+                            </div>
+                            <div class="tag-list">
+                                <span class="tag">Brea</span>
+                                <span class="tag">Yorba Linda</span>
+                                <span class="tag">North Tustin</span>
+                                <span class="tag">Villa Park</span>
+                            </div>
+                        </div>
+                        <div class="franchise-card">
+                            <div class="franchise-header">
+                                <div class="franchise-name">Grasons Beach Cities OC</div>
+                                <div class="franchise-count">28</div>
+                            </div>
+                            <div class="tag-list">
+                                <span class="tag">Huntington Beach</span>
+                                <span class="tag">Newport Beach</span>
+                                <span class="tag">Costa Mesa</span>
+                                <span class="tag">Seal Beach</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📋 What TLH Can Learn</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="insight-box">
+                            <div class="insight-title">1. Territory Strategy</div>
+                            Grasons divides markets into bite-sized territories. Each franchise owns a geography. Consider: Could TLH license regional partners?
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">2. Brand Consistency</div>
+                            All franchises share "Grasons" brand + systems. Clients get consistent experience regardless of territory.
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">3. Gap Analysis</div>
+                            Grasons is weak in: SD core, Coastal North County. TLH owns these. Protect aggressively while expanding into their soft spots.
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">4. Volume Leverage</div>
+                            Combined Grasons volume (248) gives them pricing power with auction houses, marketing co-ops. Consider: Strategic alliance with complementary firms?
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Grasons vs TLH Monthly Trend</span>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="grasons-trend-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- OC DEEP DIVE - COMPETITIVE INTELLIGENCE -->
+        <div id="oc-deepdive" class="panel">
+            <div class="insight-box" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05)); border-left-color: #f59e0b;">
+                <div class="insight-title">🎯 Top 3 Actionable Insights</div>
+                <ol style="margin: 0.5rem 0 0 1.25rem;">
+                    <li><strong>Grasons Vulnerability:</strong> Vincent Stirone runs BOTH North AND South OC — overextended. BBB complaints cite inconsistent quality.</li>
+                    <li><strong>South OC Beachhead:</strong> San Clemente/Dana Point underserved. "A Fine Choice" (30 yrs) is aging out. Natural extension from SD.</li>
+                    <li><strong>TLH's Moat:</strong> NO competitor offers real estate + estate sale + senior living + downsizing. Full-service integration is unique.</li>
+                </ol>
+            </div>
+            
+            <div class="grid-3" style="margin: 1.5rem 0;">
+                <div class="metric-card" style="background: linear-gradient(135deg, #0369a1, #0ea5e9);">
+                    <div class="metric-value">$1.2M</div>
+                    <div class="metric-label">OC Median Home Price</div>
+                </div>
+                <div class="metric-card" style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+                    <div class="metric-value">35-50%</div>
+                    <div class="metric-label">Commission Range</div>
+                </div>
+                <div class="metric-card" style="background: linear-gradient(135deg, #059669, #34d399);">
+                    <div class="metric-value">53%</div>
+                    <div class="metric-label">Sellers are Boomers</div>
+                </div>
+            </div>
+            
+            <!-- Grasons Deep Dive -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🏆 Grasons Franchise Model</span>
+                </div>
+                <div class="card-body">
+                    <div class="grid-2">
+                        <div>
+                            <h4 style="color: var(--navy); margin-bottom: 0.75rem;">Corporate Structure</h4>
+                            <table>
+                                <tr><td style="font-weight: 600;">Franchise Fee</td><td>$49,900</td></tr>
+                                <tr><td style="font-weight: 600;">Total Investment</td><td>$58,800 - $109,000</td></tr>
+                                <tr><td style="font-weight: 600;">Royalty</td><td>6.5% of gross (min $500/mo)</td></tr>
+                                <tr><td style="font-weight: 600;">Brand Fund</td><td>1% of gross (min $250/mo)</td></tr>
+                                <tr><td style="font-weight: 600;">Local Marketing Min</td><td>$750/month</td></tr>
+                                <tr><td style="font-weight: 600;">Training</td><td>5 days + optional 6th</td></tr>
+                                <tr><td style="font-weight: 600;">Avg Revenue (2022)</td><td>$339,000</td></tr>
+                            </table>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--navy); margin-bottom: 0.75rem;">OC Franchise Owners</h4>
+                            <div class="franchise-card" style="margin-bottom: 1rem;">
+                                <div class="franchise-header">
+                                    <div class="franchise-name">Vincent Stirone</div>
+                                    <span class="badge badge-hot">⚠️ Stretched</span>
+                                </div>
+                                <p style="font-size: 0.875rem; color: var(--gray-700); margin: 0.5rem 0;">
+                                    Runs <strong>3 territories</strong>: South OC, North OC, AND Long Beach Metro. 
+                                    Multi-unit operator = reliance on staff execution. Personal touch diminishes.
+                                </p>
+                                <div class="tag-list">
+                                    <span class="tag">South OC (since 2014)</span>
+                                    <span class="tag">North OC (since 2012)</span>
+                                    <span class="tag">Long Beach</span>
+                                </div>
+                            </div>
+                            <div class="franchise-card">
+                                <div class="franchise-header">
+                                    <div class="franchise-name">Victor Burke</div>
+                                    <span class="badge" style="background: #dbeafe; color: #1e40af;">Beach Cities</span>
+                                </div>
+                                <p style="font-size: 0.875rem; color: var(--gray-700); margin: 0.5rem 0;">
+                                    400+ sales conducted. Premium beach communities = higher value but higher expectations.
+                                    Came from eye care/veterinary industries.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-box" style="margin-top: 1.5rem;">
+                        <div class="insight-title">⚠️ Grasons Weaknesses to Exploit</div>
+                        <ul style="margin: 0.5rem 0 0 1.25rem;">
+                            <li><strong>Franchise Inconsistency:</strong> BBB complaints cite "items missing," "no inventory sheet," rude staff. Quality varies by franchisee.</li>
+                            <li><strong>No Real Estate Integration:</strong> They ONLY do estate sales. Must refer real estate out. TLH captures both.</li>
+                            <li><strong>Royalty Drag:</strong> 7.5% off top (royalty + brand fund) = less price flexibility than independents.</li>
+                            <li><strong>Cookie-Cutter:</strong> Franchise model requires standardization. Less flexibility for unique situations.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Competitor Profiles -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🎯 Top OC Competitors</span>
+                </div>
+                <div class="card-body">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Sales</th>
+                                <th>Specialty</th>
+                                <th>Strength</th>
+                                <th>Weakness</th>
+                                <th>Threat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Details Estate Sales</strong><br><span style="font-size: 0.75rem; color: var(--gray-500);">Laguna Beach | Christy P.</span></td>
+                                <td>19</td>
+                                <td>Luxury estates</td>
+                                <td>150 Yelp reviews, 100K social followers</td>
+                                <td>Single operator, capacity limits</td>
+                                <td><span class="badge badge-hot">HIGH</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>HR UR Collections</strong><br><span style="font-size: 0.75rem; color: var(--gray-500);">Lake Forest</span></td>
+                                <td>23</td>
+                                <td>Volume player</td>
+                                <td>Newsletter network, regional reach</td>
+                                <td>Poor web presence, unclear branding</td>
+                                <td><span class="badge badge-stable">LOW</span></td>
+                            </tr>
+                            <tr style="background: rgba(16, 185, 129, 0.1);">
+                                <td><strong>Treasure Hunt Estate</strong><br><span style="font-size: 0.75rem; color: var(--gray-500);">Huntington Beach</span></td>
+                                <td>19</td>
+                                <td>USPAP appraisals</td>
+                                <td>Only one with appraisal credentials</td>
+                                <td>Dated website, lower visibility</td>
+                                <td><span class="badge badge-growing">PARTNER?</span></td>
+                            </tr>
+                            <tr style="background: rgba(245, 158, 11, 0.1);">
+                                <td><strong>A Fine Choice</strong><br><span style="font-size: 0.75rem; color: var(--gray-500);">San Juan Capistrano</span></td>
+                                <td>15</td>
+                                <td>South OC focus</td>
+                                <td>30 years experience, local trust</td>
+                                <td>Aging ownership, weak digital</td>
+                                <td><span class="badge" style="background: #fef3c7; color: #92400e;">ACQUIRE?</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Habitat Estate Sales</strong><br><span style="font-size: 0.75rem; color: var(--gray-500);">Laguna Beach | Christy Smith</span></td>
+                                <td>14</td>
+                                <td>Full-service</td>
+                                <td>5-star Google, A+ BBB, growing</td>
+                                <td>Newer (2018), smaller scale</td>
+                                <td><span class="badge" style="background: #fef3c7; color: #92400e;">MEDIUM</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Geographic Gaps -->
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📍 Geographic Gaps</span>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <thead>
+                                <tr><th>Area</th><th>Current Coverage</th><th>Opportunity</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>South OC Coastal</strong><br>Dana Point, San Clemente</td>
+                                    <td>A Fine Choice (aging), Grasons (stretched)</td>
+                                    <td><span class="badge badge-hot">HIGH</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Beach Cities</strong><br>Newport, HB</td>
+                                    <td>Grasons Beach, Details</td>
+                                    <td><span class="badge" style="background: #fef3c7; color: #92400e;">MEDIUM</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>North OC</strong><br>Anaheim, Fullerton</td>
+                                    <td>Grasons NOC</td>
+                                    <td><span class="badge" style="background: #fef3c7; color: #92400e;">MEDIUM</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Laguna Beach/Niguel</strong><br>Luxury market</td>
+                                    <td>Details, Habitat</td>
+                                    <td><span class="badge badge-hot">HIGH</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🛡️ TLH Service Moat</span>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <thead>
+                                <tr><th>Service</th><th>Competitors?</th><th>TLH</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Real Estate + Estate Sale</td>
+                                    <td>❌ None</td>
+                                    <td>✅</td>
+                                </tr>
+                                <tr>
+                                    <td>Senior Living Placement</td>
+                                    <td>❌ None</td>
+                                    <td>✅</td>
+                                </tr>
+                                <tr>
+                                    <td>Full Transition Support</td>
+                                    <td>❌ None</td>
+                                    <td>✅</td>
+                                </tr>
+                                <tr>
+                                    <td>Downsizing + Move Mgmt</td>
+                                    <td>⚠️ Treasure Hunt only</td>
+                                    <td>✅</td>
+                                </tr>
+                                <tr>
+                                    <td>Probate Expertise</td>
+                                    <td>⚠️ Few mention</td>
+                                    <td>✅</td>
+                                </tr>
+                                <tr>
+                                    <td>Professional Appraisals</td>
+                                    <td>Treasure Hunt, Details</td>
+                                    <td>⚠️ Partner?</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Strategic Recommendations -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🚀 Strategic Recommendations</span>
+                </div>
+                <div class="card-body">
+                    <div class="grid-3">
+                        <div class="insight-box">
+                            <div class="insight-title">Phase 1: Beachhead (Mo 1-6)</div>
+                            <ul style="margin: 0.5rem 0 0 1rem; font-size: 0.875rem;">
+                                <li>Target: San Clemente, Dana Point, SJC</li>
+                                <li>Build 5-10 probate attorney relationships</li>
+                                <li>Connect 10-15 senior living communities</li>
+                                <li>Partner or hire estate sale team</li>
+                            </ul>
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">Phase 2: Marketing (Mo 3-9)</div>
+                            <ul style="margin: 0.5rem 0 0 1rem; font-size: 0.875rem;">
+                                <li>"OC Parent's Home" content series</li>
+                                <li>Google Business Profile (SJC focus)</li>
+                                <li>Video: "What to Expect at Estate Sale"</li>
+                                <li>Position: "Complete transition partner"</li>
+                            </ul>
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">Phase 3: Scale (Mo 9-18)</div>
+                            <ul style="margin: 0.5rem 0 0 1rem; font-size: 0.875rem;">
+                                <li>Expand to Laguna Beach/Niguel corridor</li>
+                                <li>Target 5-8 sales/month</li>
+                                <li>Evaluate A Fine Choice acquisition</li>
+                                <li>Treasure Hunt partnership for appraisals</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Reference -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📞 Competitor Contact Reference</span>
+                </div>
+                <div class="card-body">
+                    <table>
+                        <thead>
+                            <tr><th>Company</th><th>Phone</th><th>Website</th><th>Owner</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Grasons South OC</td><td>949-812-8207</td><td>grasons.com/south-orange-county</td><td>Vincent Stirone</td></tr>
+                            <tr><td>Grasons North OC</td><td>(same)</td><td>grasons.com/north-orange-county</td><td>Vincent Stirone</td></tr>
+                            <tr><td>Grasons Beach Cities</td><td>949-698-2428</td><td>grasons.com/beach-cities</td><td>Victor Burke</td></tr>
+                            <tr><td>Details Estate Sales</td><td>949-338-3440</td><td>detailsestatesales.com</td><td>Christy P.</td></tr>
+                            <tr><td>Treasure Hunt</td><td>—</td><td>treasurehuntestateservices.com</td><td>—</td></tr>
+                            <tr><td>A Fine Choice</td><td>949-547-1505</td><td>afinechoice.net</td><td>—</td></tr>
+                            <tr><td>Habitat Estate Sales</td><td>949-813-9154</td><td>habitatestatesales.com</td><td>Christy Smith</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SEO INTEL - AHREFS DATA -->
+        <div id="seo-intel" class="panel">
+            <div class="insight-box" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); border-left-color: #10b981;">
+                <div class="insight-title">🎯 The Big Picture</div>
+                <strong>TLH dominates overall (5x traffic vs nearest competitor)</strong> but has <span style="color: #ef4444; font-weight: 700;">ZERO OC-specific keyword rankings</span>. 
+                All OC competitors have virtually no organic presence (DR 0-9). This is the easiest content land-grab in the market.
+            </div>
+            
+            <!-- Domain Metrics Comparison -->
+            <div class="grid-3" style="margin: 1.5rem 0;">
+                <div class="metric-card" style="background: linear-gradient(135deg, var(--gold), var(--gold-light));">
+                    <div class="metric-value" style="color: var(--navy);">29</div>
+                    <div class="metric-label" style="color: var(--navy);">TLH Domain Rating</div>
+                </div>
+                <div class="metric-card" style="background: linear-gradient(135deg, #0369a1, #0ea5e9);">
+                    <div class="metric-value">7,229</div>
+                    <div class="metric-label">TLH Monthly Traffic</div>
+                </div>
+                <div class="metric-card" style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+                    <div class="metric-value">5,824</div>
+                    <div class="metric-label">TLH Ranking Keywords</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📊 Domain Comparison (Ahrefs)</span>
+                </div>
+                <div class="card-body">
+                    <table>
+                        <thead>
+                            <tr><th>Domain</th><th>DR</th><th>Monthly Traffic</th><th>Keywords</th><th>Referring Domains</th><th>Backlinks</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="highlight">
+                                <td><strong>truelegacyhomes.com</strong></td>
+                                <td><strong>29</strong></td>
+                                <td><strong>7,229</strong></td>
+                                <td><strong>5,824</strong></td>
+                                <td><strong>689</strong></td>
+                                <td><strong>2,913</strong></td>
+                            </tr>
+                            <tr>
+                                <td>grasons.com</td>
+                                <td>28</td>
+                                <td>1,431</td>
+                                <td>1,284</td>
+                                <td>299</td>
+                                <td>6,129</td>
+                            </tr>
+                            <tr>
+                                <td>detailsestatesales.com</td>
+                                <td>0</td>
+                                <td>716</td>
+                                <td>84</td>
+                                <td>27</td>
+                                <td>197</td>
+                            </tr>
+                            <tr>
+                                <td>habitatestatesales.com</td>
+                                <td>8</td>
+                                <td>11</td>
+                                <td>68</td>
+                                <td>36</td>
+                                <td>948</td>
+                            </tr>
+                            <tr>
+                                <td>treasurehuntestateservices.com</td>
+                                <td>8</td>
+                                <td>9</td>
+                                <td>53</td>
+                                <td>31</td>
+                                <td>108</td>
+                            </tr>
+                            <tr>
+                                <td>afinechoice.net</td>
+                                <td>3</td>
+                                <td>0</td>
+                                <td>6</td>
+                                <td>40</td>
+                                <td>249</td>
+                            </tr>
+                            <tr>
+                                <td>hrurcollections.com</td>
+                                <td>4.5</td>
+                                <td>19</td>
+                                <td>1</td>
+                                <td>34</td>
+                                <td>184</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="insight-box" style="margin-top: 1rem;">
+                        <div class="insight-title">💡 Key Insight</div>
+                        TLH has <strong>5x the organic traffic</strong> of Grasons and <strong>7x the ranking keywords</strong>. 
+                        All OC-specific competitors (Details, Habitat, Treasure Hunt, A Fine Choice) have virtually no organic visibility.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Gap -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🚨 Content Gap: OC Keywords TLH is Missing</span>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom: 1rem; color: var(--gray-700);"><strong>TLH ranks for ZERO Orange County estate sale keywords.</strong> These competitors (with DR 0-9) are outranking you:</p>
+                    <table>
+                        <thead>
+                            <tr><th>Keyword</th><th>Volume</th><th>Who Ranks</th><th>Difficulty</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>estate sales orange county</strong></td>
+                                <td><span class="badge badge-hot">700</span></td>
+                                <td>Grasons #7, Details #6, Habitat #16</td>
+                                <td><span class="badge badge-growing">KD 0</span></td>
+                            </tr>
+                            <tr>
+                                <td>estate sale orange county</td>
+                                <td>100</td>
+                                <td>Details #7, Treasure Hunt #17</td>
+                                <td><span class="badge badge-growing">KD 0</span></td>
+                            </tr>
+                            <tr>
+                                <td>estate sales newport beach</td>
+                                <td>80</td>
+                                <td>Details #9, Treasure Hunt #21</td>
+                                <td><span class="badge badge-growing">KD 0</span></td>
+                            </tr>
+                            <tr>
+                                <td>estate sales huntington beach</td>
+                                <td>80</td>
+                                <td>Treasure Hunt #16</td>
+                                <td><span class="badge badge-growing">KD 0</span></td>
+                            </tr>
+                            <tr>
+                                <td>estate sales mission viejo</td>
+                                <td>70</td>
+                                <td>Details #9</td>
+                                <td><span class="badge badge-growing">KD 0</span></td>
+                            </tr>
+                            <tr>
+                                <td>orange county estate sales</td>
+                                <td>60</td>
+                                <td>Details #5</td>
+                                <td><span class="badge badge-growing">KD 1</span></td>
+                            </tr>
+                            <tr>
+                                <td>estate sales in orange county</td>
+                                <td>50</td>
+                                <td>Details #4, Habitat #18</td>
+                                <td><span class="badge badge-growing">KD 0</span></td>
+                            </tr>
+                            <tr>
+                                <td>estate sales fountain valley</td>
+                                <td>20</td>
+                                <td>Treasure Hunt #7</td>
+                                <td><span class="badge badge-growing">KD 0</span></td>
+                            </tr>
+                            <tr>
+                                <td>estate sales irvine</td>
+                                <td>20</td>
+                                <td>Habitat #15</td>
+                                <td><span class="badge badge-growing">KD 0</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <!-- TLH Top Keywords -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🏆 TLH Top Keywords (National Authority)</span>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <thead>
+                                <tr><th>Keyword</th><th>Position</th><th>Volume</th><th>Traffic</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><strong>what is an estate sale</strong></td><td><span class="badge badge-tlh">#1</span></td><td>7,500</td><td>1,497</td></tr>
+                                <tr><td>how does an estate sale work</td><td><span class="badge badge-tlh">#1</span></td><td>350</td><td>154</td></tr>
+                                <tr><td>what are estate sales</td><td><span class="badge badge-tlh">#1</span></td><td>600</td><td>120</td></tr>
+                                <tr><td>hummel values</td><td><span class="badge badge-tlh">#1</span></td><td>250</td><td>275</td></tr>
+                                <tr><td>senior living activities</td><td>#2</td><td>1,200</td><td>171</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="insight-box" style="margin-top: 1rem;">
+                            <div class="insight-title">Leverage This</div>
+                            TLH's /what-are-estate-sales/ page (2,911 traffic) should internal link to all new OC location pages.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SERP Analysis -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🎯 SERP: "estate sales orange county"</span>
+                    </div>
+                    <div class="card-body">
+                        <p style="margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--gray-600);">700 monthly searches — the #1 money keyword</p>
+                        <table>
+                            <thead>
+                                <tr><th>Pos</th><th>Who</th><th>DR</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1-3</td><td>estatesales.net (directory)</td><td>78</td></tr>
+                                <tr><td>4</td><td>estatesales.org</td><td>74</td></tr>
+                                <tr><td>5</td><td>Grasons Elite</td><td>—</td></tr>
+                                <tr><td>5</td><td>detailsestatesales.com</td><td>0</td></tr>
+                                <tr><td>7</td><td>Yelp</td><td>94</td></tr>
+                                <tr><td>8</td><td>Grasons South OC</td><td>37</td></tr>
+                                <tr><td>12</td><td>habitatestatesales.com</td><td>9</td></tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 0.75rem; font-size: 0.875rem;"><strong>TLH's DR 29 can compete for positions 5-8</strong> with proper content.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Grasons Weakness -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">⚠️ Grasons OC Franchise Pages = Zero Rankings</span>
+                </div>
+                <div class="card-body">
+                    <table>
+                        <thead>
+                            <tr><th>Grasons Page</th><th>Independent Keyword Rankings</th><th>Analysis</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>/south-orange-county/</td>
+                                <td><span class="badge badge-declining">0</span></td>
+                                <td>Thin location page, no content</td>
+                            </tr>
+                            <tr>
+                                <td>/north-orange-county/</td>
+                                <td><span class="badge badge-declining">0</span></td>
+                                <td>Thin location page, no content</td>
+                            </tr>
+                            <tr>
+                                <td>/beach-cities/</td>
+                                <td><span class="badge badge-declining">0</span></td>
+                                <td>Thin location page, no content</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="insight-box" style="margin-top: 1rem;">
+                        <div class="insight-title">💡 Opportunity</div>
+                        Grasons' OC traffic comes from domain-level authority, NOT from these thin pages. 
+                        <strong>TLH can outrank them with content-rich OC landing pages.</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Plan -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🚀 SEO Action Plan</span>
+                </div>
+                <div class="card-body">
+                    <div class="grid-3">
+                        <div class="insight-box">
+                            <div class="insight-title">Week 1: Pillar Page</div>
+                            <p style="font-size: 0.875rem;">Create <strong>"Estate Sales Orange County"</strong> pillar page targeting the 700 vol keyword cluster. With DR 29, positions 5-8 achievable quickly.</p>
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">Week 2-3: City Pages</div>
+                            <ul style="margin: 0.5rem 0 0 1rem; font-size: 0.875rem;">
+                                <li>Newport Beach (80 vol)</li>
+                                <li>Huntington Beach (80 vol)</li>
+                                <li>Mission Viejo (70 vol)</li>
+                                <li>Irvine (20 vol)</li>
+                                <li>San Clemente (10 vol)</li>
+                                <li>Laguna Beach (emerging)</li>
+                            </ul>
+                        </div>
+                        <div class="insight-box">
+                            <div class="insight-title">Week 4: Internal Links</div>
+                            <p style="font-size: 0.875rem;">Link from TLH's top page (/what-are-estate-sales/ with 2,911 traffic) to all new OC pages. Transfer authority.</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: linear-gradient(135deg, rgba(214, 158, 46, 0.15), rgba(214, 158, 46, 0.05)); border-radius: 8px; border-left: 4px solid var(--gold);">
+                        <strong style="color: var(--navy);">Bottom Line:</strong> Every OC estate sale keyword has KD 0-5. TLH has DR 29. 
+                        The competitors have DR 0-9. <strong>This is a content land-grab waiting to happen.</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Embedded data from processing
+        const dashboardData = {
+            zipHeatmap: [
+                {zip: "92037", count: 66, neighborhood: "La Jolla", region: "SD"},
+                {zip: "90210", count: 36, neighborhood: "Beverly Hills", region: "LA"},
+                {zip: "92626", count: 34, neighborhood: "Costa Mesa", region: "OC"},
+                {zip: "90275", count: 33, neighborhood: "Rancho Palos Verdes", region: "LA"},
+                {zip: "92078", count: 32, neighborhood: "San Marcos", region: "SD"},
+                {zip: "91941", count: 32, neighborhood: "La Mesa", region: "SD"},
+                {zip: "92120", count: 29, neighborhood: "Allied Gardens", region: "SD"},
+                {zip: "90808", count: 28, neighborhood: "Long Beach", region: "LA"},
+                {zip: "92660", count: 26, neighborhood: "Newport Beach", region: "OC"},
+                {zip: "90049", count: 25, neighborhood: "Brentwood", region: "LA"},
+                {zip: "92627", count: 25, neighborhood: "Costa Mesa", region: "OC"},
+                {zip: "92084", count: 24, neighborhood: "Vista", region: "SD"},
+                {zip: "92056", count: 24, neighborhood: "Oceanside", region: "SD"},
+                {zip: "90069", count: 24, neighborhood: "West Hollywood", region: "LA"},
+                {zip: "90274", count: 24, neighborhood: "Palos Verdes Peninsula", region: "LA"},
+                {zip: "92807", count: 24, neighborhood: "Anaheim Hills", region: "OC"},
+                {zip: "92117", count: 24, neighborhood: "Clairemont Mesa", region: "SD"},
+                {zip: "91942", count: 23, neighborhood: "La Mesa", region: "SD"},
+                {zip: "91107", count: 23, neighborhood: "Pasadena", region: "LA"},
+                {zip: "90277", count: 23, neighborhood: "Redondo Beach", region: "LA"},
+                {zip: "92009", count: 23, neighborhood: "Carlsbad", region: "SD"},
+                {zip: "92867", count: 23, neighborhood: "Orange", region: "OC"},
+                {zip: "90008", count: 21, neighborhood: "Baldwin Hills", region: "LA"},
+                {zip: "92081", count: 21, neighborhood: "Vista", region: "SD"},
+                {zip: "90019", count: 21, neighborhood: "Mid-City", region: "LA"},
+                {zip: "92024", count: 21, neighborhood: "Encinitas", region: "SD"},
+                {zip: "90803", count: 20, neighborhood: "Long Beach", region: "LA"},
+                {zip: "92869", count: 20, neighborhood: "Orange", region: "OC"},
+                {zip: "92104", count: 20, neighborhood: "North Park", region: "SD"},
+                {zip: "92119", count: 20, neighborhood: "San Carlos", region: "SD"},
+                {zip: "92071", count: 19, neighborhood: "Santee", region: "SD"},
+                {zip: "92008", count: 19, neighborhood: "Carlsbad", region: "SD"},
+                {zip: "92103", count: 18, neighborhood: "Hillcrest", region: "SD"},
+                {zip: "91784", count: 18, neighborhood: "Upland", region: "LA"},
+                {zip: "92057", count: 18, neighborhood: "Oceanside", region: "SD"},
+                {zip: "92672", count: 18, neighborhood: "San Clemente", region: "OC"},
+                {zip: "90046", count: 17, neighborhood: "West Hollywood", region: "LA"},
+                {zip: "91016", count: 17, neighborhood: "Monrovia", region: "LA"},
+                {zip: "92109", count: 17, neighborhood: "Pacific Beach", region: "SD"},
+                {zip: "90045", count: 17, neighborhood: "Westchester", region: "LA"},
+                {zip: "92886", count: 17, neighborhood: "Yorba Linda", region: "OC"},
+                {zip: "92027", count: 17, neighborhood: "Escondido", region: "SD"},
+                {zip: "90631", count: 17, neighborhood: "La Habra Heights", region: "LA"},
+                {zip: "92882", count: 17, neighborhood: "Corona", region: "OC"},
+                {zip: "92115", count: 16, neighborhood: "College Area", region: "SD"},
+                {zip: "91604", count: 16, neighborhood: "Studio City", region: "LA"},
+                {zip: "92651", count: 16, neighborhood: "Laguna Beach", region: "OC"},
+                {zip: "92673", count: 16, neighborhood: "San Clemente", region: "OC"},
+                {zip: "90712", count: 16, neighborhood: "Lakewood", region: "LA"},
+                {zip: "92111", count: 15, neighborhood: "Clairemont", region: "SD"}
+            ],
+            
+            hotZones: [
+                {zip: "92037", period: "2025-Q2", count: 18, neighborhood: "La Jolla", region: "SD", addresses: ["7430 Cabrillo Ave", "409 Dunemere Dr", "8640 Dunaway Dr"]},
+                {zip: "90275", period: "2025-Q2", count: 15, neighborhood: "Rancho Palos Verdes", region: "LA", addresses: ["6528 Via Siena", "6917 Clovercliff Dr."]},
+                {zip: "92037", period: "2024-Q4", count: 14, neighborhood: "La Jolla", region: "SD", addresses: ["6329 Via Cabrera", "2006 Olite Court", "5902 Beaumont"]},
+                {zip: "92627", period: "2025-Q4", count: 14, neighborhood: "Costa Mesa", region: "OC", addresses: ["690 Capital St", "894 W 18th Street", "222 Victoria St"]},
+                {zip: "90808", period: "2025-Q2", count: 13, neighborhood: "Long Beach", region: "LA", addresses: ["5334 E Rosebay St", "3050 Arlotte Avenue"]},
+                {zip: "91941", period: "2025-Q2", count: 13, neighborhood: "La Mesa", region: "SD", addresses: ["4015 King St", "4206 Comino Paz"]},
+                {zip: "92056", period: "2025-Q2", count: 12, neighborhood: "Oceanside", region: "SD", addresses: ["5033 Nighthawk Way", "4956 Lamia Way"]},
+                {zip: "92037", period: "2025-Q1", count: 12, neighborhood: "La Jolla", region: "SD", addresses: ["1374 Caminito Balada", "6216 Camino De La Costa"]},
+                {zip: "91107", period: "2024-Q4", count: 10, neighborhood: "Pasadena", region: "LA", addresses: ["2564 Morningside", "3679 Ivydale Ct"]},
+                {zip: "92037", period: "2025-Q3", count: 10, neighborhood: "La Jolla", region: "SD", addresses: ["5484 Coral Reef Ave.", "6984 Via Estrada"]},
+                {zip: "90210", period: "2024-Q4", count: 10, neighborhood: "Beverly Hills", region: "LA", addresses: ["2353 Bowmont", "815 Cord Circle"]},
+                {zip: "92807", period: "2025-Q2", count: 10, neighborhood: "Anaheim Hills", region: "OC", addresses: ["399 S. Smokeridge Terrace", "421 S Cederhaven Way"]},
+                {zip: "92103", period: "2024-Q4", count: 9, neighborhood: "Hillcrest", region: "SD", addresses: ["1300 W. Walnut Ave.", "3328 Ibis Street"]},
+                {zip: "90008", period: "2025-Q2", count: 9, neighborhood: "Baldwin Hills", region: "LA", addresses: ["4660 Don Lorenzo Dr", "3817 Sutro Ave"]},
+                {zip: "91016", period: "2025-Q2", count: 9, neighborhood: "Monrovia", region: "LA", addresses: ["1530 S Myrtle Ave", "801 W. Duarte Road"]},
+                {zip: "92120", period: "2024-Q4", count: 9, neighborhood: "Allied Gardens", region: "SD", addresses: ["5920 Glenlea Lane", "6215 Camanito Plata Ave"]},
+                {zip: "92626", period: "2025-Q2", count: 9, neighborhood: "Costa Mesa", region: "OC", addresses: ["969 Azalea Dr", "2370 College Dr"]},
+                {zip: "92078", period: "2025-Q2", count: 8, neighborhood: "San Marcos", region: "SD", addresses: ["1274 Rue St Moritz", "659 Larkspur Ct"]},
+                {zip: "90803", period: "2025-Q2", count: 8, neighborhood: "Long Beach", region: "LA", addresses: ["3245 E First St", "234 Roswell Ave"]},
+                {zip: "91784", period: "2025-Q2", count: 8, neighborhood: "Upland", region: "LA", addresses: ["1937 N Laurel Ave", "1785 N. 3rd Avenue"]}
+            ],
+            
+            marketShare: {
+                SD: [
+                    {company: "Privately Listed Sale", count: 156, share: 20.72, is_tlh: false, is_diy: true},
+                    {company: "True Legacy Homes", count: 91, share: 12.08, is_tlh: true, is_diy: false},
+                    {company: "Blue Waters Relocation", count: 40, share: 5.31, is_tlh: false, is_diy: false},
+                    {company: "Summers Estate Liquidation", count: 35, share: 4.65, is_tlh: false, is_diy: false},
+                    {company: "Integrity First Sales", count: 30, share: 3.98, is_tlh: false, is_diy: false},
+                    {company: "Anna's Attic Estate Sales", count: 27, share: 3.59, is_tlh: false, is_diy: false},
+                    {company: "On The Road Antiques", count: 20, share: 2.66, is_tlh: false, is_diy: false},
+                    {company: "Quality Estate Sales By Boris", count: 19, share: 2.52, is_tlh: false, is_diy: false},
+                    {company: "La Jolla Estate Liquidators", count: 18, share: 2.39, is_tlh: false, is_diy: false},
+                    {company: "Blue Moon North County SD", count: 16, share: 2.12, is_tlh: false, is_diy: false}
+                ],
+                OC: [
+                    {company: "Privately Listed Sale", count: 44, share: 6.90, is_tlh: false, is_diy: true},
+                    {company: "Grasons Elite Estate Sale", count: 43, share: 6.74, is_tlh: false, is_diy: false},
+                    {company: "Grasons Elite North OC", count: 42, share: 6.58, is_tlh: false, is_diy: false},
+                    {company: "Details Estate Sales", count: 30, share: 4.70, is_tlh: false, is_diy: false},
+                    {company: "Grasons Beach Cities OC", count: 28, share: 4.39, is_tlh: false, is_diy: false},
+                    {company: "True Legacy Homes", count: 27, share: 4.23, is_tlh: true, is_diy: false},
+                    {company: "Hr Ur Collections", count: 24, share: 3.76, is_tlh: false, is_diy: false},
+                    {company: "Treasure Hunt Estate", count: 22, share: 3.45, is_tlh: false, is_diy: false},
+                    {company: "JOHNEVIEVE", count: 20, share: 3.13, is_tlh: false, is_diy: false},
+                    {company: "Stellar Estate Sales", count: 18, share: 2.82, is_tlh: false, is_diy: false}
+                ],
+                LA: [
+                    {company: "Privately Listed Sale", count: 233, share: 16.12, is_tlh: false, is_diy: true},
+                    {company: "Venzor Estate Sales", count: 59, share: 4.08, is_tlh: false, is_diy: false},
+                    {company: "Grasons South Bay Beachside", count: 31, share: 2.15, is_tlh: false, is_diy: false},
+                    {company: "Golden Rabbit Estate Sales", count: 30, share: 2.08, is_tlh: false, is_diy: false},
+                    {company: "Veteran Estate Sales", count: 25, share: 1.73, is_tlh: false, is_diy: false},
+                    {company: "Grasons Long Beach", count: 25, share: 1.73, is_tlh: false, is_diy: false},
+                    {company: "Vintique Finds", count: 24, share: 1.66, is_tlh: false, is_diy: false},
+                    {company: "Tlc Estate Transition", count: 22, share: 1.52, is_tlh: false, is_diy: false},
+                    {company: "G & G Estate Sales", count: 21, share: 1.45, is_tlh: false, is_diy: false},
+                    {company: "Grasons City Of Angels", count: 20, share: 1.38, is_tlh: false, is_diy: false},
+                    {company: "True Legacy Homes", count: 12, share: 0.83, is_tlh: true, is_diy: false}
+                ]
+            },
+            
+            competitorTrends: {
+                SD: [
+                    {company: "Blue Moon Del Mar-SD", change: 25.0, trend: "growing"},
+                    {company: "True Legacy Homes", change: -6.4, trend: "declining", is_tlh: true},
+                    {company: "Blue Waters Relocation", change: -33.3, trend: "declining"},
+                    {company: "Infinity Estate Sales", change: -55.6, trend: "declining"},
+                    {company: "Socal Estate Sale Services", change: -57.1, trend: "declining"}
+                ],
+                OC: [
+                    {company: "Socal Home Clear Outs", change: 133.3, trend: "growing"},
+                    {company: "Advanced Estate Sale Services", change: 50.0, trend: "growing"},
+                    {company: "True Legacy Homes", change: -65.0, trend: "declining", is_tlh: true},
+                    {company: "Details Estate Sales", change: -69.6, trend: "declining"},
+                    {company: "Hr Ur Collections", change: -58.8, trend: "declining"}
+                ],
+                LA: [
+                    {company: "True Legacy Homes", change: 200.0, trend: "growing", is_tlh: true},
+                    {company: "Chloe Estate Liquidators", change: 33.3, trend: "growing"},
+                    {company: "Diamond Estate Services", change: 25.0, trend: "growing"},
+                    {company: "A Vintage Walk", change: -37.5, trend: "declining"},
+                    {company: "Pomelo Estate Sale", change: -40.0, trend: "declining"}
+                ]
+            },
+            
+            diyByZip: [
+                {zip: "92104", count: 13, region: "SD", neighborhood: "North Park"},
+                {zip: "92120", count: 9, region: "SD", neighborhood: "Allied Gardens"},
+                {zip: "91941", count: 8, region: "SD", neighborhood: "La Mesa"},
+                {zip: "90042", count: 8, region: "LA", neighborhood: "Highland Park"},
+                {zip: "92037", count: 7, region: "SD", neighborhood: "La Jolla"},
+                {zip: "91942", count: 7, region: "SD", neighborhood: "La Mesa"},
+                {zip: "92103", count: 6, region: "SD", neighborhood: "Hillcrest"},
+                {zip: "91775", count: 6, region: "LA", neighborhood: "San Gabriel"},
+                {zip: "92071", count: 6, region: "SD", neighborhood: "Santee"},
+                {zip: "90004", count: 6, region: "LA", neighborhood: "Koreatown"},
+                {zip: "91762", count: 6, region: "LA", neighborhood: "Ontario"},
+                {zip: "90008", count: 6, region: "LA", neighborhood: "Baldwin Hills"},
+                {zip: "91016", count: 6, region: "LA", neighborhood: "Monrovia"},
+                {zip: "90046", count: 6, region: "LA", neighborhood: "West Hollywood"},
+                {zip: "90069", count: 5, region: "LA", neighborhood: "West Hollywood"}
+            ],
+            
+            diyRecent: [
+                {date: "12/19/2025", address: "1 Yellow Brick Road Rancho Palos Verdes, CA 90275", neighborhood: "Rancho Palos Verdes"},
+                {date: "12/19/2025", address: "5707 Olive Hill Road Bonsall, CA 92003", neighborhood: "Bonsall"},
+                {date: "12/19/2025", address: "2326 Galbreth Rd Pasadena, CA 91104", neighborhood: "Pasadena"},
+                {date: "12/12/2025", address: "989 Hancock Av E West Hollywood, CA 90069", neighborhood: "West Hollywood"},
+                {date: "12/12/2025", address: "3336 29th St. San Diego, CA 92104", neighborhood: "North Park"},
+                {date: "12/12/2025", address: "4613 Janet Place San Diego, CA 92115", neighborhood: "College Area"},
+                {date: "12/12/2025", address: "6784 Rockglen Avenue San Diego, CA 92111", neighborhood: "Clairemont"},
+                {date: "12/12/2025", address: "5935 Lake Murray Blvd La Mesa, CA 91942", neighborhood: "La Mesa"},
+                {date: "12/05/2025", address: "5868 Overlake Avenue San Diego, CA 92120", neighborhood: "Allied Gardens"},
+                {date: "12/05/2025", address: "8759 Ardendale San Gabriel, CA 91775", neighborhood: "San Gabriel"},
+                {date: "12/05/2025", address: "6466 W 83rd Street Westchester, CA 90045", neighborhood: "Westchester"},
+                {date: "12/05/2025", address: "2328 Hollister Terrace Glendale, CA 91206", neighborhood: "Glendale"},
+                {date: "11/28/2025", address: "5433 Wellesley St East La Mesa, CA 91942", neighborhood: "La Mesa"},
+                {date: "11/28/2025", address: "126 E 118th Place Los Angeles, CA 90061", neighborhood: "South LA"},
+                {date: "11/21/2025", address: "351 Fern Glen La Jolla, CA 92037", neighborhood: "La Jolla"}
+            ],
+            
+            grasons: [
+                {franchise: "Grasons Elite Estate Sale Services", total: 93, regions: ["OC", "LA", "SD"], zips: ["92807", "92870", "92612", "92869", "92660"]},
+                {franchise: "Grasons South Bay Beachside", total: 31, regions: ["LA"], zips: ["90278", "90501", "90505", "90266"]},
+                {franchise: "Grasons Beach Cities OC", total: 28, regions: ["OC"], zips: ["92646", "92627", "92648", "92625", "92660"]},
+                {franchise: "Grasons Co. of Long Beach", total: 25, regions: ["LA"], zips: ["90712", "90815", "90807", "90803", "90808"]},
+                {franchise: "Grasons City Of Angels", total: 20, regions: ["LA"], zips: ["90025", "90210", "90069", "90291", "90049"]},
+                {franchise: "Grasons PV-Carson & Del Reys", total: 14, regions: ["LA"], zips: ["90292", "90274", "90275", "90732"]},
+                {franchise: "Grasons Pomona Valley", total: 10, regions: ["LA"], zips: ["91784", "91710", "91709", "91786"]},
+                {franchise: "Grasons Prestige Pasadena", total: 9, regions: ["LA"], zips: ["91107", "91775", "91010", "91206"]},
+                {franchise: "Grasons Integrity Estate Sales", total: 8, regions: ["OC", "LA"], zips: ["90720", "90240", "92683"]},
+                {franchise: "Grasons Estate Specialists", total: 6, regions: ["LA", "OC"], zips: ["92860", "91739", "91737"]},
+                {franchise: "Grasons South Riverside County", total: 3, regions: ["OC", "SD"], zips: ["92081", "92879"]}
+            ],
+            
+            tlhMonthly: {
+                "2024-09": 4, "2024-10": 7, "2024-11": 11, "2024-12": 5,
+                "2025-01": 9, "2025-02": 5, "2025-03": 4, "2025-04": 7,
+                "2025-05": 12, "2025-06": 6, "2025-07": 2, "2025-08": 10,
+                "2025-09": 8, "2025-10": 11, "2025-11": 9, "2025-12": 10, "2026-01": 10
+            },
+            
+            seasonal: {
+                SD: {1: 77, 2: 45, 3: 53, 4: 50, 5: 71, 6: 63, 7: 14, 8: 53, 9: 61, 10: 109, 11: 94, 12: 63},
+                OC: {1: 76, 2: 43, 3: 58, 4: 43, 5: 50, 6: 81, 7: 0, 8: 0, 9: 43, 10: 94, 11: 91, 12: 59},
+                LA: {1: 162, 2: 101, 3: 104, 4: 120, 5: 153, 6: 125, 7: 0, 8: 0, 9: 49, 10: 229, 11: 214, 12: 188}
+            }
+        };
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.panel).classList.add('active');
+            });
+        });
+        
+        // Heat level calculation
+        function getHeatLevel(count, max) {
+            const ratio = count / max;
+            if (ratio >= 0.9) return 10;
+            if (ratio >= 0.8) return 9;
+            if (ratio >= 0.7) return 8;
+            if (ratio >= 0.6) return 7;
+            if (ratio >= 0.5) return 6;
+            if (ratio >= 0.4) return 5;
+            if (ratio >= 0.3) return 4;
+            if (ratio >= 0.2) return 3;
+            if (ratio >= 0.1) return 2;
+            return 1;
+        }
+        
+        // Populate zip code table
+        function populateZipTable(filter = 'all') {
+            const tbody = document.querySelector('#zip-table tbody');
+            const maxCount = dashboardData.zipHeatmap[0].count;
+            const filtered = filter === 'all' 
+                ? dashboardData.zipHeatmap 
+                : dashboardData.zipHeatmap.filter(z => z.region === filter);
+            
+            tbody.innerHTML = filtered.map(z => {
+                const heat = getHeatLevel(z.count, maxCount);
+                return `<tr>
+                    <td><span class="heatmap-cell heat-${heat}"></span></td>
+                    <td><strong>${z.zip}</strong></td>
+                    <td>${z.neighborhood}</td>
+                    <td><span class="badge badge-${z.region.toLowerCase()}">${z.region}</span></td>
+                    <td><strong>${z.count}</strong></td>
+                </tr>`;
+            }).join('');
+        }
+        
+        // Populate hot zone table
+        function populateHotZoneTable() {
+            const tbody = document.querySelector('#hotzone-table tbody');
+            const maxCount = dashboardData.hotZones[0].count;
+            
+            tbody.innerHTML = dashboardData.hotZones.slice(0, 30).map(z => {
+                const heat = getHeatLevel(z.count, maxCount);
+                return `<tr>
+                    <td><span class="badge badge-hot">${z.count} sales</span></td>
+                    <td><strong>${z.neighborhood}</strong></td>
+                    <td>${z.zip}</td>
+                    <td>${z.period}</td>
+                    <td>${z.count}</td>
+                    <td><span class="badge badge-${z.region.toLowerCase()}">${z.region}</span></td>
+                    <td class="address-list">${z.addresses.slice(0, 2).join(', ')}</td>
+                </tr>`;
+            }).join('');
+        }
+        
+        // Populate DIY tables
+        function populateDiyTables() {
+            const zipBody = document.querySelector('#diy-zip-table tbody');
+            zipBody.innerHTML = dashboardData.diyByZip.map(z => `
+                <tr>
+                    <td><strong>${z.zip}</strong></td>
+                    <td>${z.neighborhood}</td>
+                    <td><span class="badge badge-diy">${z.count}</span></td>
+                    <td><span class="badge badge-${z.region.toLowerCase()}">${z.region}</span></td>
+                </tr>
+            `).join('');
+            
+            const recentBody = document.querySelector('#diy-recent-table tbody');
+            recentBody.innerHTML = dashboardData.diyRecent.map(d => `
+                <tr>
+                    <td>${d.date}</td>
+                    <td style="font-size: 0.8rem;">${d.address}</td>
+                    <td>${d.neighborhood}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Populate competitor trends
+        function populateCompetitorTrends() {
+            const decliningBody = document.querySelector('#declining-table tbody');
+            const growingBody = document.querySelector('#growing-table tbody');
+            
+            let declining = [];
+            let growing = [];
+            
+            ['SD', 'OC', 'LA'].forEach(region => {
+                dashboardData.competitorTrends[region].forEach(c => {
+                    if (c.trend === 'declining' && !c.is_tlh) {
+                        declining.push({...c, region});
+                    } else if (c.trend === 'growing') {
+                        growing.push({...c, region});
+                    }
+                });
+            });
+            
+            decliningBody.innerHTML = declining.slice(0, 15).map(c => `
+                <tr>
+                    <td>${c.company}</td>
+                    <td><span class="badge badge-${c.region.toLowerCase()}">${c.region}</span></td>
+                    <td class="trend-down">${c.change.toFixed(1)}%</td>
+                    <td><span class="badge badge-declining">Declining</span></td>
+                </tr>
+            `).join('');
+            
+            growingBody.innerHTML = growing.map(c => `
+                <tr ${c.is_tlh ? 'class="highlight"' : ''}>
+                    <td>${c.company} ${c.is_tlh ? '<span class="badge badge-tlh">TLH</span>' : ''}</td>
+                    <td><span class="badge badge-${c.region.toLowerCase()}">${c.region}</span></td>
+                    <td class="trend-up">+${c.change.toFixed(1)}%</td>
+                    <td><strong>${c.total || '-'}</strong></td>
+                </tr>
+            `).join('');
+        }
+        
+        // Populate Grasons
+        function populateGrasons() {
+            const container = document.getElementById('grasons-franchises');
+            container.innerHTML = dashboardData.grasons.map(g => `
+                <div class="franchise-card">
+                    <div class="franchise-header">
+                        <div class="franchise-name">${g.franchise}</div>
+                        <div class="franchise-count">${g.total}</div>
+                    </div>
+                    <div>
+                        ${g.regions.map(r => `<span class="badge badge-${r.toLowerCase()}">${r}</span>`).join(' ')}
+                    </div>
+                    <div class="tag-list">
+                        ${g.zips.map(z => `<span class="tag">${z}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Initialize charts
+        function initCharts() {
+            // Region pie chart
+            new Chart(document.getElementById('region-chart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['San Diego', 'Orange County', 'Los Angeles'],
+                    datasets: [{
+                        data: [753, 638, 1445],
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+            
+            // Hot zone by region
+            new Chart(document.getElementById('hotzone-chart'), {
+                type: 'bar',
+                data: {
+                    labels: ['San Diego', 'Orange County', 'Los Angeles'],
+                    datasets: [{
+                        label: 'Hot Zones',
+                        data: [
+                            dashboardData.hotZones.filter(h => h.region === 'SD').length,
+                            dashboardData.hotZones.filter(h => h.region === 'OC').length,
+                            dashboardData.hotZones.filter(h => h.region === 'LA').length
+                        ],
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+            
+            // Market share chart
+            let marketChart;
+            function updateMarketChart(market) {
+                const data = dashboardData.marketShare[market];
+                if (marketChart) marketChart.destroy();
+                
+                marketChart = new Chart(document.getElementById('market-share-chart'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.map(d => d.company.length > 25 ? d.company.substring(0, 25) + '...' : d.company),
+                        datasets: [{
+                            label: 'Sales',
+                            data: data.map(d => d.count),
+                            backgroundColor: data.map(d => d.is_tlh ? '#d69e2e' : (d.is_diy ? '#a855f7' : '#3b82f6'))
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+            
+            updateMarketChart('SD');
+            document.querySelectorAll('.market-filter').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.market-filter').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updateMarketChart(btn.dataset.market);
+                });
+            });
+            
+            // TLH trend chart
+            const tlhLabels = Object.keys(dashboardData.tlhMonthly);
+            new Chart(document.getElementById('tlh-trend-chart'), {
+                type: 'line',
+                data: {
+                    labels: tlhLabels,
+                    datasets: [{
+                        label: 'TLH Sales',
+                        data: Object.values(dashboardData.tlhMonthly),
+                        borderColor: '#d69e2e',
+                        backgroundColor: 'rgba(214, 158, 46, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+            
+            // Seasonal charts
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            new Chart(document.getElementById('seasonal-chart'), {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'San Diego',
+                            data: months.map((_, i) => dashboardData.seasonal.SD[i + 1] || 0),
+                            borderColor: '#3b82f6',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Orange County',
+                            data: months.map((_, i) => dashboardData.seasonal.OC[i + 1] || 0),
+                            borderColor: '#f59e0b',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Los Angeles',
+                            data: months.map((_, i) => dashboardData.seasonal.LA[i + 1] || 0),
+                            borderColor: '#ef4444',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+            
+            // Individual seasonal charts
+            ['sd', 'oc', 'la'].forEach(region => {
+                const key = region.toUpperCase();
+                const color = region === 'sd' ? '#3b82f6' : (region === 'oc' ? '#f59e0b' : '#ef4444');
+                new Chart(document.getElementById(`${region}-seasonal-chart`), {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            data: months.map((_, i) => dashboardData.seasonal[key][i + 1] || 0),
+                            backgroundColor: color
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            });
+            
+            // Monthly trend
+            new Chart(document.getElementById('monthly-trend-chart'), {
+                type: 'line',
+                data: {
+                    labels: tlhLabels,
+                    datasets: [
+                        {
+                            label: 'San Diego',
+                            data: tlhLabels.map(l => {
+                                const [y, m] = l.split('-');
+                                return dashboardData.seasonal.SD[parseInt(m)] || 0;
+                            }),
+                            borderColor: '#3b82f6',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Orange County',
+                            data: tlhLabels.map(l => {
+                                const [y, m] = l.split('-');
+                                return dashboardData.seasonal.OC[parseInt(m)] || 0;
+                            }),
+                            borderColor: '#f59e0b',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Los Angeles',
+                            data: tlhLabels.map(l => {
+                                const [y, m] = l.split('-');
+                                return dashboardData.seasonal.LA[parseInt(m)] || 0;
+                            }),
+                            borderColor: '#ef4444',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // Grasons vs TLH trend
+            const grasonsTotals = {};
+            dashboardData.grasons.forEach(g => {
+                // Simplified - just show total comparison
+            });
+            
+            new Chart(document.getElementById('grasons-trend-chart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Grasons (All)', 'TLH'],
+                    datasets: [{
+                        label: 'Total Sales',
+                        data: [248, 130],
+                        backgroundColor: ['#10b981', '#d69e2e']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+        
+        // Filter buttons for zip table
+        document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                populateZipTable(btn.dataset.filter);
+            });
+        });
+        
+        // Initialize
+        populateZipTable();
+        populateHotZoneTable();
+        populateDiyTables();
+        populateCompetitorTrends();
+        populateGrasons();
+        initCharts();
+    </script>
+</body>
+</html>
