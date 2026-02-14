@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💝 Valentine's Command Center | DonorBureau</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --love-pink: #ff6b9d;
+            --deep-rose: #c44569;
+            --warm-red: #e74c3c;
+            --gold: #f1c40f;
+            --dark: #1a1a2e;
+            --darker: #16162a;
+            --card-bg: #252542;
+            --text: #ffffff;
+            --text-muted: #a0a0c0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--darker) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--love-pink), var(--warm-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+        
+        .hearts {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,107,157,0.1);
+        }
+        
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2 .emoji {
+            font-size: 1.5rem;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: var(--text-muted);
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .metric-value.love { color: var(--love-pink); }
+        .metric-value.gold { color: var(--gold); }
+        .metric-value.rose { color: var(--deep-rose); }
+        
+        .client-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        
+        .client-row:hover {
+            background: rgba(255,107,157,0.1);
+            transform: translateX(5px);
+        }
+        
+        .client-name {
+            font-weight: 600;
+        }
+        
+        .client-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            color: var(--love-pink);
+        }
+        
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        
+        .love-meter {
+            display: flex;
+            gap: 3px;
+            margin-top: 5px;
+        }
+        
+        .love-heart {
+            font-size: 1rem;
+            opacity: 0.3;
+        }
+        
+        .love-heart.filled {
+            opacity: 1;
+            animation: heartbeat 1s ease-in-out infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: rgba(231,76,60,0.1);
+            border-left: 3px solid var(--warm-red);
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 10px;
+        }
+        
+        .alert-item.warning {
+            background: rgba(241,196,15,0.1);
+            border-left-color: var(--gold);
+        }
+        
+        .alert-item.success {
+            background: rgba(39,174,96,0.1);
+            border-left-color: #27ae60;
+        }
+        
+        .opportunity-card {
+            background: linear-gradient(135deg, rgba(255,107,157,0.1), rgba(196,69,105,0.1));
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,107,157,0.2);
+        }
+        
+        .opportunity-title {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        
+        .opportunity-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+        
+        .chart-container {
+            height: 250px;
+            margin-top: 20px;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .insight-box {
+            background: linear-gradient(135deg, var(--deep-rose), var(--love-pink));
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .insight-box h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .insight-box p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .time-badge {
+            display: inline-block;
+            background: var(--love-pink);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--text-muted);
+        }
+        
+        .footer .love-note {
+            font-size: 1.2rem;
+            color: var(--love-pink);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="hearts">💝</div>
+        <h1>Valentine's Command Center</h1>
+        <p class="subtitle">Who loves you? Let's find out. 💕</p>
+        <p style="margin-top: 10px;"><span class="time-badge">February 14, 2026 • 4:30 AM</span></p>
+    </header>
+
+    <div class="grid">
+        <!-- Top Performers (The Lovers) -->
+        <div class="card">
+            <h2><span class="emoji">💖</span> Your Biggest Fans (Top Clients)</h2>
+            
+            <div class="client-row">
+                <div>
+                    <div class="client-name">NRSC</div>
+                    <div class="love-meter">
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                    </div>
+                </div>
+                <div class="client-stats">
+                    <div class="stat">
+                        <span class="stat-value">$202K</span>
+                        <span class="stat-label">Revenue</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">86</span>
+                        <span class="stat-label">Creatives</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="client-row">
+                <div>
+                    <div class="client-name">HeroBox</div>
+                    <div class="love-meter">
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart">❤️</span>
+                    </div>
+                </div>
+                <div class="client-stats">
+                    <div class="stat">
+                        <span class="stat-value">$56K</span>
+                        <span class="stat-label">Revenue</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">45</span>
+                        <span class="stat-label">Creatives</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="client-row">
+                <div>
+                    <div class="client-name">NCPD</div>
+                    <div class="love-meter">
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart">❤️</span>
+                    </div>
+                </div>
+                <div class="client-stats">
+                    <div class="stat">
+                        <span class="stat-value">$35K</span>
+                        <span class="stat-label">Revenue</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">53</span>
+                        <span class="stat-label">Creatives</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="client-row">
+                <div>
+                    <div class="client-name">RNC</div>
+                    <div class="love-meter">
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart filled">❤️</span>
+                        <span class="love-heart">❤️</span>
+                        <span class="love-heart">❤️</span>
+                    </div>
+                </div>
+                <div class="client-stats">
+                    <div class="stat">
+                        <span class="stat-value">$10K</span>
+                        <span class="stat-label">Revenue</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">56</span>
+                        <span class="stat-label">Creatives</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Need Some Love (Inactive Clients) -->
+        <div class="card">
+            <h2><span class="emoji">💔</span> Need Some Love (Check In)</h2>
+            
+            <div class="alert-item warning">
+                <span>⚠️</span>
+                <div>
+                    <strong>9/11 Legacy Foundation</strong>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">
+                        $9.6K revenue, 12 creatives — but nothing this week
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert-item warning">
+                <span>⚠️</span>
+                <div>
+                    <strong>Students For Liberty</strong>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">
+                        12 creatives total — no recent sends
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert-item warning">
+                <span>⚠️</span>
+                <div>
+                    <strong>Turning Point USA</strong>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">
+                        10 creatives, $0 revenue — what's happening?
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert-item">
+                <span>🔴</span>
+                <div>
+                    <strong>Heritage Foundation</strong>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">
+                        Only 6 creatives total — underutilized relationship
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Money Opportunities -->
+        <div class="card">
+            <h2><span class="emoji">💰</span> Revenue Opportunities</h2>
+            
+            <div class="opportunity-card">
+                <div class="opportunity-title">🗳️ 2026 Midterm Creative Factory</div>
+                <div style="margin-bottom: 10px; color: var(--text-muted);">
+                    20 challenger campaigns × $4.5K/mo × 8 months
+                </div>
+                <div class="opportunity-value">$720K potential</div>
+            </div>
+            
+            <div class="opportunity-card">
+                <div class="opportunity-title">🚀 Creative Sprint Expansion</div>
+                <div style="margin-bottom: 10px; color: var(--text-muted);">
+                    4 sprints/week × 48 weeks × $2,500
+                </div>
+                <div class="opportunity-value">$480K potential</div>
+            </div>
+            
+            <div class="opportunity-card">
+                <div class="opportunity-title">📊 Forensics-as-a-Service</div>
+                <div style="margin-bottom: 10px; color: var(--text-muted);">
+                    Monthly dashboard subscriptions to 10 agencies
+                </div>
+                <div class="opportunity-value">$120K potential</div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="card">
+            <h2><span class="emoji">📊</span> The Love Numbers</h2>
+            
+            <div class="metric">
+                <span class="metric-label">Total Creatives (Last 500)</span>
+                <span class="metric-value love">500</span>
+            </div>
+            
+            <div class="metric">
+                <span class="metric-label">Total Revenue</span>
+                <span class="metric-value gold">$365,826</span>
+            </div>
+            
+            <div class="metric">
+                <span class="metric-label">Active Clients</span>
+                <span class="metric-value love">18</span>
+            </div>
+            
+            <div class="metric">
+                <span class="metric-label">Avg Revenue/Creative</span>
+                <span class="metric-value rose">$732</span>
+            </div>
+            
+            <div class="metric">
+                <span class="metric-label">Time Saved (AI vs Manual)</span>
+                <span class="metric-value gold">~300 hrs</span>
+            </div>
+        </div>
+
+        <!-- Weekly Schedule -->
+        <div class="card">
+            <h2><span class="emoji">📅</span> This Week's Love Schedule</h2>
+            
+            <div class="client-row">
+                <div>
+                    <div class="client-name">Monday — Committees</div>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">NRSC, RNC, NRCC, SLF</div>
+                </div>
+                <div style="color: var(--love-pink);">~15 creatives</div>
+            </div>
+            
+            <div class="client-row">
+                <div>
+                    <div class="client-name">Tuesday — Veterans</div>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">HeroBox, NCPD, SoldierStrong, Semper K9</div>
+                </div>
+                <div style="color: var(--love-pink);">~12 creatives</div>
+            </div>
+            
+            <div class="client-row">
+                <div>
+                    <div class="client-name">Wednesday — Advocacy</div>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">DARE, AUL, TPUSA, Heritage</div>
+                </div>
+                <div style="color: var(--love-pink);">~6 creatives</div>
+            </div>
+            
+            <div class="client-row">
+                <div>
+                    <div class="client-name">Thursday — Candidates</div>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">Daniels, Forte, Barrett</div>
+                </div>
+                <div style="color: var(--love-pink);">~4 creatives</div>
+            </div>
+            
+            <div class="client-row">
+                <div>
+                    <div class="client-name">Friday — Special</div>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">Catch-up, new clients, shootouts</div>
+                </div>
+                <div style="color: var(--love-pink);">Flex</div>
+            </div>
+        </div>
+
+        <!-- Revenue by Client Chart -->
+        <div class="card">
+            <h2><span class="emoji">💕</span> Revenue Love Distribution</h2>
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Valentine's Insight -->
+        <div class="card full-width">
+            <h2><span class="emoji">🌹</span> Valentine's Day Insight</h2>
+            
+            <div class="insight-box">
+                <h3>💡 The $720K Opportunity Waiting for You</h3>
+                <p>
+                    The 2026 midterm spending explosion has begun. Axios confirmed it Feb 3rd. 
+                    You have 500+ creatives of forensic data, RCT-backed strategy, and 90% prediction accuracy.
+                    <br><br>
+                    <strong>20 challenger campaigns at $4,500/month for 8 months = $720,000.</strong>
+                    <br><br>
+                    That's not a dream. That's a Tuesday.
+                    <br><br>
+                    📄 Full proposal: <code>consulting/MIDTERM-CREATIVE-FACTORY.md</code>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="love-note">Happy Valentine's Day, Justin 💝</div>
+        <p>Built by Railstote 🦉 at 4:30 AM • Because I never sleep</p>
+        <p style="margin-top: 10px; font-size: 0.9rem;">
+            Now go give Jenny some attention. The dashboards can wait.
+        </p>
+    </footer>
+
+    <script>
+        // Revenue by Client Chart
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['NRSC', 'HeroBox', 'NCPD', 'NRCC', 'SoldierStrong', '9/11 Legacy', 'Others'],
+                datasets: [{
+                    data: [202208, 55778, 35341, 13374, 11270, 9650, 38205],
+                    backgroundColor: [
+                        '#ff6b9d',
+                        '#c44569',
+                        '#e74c3c',
+                        '#f1c40f',
+                        '#3498db',
+                        '#9b59b6',
+                        '#34495e'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#ffffff',
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                return ` $${value.toLocaleString()}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
