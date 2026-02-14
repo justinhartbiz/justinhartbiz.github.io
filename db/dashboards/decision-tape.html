@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Decision Tape</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0a0f;
+      --bg-card: #12121a;
+      --bg-card-hover: #1a1a25;
+      --accent: #00a5a5;
+      --accent-dim: #00a5a533;
+      --accent-glow: #00a5a555;
+      --text: #e8e8ec;
+      --text-dim: #8888a0;
+      --text-muted: #55556a;
+      --border: #2a2a3a;
+      --success: #4ade80;
+      --warning: #fbbf24;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header / Logo */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 60px;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--bg-dark);
+    }
+
+    .brand {
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 700;
+      letter-spacing: -2px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero .tagline {
+      font-size: 1.25rem;
+      color: var(--text-dim);
+      font-weight: 300;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Section styling */
+    .section {
+      margin-bottom: 70px;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+
+    /* Concept explanation */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .concept-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.3s ease;
+    }
+
+    .concept-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--accent-dim);
+    }
+
+    .concept-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .concept-card h3 .icon {
+      width: 28px;
+      height: 28px;
+      background: var(--accent-dim);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .concept-card p {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+    }
+
+    /* Demo Interface */
+    .demo-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .demo-header {
+      background: var(--bg-card-hover);
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .demo-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .demo-dot.red { background: #ff5f57; }
+    .demo-dot.yellow { background: #febc2e; }
+    .demo-dot.green { background: #28c840; }
+
+    .demo-content {
+      padding: 32px;
+    }
+
+    .input-group {
+      margin-bottom: 24px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .input-group input {
+      width: 100%;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 1rem;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.2s ease;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .input-group input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .record-btn {
+      width: 100%;
+      background: var(--accent);
+      color: var(--bg-dark);
+      border: none;
+      border-radius: 12px;
+      padding: 18px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .record-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 30px var(--accent-glow);
+    }
+
+    .record-btn.recording {
+      background: #ff4757;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4); }
+      50% { box-shadow: 0 0 0 15px rgba(255, 71, 87, 0); }
+    }
+
+    .record-btn .mic-icon {
+      font-size: 20px;
+    }
+
+    /* Output section */
+    .output-section {
+      margin-top: 32px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .output-section.visible {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .output-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--success);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .decision-entry {
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+    }
+
+    .decision-entry .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .decision-entry .timestamp {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    .decision-entry .decision-type {
+      background: var(--accent-dim);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .decision-entry .decision-question {
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .decision-entry .reasoning-text {
+      color: var(--text-dim);
+      font-style: italic;
+      line-height: 1.7;
+    }
+
+    /* Patterns Visualization */
+    .patterns-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .pattern-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .pattern-card:hover {
+      border-color: var(--accent-dim);
+    }
+
+    .pattern-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--accent-dim), var(--bg-dark));
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .pattern-content h4 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .pattern-content p {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    .pattern-badge {
+      display: inline-block;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-top: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Decision Library */
+    .library-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .library-entry {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .library-entry:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-dim);
+    }
+
+    .entry-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--bg-dark);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .entry-info h4 {
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .entry-info p {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .entry-tags {
+      display: flex;
+      gap: 6px;
+    }
+
+    .entry-tag {
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .entry-tag.decision { background: var(--accent-dim); color: var(--accent); }
+    .entry-tag.risk { background: #fbbf2422; color: var(--warning); }
+    .entry-tag.timing { background: #8b5cf622; color: #8b5cf6; }
+
+    /* CTA */
+    .cta-section {
+      text-align: center;
+      padding: 60px 40px;
+      background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 {
+      font-size: 2rem;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+
+    .cta-section p {
+      color: var(--text-dim);
+      margin-bottom: 32px;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--accent);
+      color: var(--bg-dark);
+      padding: 18px 36px;
+      border-radius: 14px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .cta-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 40px var(--accent-glow);
+    }
+
+    .cta-btn .arrow {
+      transition: transform 0.3s ease;
+    }
+
+    .cta-btn:hover .arrow {
+      transform: translateX(4px);
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 80px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .library-entry {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .entry-tags {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">⊢</div>
+      <span class="brand">The Decision Tape</span>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1>Record Your Reasoning.<br>Find Your Patterns.</h1>
+      <p class="tagline">Before any decision, speak your reasoning. Build a searchable archive of your thought process. Discover the hidden habits shaping your choices.</p>
+    </section>
+
+    <!-- Concept -->
+    <section class="section">
+      <h2 class="section-title">The Concept</h2>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h3><span class="icon">🎙</span> Voice-First</h3>
+          <p>Speak your reasoning before making any decision. No typing, no friction. Just you, thinking out loud.</p>
+        </div>
+        <div class="concept-card">
+          <h3><span class="icon">📚</span> Searchable Archive</h3>
+          <p>Every decision logged with timestamp, context, and reasoning. Find past thinking instantly.</p>
+        </div>
+        <div class="concept-card">
+          <h3><span class="icon">🔍</span> Pattern Detection</h3>
+          <p>AI analyzes your history to surface recurring habits, blind spots, and decision biases.</p>
+        </div>
+        <div class="concept-card">
+          <h3><span class="icon">📈</span> Better Decisions</h3>
+          <p>Know yourself better. Make more intentional choices by understanding your defaults.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo -->
+    <section class="section">
+      <h2 class="section-title">Try It</h2>
+      <div class="demo-container">
+        <div class="demo-header">
+          <span class="demo-dot red"></span>
+          <span class="demo-dot yellow"></span>
+          <span class="demo-dot green"></span>
+        </div>
+        <div class="demo-content">
+          <div class="input-group">
+            <label>What decision are you making?</label>
+            <input type="text" id="decisionInput" placeholder="e.g., Should I accept this contract?">
+          </div>
+          <button class="record-btn" id="recordBtn">
+            <span class="mic-icon">🎤</span>
+            <span>Speak your reasoning</span>
+          </button>
+
+          <div class="output-section" id="outputSection">
+            <div class="output-label">
+              <span>✓</span> Decision Logged
+            </div>
+            <div class="decision-entry">
+              <div class="entry-header">
+                <span class="timestamp" id="timestamp">Today at 2:34 PM</span>
+                <span class="decision-type">Recorded</span>
+              </div>
+              <div class="decision-question" id="decisionQuestion">Should I accept this contract?</div>
+              <div class="reasoning-text" id="reasoningText">"I'm leaning toward taking it because the scope seems manageable, and we could use the revenue. But I'm worried about the timeline overlapping with the Q2 launch. Maybe I should ask for a 2-week extension..."</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Patterns -->
+    <section class="section">
+      <h2 class="section-title">Patterns Detected</h2>
+      <div class="patterns-grid">
+        <div class="pattern-card">
+          <div class="pattern-icon">⏰</div>
+          <div class="pattern-content">
+            <h4>You make more aggressive decisions after 3 PM</h4>
+            <p>Analysis of 47 decisions shows a 2.3x increase in risk-taking during afternoon hours.</p>
+            <span class="pattern-badge">TIMING → RISK</span>
+          </div>
+        </div>
+        <div class="pattern-card">
+          <div class="pattern-icon">💰</div>
+          <div class="pattern-content">
+            <h4>You default to "wait and see" on opportunities over $5K</h4>
+            <p>8 of 12 large opportunities were delayed. Only 2 proceeded after initial hesitation.</p>
+            <span class="pattern-badge">AMOUNT → INACTION</span>
+          </div>
+        </div>
+        <div class="pattern-card">
+          <div class="pattern-icon">🚀</div>
+          <div class="pattern-content">
+            <h4>You iterate more when first instinct was "ship it"</h4>
+            <p>Initial enthusiasm leads to 3.2x more revisions. Consider the inverse: slow starts = cleaner finishes.</p>
+            <span class="pattern-badge">INSTINCT → REVISION</span>
+          </div>
+        </div>
+        <div class="pattern-card">
+          <div class="pattern-icon">👥</div>
+          <div class="pattern-content">
+            <h4>You seek consensus before moving forward</h4>
+            <p>78% of decisions involved consulting at least one other person. Your solo decisions have 15% higher regret.</p>
+            <span class="pattern-badge">PROCESS → CONFIDENCE</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Library -->
+    <section class="section">
+      <h2 class="section-title">Decision Library</h2>
+      <div class="library-grid">
+        <div class="library-entry">
+          <div class="entry-icon">💼</div>
+          <div class="entry-info">
+            <h4>Hire additional developer vs. delay feature</h4>
+            <p>Feb 12, 2026 · 2:14 PM</p>
+          </div>
+          <div class="entry-tags">
+            <span class="entry-tag decision">HIRING</span>
+            <span class="entry-tag timing">3 DAYS</span>
+          </div>
+        </div>
+        <div class="library-entry">
+          <div class="entry-icon">🏢</div>
+          <div class="entry-info">
+            <h4>Relocate office or stay in current space</h4>
+            <p>Feb 8, 2026 · 10:42 AM</p>
+          </div>
+          <div class="entry-tags">
+            <span class="entry-tag decision">REAL ESTATE</span>
+            <span class="entry-tag risk">$45K</span>
+          </div>
+        </div>
+        <div class="library-entry">
+          <div class="entry-icon">🤝</div>
+          <div class="entry-info">
+            <h4>Partner with Vendor X or build in-house</h4>
+            <p>Feb 5, 2026 · 4:30 PM</p>
+          </div>
+          <div class="entry-tags">
+            <span class="entry-tag decision">PARTNERSHIP</span>
+            <span class="entry-tag risk">HIGH RISK</span>
+          </div>
+        </div>
+        <div class="library-entry">
+          <div class="entry-icon">📱</div>
+          <div class="entry-info">
+            <h4>Launch MVP now or add authentication</h4>
+            <p>Jan 28, 2026 · 11:15 AM</p>
+          </div>
+          <div class="entry-tags">
+            <span class="entry-tag decision">PRODUCT</span>
+            <span class="entry-tag timing">2 WEEKS</span>
+          </div>
+        </div>
+        <div class="library-entry">
+          <div class="entry-icon">💰</div>
+          <div class="entry-info">
+            <h4>Accept emergency funding at 18% or wait</h4>
+            <p>Jan 22, 2026 · 9:00 AM</p>
+          </div>
+          <div class="entry-tags">
+            <span class="entry-tag decision">FINANCE</span>
+            <span class="entry-tag risk">CRITICAL</span>
+          </div>
+        </div>
+        <div class="library-entry">
+          <div class="entry-icon">🎯</div>
+          <div class="entry-info">
+            <h4>Pivot to enterprise or stay SMB-focused</h4>
+            <p>Jan 15, 2026 · 3:45 PM</p>
+          </div>
+          <div class="entry-tags">
+            <span class="entry-tag decision">STRATEGY</span>
+            <span class="entry-tag risk">PIVOT</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <h2>Start Your Tape</h2>
+      <p>Your first decision log is free. No account required to begin.</p>
+      <button class="cta-btn" id="ctaBtn">
+        Begin Recording
+        <span class="arrow">→</span>
+      </button>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      The Decision Tape · Voice-logged reasoning · Pattern discovery
+    </footer>
+  </div>
+
+  <script>
+    // Demo interaction
+    const recordBtn = document.getElementById('recordBtn');
+    const decisionInput = document.getElementById('decisionInput');
+    const outputSection = document.getElementById('outputSection');
+    const decisionQuestion = document.getElementById('decisionQuestion');
+    const reasoningText = document.getElementById('reasoningText');
+    const timestamp = document.getElementById('timestamp');
+    const ctaBtn = document.getElementById('ctaBtn');
+
+    let isRecording = false;
+
+    recordBtn.addEventListener('click', () => {
+      if (!isRecording) {
+        // Start recording
+        isRecording = true;
+        recordBtn.classList.add('recording');
+        recordBtn.innerHTML = '<span class="mic-icon">🔴</span><span>Listening...</span>';
+        
+        // Simulate recording
+        setTimeout(() => {
+          isRecording = false;
+          recordBtn.classList.remove('recording');
+          recordBtn.innerHTML = '<span class="mic-icon">✓</span><span>Reasoning Captured</span>';
+          
+          // Show output
+          const question = decisionInput.value || "Should I accept this contract?";
+          decisionQuestion.textContent = question;
+          
+          const now = new Date();
+          const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+          timestamp.textContent = `Today at ${timeStr}`;
+          
+          outputSection.classList.add('visible');
+        }, 2500);
+      }
+    });
+
+    // CTA button
+    ctaBtn.addEventListener('click', () => {
+      decisionInput.focus();
+      decisionInput.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Allow Enter to trigger recording
+    decisionInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        recordBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>
