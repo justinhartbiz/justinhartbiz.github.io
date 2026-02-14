@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Archetype Casino | Donor Personality Quiz</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-card-hover: #1a1a25;
+            --neon-teal: #00ffd5;
+            --neon-pink: #ff00aa;
+            --neon-purple: #aa00ff;
+            --neon-gold: #ffd700;
+            --neon-blue: #00aaff;
+            --text-primary: #ffffff;
+            --text-secondary: #8888aa;
+            --gradient-start: #0a0a0f;
+            --gradient-end: #1a0a2e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(0, 255, 213, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(170, 0, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(255, 0, 170, 0.05) 0%, transparent 70%),
+                var(--bg-dark);
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 213, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 213, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .casino-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--neon-teal), var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(0, 255, 213, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+            letter-spacing: 4px;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px rgba(0, 255, 213, 0.5)); }
+            to { filter: drop-shadow(0 0 25px rgba(0, 255, 213, 0.8)); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .tagline {
+            font-size: 1rem;
+            color: var(--neon-teal);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* Card styles */
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(0, 255, 213, 0.2);
+            box-shadow: 
+                0 0 30px rgba(0, 255, 213, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Start screen */
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-description {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin: 30px 0;
+        }
+
+        .archetype-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .archetype-badge {
+            background: rgba(0, 255, 213, 0.1);
+            border: 1px solid rgba(0, 255, 213, 0.3);
+            border-radius: 12px;
+            padding: 15px 10px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .archetype-badge:hover {
+            transform: translateY(-5px);
+            border-color: var(--neon-teal);
+            box-shadow: 0 10px 30px rgba(0, 255, 213, 0.2);
+        }
+
+        .archetype-badge .icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .archetype-badge .name {
+            font-weight: 700;
+            color: var(--neon-teal);
+            margin-bottom: 4px;
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 18px 50px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-teal), var(--neon-blue));
+            color: var(--bg-dark);
+            box-shadow: 0 0 30px rgba(0, 255, 213, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 255, 213, 0.6);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        /* Quiz section */
+        .quiz-section {
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-teal), var(--neon-purple));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 15px var(--neon-teal);
+        }
+
+        .question-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: var(--neon-teal);
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 35px;
+            line-height: 1.5;
+        }
+
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .answer-btn {
+            background: var(--bg-card-hover);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px 25px;
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .answer-btn:hover {
+            border-color: var(--neon-teal);
+            background: rgba(0, 255, 213, 0.1);
+            transform: translateX(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 213, 0.2);
+        }
+
+        .answer-btn .letter {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--neon-teal);
+            background: rgba(0, 255, 213, 0.15);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Results section */
+        .results-section {
+            display: none;
+            text-align: center;
+        }
+
+        .result-reveal {
+            margin-bottom: 40px;
+        }
+
+        .result-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+        }
+
+        .result-archetype {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--neon-teal), var(--neon-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: resultPulse 1s ease-out;
+            margin-bottom: 20px;
+        }
+
+        @keyframes resultPulse {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .result-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: iconBounce 0.6s ease-out 0.3s both;
+        }
+
+        @keyframes iconBounce {
+            0% { transform: translateY(20px); opacity: 0; }
+            60% { transform: translateY(-10px); }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .result-description {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            max-width: 500px;
+            margin: 0 auto 30px;
+            animation: fadeIn 0.5s ease-out 0.6s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Radar chart */
+        .chart-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            border: 1px solid rgba(0, 255, 213, 0.15);
+            animation: fadeIn 0.5s ease-out 0.8s both;
+        }
+
+        .chart-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        /* Share card */
+        .share-card {
+            background: linear-gradient(135deg, rgba(0, 255, 213, 0.1), rgba(170, 0, 255, 0.1));
+            border: 2px solid var(--neon-teal);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            animation: fadeIn 0.5s ease-out 1s both;
+        }
+
+        .share-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: var(--neon-teal);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .share-text {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .share-btn.copy {
+            background: var(--neon-teal);
+            color: var(--bg-dark);
+        }
+
+        .share-btn.copy:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 213, 0.5);
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            animation: fadeIn 0.5s ease-out 1.2s both;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neon-gold);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Play again */
+        .play-again {
+            margin-top: 30px;
+            animation: fadeIn 0.5s ease-out 1.4s both;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--neon-purple);
+            color: var(--neon-purple);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(170, 0, 255, 0.2);
+            box-shadow: 0 0 25px rgba(170, 0, 255, 0.3);
+        }
+
+        /* Neon decorations */
+        .neon-line {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-teal), transparent);
+            margin: 30px 0;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 600px) {
+            .casino-logo {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 25px;
+            }
+            
+            .question-text {
+                font-size: 1.2rem;
+            }
+            
+            .answer-btn {
+                padding: 15px 18px;
+                font-size: 1rem;
+            }
+            
+            .result-archetype {
+                font-size: 2rem;
+            }
+            
+            .archetype-preview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Hidden utility */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <div class="container">
+        <header class="header">
+            <h1 class="casino-logo">THE ARCHETYPE CASINO</h1>
+            <p class="subtitle">Donor Personality Quiz</p>
+            <p class="tagline">🎰 Discover Your Giving Style</p>
+        </header>
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="card start-screen">
+            <p class="start-description">
+                Welcome to <strong>The Archetype Casino</strong> — the ultimate donor personality quiz! 
+                🎰<br><br>
+                Answer 10 questions to discover which of the <strong>5 Synthetic Donor Archetypes</strong> 
+                drives your giving decisions. Uncover the psychology behind your donations!
+            </p>
+            
+            <div class="archetype-preview">
+                <div class="archetype-badge">
+                    <div class="icon">⭐</div>
+                    <div class="name">Celebrity</div>
+                    <div>Follower</div>
+                </div>
+                <div class="archetype-badge">
+                    <div class="icon">🎄</div>
+                    <div class="name">Holiday</div>
+                    <div>Donor</div>
+                </div>
+                <div class="archetype-badge">
+                    <div class="icon">📖</div>
+                    <div class="name">Story</div>
+                    <div>Listener</div>
+                </div>
+                <div class="archetype-badge">
+                    <div class="icon">🎯</div>
+                    <div class="name">Impact</div>
+                    <div>Seeker</div>
+                </div>
+                <div class="archetype-badge">
+                    <div class="icon">⚡</div>
+                    <div class="name">Urgency</div>
+                    <div>Responder</div>
+                </div>
+            </div>
+
+            <div class="neon-line"></div>
+            
+            <button class="btn btn-primary" onclick="startQuiz()">
+                🎲 Let's Play!
+            </button>
+        </div>
+
+        <!-- Quiz Section -->
+        <div id="quizSection" class="card quiz-section">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="question-number" id="questionNumber">QUESTION 1 OF 10</div>
+            <h2 class="question-text" id="questionText"></h2>
+            
+            <div class="answers" id="answers"></div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="card results-section">
+            <div class="result-reveal">
+                <div class="result-label">YOUR ARCHETYPE IS</div>
+                <div class="result-icon" id="resultIcon"></div>
+                <h2 class="result-archetype" id="resultArchetype"></h2>
+                <p class="result-description" id="resultDescription"></p>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">📊 YOUR SCORE PROFILE</div>
+                <canvas id="radarChart"></canvas>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="totalScore">0</div>
+                    <div class="stat-label">Total Score</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="topArchetype">-</div>
+                    <div class="stat-label">Top Type</div>
+                </div>
+            </div>
+
+            <div class="share-card">
+                <div class="share-title">🃏 SHARE YOUR RESULT</div>
+                <p class="share-text" id="shareText"></p>
+                <div class="share-buttons">
+                    <button class="share-btn copy" onclick="copyResult()">📋 Copy Result</button>
+                </div>
+            </div>
+
+            <div class="play-again">
+                <button class="btn btn-secondary" onclick="restartQuiz()">
+                    🔄 Play Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Archetype data
+        const archetypes = {
+            celebrity: {
+                name: "Celebrity Follower",
+                icon: "⭐",
+                description: "You're motivated by authority and endorsements! When a trusted voice — like Dana Perino or a familiar figure — backs a candidate, that's your trigger. You believe if someone you respect says it's worthy, it must be worth supporting.",
+                color: "#ffd700"
+            },
+            holiday: {
+                name: "Holiday Donor",
+                icon: "🎄",
+                description: "Seasonality is your secret weapon! Whether it's the warmth of Christmas, the gratitude of Thanksgiving, or the remembrance of Memorial Day, holiday triggers push you to give. You give when the season feels right.",
+                color: "#ff6b6b"
+            },
+            story: {
+                name: "Story Listener",
+                icon: "📖",
+                description: "Personal narratives move you! You're the donor who can't skip a veteran's story or a candidate's personal journey. Emotional hooks aren't manipulation — they're connection. You give because you feel, not just think.",
+                color: "#ff00aa"
+            },
+            impact: {
+                name: "Impact Seeker",
+                icon: "🎯",
+                description: "You need to see results! Concrete outcomes, specific dollar amounts, and measurable impact are what convince you. Tell you $50 provides books for 10 kids? You've already reached for your wallet. Numbers don't lie.",
+                color: "#00ffd5"
+            },
+            urgency: {
+                name: "Urgency Responder",
+                icon: "⚡",
+                description: "Deadline-driven is your middle name! Time-sensitive language, scarcity, and 'act now' calls to action are your kryptonite. You thrive on FOMO and the fear of missing out. Give you a deadline, and you'll hit it.",
+                color: "#ff9500"
+            }
+        };
+
+        // Quiz questions (2 per archetype)
+        const questions = [
+            {
+                question: "A candidate sends you a mailer. What catches your eye most?",
+                answers: [
+                    { type: "celebrity", text: "Featured endorsement from a well-known figure I trust" },
+                    { type: "holiday", text: "A holiday-themed message mentioning the current season" },
+                    { type: "story", text: "A personal story from a veteran or family member" },
+                    { type: "impact", text: "Specific numbers showing exactly where my money goes" },
+                    { type: "urgency", text: "Language like 'Act now — deadline approaching!'" }
+                ]
+            },
+            {
+                question: "You're considering a donation. What's the final push that gets you to give?",
+                answers: [
+                    { type: "celebrity", text: "Hearing that a celebrity or respected leader also donated" },
+                    { type: "holiday", text: "The timing feels right — it's near a holiday or special occasion" },
+                    { type: "story", text: "Reading about a specific person whose life will change" },
+                    { type: "impact", text: "Seeing exactly what my donation will accomplish (e.g., $50 = 50 flyers)" },
+                    { type: "urgency", text: "A countdown timer or 'only X days left' message" }
+                ]
+            },
+            {
+                question: "Which email subject line would you most likely open?",
+                answers: [
+                    { type: "celebrity", text: "[Name Drop]: Exclusive endorsement inside..." },
+                    { type: "holiday", text: "🎄 Holiday Giving: Make This Season Count" },
+                    { type: "story", text: "I wanted to share my story with you..." },
+                    { type: "impact", text: "Your $25 impact: Here's exactly what happens" },
+                    { type: "urgency", text: "⚠️ FINAL HOURS to match your donation!" }
+                ]
+            },
+            {
+                question: "What makes you feel good about donating?",
+                answers: [
+                    { type: "celebrity", text: "Knowing I'm aligned with respected people and voices" },
+                    { type: "holiday", text: "Feeling part of a seasonal tradition of generosity" },
+                    { type: "story", text: "Connecting emotionally with the people I'm helping" },
+                    { type: "impact", text: "Seeing clear metrics and knowing exactly what I funded" },
+                    { type: "urgency", text: "The thrill of responding to a critical, time-sensitive need" }
+                ]
+            },
+            {
+                question: "Which fundraising event would you be most excited to attend?",
+                answers: [
+                    { type: "celebrity", text: "An event hosted by famous political figures or media personalities" },
+                    { type: "holiday", text: "A festive holiday gala with seasonal themes" },
+                    { type: "story", text: "A intimate dinner where candidates share personal stories" },
+                    { type: "impact", text: "A presentation with charts showing donation ROI" },
+                    { type: "urgency", text: "A rapid-response fundraiser with a matching deadline" }
+                ]
+            },
+            {
+                question: "What's your biggest donor turn-off?",
+                answers: [
+                    { type: "celebrity", text: "No mention of who else supports this candidate" },
+                    { type: "holiday", text: "Generic requests that ignore the current season" },
+                    { type: "story", text: "Dry, purely factual appeals with no human element" },
+                    { type: "impact", text: "Vague promises without concrete outcomes" },
+                    { type: "urgency", text: "Open-ended campaigns with no deadline" }
+                ]
+            },
+            {
+                question: "A friend asks why you donated. What's your answer?",
+                answers: [
+                    { type: "celebrity", text: "Because [famous person] said it was important" },
+                    { type: "holiday", text: "It felt right — it's that time of year!" },
+                    { type: "story", text: "I heard their story and just had to help" },
+                    { type: "impact", text: "I know exactly what my money will do" },
+                    { type: "urgency", text: "They needed help NOW and I responded" }
+                ]
+            },
+            {
+                question: "Which social proof would convince you most?",
+                answers: [
+                    { type: "celebrity", text: "'Endorsed by [Respected Figure]'" },
+                    { type: "holiday", text: "'Join thousands of holiday donors'" },
+                    { type: "story", text: "'Here's what happened when [Name] received support'" },
+                    { type: "impact", text: "'94% of donations go directly to programs'" },
+                    { type: "urgency", text: "'Only 3 days left to qualify for matching funds'" }
+                ]
+            },
+            {
+                question: "What role does emotion play in your giving?",
+                answers: [
+                    { type: "celebrity", text: "I trust my emotions when a respected figure vouches" },
+                    { type: "holiday", text: "Holidays bring out strong feelings of generosity" },
+                    { type: "story", text: "Emotion is everything — stories move me to act" },
+                    { type: "impact", text: "Emotion is secondary; I need facts and numbers" },
+                    { type: "urgency", text: "Urgency creates the emotional spark I need" }
+                ]
+            },
+            {
+                question: "If you could design the perfect donation request, it would include:",
+                answers: [
+                    { type: "celebrity", text: "Multiple celebrity/authority endorsements" },
+                    { type: "holiday", text: "Seasonal imagery and holiday-themed messaging" },
+                    { type: "story", text: "At least 2-3 compelling personal narratives" },
+                    { type: "impact", text: "A detailed breakdown of outcomes per dollar" },
+                    { type: "urgency", text: "Multiple countdown timers and 'last chance' language" }
+                ]
+            }
+        ];
+
+        // Game state
+        let currentQuestion = 0;
+        let scores = {
+            celebrity: 0,
+            holiday: 0,
+            story: 0,
+            impact: 0,
+            urgency: 0
+        };
+
+        // Shuffle array
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Start quiz
+        function startQuiz() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('quizSection').style.display = 'block';
+            showQuestion();
+        }
+
+        // Show current question
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('questionNumber').textContent = `QUESTION ${currentQuestion + 1} OF ${questions.length}`;
+            document.getElementById('questionText').textContent = q.question;
+            
+            // Update progress
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            // Shuffle answers for this question
+            const shuffledAnswers = shuffle([...q.answers]);
+            
+            const answersContainer = document.getElementById('answers');
+            answersContainer.innerHTML = '';
+            
+            shuffledAnswers.forEach((answer, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerHTML = `<span class="letter">${String.fromCharCode(65 + index)}</span> ${answer.text}`;
+                btn.onclick = () => selectAnswer(answer.type);
+                answersContainer.appendChild(btn);
+            });
+        }
+
+        // Handle answer selection
+        function selectAnswer(type) {
+            scores[type]++;
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Calculate results
+        function calculateResults() {
+            let maxScore = 0;
+            let topType = 'celebrity';
+            
+            for (const [type, score] of Object.entries(scores)) {
+                if (score > maxScore) {
+                    maxScore = score;
+                    topType = type;
+                }
+            }
+            
+            return { topType, maxScore };
+        }
+
+        // Show results
+        function showResults() {
+            document.getElementById('quizSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            const { topType, maxScore } = calculateResults();
+            const archetype = archetypes[topType];
+            
+            // Update result display
+            document.getElementById('resultIcon').textContent = archetype.icon;
+            document.getElementById('resultArchetype').textContent = archetype.name;
+            document.getElementById('resultDescription').textContent = archetype.description;
+            
+            // Update stats
+            document.getElementById('totalScore').textContent = maxScore * 10; // Percentage
+            document.getElementById('topArchetype').textContent = archetype.icon;
+            
+            // Generate share text
+            const shareText = `🎰 I got "${archetype.name}" on The Archetype Casino! ${archetype.icon}\n\nDiscover your donor personality type at The Archetype Casino Quiz!`;
+            document.getElementById('shareText').textContent = shareText;
+            
+            // Create radar chart
+            createRadarChart();
+        }
+
+        // Create radar chart
+        function createRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            const data = {
+                labels: ['Celebrity', 'Holiday', 'Story', 'Impact', 'Urgency'],
+                datasets: [{
+                    label: 'Your Score',
+                    data: [
+                        scores.celebrity * 10,
+                        scores.holiday * 10,
+                        scores.story * 10,
+                        scores.impact * 10,
+                        scores.urgency * 10
+                    ],
+                    backgroundColor: 'rgba(0, 255, 213, 0.2)',
+                    borderColor: '#00ffd5',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#00ffd5',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#00ffd5',
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            };
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                color: '#8888aa',
+                                backdropColor: 'transparent',
+                                font: {
+                                    family: 'Rajdhani',
+                                    size: 10
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#ffffff',
+                                font: {
+                                    family: 'Rajdhani',
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        // Copy result to clipboard
+        function copyResult() {
+            const { topType } = calculateResults();
+            const archetype = archetypes[topType];
+            const text = `🎰 I got "${archetype.name}" on The Archetype Casino! ${archetype.icon}\n\nDiscover your donor personality type at The Archetype Casino Quiz!`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.share-btn.copy');
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy Result';
+                }, 2000);
+            });
+        }
+
+        // Restart quiz
+        function restartQuiz() {
+            currentQuestion = 0;
+            scores = {
+                celebrity: 0,
+                holiday: 0,
+                story: 0,
+                impact: 0,
+                urgency: 0
+            };
+            
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('startScreen').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
