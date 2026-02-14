@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Objection Machine</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --bg-card: rgba(26, 26, 36, 0.8);
+            --accent: #00a5a5;
+            --accent-glow: rgba(0, 165, 165, 0.3);
+            --accent-subtle: rgba(0, 165, 165, 0.1);
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #55556a;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-accent: rgba(0, 165, 165, 0.3);
+            --factual: #ff6b6b;
+            --emotional: #ffd93d;
+            --status-quo: #6bcb77;
+            --resource: #4d96ff;
+            --timing: #c77dff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(0, 165, 165, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0, 165, 165, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(20, 20, 30, 1) 0%, var(--bg-primary) 100%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent), #00d4d4);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 8px 32px var(--accent-glow);
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-top: 8px;
+        }
+
+        /* Input Section */
+        .input-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 48px;
+            backdrop-filter: blur(20px);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-subtle), 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .analyze-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--accent), #00d4d4);
+            color: var(--bg-primary);
+            border: none;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px var(--accent-glow);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(0);
+        }
+
+        .analyze-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        /* Heat Map */
+        .heatmap-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(20px);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Objections Grid */
+        .objections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        .objection-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .objection-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .objection-card.factual::before { background: var(--factual); }
+        .objection-card.emotional::before { background: var(--emotional); }
+        .objection-card.status-quo::before { background: var(--status-quo); }
+        .objection-card.resource::before { background: var(--resource); }
+        .objection-card.timing::before { background: var(--timing); }
+
+        .objection-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-accent);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .category-badge.factual { background: rgba(255, 107, 107, 0.15); color: var(--factual); }
+        .category-badge.emotional { background: rgba(255, 217, 61, 0.15); color: var(--emotional); }
+        .category-badge.status-quo { background: rgba(107, 203, 119, 0.15); color: var(--status-quo); }
+        .category-badge.resource { background: rgba(77, 150, 255, 0.15); color: var(--resource); }
+        .category-badge.timing { background: rgba(199, 125, 255, 0.15); color: var(--timing); }
+
+        .severity-score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .severity-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .severity-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .objection-text {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .response-section {
+            margin-top: 16px;
+        }
+
+        .response-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        .response-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .confidence-bar {
+            margin-top: 16px;
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #00d4d4);
+            border-radius: 3px;
+            transition: width 1s ease-out;
+        }
+
+        .confidence-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px;
+        }
+
+        .loading.visible {
+            display: block;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 24px 16px;
+            }
+
+            .input-section,
+            .heatmap-container,
+            .objection-card {
+                padding: 20px;
+            }
+
+            .objections-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+        }
+
+        /* Demo Data Button */
+        .demo-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-left: 12px;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .demo-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .input-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <h1>The Objection Machine</h1>
+            </div>
+            <p class="tagline">Map every possible objection to your pitch. Get scored responses. Close more deals.</p>
+        </header>
+
+        <section class="input-section">
+            <div class="input-header">
+                <label class="input-label">Your Proposition / Pitch</label>
+                <button class="demo-btn" onclick="loadDemo()">Try Demo →</button>
+            </div>
+            <div class="input-wrapper">
+                <textarea id="proposition" placeholder="Enter your sales pitch, fundraising ask, product claim, or any proposition you want to anticipate objections to..."></textarea>
+            </div>
+            <button class="analyze-btn" onclick="analyze()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+                Analyze Objections
+            </button>
+        </section>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Mapping objections...</p>
+        </div>
+
+        <section class="results-section" id="results">
+            <div class="heatmap-container">
+                <h2 class="section-title">Objection Heat Map</h2>
+                <div class="chart-wrapper">
+                    <canvas id="heatmapChart"></canvas>
+                </div>
+            </div>
+
+            <h2 class="section-title">Detected Objections</h2>
+            <div class="objections-grid" id="objectionsGrid"></div>
+        </section>
+    </div>
+
+    <script>
+        let chart = null;
+
+        const categoryLabels = {
+            'factual': 'Factual',
+            'emotional': 'Emotional',
+            'status-quo': 'Status Quo',
+            'resource': 'Resource',
+            'timing': 'Timing'
+        };
+
+        const categoryDescriptions = {
+            'factual': 'Questions about accuracy, claims, or verifiable information',
+            'emotional': 'Feelings, fears, trust concerns, or personal hesitations',
+            'status-quo': 'Preference for keeping things as they are',
+            'resource': 'Budget, time, or resource constraints',
+            'timing': 'Concerns about when to act, not if'
+        };
+
+        function generateObjections(proposition) {
+            // Generate contextual objections based on proposition content
+            const lowerProp = proposition.toLowerCase();
+            const objections = [];
+
+            // Factual objections
+            if (lowerProp.includes('cost') || lowerProp.includes('price') || lowerProp.includes('$') || lowerProp.includes('percent')) {
+                objections.push({
+                    category: 'factual',
+                    text: 'How do you verify these claims? The numbers seem optimistic.',
+                    response: 'Great question. Our data comes from audited financial statements and third-party verification. Would you like to see our methodology documentation?',
+                    severity: Math.floor(Math.random() * 4) + 6,
+                    confidence: Math.floor(Math.random() * 20) + 75
+                });
+            }
+            objections.push({
+                category: 'factual',
+                text: 'What\'s the catch? This sounds too good to be true.',
+                response: 'No catch — we\'ve been operating for 5+ years with a 98% client retention rate. Let me connect you with a current customer to hear their experience directly.',
+                severity: Math.floor(Math.random() * 5) + 5,
+                confidence: Math.floor(Math.random() * 15) + 80
+            });
+
+            // Emotional objections
+            if (lowerProp.includes('buy') || lowerProp.includes('purchase') || lowerProp.includes('sign up')) {
+                objections.push({
+                    category: 'emotional',
+                    text: 'I\'m not sure I trust this yet. I need to think about it.',
+                    response: 'Absolutely, this is a big decision. What specific concerns would help me address? Sometimes the uncertainty comes from not having all the facts — I\'d welcome the chance to clarify.',
+                    severity: Math.floor(Math.random() * 4) + 7,
+                    confidence: Math.floor(Math.random() * 15) + 78
+                });
+            }
+            objections.push({
+                category: 'emotional',
+                text: 'My team won\'t like this change. They\'re resistant to new tools.',
+                response: 'That\'s a valid concern. We\'ve found that early adopters within teams become champions. Would a pilot program with a small group help demonstrate value before full rollout?',
+                severity: Math.floor(Math.random() * 3) + 6,
+                confidence: Math.floor(Math.random() * 20) + 72
+            });
+
+            // Status quo objections
+            objections.push({
+                category: 'status-quo',
+                text: 'We\'ve been doing it this way for years. Why change now?',
+                response: 'That consistency is valuable. What if I showed you data on how your competitors are gaining efficiency? I\'m not suggesting what you have doesn\'t work — I\'m showing what could work better.',
+                severity: Math.floor(Math.random() * 4) + 6,
+                confidence: Math.floor(Math.random() * 15) + 75
+            });
+            objections.push({
+                category: 'status-quo',
+                text: 'Our current solution works fine. Why fix what isn\'t broken?',
+                response: 'And that\'s exactly the mindset that kept Blockbuster ahead of Netflix for years. I\'m not saying switch — I\'m saying there might be opportunities you\'re not seeing. Mind if I ask what keeps you up at night about your current setup?',
+                severity: Math.floor(Math.random() * 3) + 5,
+                confidence: Math.floor(Math.random() * 18) + 74
+            });
+
+            // Resource objections
+            if (lowerProp.includes('implement') || lowerProp.includes('setup') || lowerProp.includes('integration')) {
+                objections.push({
+                    category: 'resource',
+                    text: 'We don\'t have the bandwidth to implement this right now.',
+                    response: 'That\'s why we offer white-glove onboarding. Our team handles 90% of the heavy lifting — you\'ll have a dedicated success manager who makes the process frictionless.',
+                    severity: Math.floor(Math.random() * 4) + 6,
+                    confidence: Math.floor(Math.random() * 15) + 78
+                });
+            }
+            objections.push({
+                category: 'resource',
+                text: 'This doesn\'t fit our budget this quarter.',
+                response: 'I hear that a lot. Let\'s look at phased implementation — we can start with the highest-ROI features and expand as you see results. We also offer flexible payment terms for qualified buyers.',
+                severity: Math.floor(Math.random() * 3) + 7,
+                confidence: Math.floor(Math.random() * 12) + 82
+            });
+
+            // Timing objections
+            if (lowerProp.includes('now') || lowerProp.includes('today') || lowerProp.includes('immediately')) {
+                objections.push({
+                    category: 'timing',
+                    text: 'Let\'s revisit this next quarter when we have more visibility.',
+                    response: 'I respect that planning. Here\'s what I\'ll say: our clients who waited saw an average 23% higher implementation cost 3 months later due to price adjustments. Can we at least lock in today\'s pricing while you continue planning?',
+                    severity: Math.floor(Math.random() * 3) + 6,
+                    confidence: Math.floor(Math.random() * 15) + 76
+                });
+            }
+            objections.push({
+                category: 'timing',
+                text: 'We\'re in the middle of another initiative. Can this wait?',
+                response: 'Totally understand — focus is everything. What if we positioned this as supporting that initiative rather than competing with it? Sometimes the right timing is when you realize this could make your current project succeed faster.',
+                severity: Math.floor(Math.random() * 4) + 5,
+                confidence: Math.floor(Math.random() * 18) + 73
+            });
+
+            return objections;
+        }
+
+        function analyze() {
+            const proposition = document.getElementById('proposition').value.trim();
+            
+            if (!proposition) {
+                alert('Please enter a proposition to analyze.');
+                return;
+            }
+
+            document.getElementById('loading').classList.add('visible');
+            document.getElementById('results').classList.remove('visible');
+
+            // Simulate analysis delay
+            setTimeout(() => {
+                const objections = generateObjections(proposition);
+                renderResults(objections);
+                document.getElementById('loading').classList.remove('visible');
+                document.getElementById('results').classList.add('visible');
+            }, 1500);
+        }
+
+        function renderResults(objections) {
+            const grid = document.getElementById('objectionsGrid');
+            grid.innerHTML = '';
+
+            // Calculate category totals for heat map
+            const categoryTotals = {};
+            objections.forEach(obj => {
+                if (!categoryTotals[obj.category]) {
+                    categoryTotals[obj.category] = { count: 0, totalSeverity: 0 };
+                }
+                categoryTotals[obj.category].count++;
+                categoryTotals[obj.category].totalSeverity += obj.severity;
+            });
+
+            // Render heat map
+            renderHeatMap(categoryTotals);
+
+            // Render objection cards
+            objections.forEach((obj, index) => {
+                const card = document.createElement('div');
+                card.className = `objection-card ${obj.category}`;
+                card.style.animationDelay = `${index * 0.1}s`;
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="category-badge ${obj.category}">${categoryLabels[obj.category]}</span>
+                        <div class="severity-score">
+                            <span class="severity-number" style="color: var(--${obj.category})">${obj.severity}</span>
+                            <span class="severity-label">Severity</span>
+                        </div>
+                    </div>
+                    <div class="objection-text">"${obj.text}"</div>
+                    <div class="response-section">
+                        <div class="response-label">Best Response</div>
+                        <div class="response-text">${obj.response}</div>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${obj.confidence}%"></div>
+                    </div>
+                    <div class="confidence-info">
+                        <span>Response Confidence</span>
+                        <span>${obj.confidence}%</span>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function renderHeatMap(totals) {
+            const ctx = document.getElementById('heatmapChart').getContext('2d');
+            
+            const categories = ['factual', 'emotional', 'status-quo', 'resource', 'timing'];
+            const colors = {
+                'factual': '#ff6b6b',
+                'emotional': '#ffd93d',
+                'status-quo': '#6bcb77',
+                'resource': '#4d96ff',
+                'timing': '#c77dff'
+            };
+
+            const data = categories.map(cat => ({
+                category: cat,
+                count: totals[cat]?.count || 0,
+                avgSeverity: totals[cat]?.count ? Math.round(totals[cat].totalSeverity / totals[cat].count) : 0
+            }));
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => categoryLabels[d.category]),
+                    datasets: [
+                        {
+                            label: 'Objection Count',
+                            data: data.map(d => d.count),
+                            backgroundColor: data.map(d => colors[d.category] + '40'),
+                            borderColor: data.map(d => colors[d.category]),
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Avg Severity',
+                            data: data.map(d => d.avgSeverity),
+                            backgroundColor: 'transparent',
+                            borderColor: data.map(d => colors[d.category]),
+                            borderWidth: 2,
+                            type: 'line',
+                            tension: 0.4,
+                            pointBackgroundColor: data.map(d => colors[d.category]),
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#8888a0',
+                                font: {
+                                    family: 'Space Grotesk',
+                                    size: 12
+                                },
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(18, 18, 26, 0.95)',
+                            titleColor: '#f0f0f5',
+                            bodyColor: '#8888a0',
+                            borderColor: 'rgba(0, 165, 165, 0.3)',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                            titleFont: {
+                                family: 'Space Grotesk',
+                                size: 14,
+                                weight: 600
+                            },
+                            bodyFont: {
+                                family: 'Space Grotesk',
+                                size: 13
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#8888a0',
+                                font: {
+                                    family: 'Space Grotesk',
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#8888a0',
+                                font: {
+                                    family: 'JetBrains Mono',
+                                    size: 11
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Count',
+                                color: '#55556a',
+                                font: {
+                                    family: 'Space Grotesk',
+                                    size: 11
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            min: 0,
+                            max: 10,
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                color: '#8888a0',
+                                font: {
+                                    family: 'JetBrains Mono',
+                                    size: 11
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Severity',
+                                color: '#55556a',
+                                font: {
+                                    family: 'Space Grotesk',
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadDemo() {
+            const demoProposition = "Our AI-powered CRM helps small businesses automate their sales pipeline, reduce administrative time by 70%, and increase close rates by 40%. Starting at $49/month, we integrate with 200+ tools and offer 24/7 support. Sign up today and get 30% off your first 3 months.";
+            document.getElementById('proposition').value = demoProposition;
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Pre-load demo data
+            document.getElementById('proposition').value = '';
+        });
+    </script>
+</body>
+</html>
