@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Money Machine Dashboard | Justin Hart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --accent-gold: #ffd700;
+            --accent-green: #00ff88;
+            --accent-blue: #00d4ff;
+            --accent-purple: #a855f7;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --border: #2a2a3a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-green), var(--accent-blue));
+        }
+        
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(90deg, var(--accent-gold), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+        
+        .timestamp {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        /* Big Numbers */
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, var(--accent-gold) 0%, transparent 70%);
+            opacity: 0.1;
+        }
+        
+        .stat-card.current::after { background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%); }
+        .stat-card.potential::after { background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); }
+        .stat-card.lift::after { background: radial-gradient(circle, var(--accent-purple) 0%, transparent 70%); }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value.gold { color: var(--accent-gold); }
+        .stat-value.green { color: var(--accent-green); }
+        .stat-value.blue { color: var(--accent-blue); }
+        .stat-value.purple { color: var(--accent-purple); }
+        
+        .stat-detail {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        
+        /* Scenario Slider */
+        .scenario-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid var(--border);
+        }
+        
+        .scenario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .scenario-title {
+            font-size: 1.4rem;
+            color: var(--accent-gold);
+        }
+        
+        .scenario-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+        
+        .slider-container {
+            margin: 20px 0;
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green), var(--accent-gold));
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        /* Ideas Grid */
+        .ideas-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ideas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .idea-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .idea-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-gold);
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.1);
+        }
+        
+        .idea-card.selected {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+        
+        .idea-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .idea-rank {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        
+        .idea-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            flex: 1;
+            margin-left: 12px;
+        }
+        
+        .idea-potential {
+            color: var(--accent-green);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .idea-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .idea-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .meta-item span {
+            color: var(--text-secondary);
+        }
+        
+        .feasibility {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .star {
+            color: var(--accent-gold);
+        }
+        
+        .star.empty {
+            opacity: 0.2;
+        }
+        
+        .idea-checkbox {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .idea-card.selected .idea-checkbox {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+        
+        .idea-card.selected .idea-checkbox::after {
+            content: '✓';
+            color: var(--bg-primary);
+            font-weight: 700;
+        }
+        
+        /* Current Streams */
+        .streams-section {
+            margin-bottom: 40px;
+        }
+        
+        .streams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .stream-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .stream-name {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .stream-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+        
+        .stream-type {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+        
+        /* Charts */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 900px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--border);
+        }
+        
+        .chart-title {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        
+        /* Action Items */
+        .action-section {
+            background: linear-gradient(135deg, #1a1a24 0%, #0f1419 100%);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--accent-gold);
+            margin-bottom: 40px;
+        }
+        
+        .action-title {
+            font-size: 1.4rem;
+            color: var(--accent-gold);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .action-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .action-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        
+        .action-check {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--accent-gold);
+            border-radius: 6px;
+            flex-shrink: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .action-check.done {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+        
+        .action-check.done::after {
+            content: '✓';
+            color: var(--bg-primary);
+            font-weight: 700;
+        }
+        
+        .action-content {
+            flex: 1;
+        }
+        
+        .action-text {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        
+        .action-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .action-time { color: var(--accent-blue); }
+        .action-value { color: var(--accent-green); }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .owl {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Money rain effect */
+        .money-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .money {
+            position: absolute;
+            font-size: 1.5rem;
+            animation: fall 3s linear forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="money-rain" id="moneyRain"></div>
+    
+    <div class="container">
+        <header>
+            <h1>💰 Money Machine Dashboard</h1>
+            <p class="subtitle">10 Ideas to Add $170K–$600K to Your Annual Revenue</p>
+            <p class="timestamp">Built by Railstote 🦉 • February 15, 2026 • 4:30 AM</p>
+        </header>
+        
+        <!-- Hero Stats -->
+        <div class="hero-stats">
+            <div class="stat-card current">
+                <div class="stat-label">Current Annual Revenue</div>
+                <div class="stat-value blue">$261K</div>
+                <div class="stat-detail">DB ($180K) + TLH ($60K) + Substack ($21K)</div>
+            </div>
+            <div class="stat-card potential">
+                <div class="stat-label">With Ideas (Selected)</div>
+                <div class="stat-value green" id="potentialRevenue">$433K</div>
+                <div class="stat-detail">Click ideas below to customize projection</div>
+            </div>
+            <div class="stat-card lift">
+                <div class="stat-label">Revenue Lift</div>
+                <div class="stat-value purple" id="revenueLift">+$172K</div>
+                <div class="stat-detail" id="liftPercent">+66% increase</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Setup Hours Required</div>
+                <div class="stat-value gold" id="setupHours">25</div>
+                <div class="stat-detail">One-time investment to launch</div>
+            </div>
+        </div>
+        
+        <!-- Scenario Slider -->
+        <div class="scenario-section">
+            <div class="scenario-header">
+                <div class="scenario-title">📊 Revenue Scenario Projection</div>
+                <div class="scenario-value" id="scenarioValue">$433K</div>
+            </div>
+            <div class="slider-container">
+                <div class="slider-labels">
+                    <span>Conservative ($433K)</span>
+                    <span>Moderate ($611K)</span>
+                    <span>Aggressive ($861K)</span>
+                </div>
+                <input type="range" id="scenarioSlider" min="0" max="100" value="0">
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 15px;">
+                Drag to see projections based on execution intensity. Conservative = 2-3 clients per idea. Aggressive = full scale.
+            </p>
+        </div>
+        
+        <!-- Current Revenue Streams -->
+        <div class="streams-section">
+            <h2 class="section-title">📈 Current Revenue Streams</h2>
+            <div class="streams-grid">
+                <div class="stream-card">
+                    <div class="stream-name">DonorBureau</div>
+                    <div class="stream-value">$180K</div>
+                    <div class="stream-type">W-2 • Head of Creative</div>
+                </div>
+                <div class="stream-card">
+                    <div class="stream-name">True Legacy Homes</div>
+                    <div class="stream-value">$60K</div>
+                    <div class="stream-type">1099 • CMO</div>
+                </div>
+                <div class="stream-card">
+                    <div class="stream-name">Rational Ground</div>
+                    <div class="stream-value">$21K</div>
+                    <div class="stream-type">Substack • 285 paid subs</div>
+                </div>
+                <div class="stream-card">
+                    <div class="stream-name">Hello AI</div>
+                    <div class="stream-value">$0</div>
+                    <div class="stream-type">Substack • Not yet monetized</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ideas Grid -->
+        <div class="ideas-section">
+            <h2 class="section-title">💡 The 10 Money-Making Ideas</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Click to toggle ideas in your projection. Each shows conservative annual potential.</p>
+            <div class="ideas-grid" id="ideasGrid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+        
+        <!-- Charts -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="chart-title">Revenue Distribution (Selected Ideas)</div>
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Monthly Revenue Projection</div>
+                <canvas id="lineChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Action Items -->
+        <div class="action-section">
+            <div class="action-title">⚡ This Week's Quick Wins</div>
+            <div class="action-list">
+                <div class="action-item">
+                    <div class="action-check" onclick="this.classList.toggle('done')"></div>
+                    <div class="action-content">
+                        <div class="action-text">Enable paid tier on Hello AI + write 3 founding posts</div>
+                        <div class="action-meta">
+                            <span class="action-time">⏱ 2 hours</span>
+                            <span class="action-value">💰 $12K/year potential</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <div class="action-check" onclick="this.classList.toggle('done')"></div>
+                    <div class="action-content">
+                        <div class="action-text">Submit INBOUND 2026 CFP (deadline Feb 18!)</div>
+                        <div class="action-meta">
+                            <span class="action-time">⏱ 2 hours</span>
+                            <span class="action-value">💰 $5K per speaking gig</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <div class="action-check" onclick="this.classList.toggle('done')"></div>
+                    <div class="action-content">
+                        <div class="action-text">Create Creative Sprint landing page</div>
+                        <div class="action-meta">
+                            <span class="action-time">⏱ 4 hours</span>
+                            <span class="action-value">💰 $120K/year potential</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <div class="action-check" onclick="this.classList.toggle('done')"></div>
+                    <div class="action-content">
+                        <div class="action-text">Package 10 best DB prompts → Gumroad</div>
+                        <div class="action-meta">
+                            <span class="action-time">⏱ 3 hours</span>
+                            <span class="action-value">💰 $45K/year potential</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <div class="action-check" onclick="this.classList.toggle('done')"></div>
+                    <div class="action-content">
+                        <div class="action-text">Create SMS Mastermind landing page + email 10 contacts</div>
+                        <div class="action-meta">
+                            <span class="action-time">⏱ 4 hours</span>
+                            <span class="action-value">💰 $50K/year potential</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <div class="owl float">🦉</div>
+            <p>Built while you slept by Railstote</p>
+            <p style="margin-top: 5px;">Sunday, February 15, 2026 • 4:30 AM</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Ideas data
+        const ideas = [
+            { id: 1, name: "Creative Sprint", desc: "$2,500 one-time SMS burst packages. 48-hour turnaround, 10 creatives, your AI stack makes it 5 hours of work.", potential: 60000, conserv: 60000, moderate: 120000, aggr: 360000, hours: 4, feasibility: 5, selected: true },
+            { id: 2, name: "SMS Mastermind", desc: "$997/year membership for campaign digital directors. Monthly forensics calls, 500+ template library, private community.", potential: 30000, conserv: 30000, moderate: 100000, aggr: 200000, hours: 2, feasibility: 5, selected: true },
+            { id: 3, name: "Hello AI Paid", desc: "Convert Hello AI to paid ($8/mo). Weekly deep dives, dashboard templates, prompt library, monthly Q&A.", potential: 12000, conserv: 12000, moderate: 32000, aggr: 80000, hours: 2, feasibility: 5, selected: true },
+            { id: 4, name: "AI Efficiency Audits", desc: "$5,000 diagnostic for businesses. 2-hour discovery, ROI calculator, 30-page custom report.", potential: 30000, conserv: 30000, moderate: 120000, aggr: 240000, hours: 10, feasibility: 4, selected: true },
+            { id: 5, name: "Prompt Packs", desc: "Sell tested prompts on Gumroad. SMS fundraising ($49), MMS images ($29), Dashboard builder ($39), Bundle ($149).", potential: 25000, conserv: 25000, moderate: 75000, aggr: 150000, hours: 3, feasibility: 5, selected: true },
+            { id: 6, name: "Command Center Template", desc: "Sell the dashboard system. Self-serve ($497), with setup call ($997), Enterprise ($5K+).", potential: 15000, conserv: 15000, moderate: 50000, aggr: 300000, hours: 4, feasibility: 4, selected: false },
+            { id: 7, name: "Speaking Circuit", desc: "Political tech + AI efficiency talks. Local ($1.5K), Regional ($5K), National ($10K), Keynote ($15K+).", potential: 15000, conserv: 15000, moderate: 50000, aggr: 100000, hours: 5, feasibility: 4, selected: false },
+            { id: 8, name: "The AI Operator", desc: "YouTube + Podcast: Dad of 9 running everything with AI. Build audience over 12 months.", potential: 15000, conserv: 15000, moderate: 75000, aggr: 225000, hours: 60, feasibility: 3, selected: false },
+            { id: 9, name: "DonorGenome SaaS", desc: "Turn forensics dashboards into subscription product. White-label ($2K/mo) or Direct ($299/mo).", potential: 50000, conserv: 50000, moderate: 120000, aggr: 500000, hours: 80, feasibility: 3, selected: false },
+            { id: 10, name: "Senior Transition License", desc: "Package TLH methodology for other markets. Territory ($10K), Franchise ($5K), Training ($1.5K).", potential: 50000, conserv: 50000, moderate: 150000, aggr: 500000, hours: 20, feasibility: 2, selected: false }
+        ];
+        
+        const baseRevenue = 261000;
+        let scenario = 0; // 0=conservative, 50=moderate, 100=aggressive
+        
+        function renderIdeas() {
+            const grid = document.getElementById('ideasGrid');
+            grid.innerHTML = ideas.map(idea => `
+                <div class="idea-card ${idea.selected ? 'selected' : ''}" onclick="toggleIdea(${idea.id})">
+                    <div class="idea-checkbox"></div>
+                    <div class="idea-header">
+                        <div class="idea-rank">${idea.id}</div>
+                        <div class="idea-name">${idea.name}</div>
+                        <div class="idea-potential">$${(idea.conserv/1000).toFixed(0)}K</div>
+                    </div>
+                    <div class="idea-desc">${idea.desc}</div>
+                    <div class="idea-meta">
+                        <div class="meta-item">
+                            <span>Setup:</span> ${idea.hours} hrs
+                        </div>
+                        <div class="meta-item">
+                            <span>Feasibility:</span>
+                            <div class="feasibility">
+                                ${Array(5).fill(0).map((_, i) => `<span class="star ${i < idea.feasibility ? '' : 'empty'}">★</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function toggleIdea(id) {
+            const idea = ideas.find(i => i.id === id);
+            idea.selected = !idea.selected;
+            renderIdeas();
+            updateProjections();
+            updateCharts();
+            
+            // Money rain effect on select
+            if (idea.selected) {
+                createMoneyRain();
+            }
+        }
+        
+        function getScenarioValue(idea) {
+            if (scenario <= 33) {
+                return idea.conserv;
+            } else if (scenario <= 66) {
+                const t = (scenario - 33) / 33;
+                return idea.conserv + (idea.moderate - idea.conserv) * t;
+            } else {
+                const t = (scenario - 66) / 34;
+                return idea.moderate + (idea.aggr - idea.moderate) * t;
+            }
+        }
+        
+        function updateProjections() {
+            const selectedIdeas = ideas.filter(i => i.selected);
+            const newRevenue = selectedIdeas.reduce((sum, idea) => sum + getScenarioValue(idea), 0);
+            const totalRevenue = baseRevenue + newRevenue;
+            const lift = newRevenue;
+            const liftPercent = ((newRevenue / baseRevenue) * 100).toFixed(0);
+            const setupHours = selectedIdeas.reduce((sum, idea) => sum + idea.hours, 0);
+            
+            document.getElementById('potentialRevenue').textContent = '$' + Math.round(totalRevenue/1000) + 'K';
+            document.getElementById('revenueLift').textContent = '+$' + Math.round(lift/1000) + 'K';
+            document.getElementById('liftPercent').textContent = '+' + liftPercent + '% increase';
+            document.getElementById('setupHours').textContent = setupHours;
+            document.getElementById('scenarioValue').textContent = '$' + Math.round(totalRevenue/1000) + 'K';
+        }
+        
+        function createMoneyRain() {
+            const rain = document.getElementById('moneyRain');
+            const symbols = ['💰', '💵', '💸', '🤑', '💎'];
+            
+            for (let i = 0; i < 15; i++) {
+                const money = document.createElement('span');
+                money.className = 'money';
+                money.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                money.style.left = Math.random() * 100 + '%';
+                money.style.animationDelay = Math.random() * 0.5 + 's';
+                rain.appendChild(money);
+                
+                setTimeout(() => money.remove(), 3500);
+            }
+        }
+        
+        // Charts
+        let pieChart, lineChart;
+        
+        function initCharts() {
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#ffd700', '#00ff88', '#00d4ff', '#a855f7', '#ff6b6b',
+                            '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#9ca3af', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+            
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Projected Monthly',
+                        data: [],
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Current Baseline',
+                        data: Array(10).fill(baseRevenue / 12),
+                        borderColor: '#00d4ff',
+                        borderDash: [5, 5],
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#2a2a3a' },
+                            ticks: { color: '#9ca3af', callback: v => '$' + (v/1000).toFixed(0) + 'K' }
+                        },
+                        x: {
+                            grid: { color: '#2a2a3a' },
+                            ticks: { color: '#9ca3af' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+            
+            updateCharts();
+        }
+        
+        function updateCharts() {
+            const selectedIdeas = ideas.filter(i => i.selected);
+            
+            // Pie chart
+            const labels = ['DB ($180K)', 'TLH ($60K)', 'RG ($21K)', ...selectedIdeas.map(i => i.name)];
+            const data = [180000, 60000, 21000, ...selectedIdeas.map(i => getScenarioValue(i))];
+            
+            pieChart.data.labels = labels;
+            pieChart.data.datasets[0].data = data;
+            pieChart.update();
+            
+            // Line chart - gradual ramp up
+            const monthlyBase = baseRevenue / 12;
+            const monthlyNew = selectedIdeas.reduce((sum, i) => sum + getScenarioValue(i), 0) / 12;
+            const projectedMonthly = [];
+            for (let i = 0; i < 10; i++) {
+                const rampUp = Math.min(1, (i + 1) / 6); // 6 month ramp
+                projectedMonthly.push(monthlyBase + (monthlyNew * rampUp));
+            }
+            
+            lineChart.data.datasets[0].data = projectedMonthly;
+            lineChart.update();
+        }
+        
+        // Scenario slider
+        document.getElementById('scenarioSlider').addEventListener('input', function(e) {
+            scenario = parseInt(e.target.value);
+            updateProjections();
+            updateCharts();
+        });
+        
+        // Initialize
+        renderIdeas();
+        updateProjections();
+        initCharts();
+        
+        // Celebration on load
+        setTimeout(createMoneyRain, 500);
+    </script>
+</body>
+</html>
