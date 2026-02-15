@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Command Center | Justin Hart</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.min.css">
+  <style>
+    :root {
+      --bg-dark: #0a0a0f;
+      --bg-card: #13131a;
+      --bg-hover: #1e1e2a;
+      --color-primary: #10b981;
+      --color-secondary: #3b82f6;
+      --color-accent: #8b5cf6;
+      --color-danger: #ef4444;
+      --color-warning: #f59e0b;
+      --color-text: #f3f4f6;
+      --color-text-muted: #9ca3af;
+      --color-border: #2d2d3a;
+      --radius: 8px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--color-text);
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+      overflow-x: hidden;
+    }
+    
+    header {
+      background: linear-gradient(to right, #0f172a, #1e293b);
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    h1 span {
+      background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    main {
+      padding: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .card {
+      background-color: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--color-border);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .card-header h2 {
+      margin-bottom: 0;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: 1.5rem;
+    }
+    
+    .tab {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      opacity: 0.7;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      opacity: 1;
+      border-bottom-color: var(--color-secondary);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .portfolio-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    
+    .portfolio-item:last-child {
+      border-bottom: none;
+    }
+    
+    .coin-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .coin-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-color: var(--bg-hover);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .coin-details {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .coin-name {
+      font-weight: 600;
+    }
+    
+    .coin-amount {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+    
+    .coin-value {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .coin-price {
+      font-weight: 600;
+    }
+    
+    .coin-change {
+      font-size: 0.85rem;
+    }
+    
+    .change-positive {
+      color: var(--color-primary);
+    }
+    
+    .change-negative {
+      color: var(--color-danger);
+    }
+    
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+    
+    .badge-success {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--color-primary);
+    }
+    
+    .badge-warning {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: var(--color-warning);
+    }
+    
+    .badge-danger {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--color-danger);
+    }
+    
+    .badge-info {
+      background-color: rgba(59, 130, 246, 0.1);
+      color: var(--color-secondary);
+    }
+    
+    .stat-card {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+    
+    .stat-change {
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+    }
+    
+    th {
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+    
+    tr:hover {
+      background-color: var(--bg-hover);
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 200px;
+      margin-top: 1rem;
+    }
+    
+    .button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background-color: var(--bg-hover);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .button:hover {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-color: var(--color-secondary);
+    }
+    
+    .button-primary {
+      background-color: var(--color-secondary);
+      border-color: var(--color-secondary);
+    }
+    
+    .button-primary:hover {
+      background-color: #2563eb;
+    }
+    
+    .sentiment-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1rem;
+    }
+    
+    .sentiment-scale {
+      display: flex;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(to right, var(--color-danger), var(--color-warning), var(--color-primary));
+      border-radius: 4px;
+      margin: 0 1rem;
+      position: relative;
+    }
+    
+    .sentiment-marker {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background-color: white;
+      border-radius: 50%;
+      top: -2px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 0 2px var(--bg-card);
+    }
+    
+    .sentiment-labels {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+    
+    .asset-allocation {
+      display: flex;
+      margin-top: 1rem;
+      gap: 0.25rem;
+      height: 8px;
+    }
+    
+    .allocation-segment {
+      height: 100%;
+      border-radius: 2px;
+    }
+    
+    .allocation-labels {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .allocation-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+    }
+    
+    .allocation-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+    
+    .trading-action {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      background-color: var(--bg-hover);
+      margin-bottom: 0.75rem;
+      border-left: 3px solid var(--color-border);
+    }
+    
+    .action-buy {
+      border-left-color: var(--color-primary);
+    }
+    
+    .action-sell {
+      border-left-color: var(--color-danger);
+    }
+    
+    .action-hold {
+      border-left-color: var(--color-secondary);
+    }
+    
+    .action-info {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    
+    .action-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--radius);
+      text-transform: uppercase;
+    }
+    
+    .action-buy .action-badge {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--color-primary);
+    }
+    
+    .action-sell .action-badge {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--color-danger);
+    }
+    
+    .action-hold .action-badge {
+      background-color: rgba(59, 130, 246, 0.1);
+      color: var(--color-secondary);
+    }
+    
+    .action-details {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .action-coin {
+      font-weight: 600;
+    }
+    
+    .action-reason {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      max-width: 250px;
+    }
+    
+    .action-execute {
+      font-size: 0.875rem;
+      padding: 0.375rem 0.75rem;
+      border-radius: var(--radius);
+      background-color: var(--bg-dark);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      cursor: pointer;
+    }
+    
+    .action-execute:hover {
+      background-color: var(--bg-hover);
+    }
+    
+    .note-box {
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      background-color: rgba(59, 130, 246, 0.05);
+      border-left: 3px solid var(--color-secondary);
+      font-size: 0.875rem;
+      margin-top: 1rem;
+    }
+    
+    .last-updated {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: 2rem;
+      text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      
+      th:nth-child(4), td:nth-child(4) {
+        display: none;
+      }
+    }
+
+    .price-history-card {
+      grid-column: span 2;
+    }
+
+    .actions-card {
+      grid-column: span 2;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .reasoning-detail {
+      border-top: 1px dashed var(--color-border);
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      display: none;
+    }
+
+    .reasoning-toggle {
+      font-size: 0.75rem;
+      color: var(--color-secondary);
+      cursor: pointer;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+
+    .reasoning-toggle:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>🪙 <span>Crypto Command Center</span></h1>
+    </div>
+    <div class="header-right">
+      <span id="last-refresh">Refreshed: Feb 14, 2026 8:00 PM PST</span>
+      <button class="button" onclick="refreshData()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+          <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+  
+  <main>
+    <div class="grid">
+      <!-- Portfolio Value -->
+      <div class="card stat-card">
+        <div class="card-header">
+          <h2>Portfolio Value</h2>
+          <span class="badge badge-success">Up 1.54%</span>
+        </div>
+        <div class="stat-value">$718.67</div>
+        <div class="stat-label">Total Value</div>
+        <div class="stat-change change-positive">
+          +$10.67 (24h)
+        </div>
+        <div class="asset-allocation">
+          <div class="allocation-segment" style="width: 40%; background-color: #3b82f6;"></div>
+          <div class="allocation-segment" style="width: 20%; background-color: #10b981;"></div>
+          <div class="allocation-segment" style="width: 12%; background-color: #8b5cf6;"></div>
+          <div class="allocation-segment" style="width: 8%; background-color: #f59e0b;"></div>
+          <div class="allocation-segment" style="width: 20%; background-color: #e5e7eb;"></div>
+        </div>
+        <div class="allocation-labels">
+          <div class="allocation-label">
+            <div class="allocation-color" style="background-color: #3b82f6;"></div>
+            <span>SOL (40%)</span>
+          </div>
+          <div class="allocation-label">
+            <div class="allocation-color" style="background-color: #10b981;"></div>
+            <span>TAO (20%)</span>
+          </div>
+          <div class="allocation-label">
+            <div class="allocation-color" style="background-color: #8b5cf6;"></div>
+            <span>LINK (12%)</span>
+          </div>
+          <div class="allocation-label">
+            <div class="allocation-color" style="background-color: #f59e0b;"></div>
+            <span>Others (8%)</span>
+          </div>
+          <div class="allocation-label">
+            <div class="allocation-color" style="background-color: #e5e7eb;"></div>
+            <span>Cash (20%)</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Market Sentiment -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Market Sentiment</h2>
+        </div>
+        <div class="stat-value">25</div>
+        <div class="stat-label">Fear & Greed Index</div>
+        <div class="sentiment-container">
+          <span>Extreme Fear</span>
+          <div class="sentiment-scale">
+            <div class="sentiment-marker" style="left: 25%;"></div>
+          </div>
+          <span>Extreme Greed</span>
+        </div>
+        <div class="sentiment-labels">
+          <span>0</span>
+          <span>25</span>
+          <span>50</span>
+          <span>75</span>
+          <span>100</span>
+        </div>
+        <div class="note-box">
+          <strong>Insight:</strong> Extreme fear often indicates a buying opportunity. The market is oversold following recent CPI data and regulatory news.
+        </div>
+      </div>
+      
+      <!-- Key Metrics -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Key Metrics</h2>
+        </div>
+        <div class="portfolio-item">
+          <span>24h Change</span>
+          <span class="change-positive">+$10.67 (+1.54%)</span>
+        </div>
+        <div class="portfolio-item">
+          <span>7d Change</span>
+          <span class="change-positive">+$182.82 (+34.1%)</span>
+        </div>
+        <div class="portfolio-item">
+          <span>Cash Position</span>
+          <span>$28.00 USDC (3.9%)</span>
+        </div>
+        <div class="portfolio-item">
+          <span>All-time ROI</span>
+          <span class="change-positive">+209.5%</span>
+        </div>
+      </div>
+      
+      <!-- Major Coins -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Major Coins</h2>
+          <span class="badge badge-info">Market</span>
+        </div>
+        <div class="portfolio-item">
+          <div class="coin-info">
+            <div class="coin-icon">₿</div>
+            <div class="coin-details">
+              <span class="coin-name">Bitcoin</span>
+              <span class="coin-amount">BTC</span>
+            </div>
+          </div>
+          <div class="coin-value">
+            <span class="coin-price">$69,961.86</span>
+            <span class="coin-change change-positive">+1.54%</span>
+          </div>
+        </div>
+        <div class="portfolio-item">
+          <div class="coin-info">
+            <div class="coin-icon">Ξ</div>
+            <div class="coin-details">
+              <span class="coin-name">Ethereum</span>
+              <span class="coin-amount">ETH</span>
+            </div>
+          </div>
+          <div class="coin-value">
+            <span class="coin-price">$2,060.89</span>
+            <span class="coin-change change-positive">+0.44%</span>
+          </div>
+        </div>
+        <div class="portfolio-item">
+          <div class="coin-info">
+            <div class="coin-icon">◎</div>
+            <div class="coin-details">
+              <span class="coin-name">Solana</span>
+              <span class="coin-amount">SOL</span>
+            </div>
+          </div>
+          <div class="coin-value">
+            <span class="coin-price">$88.69</span>
+            <span class="coin-change change-positive">+4.44%</span>
+          </div>
+        </div>
+        <div class="portfolio-item">
+          <div class="coin-info">
+            <div class="coin-icon">⚓</div>
+            <div class="coin-details">
+              <span class="coin-name">Chainlink</span>
+              <span class="coin-amount">LINK</span>
+            </div>
+          </div>
+          <div class="coin-value">
+            <span class="coin-price">$9.12</span>
+            <span class="coin-change change-positive">+3.05%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Holdings Table (Span 2 columns) -->
+      <div class="card full-width">
+        <div class="card-header">
+          <h2>Your Holdings</h2>
+          <span class="badge badge-success">6 Assets</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Asset</th>
+              <th>Holdings</th>
+              <th>Price</th>
+              <th>24h</th>
+              <th>Value</th>
+              <th>Allocation</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="coin-info">
+                  <div class="coin-icon">◎</div>
+                  <span class="coin-name">SOL</span>
+                </div>
+              </td>
+              <td>3.29</td>
+              <td>$88.69</td>
+              <td class="change-positive">+4.44%</td>
+              <td>$291.79</td>
+              <td>40.6%</td>
+              <td><span class="badge badge-success">ACCUMULATE</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="coin-info">
+                  <div class="coin-icon">τ</div>
+                  <span class="coin-name">TAO</span>
+                </div>
+              </td>
+              <td>0.52</td>
+              <td>$164.52</td>
+              <td class="change-positive">+0.65%</td>
+              <td>$85.55</td>
+              <td>11.9%</td>
+              <td><span class="badge badge-success">ACCUMULATE</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="coin-info">
+                  <div class="coin-icon">⚓</div>
+                  <span class="coin-name">LINK</span>
+                </div>
+              </td>
+              <td>9.46</td>
+              <td>$9.12</td>
+              <td class="change-positive">+3.05%</td>
+              <td>$86.28</td>
+              <td>12.0%</td>
+              <td><span class="badge badge-success">HOLD</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="coin-info">
+                  <div class="coin-icon">Ξ</div>
+                  <span class="coin-name">ETH</span>
+                </div>
+              </td>
+              <td>0.025</td>
+              <td>$2,060.89</td>
+              <td class="change-positive">+0.44%</td>
+              <td>$51.52</td>
+              <td>7.2%</td>
+              <td><span class="badge badge-info">HOLD</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="coin-info">
+                  <div class="coin-icon">R</div>
+                  <span class="coin-name">RENDER</span>
+                </div>
+              </td>
+              <td>15.21</td>
+              <td>$1.41</td>
+              <td class="change-positive">+2.17%</td>
+              <td>$21.45</td>
+              <td>3.0%</td>
+              <td><span class="badge badge-success">ACCUMULATE</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="coin-info">
+                  <div class="coin-icon">$</div>
+                  <span class="coin-name">USDC</span>
+                </div>
+              </td>
+              <td>28.00</td>
+              <td>$1.00</td>
+              <td>0.00%</td>
+              <td>$28.00</td>
+              <td>3.9%</td>
+              <td><span class="badge badge-info">CASH</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Price History for SOL (Span 2 columns) -->
+      <div class="card price-history-card">
+        <div class="card-header">
+          <h2>SOL Price History (7 Days)</h2>
+          <div>
+            <span class="badge badge-success">+4.44% (24h)</span>
+            <span class="badge badge-success">+8.37% (7d)</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="solChart"></canvas>
+        </div>
+        <div class="note-box">
+          <strong>Analysis:</strong> SOL's recovery from the $83 low point shows strong support. ETF approval and Alpenglow upgrade coming in Q2 are catalysts. 
+        </div>
+      </div>
+      
+      <!-- AI/DePIN Sector Performance -->
+      <div class="card">
+        <div class="card-header">
+          <h2>AI/DePIN Sector</h2>
+          <span class="badge badge-success">HOT</span>
+        </div>
+        <div class="portfolio-item">
+          <div class="coin-info">
+            <div class="coin-icon">τ</div>
+            <div class="coin-details">
+              <span class="coin-name">TAO</span>
+              <span class="coin-amount">Bittensor</span>
+            </div>
+          </div>
+          <div class="coin-value">
+            <span class="coin-price">$164.52</span>
+            <span class="coin-change change-positive">+0.65%</span>
+          </div>
+        </div>
+        <div class="portfolio-item">
+          <div class="coin-info">
+            <div class="coin-icon">R</div>
+            <div class="coin-details">
+              <span class="coin-name">RENDER</span>
+              <span class="coin-amount">Render Network</span>
+            </div>
+          </div>
+          <div class="coin-value">
+            <span class="coin-price">$1.41</span>
+            <span class="coin-change change-positive">+2.17%</span>
+          </div>
+        </div>
+        <div class="portfolio-item">
+          <div class="coin-info">
+            <div class="coin-icon">A</div>
+            <div class="coin-details">
+              <span class="coin-name">AKT</span>
+              <span class="coin-amount">Akash Network</span>
+            </div>
+          </div>
+          <div class="coin-value">
+            <span class="coin-price">$0.34</span>
+            <span class="coin-change change-positive">+3.20%</span>
+          </div>
+        </div>
+        <div class="portfolio-item">
+          <div class="coin-info">
+            <div class="coin-icon">Z</div>
+            <div class="coin-details">
+              <span class="coin-name">AIOZ</span>
+              <span class="coin-amount">AIOZ Network</span>
+            </div>
+          </div>
+          <div class="coin-value">
+            <span class="coin-price">$0.069</span>
+            <span class="coin-change change-positive">+0.88%</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recommended Actions (Span 2 columns) -->
+      <div class="card actions-card">
+        <div class="card-header">
+          <h2>Recommended Actions</h2>
+          <span class="badge badge-warning">3 Recommendations</span>
+        </div>
+        
+        <div class="trading-action action-buy">
+          <div class="action-info">
+            <span class="action-badge">BUY</span>
+            <div class="action-details">
+              <span class="action-coin">SOL</span>
+              <span class="action-reason">Add to position during extreme fear (ETF approval + dip)</span>
+              <span class="reasoning-toggle" onclick="toggleReasoning('sol-reasoning')">See detailed reasoning</span>
+              <div id="sol-reasoning" class="reasoning-detail">
+                SOL is currently trading at $88.69, up 4.44% today but still well below recent highs around $125. The Solana ETF approval happened during market fear, creating a buy opportunity. Technical indicators show support at $82-85 range, now bouncing off this level. Upcoming Alpenglow upgrade and Firedancer client will improve TPS and reliability. Institutional interest remains strong with Grayscale ETF already live. Risk/reward ratio is excellent at current levels.
+              </div>
+            </div>
+          </div>
+          <button class="action-execute" onclick="executeAction('buy', 'SOL', 20)">Buy $20</button>
+        </div>
+        
+        <div class="trading-action action-buy">
+          <div class="action-info">
+            <span class="action-badge">BUY</span>
+            <div class="action-details">
+              <span class="action-coin">RENDER</span>
+              <span class="action-reason">AI compute narrative, real usage growth, price lag</span>
+              <span class="reasoning-toggle" onclick="toggleReasoning('render-reasoning')">See detailed reasoning</span>
+              <div id="render-reasoning" class="reasoning-detail">
+                RENDER is undervalued compared to other AI/compute tokens. Network usage is growing steadily with 35% of all-time frames rendered just in 2025, yet price hasn't caught up to fundamentals. RENDER has fallen from $7+ to current $1.41 despite usage metrics improving. Hollywood adoption continues with major studios using the network. The AI narrative aligns perfectly with RENDER's core utility (GPU rental marketplace). Recent partnerships with Nvidia provide additional growth vector. $5+ price target in next 3-6 months with moderate risk.
+              </div>
+            </div>
+          </div>
+          <button class="action-execute" onclick="executeAction('buy', 'RENDER', 20)">Buy $20</button>
+        </div>
+        
+        <div class="trading-action action-hold">
+          <div class="action-info">
+            <span class="action-badge">HOLD</span>
+            <div class="action-details">
+              <span class="action-coin">TAO</span>
+              <span class="action-reason">Strong position, maintain current allocation</span>
+              <span class="reasoning-toggle" onclick="toggleReasoning('tao-reasoning')">See detailed reasoning</span>
+              <div id="tao-reasoning" class="reasoning-detail">
+                TAO (Bittensor) remains the premier AI infrastructure play in crypto. Current allocation (11.9%) is appropriate given risk/reward. TAO has established partnerships with ASI and demonstrated real value through its subnet architecture. While price has stagnated recently (+0.65% today), the project fundamentals remain strong. TAO's longer-term thesis (decentralized marketplace for AI models) is intact and a good hedge against centralized AI dominance. Recommend holding current position and reevaluating after Q2 subnet growth metrics.
+              </div>
+            </div>
+          </div>
+          <button class="action-execute" onclick="executeAction('hold', 'TAO', 0)">Monitor</button>
+        </div>
+      </div>
+      
+      <!-- Decision Log -->
+      <div class="card full-width">
+        <div class="card-header">
+          <h2>Decision Log</h2>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Action</th>
+              <th>Asset</th>
+              <th>Amount</th>
+              <th>Price</th>
+              <th>Reasoning</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Feb 13, 2026</td>
+              <td><span class="badge badge-success">BUY</span></td>
+              <td>SOL</td>
+              <td>$75</td>
+              <td>$84.41</td>
+              <td>ETF approved, major dip, underallocated</td>
+              <td><span class="badge badge-success">+5.1%</span></td>
+            </tr>
+            <tr>
+              <td>Feb 13, 2026</td>
+              <td><span class="badge badge-success">BUY</span></td>
+              <td>LINK</td>
+              <td>$75</td>
+              <td>$8.85</td>
+              <td>Oracle diversification, CME futures coming</td>
+              <td><span class="badge badge-success">+3.1%</span></td>
+            </tr>
+            <tr>
+              <td>Feb 13, 2026</td>
+              <td><span class="badge badge-success">BUY</span></td>
+              <td>TAO</td>
+              <td>$30</td>
+              <td>$163.46</td>
+              <td>AI compute narrative, strong fundamentals</td>
+              <td><span class="badge badge-success">+0.6%</span></td>
+            </tr>
+            <tr>
+              <td>Feb 13, 2026</td>
+              <td><span class="badge badge-success">BUY</span></td>
+              <td>RENDER</td>
+              <td>$20</td>
+              <td>$1.38</td>
+              <td>AI compute, GPU network, undervalued</td>
+              <td><span class="badge badge-success">+2.2%</span></td>
+            </tr>
+            <tr>
+              <td>Feb 13, 2026</td>
+              <td><span class="badge badge-danger">SELL</span></td>
+              <td>APE</td>
+              <td>20.85</td>
+              <td>$0.13</td>
+              <td>Dead narrative, better opportunities</td>
+              <td><span class="badge badge-info">COMPLETE</span></td>
+            </tr>
+            <tr>
+              <td>Feb 13, 2026</td>
+              <td><span class="badge badge-danger">SELL</span></td>
+              <td>DOGE</td>
+              <td>19.70</td>
+              <td>$0.10</td>
+              <td>Meme fatigue, reallocate to AI narrative</td>
+              <td><span class="badge badge-info">COMPLETE</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="last-updated">
+      Crypto Command Center v1.0 | Created by Railstote | Data as of February 14, 2026 8:00 PM PST
+    </div>
+  </main>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+  <script>
+    // SOL Price Chart
+    const solData = {
+      labels: ['Feb 8', 'Feb 9', 'Feb 10', 'Feb 11', 'Feb 12', 'Feb 13', 'Feb 14'],
+      datasets: [{
+        label: 'SOL Price (USD)',
+        data: [78.25, 77.91, 79.06, 79.98, 83.00, 84.91, 88.69],
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#10b981',
+        tension: 0.4,
+        fill: true
+      }]
+    };
+    
+    const solConfig = {
+      type: 'line',
+      data: solData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(19, 19, 26, 0.9)',
+            titleColor: '#f3f4f6',
+            bodyColor: '#f3f4f6',
+            borderColor: '#2d2d3a',
+            borderWidth: 1,
+            padding: 10,
+            displayColors: false
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false,
+              drawBorder: false
+            },
+            ticks: {
+              color: '#9ca3af'
+            }
+          },
+          y: {
+            grid: {
+              color: 'rgba(45, 45, 58, 0.5)',
+              drawBorder: false
+            },
+            ticks: {
+              color: '#9ca3af'
+            }
+          }
+        }
+      }
+    };
+
+    window.onload = function() {
+      const solCtx = document.getElementById('solChart').getContext('2d');
+      new Chart(solCtx, solConfig);
+    };
+    
+    // Tab switching
+    function switchTab(tabId) {
+      const tabs = document.querySelectorAll('.tab');
+      const tabContents = document.querySelectorAll('.tab-content');
+      
+      tabs.forEach(tab => tab.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      document.getElementById(tabId + '-content').classList.add('active');
+    }
+
+    // Toggle reasoning details
+    function toggleReasoning(id) {
+      const element = document.getElementById(id);
+      if (element.style.display === 'block') {
+        element.style.display = 'none';
+      } else {
+        element.style.display = 'block';
+      }
+    }
+
+    // Simulate action execution
+    function executeAction(action, asset, amount) {
+      if (action === 'buy') {
+        if (confirm(`Confirm ${action} ${amount} USD of ${asset}?`)) {
+          alert(`This would execute: uv run coinbase_client.py market_buy "${asset}-USD" ${amount}\n\nOn the web version, this is a simulation. Use the desktop version to execute real trades.`);
+        }
+      } else if (action === 'sell') {
+        if (confirm(`Confirm ${action} ${amount} ${asset}?`)) {
+          alert(`This would execute: uv run coinbase_client.py market_sell "${asset}-USD" ${amount}\n\nOn the web version, this is a simulation. Use the desktop version to execute real trades.`);
+        }
+      } else {
+        alert(`${asset} will continue to be monitored`);
+      }
+    }
+    
+    // Refresh data
+    function refreshData() {
+      const now = new Date();
+      const options = { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric', 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true,
+        timeZone: 'America/Los_Angeles'
+      };
+      const formattedDate = now.toLocaleDateString('en-US', options) + ' PST';
+      document.getElementById('last-refresh').textContent = 'Refreshed: ' + formattedDate;
+      
+      alert('On the web version, this is a simulation. The desktop version would run: uv run coinbase_client.py portfolio');
+    }
+  </script>
+</body>
+</html>
