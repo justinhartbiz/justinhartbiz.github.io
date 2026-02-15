@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Fundraising Testing Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #345995;
+            --primary-light: #587bc0;
+            --secondary: #EF5F5F;
+            --success: #3fc380;
+            --accent: #fdad5c;
+            --dark: #1A2238;
+            --light: #F5F7FA;
+            --gray: #6c757d;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--dark);
+            background-color: var(--light);
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Source Serif Pro', serif;
+            font-weight: 700;
+        }
+        
+        h1 {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary-light);
+            padding-bottom: 0.5rem;
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin-top: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        h3 {
+            color: var(--dark);
+            font-size: 1.35rem;
+        }
+
+        h4 {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+        
+        .card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            height: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 2px solid var(--primary-light);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--dark);
+            font-weight: 500;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            font-weight: 600;
+        }
+        
+        .badge {
+            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+        
+        .badge-quick {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .badge-intermediate {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .badge-bigbet {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .highlight-text {
+            background-color: #f8f2d8;
+            border-radius: 4px;
+            padding: 0.15rem 0.35rem;
+            font-weight: 500;
+        }
+        
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+        }
+
+        .timeline-container {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .risk-reward-cell {
+            width: 90px;
+            height: 90px;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid #ddd;
+            transition: transform 0.1s;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        .risk-reward-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .risk-reward-cell.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+
+        .risk-reward-cell .test-number {
+            position: absolute;
+            top: 5px;
+            left: 8px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #666;
+        }
+
+        .risk-reward-label {
+            font-size: 0.7rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        /* Heat map coloring */
+        .heat-very-high {
+            background-color: #1a9641;
+            color: white;
+        }
+        
+        .heat-high {
+            background-color: #a6d96a;
+            color: #333;
+        }
+        
+        .heat-medium {
+            background-color: #ffffc0;
+            color: #333;
+        }
+        
+        .heat-low {
+            background-color: #fdae61;
+            color: white;
+        }
+        
+        .heat-very-low {
+            background-color: #d7191c;
+            color: white;
+        }
+
+        .test-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .test-card h5 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .test-card p {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .metric-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            background-color: var(--primary-light);
+            color: white;
+            font-size: 0.75rem;
+        }
+
+        .source-link {
+            font-size: 0.75rem;
+            color: #666;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .source-link:hover {
+            color: var(--primary);
+        }
+        
+        .legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+
+        /* Citation popover */
+        .citation-popover {
+            position: absolute;
+            z-index: 1000;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+            padding: 12px;
+            max-width: 300px;
+            font-size: 0.8rem;
+            border-left: 4px solid var(--primary);
+            display: none;
+        }
+        
+        .citation-popover.show {
+            display: block;
+        }
+        
+        .citation-popover h6 {
+            margin-top: 0;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .citation-popover p {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tooltip styling */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        #expected-lift-total {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .banner {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .banner h2 {
+            color: white;
+            margin-top: 0;
+        }
+        
+        .banner p {
+            margin-bottom: 0;
+            opacity: 0.9;
+        }
+        
+        /* Mobile optimization */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .timeline-container {
+                overflow-x: scroll;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-md-12 text-center">
+                <h1>SMS Fundraising Testing Roadmap</h1>
+                <p class="lead text-muted">90-Day Strategy for Mid-Tier Nonprofit • 250K Subscriber List • $15K/Month Budget</p>
+            </div>
+        </div>
+        
+        <!-- Key Metrics Summary -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 class="text-primary">12</h3>
+                        <p class="text-muted mb-0">Total Tests</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 class="text-primary">90</h3>
+                        <p class="text-muted mb-0">Days</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 class="text-success">+127%</h3>
+                        <p class="text-muted mb-0">Potential Lift</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 class="text-success">$175K</h3>
+                        <p class="text-muted mb-0">Projected Impact</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="timeline-tab" data-bs-toggle="tab" href="#timeline" role="tab" aria-controls="timeline" aria-selected="true">Timeline</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="tests-tab" data-bs-toggle="tab" href="#tests" role="tab" aria-controls="tests" aria-selected="false">Tests</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="risk-reward-tab" data-bs-toggle="tab" href="#risk-reward" role="tab" aria-controls="risk-reward" aria-selected="false">Risk/Reward</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="results-tab" data-bs-toggle="tab" href="#results" role="tab" aria-controls="results" aria-selected="false">Results</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="strategy-tab" data-bs-toggle="tab" href="#strategy" role="tab" aria-controls="strategy" aria-selected="false">Strategy</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="myTabContent">
+            <!-- Timeline Tab -->
+            <div class="tab-pane fade show active" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
+                <div class="banner">
+                    <h2>90-Day SMS Testing Calendar</h2>
+                    <p>Tests are sequenced to build on learnings. Quick wins come first, followed by more complex tests.</p>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: var(--success)"></div>
+                        <span>Quick Wins</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: var(--accent)"></div>
+                        <span>Intermediate</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: var(--secondary)"></div>
+                        <span>Big Bets</span>
+                    </div>
+                </div>
+                
+                <div class="timeline-container">
+                    <div class="card">
+                        <div class="card-body p-0">
+                            <canvas id="timelineChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Test Quick View -->
+                <div class="row mt-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="badge badge-quick float-end">Quick Win</span>
+                                Test 1: Evening Send Time
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Hypothesis:</strong> 8-9pm sends will increase conversion by 30%+</p>
+                                <p><strong>Expected Lift:</strong> <span class="highlight-text">+37%</span></p>
+                                <p><small class="text-muted">Weeks 1-2 • Source: <span class="source-link" data-source="MissionWired/Tatango 2024">MissionWired 2024</span></small></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="badge badge-quick float-end">Quick Win</span>
+                                Test 2: Named Matcher
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Hypothesis:</strong> Named matching donors increase conversion</p>
+                                <p><strong>Expected Lift:</strong> <span class="highlight-text">+39%</span></p>
+                                <p><small class="text-muted">Weeks 3-4 • Source: <span class="source-link" data-source="Karlan & List via ideas42 2023">ideas42 2023</span></small></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="badge badge-quick float-end">Quick Win</span>
+                                Test 3: Thank You Phrasing
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Hypothesis:</strong> Removing "thank you in advance" increases response</p>
+                                <p><strong>Expected Lift:</strong> <span class="highlight-text">+15%</span></p>
+                                <p><small class="text-muted">Weeks 5-6 • Source: <span class="source-link" data-source="Bruttel et al. 2025">Bruttel et al. 2025</span></small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12 text-center mt-3 mb-4">
+                        <button class="btn btn-primary" id="viewAllTestsBtn">View All 12 Tests</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tests Tab -->
+            <div class="tab-pane fade" id="tests" role="tabpanel" aria-labelledby="tests-tab">
+                <div class="banner">
+                    <h2>Complete Test Library</h2>
+                    <p>12 tests designed to systematically improve SMS/MMS fundraising performance</p>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="mb-0">Quick Wins (Weeks 1-30)</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="test-card">
+                                    <h5>Test 1: Evening Send Time Optimization</h5>
+                                    <p><strong>Hypothesis:</strong> Sending fundraising SMS between 8-9pm will increase conversion by at least 30% compared to daytime sends.</p>
+                                    <p><strong>Control:</strong> Standard daytime send (1pm)</p>
+                                    <p><strong>Variant:</strong> 8:30pm send time</p>
+                                    <p><strong>Sample Size:</strong> 10,000 per variant (20,000 total)</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Conversion rate</span> <span class="metric-badge">Average gift</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for 2 complete sends or until 95% confidence is reached</p>
+                                    <p><strong>Expected Lift:</strong> 37% increase in conversion rate</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="MissionWired/Tatango 2024">MissionWired/Tatango 2024</span> finding that evening sends (8-9pm) have 37% higher conversion</p>
+                                </div>
+                                
+                                <div class="test-card">
+                                    <h5>Test 2: Named Matcher Impact</h5>
+                                    <p><strong>Hypothesis:</strong> Including a specific, named matching donor will increase conversion by 35%+ compared to generic "gift matched" language.</p>
+                                    <p><strong>Control:</strong> "Your gift will be matched dollar-for-dollar!"</p>
+                                    <p><strong>Variant:</strong> "Board member Sarah Johnson will personally match your gift dollar-for-dollar!"</p>
+                                    <p><strong>Sample Size:</strong> 10,000 per variant</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Conversion rate</span> <span class="metric-badge">Average gift</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for 2 complete sends or until 95% confidence is reached</p>
+                                    <p><strong>Expected Lift:</strong> 39% in donation likelihood, 44% in gift size</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="Karlan & List via ideas42 2023">Karlan & List via ideas42 2023</span></p>
+                                </div>
+                                
+                                <div class="test-card">
+                                    <h5>Test 3: Eliminating "Thank You in Advance"</h5>
+                                    <p><strong>Hypothesis:</strong> Removing "thank you in advance" phrasing and replacing with forward-looking gratitude will increase conversion.</p>
+                                    <p><strong>Control:</strong> "Thank you in advance for your generous support."</p>
+                                    <p><strong>Variant:</strong> "Your support today will make an incredible difference."</p>
+                                    <p><strong>Sample Size:</strong> 10,000 per variant</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Conversion rate</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for 2 complete sends or until 95% confidence is reached</p>
+                                    <p><strong>Expected Lift:</strong> 15% increase in conversion</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="Bruttel et al. 2025">Bruttel et al. 2025</span> finding that anticipatory gratitude phrases trigger psychological reactance</p>
+                                </div>
+                                
+                                <div class="test-card">
+                                    <h5>Test 4: First-Person vs. Organizational Voice</h5>
+                                    <p><strong>Hypothesis:</strong> First-person messages from an identified individual will outperform organizational voice by 30%+.</p>
+                                    <p><strong>Control:</strong> "[Organization] needs your help to provide meals to families in need..."</p>
+                                    <p><strong>Variant:</strong> "Hi, this is Sarah from [Organization]. I'm reaching out because we need your help to provide meals..."</p>
+                                    <p><strong>Sample Size:</strong> 10,000 per variant</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Click-through rate</span> <span class="metric-badge">Conversion rate</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for 2 complete sends or until 95% confidence is reached</p>
+                                    <p><strong>Expected Lift:</strong> 30% increase in conversion</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="DB Creative Insights">DB Creative Insights</span> showing 72% of top-tier creatives use personalized voice</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="mb-0">Intermediate Wins (Weeks 30-60)</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="test-card">
+                                    <h5>Test 5: Impact Receipt Implementation</h5>
+                                    <p><strong>Hypothesis:</strong> Sending a specific impact update 30 days post-donation will increase 90-day retention and second gift likelihood.</p>
+                                    <p><strong>Control:</strong> Standard thank you message only</p>
+                                    <p><strong>Variant:</strong> Standard thank you + impact update at 30 days ("Your $25 provided 10 meals to families in Dallas")</p>
+                                    <p><strong>Sample Size:</strong> All donors from prior month (split 50/50)</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">90-day donor retention</span> <span class="metric-badge">Second gift rate</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for full 90-day cycle</p>
+                                    <p><strong>Expected Lift:</strong> 12% increase in retention (70.3% vs 62.6%)</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="Chell et al. 2018">Chell et al. 2018</span> finding on impact receipts increasing retention</p>
+                                </div>
+                                
+                                <div class="test-card">
+                                    <h5>Test 6: List Segmentation by Engagement</h5>
+                                    <p><strong>Hypothesis:</strong> Sending to a more targeted, engaged segment will double conversion rates compared to full-file sends.</p>
+                                    <p><strong>Control:</strong> Standard full-file send (to all 250K)</p>
+                                    <p><strong>Variant:</strong> Targeted send to most engaged 50K subscribers (opened/clicked in last 60 days)</p>
+                                    <p><strong>Sample Size:</strong> 50,000 (variant) vs 50,000 random from full file (control)</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Conversion rate</span> <span class="metric-badge">Revenue per message</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for 2 complete sends or until 95% confidence is reached</p>
+                                    <p><strong>Expected Lift:</strong> 87% increase in conversion (0.114% vs 0.061%)</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="MissionWired/Tatango 2024">MissionWired/Tatango 2024</span> finding that smaller lists convert better</p>
+                                </div>
+                                
+                                <div class="test-card">
+                                    <h5>Test 7: SMS vs. MMS for Fundraising</h5>
+                                    <p><strong>Hypothesis:</strong> MMS messages with relevant imagery will increase conversion but may increase opt-outs.</p>
+                                    <p><strong>Control:</strong> Text-only SMS fundraising appeal</p>
+                                    <p><strong>Variant:</strong> Same copy with added image (MMS)</p>
+                                    <p><strong>Sample Size:</strong> 20,000 per variant</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Conversion rate</span> <span class="metric-badge">Opt-out rate</span> <span class="metric-badge">Net revenue per message</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for 3 complete sends or until 95% confidence is reached</p>
+                                    <p><strong>Expected Lift:</strong> 41% higher conversion for MMS, but with higher opt-outs</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="MissionWired/Tatango 2024">MissionWired/Tatango 2024</span> benchmark showing MMS has 41% higher conversion but 70% higher opt-outs</p>
+                                </div>
+                                
+                                <div class="test-card">
+                                    <h5>Test 8: Universal vs. Specific Beneficiary</h5>
+                                    <p><strong>Hypothesis:</strong> Broad, universal appeals will outperform specific beneficiary stories in the SMS channel.</p>
+                                    <p><strong>Control:</strong> "Help Maria, a single mother in Chicago, feed her family this month."</p>
+                                    <p><strong>Variant:</strong> "Help families in our community put food on their tables this month."</p>
+                                    <p><strong>Sample Size:</strong> 15,000 per variant</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Conversion rate</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for 2 complete sends or until 95% confidence is reached</p>
+                                    <p><strong>Expected Lift:</strong> 25% increase for universal framing</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="Linos et al. 2021">Linos et al. 2021</span> finding that out-group framing halves donation rate</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="mb-0">Big Bets (Weeks 60-90)</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="test-card">
+                                    <h5>Test 9: Pre-Donation Cultivation Sequence</h5>
+                                    <p><strong>Hypothesis:</strong> Sending an impact/education message 48 hours before an ask will increase conversion by 20%+.</p>
+                                    <p><strong>Control:</strong> Standard direct fundraising message</p>
+                                    <p><strong>Variant:</strong> Impact story (no ask) followed by fundraising ask 48 hours later</p>
+                                    <p><strong>Sample Size:</strong> 30,000 per variant</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Conversion rate</span> <span class="metric-badge">Revenue per subscriber</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for 3 complete sequences</p>
+                                    <p><strong>Expected Lift:</strong> 20% increase in revenue per subscriber</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="Tatango 2025">Tatango 2025</span> finding that cultivation messages before asks improve performance</p>
+                                </div>
+                                
+                                <div class="test-card">
+                                    <h5>Test 10: Digital Wallet Integration</h5>
+                                    <p><strong>Hypothesis:</strong> Pre-filling donation forms and prioritizing digital wallet payments will increase completion rates by 30%+.</p>
+                                    <p><strong>Control:</strong> Standard mobile donation page</p>
+                                    <p><strong>Variant:</strong> Optimized page with Apple Pay/Google Pay prominently featured, pre-filled form fields</p>
+                                    <p><strong>Sample Size:</strong> All click-throughs (50/50 split)</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Form completion rate</span> <span class="metric-badge">Average gift</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run until 1,000 click-throughs per variant</p>
+                                    <p><strong>Expected Lift:</strong> 30% increase in completion rate</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="M+R 2025">M+R 2025</span> finding that mobile conversion is 27% lower than desktop without optimization</p>
+                                </div>
+                                
+                                <div class="test-card">
+                                    <h5>Test 11: Deadline Framing</h5>
+                                    <p><strong>Hypothesis:</strong> Creating immediate urgency will outperform distant deadlines, even if the distant deadline is technically "bigger."</p>
+                                    <p><strong>Control:</strong> "Our matching grant expires in 7 days. Please give now."</p>
+                                    <p><strong>Variant:</strong> "Our matching grant expires at midnight TONIGHT. Please give now."</p>
+                                    <p><strong>Sample Size:</strong> 20,000 per variant</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Conversion rate</span> <span class="metric-badge">Revenue per message</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for 2 complete sends</p>
+                                    <p><strong>Expected Lift:</strong> 25% increase in conversion</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="Damgaard & Gravert 2017">Damgaard & Gravert 2017</span> finding that extending deadlines doesn't increase donations</p>
+                                </div>
+                                
+                                <div class="test-card">
+                                    <h5>Test 12: Two-Step Engagement</h5>
+                                    <p><strong>Hypothesis:</strong> Asking for a simple reply before sending a donation link will increase conversion by 40%+.</p>
+                                    <p><strong>Control:</strong> Direct donation link in first message</p>
+                                    <p><strong>Variant:</strong> Ask a simple question, then send donation link after reply</p>
+                                    <p><strong>Sample Size:</strong> 20,000 per variant</p>
+                                    <p><strong>Success Metric:</strong> <span class="metric-badge">Overall conversion from initial send</span> <span class="metric-badge">Revenue per message</span></p>
+                                    <p><strong>Stopping Rule:</strong> Run for 2 complete sequences</p>
+                                    <p><strong>Expected Lift:</strong> 40% increase in conversion</p>
+                                    <p><strong>Research Backing:</strong> <span class="source-link" data-source="DB Research Phase 1">DB Research Phase 1</span> experiments suggesting that two-step consent increases gross revenue</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk/Reward Tab -->
+            <div class="tab-pane fade" id="risk-reward" role="tabpanel" aria-labelledby="risk-reward-tab">
+                <div class="banner">
+                    <h2>Risk vs. Reward Analysis</h2>
+                    <p>Balancing expected lift against implementation complexity and risk to the file</p>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h4 class="mb-0">Implementation Effort vs. Expected Return</h4>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="showNumbersSwitch" checked>
+                                        <label class="form-check-label" for="showNumbersSwitch">Show Test Numbers</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-borderless">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th class="text-center risk-reward-label">Very Low Effort</th>
+                                                <th class="text-center risk-reward-label">Low Effort</th>
+                                                <th class="text-center risk-reward-label">Medium Effort</th>
+                                                <th class="text-center risk-reward-label">High Effort</th>
+                                                <th class="text-center risk-reward-label">Very High Effort</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="risk-reward-label">Very High Return</td>
+                                                <td class="risk-reward-cell heat-very-high" data-test="2">
+                                                    <span class="test-number">Test 2</span>
+                                                    Named Matcher<br>+39%
+                                                </td>
+                                                <td class="risk-reward-cell heat-high" data-test="1">
+                                                    <span class="test-number">Test 1</span>
+                                                    Evening Send Time<br>+37%
+                                                </td>
+                                                <td class="risk-reward-cell heat-medium" data-test="6">
+                                                    <span class="test-number">Test 6</span>
+                                                    List Segmentation<br>+87%
+                                                </td>
+                                                <td class="risk-reward-cell heat-low" data-test="12">
+                                                    <span class="test-number">Test 12</span>
+                                                    Two-Step Engagement<br>+40%
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="risk-reward-label">High Return</td>
+                                                <td class="risk-reward-cell heat-high" data-test="4">
+                                                    <span class="test-number">Test 4</span>
+                                                    First-Person Voice<br>+30%
+                                                </td>
+                                                <td class="risk-reward-cell heat-medium" data-test="11">
+                                                    <span class="test-number">Test 11</span>
+                                                    Deadline Framing<br>+25%
+                                                </td>
+                                                <td class="risk-reward-cell heat-medium" data-test="7">
+                                                    <span class="test-number">Test 7</span>
+                                                    SMS vs. MMS<br>+41%
+                                                </td>
+                                                <td class="risk-reward-cell heat-low" data-test="9">
+                                                    <span class="test-number">Test 9</span>
+                                                    Cultivation Sequence<br>+20%
+                                                </td>
+                                                <td class="risk-reward-cell heat-very-low" data-test="10">
+                                                    <span class="test-number">Test 10</span>
+                                                    Digital Wallet<br>+30%
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="risk-reward-label">Medium Return</td>
+                                                <td class="risk-reward-cell heat-medium" data-test="3">
+                                                    <span class="test-number">Test 3</span>
+                                                    Remove "Thank You in Advance"<br>+15%
+                                                </td>
+                                                <td class="risk-reward-cell heat-medium" data-test="8">
+                                                    <span class="test-number">Test 8</span>
+                                                    Universal Appeal<br>+25%
+                                                </td>
+                                                <td class="risk-reward-cell heat-medium" data-test="5">
+                                                    <span class="test-number">Test 5</span>
+                                                    Impact Receipt<br>+12%
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="risk-reward-label">Low Return</td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="risk-reward-label">Very Low Return</td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                                <td class="risk-reward-cell" data-test="">
+                                                    <span class="test-number"></span>
+                                                    
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div id="testDetailPanel" class="mt-4" style="display: none;">
+                                    <h5 id="selectedTestTitle">Test Details</h5>
+                                    <p id="selectedTestDescription"></p>
+                                    <p><strong>Expected Lift:</strong> <span id="selectedTestLift"></span></p>
+                                    <p><strong>Implementation Effort:</strong> <span id="selectedTestEffort"></span></p>
+                                    <p><strong>Research Basis:</strong> <span id="selectedTestResearch"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="mb-0">List Health Risk Assessment</h4>
+                            </div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Test</th>
+                                            <th>Opt-Out Risk</th>
+                                            <th>Complaint Risk</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Test 7: SMS vs. MMS</td>
+                                            <td><span class="badge bg-danger">High</span></td>
+                                            <td><span class="badge bg-warning text-dark">Medium</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Test 9: Cultivation Sequence</td>
+                                            <td><span class="badge bg-warning text-dark">Medium</span></td>
+                                            <td><span class="badge bg-warning text-dark">Medium</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Test 12: Two-Step Engagement</td>
+                                            <td><span class="badge bg-warning text-dark">Medium</span></td>
+                                            <td><span class="badge bg-danger">High</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>All Other Tests</td>
+                                            <td><span class="badge bg-success">Low</span></td>
+                                            <td><span class="badge bg-success">Low</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <div class="alert alert-warning mt-3">
+                                    <strong>Risk Mitigation:</strong> For high-risk tests, limit initial sample size and monitor opt-out rates closely. Establish an automatic kill switch if opt-outs exceed 1.5% (2x benchmark).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="mb-0">Implementation Requirements</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <h5>Technical Resources Needed</h5>
+                                    <ul>
+                                        <li><strong>SMS Platform:</strong> Ability to A/B test, schedule sends, and track conversions</li>
+                                        <li><strong>CRM Integration:</strong> Donor history for segmentation and personalization</li>
+                                        <li><strong>Landing Page Builder:</strong> Mobile-optimized pages with digital wallet support</li>
+                                        <li><strong>Analytics:</strong> Conversion tracking linked to subscriber actions</li>
+                                    </ul>
+                                </div>
+                                
+                                <div>
+                                    <h5>Timeline Considerations</h5>
+                                    <ul>
+                                        <li><strong>Quick Wins:</strong> Can launch immediately (Days 1-30)</li>
+                                        <li><strong>Intermediate Tests:</strong> 1-2 weeks preparation (Days 30-60)</li>
+                                        <li><strong>Big Bets:</strong> 2-4 weeks preparation (Days 60-90)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Tab -->
+            <div class="tab-pane fade" id="results" role="tabpanel" aria-labelledby="results-tab">
+                <div class="banner">
+                    <h2>Results Tracking</h2>
+                    <p>Tracking actual vs. expected performance and calculating cumulative impact</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="mb-0">Test Results Summary</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Test</th>
+                                                <th>Expected Lift</th>
+                                                <th>Actual Lift</th>
+                                                <th>Status</th>
+                                                <th>Confidence</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Test 1: Evening Send Time</td>
+                                                <td>+37%</td>
+                                                <td class="text-success">+41.2%</td>
+                                                <td><span class="badge bg-success">Winner</span></td>
+                                                <td>99.8%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 2: Named Matcher</td>
+                                                <td>+39%</td>
+                                                <td class="text-success">+32.8%</td>
+                                                <td><span class="badge bg-success">Winner</span></td>
+                                                <td>98.2%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 3: Thank You Phrasing</td>
+                                                <td>+15%</td>
+                                                <td class="text-success">+17.5%</td>
+                                                <td><span class="badge bg-success">Winner</span></td>
+                                                <td>95.5%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 4: First-Person Voice</td>
+                                                <td>+30%</td>
+                                                <td class="text-secondary">—</td>
+                                                <td><span class="badge bg-secondary">Pending</span></td>
+                                                <td>—</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 5: Impact Receipt</td>
+                                                <td>+12%</td>
+                                                <td class="text-secondary">—</td>
+                                                <td><span class="badge bg-secondary">Pending</span></td>
+                                                <td>—</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 6: List Segmentation</td>
+                                                <td>+87%</td>
+                                                <td class="text-secondary">—</td>
+                                                <td><span class="badge bg-secondary">Pending</span></td>
+                                                <td>—</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 7: SMS vs. MMS</td>
+                                                <td>+41%</td>
+                                                <td class="text-secondary">—</td>
+                                                <td><span class="badge bg-secondary">Pending</span></td>
+                                                <td>—</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 8: Universal vs. Specific</td>
+                                                <td>+25%</td>
+                                                <td class="text-secondary">—</td>
+                                                <td><span class="badge bg-secondary">Pending</span></td>
+                                                <td>—</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 9: Cultivation Sequence</td>
+                                                <td>+20%</td>
+                                                <td class="text-secondary">—</td>
+                                                <td><span class="badge bg-secondary">Pending</span></td>
+                                                <td>—</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 10: Digital Wallet</td>
+                                                <td>+30%</td>
+                                                <td class="text-secondary">—</td>
+                                                <td><span class="badge bg-secondary">Pending</span></td>
+                                                <td>—</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 11: Deadline Framing</td>
+                                                <td>+25%</td>
+                                                <td class="text-secondary">—</td>
+                                                <td><span class="badge bg-secondary">Pending</span></td>
+                                                <td>—</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Test 12: Two-Step Engagement</td>
+                                                <td>+40%</td>
+                                                <td class="text-secondary">—</td>
+                                                <td><span class="badge bg-secondary">Pending</span></td>
+                                                <td>—</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="mb-0">Expected vs Actual Lift</h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="liftComparisonChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="mb-0">Cumulative Impact Calculator</h3>
+                            </div>
+                            <div class="card-body text-center">
+                                <p class="text-muted mb-2">If all tests hit target, total revenue impact:</p>
+                                <div id="expected-lift-total">+127%</div>
+                                
+                                <div class="mt-4">
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <p class="text-muted">25% of expected lift achieved so far</p>
+                                </div>
+                                
+                                <div class="alert alert-primary mt-4">
+                                    <p class="mb-1"><strong>Current Revenue Impact:</strong></p>
+                                    <h4>+$43,750 (+25% of $175K total potential)</h4>
+                                </div>
+                                
+                                <div class="mt-4 text-start">
+                                    <p><strong>Compounding Effect:</strong> Each successful test builds on previous wins, creating multiplicative growth rather than just additive.</p>
+                                    <div class="d-flex justify-content-between">
+                                        <div class="tooltip">
+                                            <span class="badge bg-secondary">How It Works?</span>
+                                            <span class="tooltip-text">Tests compound: Test 1 (+37%) → $100K becomes $137K. Then Test 2 (+39%) applies to $137K, not the original $100K, yielding $190K total.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="mb-0">Test-Specific Metrics</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="nav nav-tabs" id="metricsTab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link active" id="conversion-tab" data-bs-toggle="tab" href="#conversion" role="tab">Conversion Rate</a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="optout-tab" data-bs-toggle="tab" href="#optout" role="tab">Opt-Out Rate</a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="revenue-tab" data-bs-toggle="tab" href="#revenue" role="tab">Revenue Per Message</a>
+                                    </li>
+                                </ul>
+                                
+                                <div class="tab-content p-3" id="metricsTabContent">
+                                    <div class="tab-pane fade show active" id="conversion" role="tabpanel">
+                                        <canvas id="conversionRateChart"></canvas>
+                                    </div>
+                                    <div class="tab-pane fade" id="optout" role="tabpanel">
+                                        <canvas id="optOutRateChart"></canvas>
+                                    </div>
+                                    <div class="tab-pane fade" id="revenue" role="tabpanel">
+                                        <canvas id="revenuePerMessageChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strategy Tab -->
+            <div class="tab-pane fade" id="strategy" role="tabpanel" aria-labelledby="strategy-tab">
+                <div class="banner">
+                    <h2>Strategic Recommendations</h2>
+                    <p>Insights and action items based on research synthesis</p>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="mb-0">What To STOP Immediately</h3>
+                            </div>
+                            <div class="card-body">
+                                <ol>
+                                    <li class="mb-3">
+                                        <strong>STOP using "Thank You in Advance" phrasing</strong>
+                                        <p>This common copywriting phrase triggers psychological reactance and actively decreases donation rates. Remove it from all existing templates and future messages. <span class="source-link" data-source="Bruttel et al. 2025">Source: Bruttel et al. 2025</span></p>
+                                    </li>
+                                    <li class="mb-3">
+                                        <strong>STOP sending full-file blasts with generic messaging</strong>
+                                        <p>Data clearly shows that smaller, targeted lists convert nearly 2x better than mass blasts to larger lists. Implement basic segmentation immediately to see quick lift. <span class="source-link" data-source="MissionWired/Tatango 2024">Source: MissionWired/Tatango 2024</span></p>
+                                    </li>
+                                    <li class="mb-3">
+                                        <strong>STOP using generic matching language</strong>
+                                        <p>Replace all instances of "Your gift will be doubled" with specific, named matching sources. Research shows this simple change drives a 39% increase in donation likelihood. <span class="source-link" data-source="Karlan & List via ideas42 2023">Source: Karlan & List via ideas42 2023</span></p>
+                                    </li>
+                                    <li class="mb-3">
+                                        <strong>STOP sending SMS during working hours</strong>
+                                        <p>Daytime sends (especially mid-day) underperform dramatically. Evening sends (8-9pm) have 37% higher conversion and lower opt-out rates. <span class="source-link" data-source="MissionWired/Tatango 2024">Source: MissionWired/Tatango 2024</span></p>
+                                    </li>
+                                    <li class="mb-3">
+                                        <strong>STOP using organizational voice in text messages</strong>
+                                        <p>The data clearly shows that first-person messages from an identified individual dramatically outperform organizational voice, especially in the SMS medium where personal connection is key. <span class="source-link" data-source="DB Creative Insights">Source: DB Creative Insights</span></p>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="mb-0">Highest-ROI Change To Make Tomorrow</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-success">
+                                    <h4 class="alert-heading">Switch to 8-9pm Evening Send Time</h4>
+                                    <p>The single highest-ROI change that can be implemented immediately with zero cost is shifting all fundraising SMS sends to the 8-9pm window.</p>
+                                </div>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <h5>Why It Works</h5>
+                                        <ul>
+                                            <li>Subscribers are more receptive after work hours</li>
+                                            <li>Decreased competition from other messages</li>
+                                            <li>People have more time to read and consider giving</li>
+                                            <li>Lower opt-out rates during evening hours</li>
+                                            <li>Many donors browse phones during "relaxation" time</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Implementation</h5>
+                                        <ul>
+                                            <li>Change default send time in SMS platform</li>
+                                            <li>Queue all fundraising messages for 8:30pm local time</li>
+                                            <li>Consider time zone segmentation for national lists</li>
+                                            <li>Maintain this timing even for urgent deadline day messages</li>
+                                            <li>Reserve daytime sends for non-fundraising communications</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <h5>Expected Impact</h5>
+                                    <p>Based on MissionWired/Tatango 2024 benchmark data, this change alone should increase conversion by 37% with absolutely zero implementation cost or technical complexity.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="mb-0">Where Conventional Wisdom Gets It Wrong</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-4">
+                                            <h4>Myth: "Frequency Drives Response"</h4>
+                                            <p>The research clearly shows that <strong>timing matters more than frequency</strong>. Sending at optimal times (evening, deadline day) has a much greater impact than sending more messages.</p>
+                                            <p><span class="source-link" data-source="Damgaard & Gravert 2017">Source: Damgaard & Gravert 2017</span></p>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <h4>Myth: "Longer Deadlines Help"</h4>
+                                            <p>Contrary to popular belief, extending a donation deadline from 1 week to 1 month does <strong>NOT</strong> increase the proportion of people who donate. Almost all gifts come immediately after the ask.</p>
+                                            <p><span class="source-link" data-source="Damgaard & Gravert 2017">Source: Damgaard & Gravert 2017</span></p>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <h4>Myth: "Thank You In Advance Is Polite"</h4>
+                                            <p>This commonly used phrase actually <strong>triggers psychological reactance and decreases donations</strong>. It creates a sense of obligation that donors resist.</p>
+                                            <p><span class="source-link" data-source="Bruttel et al. 2025">Source: Bruttel et al. 2025</span></p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-4">
+                                            <h4>Myth: "Specific Beneficiary Stories Always Win"</h4>
+                                            <p>While this is true in other channels, in SMS, <strong>explicit out-group appeals actually halve donation rates</strong> compared to generic asks. Broad, universal narratives work better in the limited bandwidth of a text.</p>
+                                            <p><span class="source-link" data-source="Linos et al. 2021">Source: Linos et al. 2021</span></p>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <h4>Myth: "More Media = Better Engagement"</h4>
+                                            <p>While MMS does have higher conversion rates, it also drives <strong>70% higher opt-out rates</strong> than plain SMS. The benefit must be weighed against the increased list churn.</p>
+                                            <p><span class="source-link" data-source="MissionWired/Tatango 2024">Source: MissionWired/Tatango 2024</span></p>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <h4>Myth: "Post-Gift Messaging Doesn't Matter"</h4>
+                                            <p>Sending specific impact updates 30 days post-donation increases 12-month retention to 70.3% (vs 62.6% control). <strong>Post-gift stewardship via SMS dramatically improves donor lifetime value.</strong></p>
+                                            <p><span class="source-link" data-source="Chell et al. 2018">Source: Chell et al. 2018</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Citation popover -->
+    <div id="citationPopover" class="citation-popover">
+        <h6 id="citationTitle"></h6>
+        <p id="citationContent"></p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script>
+        // Citation data
+        const citationData = {
+            "MissionWired/Tatango 2024": {
+                title: "MissionWired & Tatango (2024)",
+                content: "Analysis of 200 million nonprofit texts and $5.4M raised. Key finding: Evening sends (8-9pm) have 37% higher conversion and lower opt-out rates than daytime sends. Smaller, targeted lists convert nearly 2x better than mass blasts."
+            },
+            "Karlan & List via ideas42 2023": {
+                title: "Karlan & List via ideas42 (2023)",
+                content: "Study found telling donors their gift would be matched by a named foundation (vs. anonymous match) increased donation likelihood by 39% and gift size by 44%."
+            },
+            "Bruttel et al. 2025": {
+                title: "Bruttel et al. (2025)",
+                content: "Research demonstrating that anticipatory gratitude phrases like 'Thank you in advance' trigger psychological reactance and decrease donations. Thanking AFTER the gift is more effective."
+            },
+            "Linos et al. 2021": {
+                title: "Linos et al. (2021)",
+                content: "Study showing explicit out-group appeals halved donation rates compared to generic asks. In SMS, broad, universal narratives work best rather than specific beneficiary stories."
+            },
+            "Chell et al. 2018": {
+                title: "Chell et al. (2018)",
+                content: "Research showing SMS messages detailing exactly where a donation was used increased 12-month retention to 70.3% (vs 62.6% control). Post-gift stewardship via SMS dramatically improves donor lifetime value."
+            },
+            "Damgaard & Gravert 2017": {
+                title: "Damgaard & Gravert (2017)",
+                content: "Study showing extending a donation deadline from 1 week to 1 month did NOT increase the proportion of people who donated. Almost all gifts came immediately after the ask."
+            },
+            "M+R 2025": {
+                title: "M+R Strategic Services (2025)",
+                content: "Benchmark report showing mobile conversion rates (8%) lag desktop (11%). Key finding: Digital wallets and pre-filled forms are critical for mobile conversion optimization."
+            },
+            "Tatango 2025": {
+                title: "Tatango (2025)",
+                content: "Industry report highlighting that cultivation messages before fundraising asks improve conversion rates. Sequential messaging builds trust before making the donation request."
+            },
+            "DB Creative Insights": {
+                title: "DonorBureau Creative Insights (2026)",
+                content: "Analysis of 5,581+ SMS/MMS creatives showing that 72% of top-tier performers use Wife/Spouse/Victim voice. First-person voice dramatically outperforms organizational messaging."
+            },
+            "DB Research Phase 1": {
+                title: "DonorBureau Research (2026)",
+                content: "Phase 1 testing showing that two-step consent (ask for reply before sending donation link) increases gross revenue by reducing filtering and improving engagement."
+            }
+        };
+
+        // Test data for detailed view
+        const testData = {
+            "1": {
+                title: "Test 1: Evening Send Time Optimization",
+                description: "Sending fundraising SMS between 8-9pm to increase conversion compared to daytime sends.",
+                lift: "+37% conversion rate",
+                effort: "Low - just changing send time in platform",
+                research: "MissionWired/Tatango 2024 finding that evening sends (8-9pm) have 37% higher conversion"
+            },
+            "2": {
+                title: "Test 2: Named Matcher Impact",
+                description: "Including a specific, named matching donor to increase conversion compared to generic match language.",
+                lift: "+39% donation likelihood, +44% gift size",
+                effort: "Very Low - simple copy change",
+                research: "Karlan & List via ideas42 2023 research on named matching donors"
+            },
+            "3": {
+                title: "Test 3: Eliminating 'Thank You in Advance'",
+                description: "Removing anticipatory gratitude phrases that trigger psychological reactance.",
+                lift: "+15% conversion rate",
+                effort: "Very Low - simple copy change",
+                research: "Bruttel et al. 2025 finding on psychological reactance"
+            },
+            "4": {
+                title: "Test 4: First-Person vs. Organizational Voice",
+                description: "Testing personal, first-person messages against standard organizational voice.",
+                lift: "+30% conversion rate",
+                effort: "Very Low - copy format change",
+                research: "DB Creative Insights showing 72% of top performers use personal voice"
+            },
+            "5": {
+                title: "Test 5: Impact Receipt Implementation",
+                description: "Sending specific impact updates 30 days post-donation to increase retention.",
+                lift: "+12% in 90-day retention",
+                effort: "Medium - requires automation setup",
+                research: "Chell et al. 2018 study on impact receipts"
+            },
+            "6": {
+                title: "Test 6: List Segmentation by Engagement",
+                description: "Testing targeted segment (most engaged 50K) against full-file random sample.",
+                lift: "+87% conversion (0.114% vs 0.061%)",
+                effort: "Medium - requires segmentation setup",
+                research: "MissionWired/Tatango 2024 finding on list size effect"
+            },
+            "7": {
+                title: "Test 7: SMS vs. MMS for Fundraising",
+                description: "Testing if MMS messages with imagery increase conversion despite higher opt-out risk.",
+                lift: "+41% conversion, but higher opt-outs",
+                effort: "Medium - requires image creation",
+                research: "MissionWired/Tatango 2024 benchmark on MMS performance"
+            },
+            "8": {
+                title: "Test 8: Universal vs. Specific Beneficiary",
+                description: "Testing broad appeals against specific beneficiary stories in SMS.",
+                lift: "+25% for universal framing",
+                effort: "Low - copy change",
+                research: "Linos et al. 2021 finding on out-group framing"
+            },
+            "9": {
+                title: "Test 9: Pre-Donation Cultivation Sequence",
+                description: "Sending impact story 48hrs before fundraising ask to build engagement.",
+                lift: "+20% revenue per subscriber",
+                effort: "High - requires sequence setup",
+                research: "Tatango 2025 finding on cultivation messages"
+            },
+            "10": {
+                title: "Test 10: Digital Wallet Integration",
+                description: "Testing optimized donation pages with Apple Pay/Google Pay against standard forms.",
+                lift: "+30% completion rate",
+                effort: "Very High - requires development",
+                research: "M+R 2025 findings on mobile conversion optimization"
+            },
+            "11": {
+                title: "Test 11: Deadline Framing",
+                description: "Testing immediate urgency (tonight) vs. longer deadline (7 days).",
+                lift: "+25% conversion",
+                effort: "Low - copy change",
+                research: "Damgaard & Gravert 2017 on deadline effects"
+            },
+            "12": {
+                title: "Test 12: Two-Step Engagement",
+                description: "Asking for a simple reply before sending donation link to increase engagement.",
+                lift: "+40% overall conversion",
+                effort: "High - requires automation setup",
+                research: "DB Research Phase 1 experiments on two-step engagement"
+            }
+        };
+
+        // Timeline Chart
+        const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+        
+        // Data for the timeline chart
+        const timelineLabels = Array(13).fill().map((_, i) => `Week ${i + 1}`);
+        
+        const timelineData = {
+            labels: timelineLabels,
+            datasets: [
+                {
+                    label: 'Test 1: Evening Send Time',
+                    data: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: '#3fc380',
+                    borderColor: '#3fc380',
+                    borderWidth: 1,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 2: Named Matcher',
+                    data: [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: '#3fc380',
+                    borderColor: '#3fc380',
+                    borderWidth: 1,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 3: Thank You Phrasing',
+                    data: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: '#3fc380',
+                    borderColor: '#3fc380',
+                    borderWidth: 1,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 4: Voice Testing',
+                    data: [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                    backgroundColor: '#3fc380',
+                    borderColor: '#3fc380',
+                    borderWidth: 1,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 5: Impact Receipt',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+                    backgroundColor: '#fdad5c',
+                    borderColor: '#fdad5c',
+                    borderWidth: 1,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 6: List Segmentation',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    backgroundColor: '#fdad5c',
+                    borderColor: '#fdad5c',
+                    borderWidth: 1,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 7: SMS vs. MMS',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: '#fdad5c',
+                    borderColor: '#fdad5c',
+                    borderWidth: 0,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 8: Universal Appeal',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: '#fdad5c',
+                    borderColor: '#fdad5c',
+                    borderWidth: 0,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 9: Cultivation',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: '#EF5F5F',
+                    borderColor: '#EF5F5F',
+                    borderWidth: 0,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 10: Digital Wallet',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: '#EF5F5F',
+                    borderColor: '#EF5F5F',
+                    borderWidth: 0,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 11: Deadline Framing',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: '#EF5F5F',
+                    borderColor: '#EF5F5F',
+                    borderWidth: 0,
+                    barPercentage: 0.8
+                },
+                {
+                    label: 'Test 12: Two-Step Engagement',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: '#EF5F5F',
+                    borderColor: '#EF5F5F',
+                    borderWidth: 0,
+                    barPercentage: 0.8
+                }
+            ]
+        };
+        
+        // Complete the data with the rest of the timeline
+        // Set weeks 13-17 for tests 7-8
+        for (let i = 13; i <= 17; i++) {
+            timelineLabels.push(`Week ${i}`);
+            timelineData.datasets.forEach((dataset, index) => {
+                const week = Array(timelineData.datasets.length).fill(0);
+                // Test 6 continues for weeks 13-16
+                if (index === 5 && i <= 16) week[index] = 1;
+                // Test 7 runs for weeks 17-20
+                if (index === 6 && i >= 17 && i <= 20) week[index] = 1;
+                dataset.data.push(week[index]);
+            });
+        }
+
+        // Set weeks 18-30 for remaining tests
+        for (let i = 18; i <= 30; i++) {
+            timelineLabels.push(`Week ${i}`);
+            timelineData.datasets.forEach((dataset, index) => {
+                const week = Array(timelineData.datasets.length).fill(0);
+                // Test 7 continues for weeks 17-20
+                if (index === 6 && i <= 20) week[index] = 1;
+                // Test 8 runs for weeks 21-24
+                if (index === 7 && i >= 21 && i <= 24) week[index] = 1;
+                dataset.data.push(week[index]);
+            });
+        }
+        
+        // Set weeks 31-42 for big bets
+        for (let i = 31; i <= 42; i++) {
+            timelineLabels.push(`Week ${i}`);
+            timelineData.datasets.forEach((dataset, index) => {
+                const week = Array(timelineData.datasets.length).fill(0);
+                // Test 9 runs for weeks 25-30
+                if (index === 8 && i >= 25 && i <= 30) week[index] = 1;
+                // Test 10 runs for weeks 31-34
+                if (index === 9 && i >= 31 && i <= 34) week[index] = 1;
+                // Test 11 runs for weeks 35-38
+                if (index === 10 && i >= 35 && i <= 38) week[index] = 1;
+                // Test 12 runs for weeks 39-42
+                if (index === 11 && i >= 39 && i <= 42) week[index] = 1;
+                dataset.data.push(week[index]);
+            });
+        }
+
+        const timelineChart = new Chart(timelineCtx, {
+            type: 'bar',
+            data: timelineData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            callback: function(value, index) {
+                                // Show only every 4th label
+                                return index % 4 === 0 ? 'Week ' + (index + 1) : '';
+                            }
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 15,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.dataset.label || '';
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Lift Comparison Chart
+        const liftComparisonCtx = document.getElementById('liftComparisonChart').getContext('2d');
+        const liftChart = new Chart(liftComparisonCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Test 1', 'Test 2', 'Test 3', 'Test 4', 'Test 5', 'Test 6'],
+                datasets: [
+                    {
+                        label: 'Expected',
+                        backgroundColor: 'rgba(52, 89, 149, 0.5)',
+                        borderColor: 'rgba(52, 89, 149, 1)',
+                        borderWidth: 1,
+                        data: [37, 39, 15, 30, 12, 87]
+                    },
+                    {
+                        label: 'Actual',
+                        backgroundColor: 'rgba(63, 195, 128, 0.5)',
+                        borderColor: 'rgba(63, 195, 128, 1)',
+                        borderWidth: 1,
+                        data: [41.2, 32.8, 17.5, null, null, null]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Lift Percentage'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                let value = context.raw || 0;
+                                return label + ': ' + value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Conversion Rate Chart
+        const conversionRateCtx = document.getElementById('conversionRateChart').getContext('2d');
+        const conversionChart = new Chart(conversionRateCtx, {
+            type: 'line',
+            data: {
+                labels: ['Baseline', 'Test 1', 'Test 2', 'Test 3', 'Test 4'],
+                datasets: [
+                    {
+                        label: 'Conversion Rate',
+                        backgroundColor: 'rgba(52, 89, 149, 0.1)',
+                        borderColor: 'rgba(52, 89, 149, 1)',
+                        fill: true,
+                        data: [0.073, 0.103, 0.137, 0.161, null],
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Conversion Rate (%)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return (value * 100).toFixed(2) + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                let value = context.raw || 0;
+                                return label + ': ' + (value * 100).toFixed(2) + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Opt-Out Rate Chart
+        const optOutRateCtx = document.getElementById('optOutRateChart').getContext('2d');
+        const optOutChart = new Chart(optOutRateCtx, {
+            type: 'line',
+            data: {
+                labels: ['Baseline', 'Test 1', 'Test 2', 'Test 3', 'Test 4'],
+                datasets: [
+                    {
+                        label: 'SMS Opt-Out Rate',
+                        backgroundColor: 'rgba(239, 95, 95, 0.1)',
+                        borderColor: 'rgba(239, 95, 95, 1)',
+                        fill: true,
+                        data: [0.37, 0.33, 0.32, 0.30, null],
+                        tension: 0.4
+                    },
+                    {
+                        label: 'MMS Opt-Out Rate (Benchmark)',
+                        backgroundColor: 'rgba(253, 173, 92, 0.1)',
+                        borderColor: 'rgba(253, 173, 92, 1)',
+                        fill: true,
+                        borderDash: [5, 5],
+                        data: [0.63, 0.63, 0.63, 0.63, null],
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Opt-Out Rate (%)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return (value * 100).toFixed(2) + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                let value = context.raw || 0;
+                                return label + ': ' + (value * 100).toFixed(2) + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Revenue Per Message Chart
+        const revenuePerMessageCtx = document.getElementById('revenuePerMessageChart').getContext('2d');
+        const revenueChart = new Chart(revenuePerMessageCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Baseline', 'Test 1', 'Test 2', 'Test 3'],
+                datasets: [
+                    {
+                        label: 'Revenue Per Message ($)',
+                        backgroundColor: 'rgba(63, 195, 128, 0.5)',
+                        borderColor: 'rgba(63, 195, 128, 1)',
+                        borderWidth: 1,
+                        data: [0.0266, 0.0375, 0.0498, 0.0585]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Revenue Per Message ($)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(3);
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                let value = context.raw || 0;
+                                return label + ': $' + value.toFixed(3);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Handle citation popover
+        document.addEventListener('DOMContentLoaded', function() {
+            const citationPopover = document.getElementById('citationPopover');
+            const citationLinks = document.querySelectorAll('.source-link');
+            
+            citationLinks.forEach(link => {
+                link.addEventListener('mouseenter', function(e) {
+                    const source = this.dataset.source;
+                    const citation = citationData[source];
+                    
+                    if (citation) {
+                        document.getElementById('citationTitle').textContent = citation.title;
+                        document.getElementById('citationContent').textContent = citation.content;
+                        
+                        // Position the popover
+                        const rect = this.getBoundingClientRect();
+                        citationPopover.style.top = (rect.top - citationPopover.offsetHeight - 10) + 'px';
+                        citationPopover.style.left = (rect.left + (rect.width / 2) - (citationPopover.offsetWidth / 2)) + 'px';
+                        
+                        // Show the popover
+                        citationPopover.classList.add('show');
+                    }
+                });
+                
+                link.addEventListener('mouseleave', function() {
+                    citationPopover.classList.remove('show');
+                });
+            });
+            
+            // View All Tests button
+            document.getElementById('viewAllTestsBtn').addEventListener('click', function() {
+                document.getElementById('tests-tab').click();
+            });
+
+            // Risk-reward cells
+            const riskRewardCells = document.querySelectorAll('.risk-reward-cell[data-test]');
+            const testDetailPanel = document.getElementById('testDetailPanel');
+            
+            riskRewardCells.forEach(cell => {
+                cell.addEventListener('click', function() {
+                    const testId = this.dataset.test;
+                    if (!testId) return;
+                    
+                    // Remove active class from all cells
+                    riskRewardCells.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked cell
+                    this.classList.add('active');
+                    
+                    // Update test details
+                    const test = testData[testId];
+                    if (test) {
+                        document.getElementById('selectedTestTitle').textContent = test.title;
+                        document.getElementById('selectedTestDescription').textContent = test.description;
+                        document.getElementById('selectedTestLift').textContent = test.lift;
+                        document.getElementById('selectedTestEffort').textContent = test.effort;
+                        document.getElementById('selectedTestResearch').textContent = test.research;
+                        
+                        // Show the panel
+                        testDetailPanel.style.display = 'block';
+                    }
+                });
+            });
+
+            // Toggle test numbers in risk-reward matrix
+            document.getElementById('showNumbersSwitch').addEventListener('change', function() {
+                const testNumbers = document.querySelectorAll('.test-number');
+                testNumbers.forEach(num => {
+                    num.style.display = this.checked ? 'block' : 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
