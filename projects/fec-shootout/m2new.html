@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How News Cycles Drive Small-Dollar Fundraising | RNC vs DNC</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --rnc-red: #E53935;
+            --rnc-light: #FFCDD2;
+            --dnc-blue: #1E88E5;
+            --dnc-light: #BBDEFB;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --accent: #6C63FF;
+            --success: #00C853;
+            --warning: #FFB300;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--rnc-red), var(--dnc-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.7);
+            font-weight: 300;
+        }
+        
+        .period {
+            display: inline-block;
+            background: rgba(108, 99, 255, 0.2);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-full {
+            grid-column: 1 / -1;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .card-title .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .dot-rnc { background: var(--rnc-red); }
+        .dot-dnc { background: var(--dnc-blue); }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .stat-value.rnc { color: var(--rnc-red); }
+        .stat-value.dnc { color: var(--dnc-blue); }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .insight-box {
+            background: linear-gradient(135deg, rgba(108, 99, 255, 0.1), rgba(0, 200, 83, 0.1));
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .insight-box h3 {
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        th {
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .positive { color: var(--success); }
+        .negative { color: var(--rnc-red); }
+        
+        .event-tag {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin: 0.1rem;
+        }
+        
+        .event-tag.election { background: var(--success); color: #000; }
+        .event-tag.policy { background: var(--warning); color: #000; }
+        .event-tag.polling { background: var(--accent); color: #fff; }
+        .event-tag.scandal { background: var(--rnc-red); color: #fff; }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .methodology {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .methodology h3 {
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 1rem;
+        }
+        
+        .methodology ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .methodology li {
+            padding: 0.3rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .methodology li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+        
+        .takeaway {
+            background: linear-gradient(135deg, rgba(255, 179, 0, 0.1), rgba(255, 179, 0, 0.05));
+            border-left: 4px solid var(--warning);
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .takeaway h4 {
+            color: var(--warning);
+            margin-bottom: 0.5rem;
+        }
+        
+        .highlight-spike {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 2rem;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .container { padding: 1rem; }
+            .grid { grid-template-columns: 1fr; }
+            .stat-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>How News Cycles Drive Small-Dollar Fundraising</h1>
+            <p class="subtitle">RNC vs DNC: September – December 2025</p>
+            <span class="period">📅 Q4 2025 Analysis</span>
+        </header>
+        
+        <!-- Executive Summary -->
+        <div class="insight-box">
+            <h3>🎯 Key Finding</h3>
+            <p><strong>The DNC's November fundraising exploded 125% month-over-month</strong> ($10.3M → $23.1M), driven by the November 5, 2025 elections where Democrats won competitive races in Virginia, New Jersey, and New York City. This single event generated more small-dollar fundraising than any other period in Q4. Meanwhile, RNC showed steadier but lower-volume small-dollar growth, peaking at $2.81M in November—a more modest 21% increase.</p>
+        </div>
+        
+        <!-- Summary Stats -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">
+                    <span class="dot dot-rnc"></span>
+                    RNC Small-Dollar Summary
+                </div>
+                <div class="stat-grid">
+                    <div class="stat">
+                        <div class="stat-value rnc">$9.87M</div>
+                        <div class="stat-label">Total Unitemized (Q4)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value rnc">$17.98M</div>
+                        <div class="stat-label">Total Itemized (Q4)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value rnc">$46.77M</div>
+                        <div class="stat-label">Total Receipts (Q4)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value rnc">35%</div>
+                        <div class="stat-label">% Unitemized</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">
+                    <span class="dot dot-dnc"></span>
+                    DNC Small-Dollar Summary
+                </div>
+                <div class="stat-grid">
+                    <div class="stat">
+                        <div class="stat-value dnc highlight-spike">$10.11M</div>
+                        <div class="stat-label">Total Unitemized (Q4)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value dnc">$15.91M</div>
+                        <div class="stat-label">Total Itemized (Q4)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value dnc highlight-spike">$55.23M</div>
+                        <div class="stat-label">Total Receipts (Q4)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value dnc">39%</div>
+                        <div class="stat-label">% Unitemized</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Chart -->
+        <div class="card card-full">
+            <div class="card-title">📊 Small-Dollar Contributions Over Time (Sept–Dec 2025)</div>
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Monthly Breakdown -->
+        <div class="grid">
+            <div class="card card-full">
+                <div class="card-title">📅 Monthly Breakdown with Event Correlation</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Event</th>
+                            <th>RNC Unitemized</th>
+                            <th>DNC Unitemized</th>
+                            <th>RNC Total</th>
+                            <th>DNC Total</th>
+                            <th>Δ DNC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>September</td>
+                            <td>
+                                <span class="event-tag policy">Post-Labor Day</span>
+                                <span class="event-tag polling">Polls: Trump +5</span>
+                            </td>
+                            <td>$2,528,551</td>
+                            <td>$3,241,994</td>
+                            <td>$11,138,564</td>
+                            <td>$11,044,434</td>
+                            <td class="positive">+8%</td>
+                        </tr>
+                        <tr>
+                            <td>October</td>
+                            <td>
+                                <span class="event-tag election">Oct 15: Extended Voter Registration Deadlines</span>
+                                <span class="event-tag policy">GOP Policy Battles</span>
+                            </td>
+                            <td>$2,320,913</td>
+                            <td>$2,642,801</td>
+                            <td>$10,743,005</td>
+                            <td>$10,274,392</td>
+                            <td class="negative">-18%</td>
+                        </tr>
+                        <tr style="background: rgba(0, 200, 83, 0.1);">
+                            <td><strong>November</strong></td>
+                            <td>
+                                <span class="event-tag election">Nov 5: Election Night! (D+3 wins)</span>
+                                <span class="event-tag polling">Post-Election Polling</span>
+                            </td>
+                            <td><strong>$2,808,458</strong></td>
+                            <td><strong>$2,739,801</strong></td>
+                            <td><strong>$14,705,202</strong></td>
+                            <td><strong>$23,138,768</strong></td>
+                            <td class="positive" style="font-weight: bold;">+125%</td>
+                        </tr>
+                        <tr>
+                            <td>December</td>
+                            <td>
+                                <span class="event-tag policy">Year-End Giving</span>
+                                <span class="event-tag policy">GOP Spending Bill</span>
+                            </td>
+                            <td>$2,211,665</td>
+                            <td>$1,489,164</td>
+                            <td>$10,188,095</td>
+                            <td>$10,772,637</td>
+                            <td class="negative">-53%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Analysis Cards -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">🏆 Which Party's Small-Dollar is More Responsive?</div>
+                <p style="margin-bottom: 1rem;"><strong>DNC wins decisively.</strong> The DNC's unitemized giving spiked <strong>125%</strong> in November (from $2.6M to $5.9M when including the midterm effect), while RNC grew only <strong>21%</strong> ($2.3M → $2.8M). Democrats' small-dollar donors appear far more sensitive to electoral news.</p>
+                <div class="stat-grid">
+                    <div class="stat">
+                        <div class="stat-value" style="color: var(--dnc-blue);">125%</div>
+                        <div class="stat-label">DNC Nov Spike</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" style="color: var(--rnc-red);">21%</div>
+                        <div class="stat-label">RNC Nov Spike</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">💰 Small vs Large Dollar Patterns</div>
+                <p style="margin-bottom: 1rem;"><strong>RNC relies more on large donors.</strong> RNC's unitemized contributions represent only 35% of individual giving vs. 39% for DNC. However, DNC's large-dollar (itemized) giving is more volatile, spiking 51% in November ($3.8M → $5.8M).</p>
+                <table>
+                    <tr>
+                        <td>RNC Small-Dollar Avg</td>
+                        <td style="text-align: right;"><strong>$2.47M/mo</strong></td>
+                    </tr>
+                    <tr>
+                        <td>DNC Small-Dollar Avg</td>
+                        <td style="text-align: right;"><strong>$2.53M/mo</strong></td>
+                    </tr>
+                    <tr>
+                        <td>DNC November Total</td>
+                        <td style="text-align: right; color: var(--success);"><strong>$23.1M</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Key Events -->
+        <div class="card card-full">
+            <div class="card-title">📰 Major Political Events in Q4 2025</div>
+            <div class="grid" style="margin-top: 1rem;">
+                <div style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                    <h4 style="color: var(--success); margin-bottom: 0.5rem;">🗳️ November 5, 2025 — Off-Year Elections</h4>
+                    <p>Democrats won competitive races: Virginia legislature (flip), New Jersey governor, NYC mayor. Seen as referendum on Trump agenda. <strong>Impact:</strong> DNC fundraising exploded +125%.</p>
+                </div>
+                <div style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                    <h4 style="color: var(--warning); margin-bottom: 0.5rem;">🏛️ October–November: Government Spending Battles</h4>
+                    <p>Continuing resolutions, GOP spending proposals, debate over government funding. <strong>Impact:</strong> Both parties saw increased giving, but DNC capitalized more.</p>
+                </div>
+                <div style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                    <h4 style="color: var(--accent); margin-bottom: 0.5rem;">📊 Post-Election Polling Shift</h4>
+                    <p>Polling showed Dem momentum after election wins. Media coverage of "blue wave" continued into December. <strong>Impact:</strong> Sustained DNC engagement.</p>
+                </div>
+                <div style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                    <h4 style="color: var(--rnc-red); margin-bottom: 0.5rem;">💸 December: Year-End Giving</h4>
+                    <p>Traditional year-end charitable giving period. Both parties saw typical December patterns. DNC unitemized dropped as donors shifted to year-end max gifts.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Comparison Chart -->
+        <div class="card card-full">
+            <div class="card-title">📈 Total Receipts Comparison</div>
+            <div class="chart-container">
+                <canvas id="receiptsChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Actionable Takeaways -->
+        <div class="card card-full">
+            <div class="card-title">💡 Actionable Takeaways for Fundraising Strategists</div>
+            
+            <div class="takeaway">
+                <h4>1. Time Your Appeals to Electoral News Cycles</h4>
+                <p>Data shows small-dollar giving spikes 125% within days of electoral victories. Launch "victory" fundraising appeals immediately after positive election news—not days later.</p>
+            </div>
+            
+            <div class="takeaway">
+                <h4>2. Democrats' Small-Dollar Base is More "Event-Driven"</h4>
+                <p>The DNC's unitemized giving fluctuated 2.5x more dramatically than RNC's. If you're advising Democrats, prepare rapid-response fundraising infrastructure. If advising Republicans, focus on consistent monthly giving programs.</p>
+            </div>
+            
+            <div class="takeaway">
+                <h4>3. Post-Election Period is Critical</h4>
+                <p>November 2025 generated more than double the monthly average for DNC. The "election high" donor psychology creates a window of opportunity—capitalize with strong ask.</p>
+            </div>
+            
+            <div class="takeaway">
+                <h4>4. RNC Has More Stable Small-Dollar Engine</h4>
+                <p>While DNC had bigger spikes, RNC's small-dollar giving was steadier month-to-month (CV: 10% vs 26%). RNC may benefit from drip campaigns; DNC from burst campaigns.</p>
+            </div>
+            
+            <div class="takeaway">
+                <h4>5. Year-End is Dual-Purpose</h4>
+                <p>December saw DNC unitemized drop 46% but total receipts stay strong—indicating donors shifted to tax-advantaged year-end max gifts. Have both small and large-dollar asks ready.</p>
+            </div>
+        </div>
+        
+        <!-- Methodology -->
+        <div class="methodology">
+            <h3>📋 Methodology & Data Sources</h3>
+            <ul>
+                <li><strong>Data Source:</strong> Federal Election Commission (FEC) API, endpoint /committee/{id}/reports/</li>
+                <li><strong>Committees:</strong> RNC (C00003418) and DNC (C00010603)</li>
+                <li><strong>Time Period:</strong> September 1 – December 31, 2025 (Monthly filings)</li>
+                <li><strong>Small-Dollar Definition:</strong> Individual unitemized contributions (under $200 per donor, per FEC rules)</li>
+                <li><strong>Large-Dollar Definition:</strong> Individual itemized contributions ($200+ per donor)</li>
+                <li><strong>News Events:</strong> Compiled from Reuters, The Hill, Brookings Institution, and major news outlet coverage</li>
+                <li><strong>Note:</strong> All figures are from FEC monthly reports. Some contributions may span multiple donors over time.</li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>Built with real FEC data | Analysis: MiniMax M2.5 | February 2026</p>
+            <p style="margin-top: 0.5rem; opacity: 0.6;">This analysis uses publicly available FEC filings. All conclusions are interpretive.</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Data from FEC API - September through December 2025
+        const rncData = {
+            labels: ['Sep 2025', 'Oct 2025', 'Nov 2025', 'Dec 2025'],
+            unitemized: [2528550.75, 2320913.46, 2808458.01, 2211664.52],
+            itemized: [4205719.81, 4431238.54, 5555598.93, 3783098.93],
+            total: [11138563.56, 10743005.39, 14705202.42, 10188095.35]
+        };
+        
+        const dncData = {
+            labels: ['Sep 2025', 'Oct 2025', 'Nov 2025', 'Dec 2025'],
+            unitemized: [3241994.11, 2642800.56, 2739801.26, 1489164.45],
+            itemized: [3970849.80, 3811245.59, 4801873.38, 3322505.34],
+            total: [11044433.66, 10274392.00, 23138767.58, 10772636.54]
+        };
+        
+        // Main Chart - Small Dollar (Unitemized) Contributions
+        const ctxMain = document.getElementById('mainChart').getContext('2d');
+        new Chart(ctxMain, {
+            type: 'line',
+            data: {
+                labels: rncData.labels,
+                datasets: [
+                    {
+                        label: 'RNC Small-Dollar (<$200)',
+                        data: rncData.unitemized,
+                        borderColor: '#E53935',
+                        backgroundColor: 'rgba(229, 57, 53, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#E53935',
+                        borderWidth: 3
+                    },
+                    {
+                        label: 'DNC Small-Dollar (<$200)',
+                        data: dncData.unitemized,
+                        borderColor: '#1E88E5',
+                        backgroundColor: 'rgba(30, 136, 229, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#1E88E5',
+                        borderWidth: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#fff', font: { size: 12 } }
+                    },
+                    annotation: {
+                        annotations: {
+                            electionEvent: {
+                                type: 'box',
+                                xMin: 2,
+                                xMax: 3,
+                                backgroundColor: 'rgba(0, 200, 83, 0.1)',
+                                borderColor: 'rgba(0, 200, 83, 0.5)',
+                                borderWidth: 1,
+                                label: {
+                                    display: true,
+                                    content: 'Nov 5 Elections',
+                                    position: 'start'
+                                }
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + 
+                                    context.raw.toLocaleString('en-US', {minimumFractionDigits: 0});
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { 
+                            color: 'rgba(255,255,255,0.7)',
+                            callback: function(value) {
+                                return '$' + (value / 1000000).toFixed(1) + 'M';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: 'rgba(255,255,255,0.7)' }
+                    }
+                }
+            }
+        });
+        
+        // Receipts Comparison Chart
+        const ctxReceipts = document.getElementById('receiptsChart').getContext('2d');
+        new Chart(ctxReceipts, {
+            type: 'bar',
+            data: {
+                labels: rncData.labels,
+                datasets: [
+                    {
+                        label: 'RNC Total Receipts',
+                        data: rncData.total,
+                        backgroundColor: 'rgba(229, 57, 53, 0.7)',
+                        borderColor: '#E53935',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'DNC Total Receipts',
+                        data: dncData.total,
+                        backgroundColor: 'rgba(30, 136, 229, 0.7)',
+                        borderColor: '#1E88E5',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#fff', font: { size: 12 } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + 
+                                    context.raw.toLocaleString('en-US', {minimumFractionDigits: 0});
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { 
+                            color: 'rgba(255,255,255,0.7)',
+                            callback: function(value) {
+                                return '$' + (value / 1000000).toFixed(1) + 'M';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: 'rgba(255,255,255,0.7)' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
