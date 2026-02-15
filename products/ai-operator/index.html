@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Operator's Toolkit — Justin Hart</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.08);
+    --teal: #2dd4bf;
+    --teal-dim: rgba(45,212,191,0.15);
+    --teal-glow: rgba(45,212,191,0.3);
+    --text: #e4e4e7;
+    --text-dim: #71717a;
+    --text-bright: #fafafa;
+    --radius: 16px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero {
+    padding: 120px 0 80px;
+    text-align: center;
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, var(--teal-dim) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero > * { position: relative; z-index: 1; }
+  .hero .badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 13px;
+    color: var(--teal);
+    margin-bottom: 24px;
+    background: var(--surface);
+  }
+  .hero h1 {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1.1;
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 span { color: var(--teal); }
+  .hero p.sub {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 600px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+  .hero-stats .stat { text-align: center; }
+  .hero-stats .stat .num {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--teal);
+    display: block;
+  }
+  .hero-stats .stat .label {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .hero-ctas { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--teal);
+    color: #0a0a0f;
+  }
+  .btn-primary:hover { background: #5eead4; text-decoration: none; }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--teal); text-decoration: none; }
+
+  /* Sections */
+  section { padding: 80px 0; }
+  .section-label {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--teal);
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .section-desc {
+    color: var(--text-dim);
+    max-width: 600px;
+    font-size: 16px;
+    margin-bottom: 48px;
+  }
+
+  /* Glass card */
+  .glass {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Products grid */
+  .products-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 700px) { .products-grid { grid-template-columns: 1fr; } }
+
+  .product-card { padding: 36px; display: flex; flex-direction: column; }
+  .product-card .card-badge {
+    display: inline-block;
+    width: fit-content;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 20px;
+  }
+  .badge-gumroad { background: rgba(255,144,232,0.12); color: #ff90e8; }
+  .badge-substack { background: rgba(255,152,40,0.12); color: #ff9828; }
+
+  .product-card h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 8px;
+  }
+  .product-card .price {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+  .product-card .price strong { color: var(--teal); font-size: 20px; }
+  .product-card .price s { color: var(--text-dim); opacity: 0.5; }
+  .product-card ul {
+    list-style: none;
+    margin-bottom: 28px;
+    flex: 1;
+  }
+  .product-card li {
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--text);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .product-card li::before {
+    content: '→';
+    color: var(--teal);
+    flex-shrink: 0;
+  }
+
+  /* Categories */
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .cat-card {
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .cat-card:hover { border-color: var(--teal-glow); }
+  .cat-card h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 8px;
+  }
+  .cat-card .cat-count {
+    font-size: 12px;
+    color: var(--teal);
+    margin-bottom: 12px;
+  }
+  .cat-card .previews { display: none; }
+  .cat-card.open .previews { display: block; }
+  .cat-card .previews li {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 3px 0;
+    list-style: none;
+  }
+  .cat-card .previews li::before { content: '· '; color: var(--teal); }
+  .cat-card .expand-hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+  .cat-card.open .expand-hint { display: none; }
+
+  /* Testimonials */
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .testimonial { padding: 28px; }
+  .testimonial p {
+    font-size: 15px;
+    font-style: italic;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.7;
+  }
+  .testimonial .author {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .testimonial .author strong { color: var(--text); font-style: normal; }
+
+  /* FAQ */
+  .faq-list { max-width: 700px; }
+  .faq-item {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 0;
+    cursor: pointer;
+  }
+  .faq-item:first-child { border-top: 1px solid var(--border); }
+  .faq-q {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-bright);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .faq-q::after {
+    content: '+';
+    font-size: 20px;
+    color: var(--teal);
+    transition: transform 0.2s;
+  }
+  .faq-item.open .faq-q::after { content: '−'; }
+  .faq-a {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s, padding 0.3s;
+  }
+  .faq-item.open .faq-a {
+    max-height: 300px;
+    padding-top: 12px;
+  }
+
+  /* Final CTA */
+  .final-cta {
+    text-align: center;
+    padding: 100px 0;
+  }
+  .final-cta h2 {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 16px;
+  }
+  .final-cta p {
+    color: var(--text-dim);
+    margin-bottom: 36px;
+    font-size: 16px;
+  }
+  .final-cta .hero-ctas { margin-bottom: 24px; }
+  .final-cta .note { font-size: 13px; color: var(--text-dim); }
+
+  /* Footer */
+  footer {
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  footer a { color: var(--text-dim); }
+  footer a:hover { color: var(--teal); }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="badge">From the operator behind Hello AI (22K subscribers)</div>
+    <h1>Stop prompting.<br>Start <span>operating.</span></h1>
+    <p class="sub">50+ production prompts and installable AI skills from an operator who's built 200+ dashboards, tools, and systems. Not theory — the actual toolkit.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="num">67K</span><span class="label">Impressions</span></div>
+      <div class="stat"><span class="num">2,408</span><span class="label">Bookmarks</span></div>
+      <div class="stat"><span class="num">200+</span><span class="label">Systems Built</span></div>
+      <div class="stat"><span class="num">50+</span><span class="label">Prompts</span></div>
+    </div>
+    <div class="hero-ctas">
+      <a href="https://gumroad.com/l/operators-prompt-pack" class="btn btn-primary">Get the Prompt Pack — $29</a>
+      <a href="https://helloai.substack.com/subscribe" class="btn btn-secondary">Subscribe to Hello AI Pro — $8/mo</a>
+    </div>
+  </div>
+</section>
+
+<!-- Products -->
+<section id="products">
+  <div class="container">
+    <div class="section-label">Two ways in</div>
+    <h2 class="section-title">Pick your path</h2>
+    <p class="section-desc">The Prompt Pack if you want the toolkit now. Hello AI Pro if you want ongoing drops, skills, and build logs.</p>
+    <div class="products-grid">
+      <div class="glass product-card">
+        <span class="card-badge badge-gumroad">Gumroad · One-Time</span>
+        <h3>The Operator's Prompt Pack</h3>
+        <div class="price"><s>$39</s> <strong>$29</strong> launch price</div>
+        <ul>
+          <li>50+ production prompts across 8 categories</li>
+          <li>Copy-paste ready with context notes</li>
+          <li>Example outputs for every prompt</li>
+          <li>Iteration tips — what to do when it's 80% there</li>
+          <li>Markdown files, no platform lock-in</li>
+          <li>Yours forever</li>
+        </ul>
+        <a href="https://gumroad.com/l/operators-prompt-pack" class="btn btn-primary">Get the Pack — $29</a>
+      </div>
+      <div class="glass product-card">
+        <span class="card-badge badge-substack">Substack · Monthly</span>
+        <h3>Hello AI Pro</h3>
+        <div class="price"><strong>$8</strong>/mo or <strong>$80</strong>/yr (save 17%)</div>
+        <ul>
+          <li>Full Prompt Pack included (the $39 product, free)</li>
+          <li>5-10 new prompts every month</li>
+          <li>Installable AI skills (SKILL.md files for Claude)</li>
+          <li>Interactive dashboards & tools access</li>
+          <li>Monthly Build Logs — what I built, what broke</li>
+          <li>Priority Q&A</li>
+        </ul>
+        <a href="https://helloai.substack.com/subscribe" class="btn btn-primary" style="background:#ff9828;color:#0a0a0f;">Subscribe — $8/mo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Categories -->
+<section id="categories">
+  <div class="container">
+    <div class="section-label">What's inside</div>
+    <h2 class="section-title">8 categories. 50+ prompts.</h2>
+    <p class="section-desc">Click any category to preview sample prompts.</p>
+    <div class="categories-grid">
+
+      <div class="glass cat-card" onclick="this.classList.toggle('open')">
+        <h4>📊 Data & Dashboards</h4>
+        <div class="cat-count">7 prompts</div>
+        <div class="expand-hint">Click to preview →</div>
+        <ul class="previews">
+          <li>The Instant Dashboard — CSV to interactive dashboard in one shot</li>
+          <li>The Metric Definer — Define KPIs before building anything</li>
+          <li>The Data Storyteller — Executive summaries from raw data</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card" onclick="this.classList.toggle('open')">
+        <h4>⚙️ Code & Tooling</h4>
+        <div class="cat-count">8 prompts</div>
+        <div class="expand-hint">Click to preview →</div>
+        <ul class="previews">
+          <li>The Full-Stack Scaffold — Working app skeleton with API, DB, frontend</li>
+          <li>The Refactor Machine — Spaghetti in, clean code out</li>
+          <li>The Bug Hunter — Systematic debugging that finds the issue</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card" onclick="this.classList.toggle('open')">
+        <h4>✍️ Writing & Content</h4>
+        <div class="cat-count">6 prompts</div>
+        <div class="expand-hint">Click to preview →</div>
+        <ul class="previews">
+          <li>The Ghost Draft — Write in someone's voice from 3 samples</li>
+          <li>The Thread Builder — Essay to punchy Twitter thread</li>
+          <li>The Contrarian Take — Non-obvious angle on any topic</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card" onclick="this.classList.toggle('open')">
+        <h4>🔍 Research & Analysis</h4>
+        <div class="cat-count">6 prompts</div>
+        <div class="expand-hint">Click to preview →</div>
+        <ul class="previews">
+          <li>The Landscape Map — Structured competitive analysis in minutes</li>
+          <li>The Source Validator — Fact-check and find primary sources</li>
+          <li>The Trend Spotter — Identify patterns across data points</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card" onclick="this.classList.toggle('open')">
+        <h4>🔄 Automation & Workflows</h4>
+        <div class="cat-count">6 prompts</div>
+        <div class="expand-hint">Click to preview →</div>
+        <ul class="previews">
+          <li>The Process Extractor — Messy SOP to clean automation spec</li>
+          <li>The Integration Planner — Map API integrations before coding</li>
+          <li>The Error Handler — Robust error handling for any workflow</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card" onclick="this.classList.toggle('open')">
+        <h4>💼 Client & Business</h4>
+        <div class="cat-count">6 prompts</div>
+        <div class="expand-hint">Click to preview →</div>
+        <ul class="previews">
+          <li>The Proposal Generator — Discovery call to polished proposal</li>
+          <li>The SOW Builder — Scope documents that protect you</li>
+          <li>The Invoice Narrator — Time logs to client-friendly summaries</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card" onclick="this.classList.toggle('open')">
+        <h4>🤖 Agents & System Prompts</h4>
+        <div class="cat-count">6 prompts</div>
+        <div class="expand-hint">Click to preview →</div>
+        <ul class="previews">
+          <li>The Persona Builder — AI agents with consistent behavior</li>
+          <li>The Guardrail Writer — Constraints that don't lobotomize output</li>
+          <li>The Skill File — Installable AI skills in SKILL.md format</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card" onclick="this.classList.toggle('open')">
+        <h4>🧠 Ops & Meta-Prompting</h4>
+        <div class="cat-count">5 prompts</div>
+        <div class="expand-hint">Click to preview →</div>
+        <ul class="previews">
+          <li>The Prompt Debugger — Figure out why a prompt isn't working</li>
+          <li>The Model Picker — Choose the right model for the task</li>
+          <li>The Chain Planner — Design multi-step prompt chains</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section id="testimonials">
+  <div class="container">
+    <div class="section-label">What people say</div>
+    <h2 class="section-title">From operators who use the prompts</h2>
+    <div class="testimonials-grid" style="margin-top:32px;">
+      <div class="glass testimonial">
+        <p>"I've been using ChatGPT for a year and getting mid results. Justin's dashboard prompt got me a better output in one pass than anything I'd built in months."</p>
+        <div class="author"><strong>— Testimonial placeholder</strong><br>Role, Company</div>
+      </div>
+      <div class="glass testimonial">
+        <p>"The skill files are insane. I dropped one into my Claude setup and it immediately started producing research briefs that used to take my team half a day."</p>
+        <div class="author"><strong>— Testimonial placeholder</strong><br>Role, Company</div>
+      </div>
+      <div class="glass testimonial">
+        <p>"Finally, prompts from someone who actually builds things. Not another influencer repackaging the same 10 tips."</p>
+        <div class="author"><strong>— Testimonial placeholder</strong><br>Role, Company</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <div class="section-label">Questions</div>
+    <h2 class="section-title">FAQ</h2>
+    <div class="faq-list" style="margin-top:32px;">
+
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Do these work with ChatGPT or just Claude?</div>
+        <div class="faq-a">Most work with both. Some are optimized for Claude, especially code generation and system prompts. Each prompt notes which model works best.</div>
+      </div>
+
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">What's the difference between the Pack and Pro?</div>
+        <div class="faq-a">The Pack is a one-time purchase — 50+ prompts, yours forever. Pro ($8/mo) includes the full Pack plus monthly new prompts, installable skill files, dashboard access, and build logs. If you want ongoing drops, go Pro.</div>
+      </div>
+
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">I already subscribe to Hello AI for free. What changes?</div>
+        <div class="faq-a">Nothing. Free stays free — weekly essays and takes. Pro is a new layer on top with tools, prompts, and build logs. You won't lose anything.</div>
+      </div>
+
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">What format are the prompts in?</div>
+        <div class="faq-a">Markdown files organized by category. No app, no login, no platform lock-in. Copy, paste, use.</div>
+      </div>
+
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">What are SKILL.md files?</div>
+        <div class="faq-a">They're structured instruction files that give AI models new capabilities. Drop one into Claude (via OpenClaw or as a system prompt) and it gains a specific skill — research, code review, proposal writing, etc. Pro subscribers get new ones monthly.</div>
+      </div>
+
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Can I get a refund?</div>
+        <div class="faq-a">Prompt Pack: 30-day refund, no questions. Pro subscription: cancel anytime, you keep access through the end of your billing period. The Prompt Pack you received on signup is yours to keep regardless.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="final-cta">
+  <div class="container">
+    <h2>Ready to operate?</h2>
+    <p>2,408 people bookmarked the thread. This is the full toolkit.</p>
+    <div class="hero-ctas">
+      <a href="https://gumroad.com/l/operators-prompt-pack" class="btn btn-primary">Get the Prompt Pack — $29</a>
+      <a href="https://helloai.substack.com/subscribe" class="btn btn-secondary">Subscribe to Pro — $8/mo</a>
+    </div>
+    <p class="note">Launch price. No fake countdown. It will go up.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p><a href="https://justinhart.biz">justinhart.biz</a> · <a href="https://helloai.substack.com">Hello AI</a> · <a href="https://x.com/justin_hart">@justin_hart</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
