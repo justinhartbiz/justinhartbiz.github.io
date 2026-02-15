@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Usage & Cost Monitor | Justin Hart</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: rgba(99, 102, 241, 0.1);
+            --secondary: #10b981;
+            --tertiary: #f59e0b;
+            --warning: #ef4444;
+            --text: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --bg-dark: #111827;
+            --bg-card: #1f2937;
+            --bg-hover: #374151;
+            --border: #374151;
+            --border-light: #4b5563;
+            --claude: #a855f7;
+            --anthropic: #9333ea;
+            --openai: #34d399;
+            --google: #fb923c;
+            --minimax: #93c5fd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 1.5rem;
+        }
+
+        header {
+            margin-bottom: 2rem;
+        }
+
+        h1, h2, h3, h4 {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+            background-color: var(--primary);
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .stat {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .trend-up {
+            color: var(--secondary);
+        }
+
+        .trend-down {
+            color: var(--warning);
+        }
+
+        .model-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .model-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 9999px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: white;
+        }
+
+        .model-name {
+            font-size: 0.875rem;
+        }
+
+        .progress-container {
+            height: 0.5rem;
+            background-color: var(--border);
+            border-radius: 9999px;
+            margin: 0.5rem 0 1rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 1s ease;
+        }
+
+        .progress-bar.claude {
+            background-color: var(--claude);
+        }
+
+        .progress-bar.openai {
+            background-color: var(--openai);
+        }
+
+        .progress-bar.google {
+            background-color: var(--google);
+        }
+
+        .progress-bar.minimax {
+            background-color: var(--minimax);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        tbody tr:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 1.5rem;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-xs {
+            font-size: 0.75rem;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .border-t {
+            border-top: 1px solid var(--border);
+        }
+
+        .pt-4 {
+            padding-top: 1rem;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .rounded-full {
+            border-radius: 9999px;
+        }
+
+        .bg-claude {
+            background-color: var(--claude);
+        }
+
+        .bg-openai {
+            background-color: var(--openai);
+        }
+
+        .bg-google {
+            background-color: var(--google);
+        }
+
+        .bg-minimax {
+            background-color: var(--minimax);
+        }
+
+        .tab-container {
+            margin: 1.5rem 0;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--text);
+            border-bottom-color: var(--border-light);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .recommendations {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .recommendation {
+            background-color: var(--bg-card);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            border-left: 4px solid var(--tertiary);
+        }
+
+        .recommendation h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .recommendation p {
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .recommendation .savings {
+            font-weight: 600;
+            color: var(--tertiary);
+        }
+
+        .insights {
+            background-color: var(--bg-card);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .insights ul {
+            margin-top: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        .insights li {
+            margin-bottom: 0.75rem;
+        }
+
+        .model-icon-claude {
+            background-color: var(--claude);
+        }
+
+        .model-icon-openai {
+            background-color: var(--openai);
+        }
+
+        .model-icon-google {
+            background-color: var(--google);
+        }
+
+        .model-icon-minimax {
+            background-color: var(--minimax);
+        }
+
+        footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive fixes */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .recommendations {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment"></script>
+</head>
+<body>
+    <header>
+        <h1>
+            <span>API Usage & Cost Monitor</span>
+            <span class="badge">Feb 2026</span>
+        </h1>
+        <p class="text-secondary">Track API usage, optimize spending, and monitor token consumption across multiple AI providers</p>
+    </header>
+
+    <div class="insights">
+        <h3>💡 This Month's Insights</h3>
+        <ul>
+            <li><strong>$231.67 spent</strong> this month across all providers (50.6% of monthly budget)</li>
+            <li><strong>Claude costs up 64%</strong> from January, primarily from autonomous builds (42.1K tokens per build)</li>
+            <li><strong>MiniMax cost-effective</strong> for routine tasks ($0.59/hr vs $5.32/hr for Claude Opus)</li>
+            <li><strong>$176.92 potential savings</strong> identified through optimization opportunities</li>
+        </ul>
+    </div>
+
+    <h2>Monthly Overview</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Total Spend</span>
+            </div>
+            <div class="stat">$231.67</div>
+            <div class="trend trend-up">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 4L14 10L12.6 11.4L8 6.8L3.4 11.4L2 10L8 4Z" fill="currentColor"/>
+                </svg>
+                <span>37.2% vs Jan</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar claude" style="width: 50.6%;"></div>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span>$231.67 / $458.33</span>
+                <span>50.6% of Budget</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Total Tokens</span>
+            </div>
+            <div class="stat">12.86M</div>
+            <div class="trend trend-up">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 4L14 10L12.6 11.4L8 6.8L3.4 11.4L2 10L8 4Z" fill="currentColor"/>
+                </svg>
+                <span>41.5% vs Jan</span>
+            </div>
+            <div class="flex justify-between mt-4 text-sm text-secondary">
+                <span>Input: 9.37M</span>
+                <span>Output: 3.49M</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">API Calls</span>
+            </div>
+            <div class="stat">6,542</div>
+            <div class="trend trend-up">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 4L14 10L12.6 11.4L8 6.8L3.4 11.4L2 10L8 4Z" fill="currentColor"/>
+                </svg>
+                <span>19.8% vs Jan</span>
+            </div>
+            <div class="flex justify-between mt-4 text-sm text-secondary">
+                <span>Completion: 5,281</span>
+                <span>Function: 1,261</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Cost per 1K Tokens</span>
+            </div>
+            <div class="stat">$0.018</div>
+            <div class="trend trend-down">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 12L2 6L3.4 4.6L8 9.2L12.6 4.6L14 6L8 12Z" fill="currentColor"/>
+                </svg>
+                <span>-3.1% vs Jan</span>
+            </div>
+            <div class="text-sm text-secondary mt-4">
+                Improved efficiency through model switching
+            </div>
+        </div>
+    </div>
+
+    <h2>Provider Breakdown</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Claude (Anthropic)</span>
+                <div class="model-icon model-icon-claude">C</div>
+            </div>
+            <div class="stat">$169.48</div>
+            <div class="trend trend-up">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 4L14 10L12.6 11.4L8 6.8L3.4 11.4L2 10L8 4Z" fill="currentColor"/>
+                </svg>
+                <span>64.2% vs Jan</span>
+            </div>
+            <div class="model-group">
+                <div class="flex-col flex-1">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm">Opus 4.5/4.6</span>
+                        <span class="text-sm">5.44M tokens</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar claude" style="width: 74%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="model-group">
+                <div class="flex-col flex-1">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm">Sonnet 3.7</span>
+                        <span class="text-sm">1.91M tokens</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar claude" style="width: 26%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">GPT (OpenAI)</span>
+                <div class="model-icon model-icon-openai">G</div>
+            </div>
+            <div class="stat">$42.57</div>
+            <div class="trend trend-up">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 4L14 10L12.6 11.4L8 6.8L3.4 11.4L2 10L8 4Z" fill="currentColor"/>
+                </svg>
+                <span>12.8% vs Jan</span>
+            </div>
+            <div class="model-group">
+                <div class="flex-col flex-1">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm">GPT-4o</span>
+                        <span class="text-sm">1.75M tokens</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar openai" style="width: 58%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="model-group">
+                <div class="flex-col flex-1">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm">GPT-4o-mini</span>
+                        <span class="text-sm">1.27M tokens</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar openai" style="width: 42%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Gemini (Google)</span>
+                <div class="model-icon model-icon-google">G</div>
+            </div>
+            <div class="stat">$12.94</div>
+            <div class="trend trend-down">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 12L2 6L3.4 4.6L8 9.2L12.6 4.6L14 6L8 12Z" fill="currentColor"/>
+                </svg>
+                <span>-8.2% vs Jan</span>
+            </div>
+            <div class="model-group">
+                <div class="flex-col flex-1">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm">Gemini 1.5 Pro</span>
+                        <span class="text-sm">0.87M tokens</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar google" style="width: 63%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="model-group">
+                <div class="flex-col flex-1">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm">Gemini 1.5 Flash</span>
+                        <span class="text-sm">0.51M tokens</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar google" style="width: 37%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">MiniMax</span>
+                <div class="model-icon model-icon-minimax">M</div>
+            </div>
+            <div class="stat">$6.68</div>
+            <div class="trend">
+                <span>New in Feb</span>
+            </div>
+            <div class="model-group">
+                <div class="flex-col flex-1">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm">M2.5</span>
+                        <span class="text-sm">0.71M tokens</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar minimax" style="width: 69%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="model-group">
+                <div class="flex-col flex-1">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm">M2.5-highspeed</span>
+                        <span class="text-sm">0.32M tokens</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar minimax" style="width: 31%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-container">
+        <div class="tabs">
+            <div class="tab active" data-tab="usage-tab">Usage Patterns</div>
+            <div class="tab" data-tab="cost-tab">Cost Analysis</div>
+            <div class="tab" data-tab="projects-tab">Projects</div>
+            <div class="tab" data-tab="optimize-tab">Optimization</div>
+        </div>
+
+        <div id="usage-tab" class="tab-content active">
+            <h3>Monthly Usage Patterns</h3>
+            <div class="chart-container">
+                <canvas id="usageChart"></canvas>
+            </div>
+
+            <h3 class="mt-4">Usage by Project</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Tokens</th>
+                            <th>Cost</th>
+                            <th>Primary Model</th>
+                            <th>$/1K Tokens</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Autonomous Builds</td>
+                            <td>4,842,105</td>
+                            <td>$112.34</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-claude" style="width: 1rem; height: 1rem; font-size: 0.6rem;">C</div>
+                                    <span>Claude Opus</span>
+                                </div>
+                            </td>
+                            <td>$0.023</td>
+                        </tr>
+                        <tr>
+                            <td>What If Machine</td>
+                            <td>2,157,892</td>
+                            <td>$43.16</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-openai" style="width: 1rem; height: 1rem; font-size: 0.6rem;">G</div>
+                                    <span>GPT-4o</span>
+                                </div>
+                            </td>
+                            <td>$0.020</td>
+                        </tr>
+                        <tr>
+                            <td>DB Creative Analysis</td>
+                            <td>1,687,431</td>
+                            <td>$24.57</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-claude" style="width: 1rem; height: 1rem; font-size: 0.6rem;">C</div>
+                                    <span>Claude Sonnet</span>
+                                </div>
+                            </td>
+                            <td>$0.015</td>
+                        </tr>
+                        <tr>
+                            <td>TLH Lead Analysis</td>
+                            <td>1,342,768</td>
+                            <td>$19.42</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-google" style="width: 1rem; height: 1rem; font-size: 0.6rem;">G</div>
+                                    <span>Gemini Pro</span>
+                                </div>
+                            </td>
+                            <td>$0.014</td>
+                        </tr>
+                        <tr>
+                            <td>Content Arbitrage</td>
+                            <td>1,184,352</td>
+                            <td>$17.24</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-claude" style="width: 1rem; height: 1rem; font-size: 0.6rem;">C</div>
+                                    <span>Claude Opus</span>
+                                </div>
+                            </td>
+                            <td>$0.015</td>
+                        </tr>
+                        <tr>
+                            <td>Crypto Analysis</td>
+                            <td>857,293</td>
+                            <td>$7.63</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-minimax" style="width: 1rem; height: 1rem; font-size: 0.6rem;">M</div>
+                                    <span>MiniMax M2.5</span>
+                                </div>
+                            </td>
+                            <td>$0.009</td>
+                        </tr>
+                        <tr>
+                            <td>Other Projects</td>
+                            <td>792,178</td>
+                            <td>$7.31</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-openai" style="width: 1rem; height: 1rem; font-size: 0.6rem;">G</div>
+                                    <span>GPT-4o-mini</span>
+                                </div>
+                            </td>
+                            <td>$0.009</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="cost-tab" class="tab-content">
+            <h3>Monthly Cost Breakdown</h3>
+            <div class="chart-container">
+                <canvas id="costChart"></canvas>
+            </div>
+
+            <h3 class="mt-4">Cost by Model</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Cost</th>
+                            <th>Tokens</th>
+                            <th>$/1K Tokens</th>
+                            <th>% of Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-claude" style="width: 1rem; height: 1rem; font-size: 0.6rem;">C</div>
+                                    <span>Claude Opus 4.5/4.6</span>
+                                </div>
+                            </td>
+                            <td>$136.00</td>
+                            <td>5,440,000</td>
+                            <td>$0.025</td>
+                            <td>58.7%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-claude" style="width: 1rem; height: 1rem; font-size: 0.6rem;">C</div>
+                                    <span>Claude Sonnet 3.7</span>
+                                </div>
+                            </td>
+                            <td>$33.48</td>
+                            <td>1,912,000</td>
+                            <td>$0.0175</td>
+                            <td>14.5%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-openai" style="width: 1rem; height: 1rem; font-size: 0.6rem;">G</div>
+                                    <span>GPT-4o</span>
+                                </div>
+                            </td>
+                            <td>$28.00</td>
+                            <td>1,750,000</td>
+                            <td>$0.016</td>
+                            <td>12.1%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-openai" style="width: 1rem; height: 1rem; font-size: 0.6rem;">G</div>
+                                    <span>GPT-4o-mini</span>
+                                </div>
+                            </td>
+                            <td>$14.57</td>
+                            <td>1,265,000</td>
+                            <td>$0.0115</td>
+                            <td>6.3%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-google" style="width: 1rem; height: 1rem; font-size: 0.6rem;">G</div>
+                                    <span>Gemini 1.5 Pro</span>
+                                </div>
+                            </td>
+                            <td>$8.70</td>
+                            <td>870,000</td>
+                            <td>$0.010</td>
+                            <td>3.8%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-minimax" style="width: 1rem; height: 1rem; font-size: 0.6rem;">M</div>
+                                    <span>MiniMax M2.5</span>
+                                </div>
+                            </td>
+                            <td>$5.32</td>
+                            <td>709,333</td>
+                            <td>$0.0075</td>
+                            <td>2.3%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-google" style="width: 1rem; height: 1rem; font-size: 0.6rem;">G</div>
+                                    <span>Gemini 1.5 Flash</span>
+                                </div>
+                            </td>
+                            <td>$4.24</td>
+                            <td>508,800</td>
+                            <td>$0.0083</td>
+                            <td>1.8%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="model-icon model-icon-minimax" style="width: 1rem; height: 1rem; font-size: 0.6rem;">M</div>
+                                    <span>MiniMax M2.5-highspeed</span>
+                                </div>
+                            </td>
+                            <td>$1.36</td>
+                            <td>317,867</td>
+                            <td>$0.0043</td>
+                            <td>0.6%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="projects-tab" class="tab-content">
+            <h3>Projects & ROI Analysis</h3>
+            <div class="chart-container">
+                <canvas id="projectsChart"></canvas>
+            </div>
+
+            <h3 class="mt-4">Project Investment & Return</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>API Cost</th>
+                            <th>Value Created</th>
+                            <th>ROI Multiple</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Baker's Dozen Dashboards</td>
+                            <td>$112.34</td>
+                            <td>$3,750.00</td>
+                            <td>33.4x</td>
+                            <td><span class="pill" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary);">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>What If Machine</td>
+                            <td>$43.16</td>
+                            <td>$1,250.00</td>
+                            <td>29.0x</td>
+                            <td><span class="pill" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary);">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Creative Genome</td>
+                            <td>$24.57</td>
+                            <td>$950.00</td>
+                            <td>38.7x</td>
+                            <td><span class="pill" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary);">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>TLH Lead Analysis</td>
+                            <td>$19.42</td>
+                            <td>$650.00</td>
+                            <td>33.5x</td>
+                            <td><span class="pill" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary);">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Content Arbitrage</td>
+                            <td>$17.24</td>
+                            <td>$450.00</td>
+                            <td>26.1x</td>
+                            <td><span class="pill" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary);">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Crypto Dashboard</td>
+                            <td>$7.63</td>
+                            <td>$135.00</td>
+                            <td>17.7x</td>
+                            <td><span class="pill" style="background-color: rgba(16, 185, 129, 0.1); color: var(--secondary);">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>API Usage Dashboard</td>
+                            <td>$7.31</td>
+                            <td>$325.00</td>
+                            <td>44.5x</td>
+                            <td><span class="pill" style="background-color: rgba(245, 158, 11, 0.1); color: var(--tertiary);">In Progress</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="optimize-tab" class="tab-content">
+            <h3>Cost Optimization Opportunities</h3>
+            
+            <div class="recommendations">
+                <div class="recommendation">
+                    <h4>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-4-8l2.293 2.293L12 14.586l4.707 4.707 1.414-1.414L13.414 13l4.707-4.707-1.414-1.414L12 11.586 7.293 6.879 5.879 8.293 10.586 13 8 15.586z" fill="#F59E0B"/>
+                        </svg>
+                        Model Right-Sizing
+                    </h4>
+                    <p>Use Claude Opus only for strategic creative projects. Switch routine tasks to Sonnet/MiniMax.</p>
+                    <p class="savings">Estimated savings: $87.40/month</p>
+                </div>
+
+                <div class="recommendation">
+                    <h4>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.177-6.559l-2.464-2.464 1.414-1.414 1.05 1.05 3.536-3.536 1.414 1.414-4.95 4.95z" fill="#F59E0B"/>
+                        </svg>
+                        Autonomous Build Optimization
+                    </h4>
+                    <p>Each autonomous build averages 42.1K tokens. Reduce by using cached data and structured outputs.</p>
+                    <p class="savings">Estimated savings: $45.92/month</p>
+                </div>
+
+                <div class="recommendation">
+                    <h4>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11.95 8.003L14.172 10.225l-7.953 7.953-2.223-2.222 7.953-7.953zm4.697.708l-1.06 1.06-2.222-2.223 1.06-1.06a.875.875 0 0 1 1.237 0l.985.985a.875.875 0 0 1 0 1.238zM3 19h18v2H3v-2z" fill="#F59E0B"/>
+                        </svg>
+                        Context Optimization
+                    </h4>
+                    <p>Reduce token waste by trimming context on What If Machine and TLH Lead Analysis.</p>
+                    <p class="savings">Estimated savings: $28.70/month</p>
+                </div>
+
+                <div class="recommendation">
+                    <h4>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-2.29-2.333A17.886 17.886 0 0 1 8.027 13H4.062a8.004 8.004 0 0 0 5.648 6.667zM3.298 11h3.953c-.084-1.683-.1-3.37-.049-5.047H3.473c-.397 1.584-.396 3.466 0 5.047zm1.86-7.083A13.835 13.835 0 0 0 8.026 11h3.983c.078-1.627.213-3.28.405-4.833.16-1.302.34-2.347.517-3.125.182-.784.349-1.298.452-1.625-.762.34-1.468.783-2.12 1.333A8.012 8.012 0 0 0 5.157 3.917zM18.842 11c.397-1.584.399-3.466 0-5.047h-3.728c.05 1.677.035 3.364-.049 5.047h3.777zm-.188 2h-3.98a16.05 16.05 0 0 1-.41 4.833c-.16 1.302-.34 2.347-.517 3.125-.181.784-.349 1.298-.452 1.625a8.016 8.016 0 0 0 5.36-9.583z" fill="#F59E0B"/>
+                        </svg>
+                        Move Routine Tasks to Local Models
+                    </h4>
+                    <p>Use ollama/qwen2.5:7b for file management, document generation, and code formatting.</p>
+                    <p class="savings">Estimated savings: $14.90/month</p>
+                </div>
+            </div>
+
+            <h3 class="mt-4">Daily Token Budget Tracker</h3>
+            <div class="chart-container">
+                <canvas id="budgetChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>API Usage & Cost Monitor Dashboard | Built by Railstote | Last updated: February 15, 2026</p>
+    </footer>
+
+    <script>
+        // Tab switching functionality
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to current tab and content
+                tab.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Charts
+        const usageChartCtx = document.getElementById('usageChart').getContext('2d');
+        const costChartCtx = document.getElementById('costChart').getContext('2d');
+        const projectsChartCtx = document.getElementById('projectsChart').getContext('2d');
+        const budgetChartCtx = document.getElementById('budgetChart').getContext('2d');
+
+        // Usage Chart
+        const usageChart = new Chart(usageChartCtx, {
+            type: 'line',
+            data: {
+                labels: ['Feb 1', 'Feb 2', 'Feb 3', 'Feb 4', 'Feb 5', 'Feb 6', 'Feb 7', 'Feb 8', 'Feb 9', 'Feb 10', 'Feb 11', 'Feb 12', 'Feb 13', 'Feb 14', 'Feb 15'],
+                datasets: [
+                    {
+                        label: 'Claude',
+                        data: [420000, 356000, 415000, 532000, 490000, 412000, 645000, 710000, 580000, 420000, 390000, 820000, 750000, 412000, 0],
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'GPT',
+                        data: [180000, 156000, 210000, 245000, 190000, 175000, 205000, 304000, 290000, 215000, 190000, 342000, 310000, 203000, 0],
+                        borderColor: '#34d399',
+                        backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Gemini',
+                        data: [95000, 82000, 112000, 104000, 85000, 90000, 115000, 132000, 125000, 97000, 85000, 140000, 134000, 84000, 0],
+                        borderColor: '#fb923c',
+                        backgroundColor: 'rgba(251, 146, 60, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'MiniMax',
+                        data: [0, 0, 0, 0, 0, 0, 0, 84000, 95000, 122000, 145000, 183000, 204000, 195000, 0],
+                        borderColor: '#93c5fd',
+                        backgroundColor: 'rgba(147, 197, 253, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#9ca3af'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(75, 85, 99, 0.2)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(75, 85, 99, 0.2)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Cost Chart
+        const costChart = new Chart(costChartCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Feb 1', 'Feb 2', 'Feb 3', 'Feb 4', 'Feb 5', 'Feb 6', 'Feb 7', 'Feb 8', 'Feb 9', 'Feb 10', 'Feb 11', 'Feb 12', 'Feb 13', 'Feb 14', 'Feb 15'],
+                datasets: [
+                    {
+                        label: 'Claude',
+                        data: [10.50, 8.90, 10.38, 13.30, 12.25, 10.30, 16.13, 17.75, 14.50, 10.50, 9.75, 20.50, 18.75, 10.30, 0],
+                        backgroundColor: '#a855f7',
+                        stack: 'Stack 0',
+                    },
+                    {
+                        label: 'GPT',
+                        data: [3.15, 2.73, 3.68, 4.29, 3.33, 3.06, 3.59, 5.32, 5.08, 3.76, 3.33, 5.99, 5.43, 3.55, 0],
+                        backgroundColor: '#34d399',
+                        stack: 'Stack 0',
+                    },
+                    {
+                        label: 'Gemini',
+                        data: [0.95, 0.82, 1.12, 1.04, 0.85, 0.90, 1.15, 1.32, 1.25, 0.97, 0.85, 1.40, 1.34, 0.84, 0],
+                        backgroundColor: '#fb923c',
+                        stack: 'Stack 0',
+                    },
+                    {
+                        label: 'MiniMax',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0.63, 0.71, 0.92, 1.09, 1.37, 1.53, 1.46, 0],
+                        backgroundColor: '#93c5fd',
+                        stack: 'Stack 0',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#9ca3af'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(75, 85, 99, 0.2)'
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(75, 85, 99, 0.2)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Projects Chart
+        const projectsChart = new Chart(projectsChartCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Projects',
+                    data: [
+                        { x: 112.34, y: 33.4, r: 20, name: 'Baker\'s Dozen' },
+                        { x: 43.16, y: 29.0, r: 15, name: 'What If Machine' },
+                        { x: 24.57, y: 38.7, r: 12, name: 'Creative Genome' },
+                        { x: 19.42, y: 33.5, r: 10, name: 'TLH Lead Analysis' },
+                        { x: 17.24, y: 26.1, r: 8, name: 'Content Arbitrage' },
+                        { x: 7.63, y: 17.7, r: 6, name: 'Crypto Dashboard' },
+                        { x: 7.31, y: 44.5, r: 7, name: 'API Usage Dashboard' }
+                    ],
+                    backgroundColor: (context) => {
+                        const value = context.raw.y;
+                        return value > 35 ? 'rgba(16, 185, 129, 0.7)' : 
+                               value > 25 ? 'rgba(245, 158, 11, 0.7)' : 
+                               'rgba(99, 102, 241, 0.7)';
+                    },
+                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const point = context.raw;
+                                return `${point.name}: $${point.x} cost, ${point.y}x ROI`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'ROI Multiple',
+                            color: '#9ca3af'
+                        },
+                        grid: {
+                            color: 'rgba(75, 85, 99, 0.2)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'API Cost ($)',
+                            color: '#9ca3af'
+                        },
+                        grid: {
+                            color: 'rgba(75, 85, 99, 0.2)'
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Budget Chart
+        const budgetChart = new Chart(budgetChartCtx, {
+            type: 'line',
+            data: {
+                labels: ['Feb 1', 'Feb 2', 'Feb 3', 'Feb 4', 'Feb 5', 'Feb 6', 'Feb 7', 'Feb 8', 'Feb 9', 'Feb 10', 'Feb 11', 'Feb 12', 'Feb 13', 'Feb 14', 'Feb 15'],
+                datasets: [
+                    {
+                        label: 'Daily Spend',
+                        data: [14.60, 12.45, 15.18, 18.63, 16.43, 14.26, 20.87, 25.02, 21.54, 16.15, 15.02, 29.26, 27.05, 16.15, 0],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Daily Budget',
+                        data: [15.28, 15.28, 15.28, 15.28, 15.28, 15.28, 15.28, 15.28, 15.28, 15.28, 15.28, 15.28, 15.28, 15.28, 15.28],
+                        borderColor: '#f59e0b',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#9ca3af'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(75, 85, 99, 0.2)'
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(75, 85, 99, 0.2)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
