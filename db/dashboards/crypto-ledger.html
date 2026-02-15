@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Sentiment Ledger</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --bg-card: rgba(26, 26, 36, 0.8);
+            --accent: #00a5a5;
+            --accent-glow: rgba(0, 165, 165, 0.3);
+            --accent-subtle: rgba(0, 165, 165, 0.1);
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #55556a;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-accent: rgba(0, 165, 165, 0.3);
+            --bull: #6bcb77;
+            --bear: #ff6b6b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(0, 165, 165, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0, 165, 165, 0.05) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--accent), #00d4d4);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 8px 32px var(--accent-glow);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .tagline { color: var(--text-secondary); font-size: 1.1rem; margin-top: 8px; }
+
+        /* Concept Section */
+        .concept-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(20px);
+            animation: fadeInUp 0.8s ease-out 0.1s both;
+        }
+
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .concept-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .concept-icon { font-size: 2rem; margin-bottom: 12px; }
+        .concept-card h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--accent); }
+        .concept-card p { font-size: 0.9rem; color: var(--text-secondary); }
+
+        /* Positions Section */
+        .positions-section {
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px; height: 24px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .refresh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .refresh-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .positions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .position-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .position-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-accent);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .coin-info { display: flex; align-items: center; gap: 12px; }
+        .coin-icon {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .coin-name { font-weight: 600; font-size: 1.1rem; }
+        .coin-symbol { color: var(--text-muted); font-size: 0.85rem; }
+
+        .position-value { text-align: right; }
+        .value-usd { font-size: 1.3rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .value-change { font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; }
+        .value-change.bull { color: var(--bull); }
+        .value-change.bear { color: var(--bear); }
+
+        .position-reasoning {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .reasoning-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+
+        .reasoning-text { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; }
+
+        .position-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Decision Log */
+        .log-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(20px);
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        .log-entry {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .log-entry::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            border-radius: 12px 0 0 12px;
+        }
+
+        .log-entry.buy::before { background: var(--bull); }
+        .log-entry.sell::before { background: var(--bear); }
+        .log-entry.hold::before { background: var(--accent); }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .log-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .log-action.buy { background: rgba(107, 203, 119, 0.15); color: var(--bull); }
+        .log-action.sell { background: rgba(255, 107, 107, 0.15); color: var(--bear); }
+        .log-action.hold { background: rgba(0, 165, 165, 0.15); color: var(--accent); }
+
+        .log-date { font-size: 0.8rem; color: var(--text-muted); }
+
+        .log-reasoning { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; }
+
+        /* Capture Interface */
+        .capture-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            backdrop-filter: blur(20px);
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .capture-form { margin-top: 20px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-subtle);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .capture-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--accent), #00d4d4);
+            color: var(--bg-primary);
+            border: none;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+            margin-top: 8px;
+        }
+
+        .capture-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px var(--accent-glow);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .container { padding: 24px 16px; }
+            .form-row { grid-template-columns: 1fr; }
+            .concept-grid { grid-template-columns: 1fr; }
+            .positions-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <h1>Crypto Sentiment Ledger</h1>
+            </div>
+            <p class="tagline">Track trading decisions with reasoning captured. No more "I forgot why I bought this."</p>
+        </header>
+
+        <section class="concept-section">
+            <h2 class="section-title">The Concept</h2>
+            <div class="concept-grid">
+                <div class="concept-card">
+                    <div class="concept-icon">🧠</div>
+                    <h3>Capture Reasoning</h3>
+                    <p>Before executing any trade, write down WHY. Forces disciplined decision-making.</p>
+                </div>
+                <div class="concept-card">
+                    <div class="concept-icon">📝</div>
+                    <h3>Decision Log</h3>
+                    <p>Every buy, sell, and hold decision is timestamped with full context and sentiment.</p>
+                </div>
+                <div class="concept-card">
+                    <div class="concept-icon">🔄</div>
+                    <h3>Review & Learn</h3>
+                    <p>Look back at past decisions. Learn from wins. Never repeat the same mistake twice.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="positions-section">
+            <div class="section-header">
+                <h2 class="section-title">Current Positions</h2>
+                <button class="refresh-btn" onclick="refreshPrices()">
+                    ↻ Refresh Prices
+                </button>
+            </div>
+            <div class="positions-grid" id="positionsGrid"></div>
+        </section>
+
+        <section class="log-section">
+            <h2 class="section-title">Recent Decisions</h2>
+            <div id="decisionLog"></div>
+        </section>
+
+        <section class="capture-section">
+            <h2 class="section-title">Log a New Decision</h2>
+            <form class="capture-form" onsubmit="logDecision(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Action</label>
+                        <select id="decisionAction">
+                            <option value="buy">Buy</option>
+                            <option value="sell">Sell</option>
+                            <option value="hold">Hold</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Asset</label>
+                        <input type="text" id="decisionAsset" placeholder="e.g., SOL, BTC, TAO">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Amount / Size</label>
+                        <input type="text" id="decisionAmount" placeholder="e.g., $250, 5 SOL">
+                    </div>
+                    <div class="form-group">
+                        <label>Entry Price</label>
+                        <input type="text" id="decisionPrice" placeholder="e.g., $98.50">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Reasoning (Why this decision?)</label>
+                    <textarea id="decisionReasoning" placeholder="What's driving this decision? Thesis, sentiment, technicals, news, gut feeling..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Expected Outcome</label>
+                    <textarea id="decisionExpectation" placeholder="What price or scenario are you expecting? What's your exit?"></textarea>
+                </div>
+                <button type="submit" class="capture-btn">💾 Log Decision</button>
+            </form>
+        </section>
+    </div>
+
+    <script>
+        // Current positions with reasoning
+        const positions = [
+            {
+                symbol: 'SOL',
+                name: 'Solana',
+                icon: 'S',
+                iconBg: 'linear-gradient(135deg, #9945FF, #14F195)',
+                value: 1247.82,
+                change: 12.4,
+                quantity: 12.5,
+                avgEntry: 85.20,
+                reasoning: "High conviction. Ecosystem momentum with DEX volume, Marinade Finance TVL, and Telegram mini-app expansion. Validators performing well. Target: $150+ within 6 months.",
+                entryDate: '2025-11-15',
+                thesis: 'Ecosystem growth'
+            },
+            {
+                symbol: 'TAO',
+                name: 'Bittensor',
+                icon: 'T',
+                iconBg: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+                value: 842.50,
+                change: -8.2,
+                quantity: 2.8,
+                avgEntry: 265.00,
+                reasoning: "AI infrastructure play. Subnet architecture is compelling. Holding for long-term but monitoring closely after recent dump. Don't add until $200 support holds.",
+                entryDate: '2025-12-01',
+                thesis: 'AI infra'
+            },
+            {
+                symbol: 'LINK',
+                name: 'Chainlink',
+                icon: 'L',
+                iconBg: 'linear-gradient(135deg, #375BD2, #5B8DEF)',
+                value: 523.40,
+                change: 5.8,
+                quantity: 28,
+                avgEntry: 16.80,
+                reasoning: "CCIP adoption accelerating. Major bank integrations (JP Morgan, DBS). Real-world assets tokenization narrative is real. Steady winner, not sexy but reliable.",
+                entryDate: '2025-10-20',
+                thesis: 'RWA infrastructure'
+            },
+            {
+                symbol: 'BTC',
+                name: 'Bitcoin',
+                icon: '₿',
+                iconBg: 'linear-gradient(135deg, #F7931A, #FFB84D)',
+                value: 2140.00,
+                change: 3.2,
+                quantity: 0.02,
+                avgEntry: 95000,
+                reasoning: "Core position. Not adding more right now - waiting for better entry. ETF flows are the narrative but valuations are stretched.",
+                entryDate: '2025-09-10',
+                thesis: 'Store of value'
+            }
+        ];
+
+        // Decision log
+        const decisionLog = [
+            {
+                action: 'buy',
+                asset: 'SOL',
+                date: '2026-02-10',
+                reasoning: "SOL dip to $82 on market fear. Accumulating more. Ecosystem fundamentals unchanged - Jupiter, Raydium, Marinade all growing. Adding 2.5 SOL at $82.50.",
+                expectation: "Target $100 short-term, $150 by Q3"
+            },
+            {
+                action: 'hold',
+                asset: 'TAO',
+                date: '2026-02-08',
+                reasoning: "TAO dumped 25% onSEC concerns about AI tokens. Thesis unchanged but taking a wait-and-see. Not selling, not buying. Watching $200 support level.",
+                expectation: "Reassess in 2-3 weeks"
+            },
+            {
+                action: 'buy',
+                asset: 'LINK',
+                date: '2026-02-01',
+                reasoning: "Adding to LINK position on breakout. CCIP volume up 40% MoM. JPMorgan using it for settlement. This is infrastructure plays - boring but real.",
+                expectation: "Position trade to $22"
+            },
+            {
+                action: 'sell',
+                asset: 'ETH',
+                date: '2026-01-28',
+                reasoning: "Taking profits on ETH after 20% pump. Was overweight anyway. Don't hate ETH but prefer alt-L1s and AI tokens for asymmetry. Will reallocate to SOL/TAO.",
+                expectation: "Rotating into higher conviction plays"
+            }
+        ];
+
+        function formatUSD(val) {
+            return '$' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function renderPositions() {
+            const grid = document.getElementById('positionsGrid');
+            grid.innerHTML = positions.map(p => `
+                <div class="position-card">
+                    <div class="position-header">
+                        <div class="coin-info">
+                            <div class="coin-icon" style="background: ${p.iconBg}">${p.icon}</div>
+                            <div>
+                                <div class="coin-name">${p.name}</div>
+                                <div class="coin-symbol">${p.symbol}</div>
+                            </div>
+                        </div>
+                        <div class="position-value">
+                            <div class="value-usd">${formatUSD(p.value)}</div>
+                            <div class="value-change ${p.change >= 0 ? 'bull' : 'bear'}">${p.change >= 0 ? '+' : ''}${p.change}%</div>
+                        </div>
+                    </div>
+                    <div class="position-reasoning">
+                        <div class="reasoning-label">Reasoning</div>
+                        <div class="reasoning-text">${p.reasoning}</div>
+                    </div>
+                    <div class="position-meta">
+                        <span>Qty: ${p.quantity} ${p.symbol}</span>
+                        <span>Avg Entry: ${formatUSD(p.avgEntry)}</span>
+                        <span>${p.entryDate}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderDecisionLog() {
+            const log = document.getElementById('decisionLog');
+            log.innerHTML = decisionLog.map(d => `
+                <div class="log-entry ${d.action}">
+                    <div class="log-header">
+                        <span class="log-action ${d.action}">${d.action} ${d.asset}</span>
+                        <span class="log-date">${d.date}</span>
+                    </div>
+                    <div class="log-reasoning">
+                        <strong>Why:</strong> ${d.reasoning}
+                    </div>
+                    <div class="log-reasoning" style="margin-top: 8px;">
+                        <strong>Expectation:</strong> ${d.expectation}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function refreshPrices() {
+            // Simulate price refresh
+            const btn = document.querySelector('.refresh-btn');
+            btn.textContent = '⟳ Refreshing...';
+            setTimeout(() => {
+                btn.innerHTML = '↻ Refresh Prices';
+                // In real app, would fetch live prices here
+                alert('In production, this would fetch live prices from Coinbase API!');
+            }, 1000);
+        }
+
+        function logDecision(e) {
+            e.preventDefault();
+            const decision = {
+                action: document.getElementById('decisionAction').value,
+                asset: document.getElementById('decisionAsset').value,
+                date: new Date().toISOString().split('T')[0],
+                reasoning: document.getElementById('decisionReasoning').value,
+                expectation: document.getElementById('decisionExpectation').value
+            };
+            
+            if (!decision.asset || !decision.reasoning) {
+                alert('Please fill in asset and reasoning');
+                return;
+            }
+
+            decisionLog.unshift(decision);
+            renderDecisionLog();
+            e.target.reset();
+            alert('Decision logged successfully!');
+        }
+
+        // Initialize
+        renderPositions();
+        renderDecisionLog();
+    </script>
+</body>
+</html>

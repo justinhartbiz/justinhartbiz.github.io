@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategic Content Calendar Planner</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #5e81ac;
+            --accent: #88c0d0;
+            --text: #eceff4;
+            --bg-dark: #2e3440;
+            --bg-medium: #3b4252;
+            --bg-light: #434c5e;
+            --success: #a3be8c;
+            --warning: #ebcb8b;
+            --danger: #bf616a;
+            --info: #81a1c1;
+            --db: #e67e22;
+            --rg: #9b59b6;
+            --tlh: #27ae60;
+            --hello-ai: #3498db;
+            --personal: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin: 15px 0 10px;
+            color: var(--accent);
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            margin: 15px 0 10px;
+            color: var(--info);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+            font-weight: 300;
+        }
+        
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: var(--bg-medium);
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            min-width: 200px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .calendar {
+            background-color: var(--bg-medium);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .month-grid {
+            display: grid;
+            grid-template-columns: 100px repeat(31, minmax(40px, 1fr));
+            gap: 2px;
+        }
+        
+        .day-header {
+            background-color: var(--bg-light);
+            padding: 8px 5px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            position: sticky;
+            top: 0;
+        }
+        
+        .row-header {
+            background-color: var(--bg-light);
+            padding: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+            position: sticky;
+            left: 0;
+        }
+        
+        .platform-db {
+            border-left: 4px solid var(--db);
+        }
+        
+        .platform-rg {
+            border-left: 4px solid var(--rg);
+        }
+        
+        .platform-tlh {
+            border-left: 4px solid var(--tlh);
+        }
+        
+        .platform-hello-ai {
+            border-left: 4px solid var(--hello-ai);
+        }
+        
+        .platform-personal {
+            border-left: 4px solid var(--personal);
+        }
+        
+        .day-cell {
+            background-color: var(--bg-light);
+            min-height: 60px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            position: relative;
+        }
+        
+        .weekend {
+            background-color: rgba(59, 66, 82, 0.5);
+        }
+        
+        .has-event {
+            cursor: pointer;
+        }
+        
+        .event-marker {
+            height: 10px;
+            width: 100%;
+            border-radius: 2px;
+            margin-bottom: 2px;
+        }
+        
+        .event-marker.db {
+            background-color: var(--db);
+        }
+        
+        .event-marker.rg {
+            background-color: var(--rg);
+        }
+        
+        .event-marker.tlh {
+            background-color: var(--tlh);
+        }
+        
+        .event-marker.hello-ai {
+            background-color: var(--hello-ai);
+        }
+        
+        .event-marker.personal {
+            background-color: var(--personal);
+        }
+        
+        .card {
+            background-color: var(--bg-medium);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card h3 span {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .card h3 span.db {
+            background-color: var(--db);
+        }
+        
+        .card h3 span.rg {
+            background-color: var(--rg);
+        }
+        
+        .card h3 span.tlh {
+            background-color: var(--tlh);
+        }
+        
+        .card h3 span.hello-ai {
+            background-color: var(--hello-ai);
+        }
+        
+        .card h3 span.personal {
+            background-color: var(--personal);
+        }
+        
+        ul {
+            list-style-type: none;
+        }
+        
+        li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        li::before {
+            content: "•";
+            position: absolute;
+            left: 10px;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .tag.recurring {
+            background-color: var(--info);
+            color: var(--bg-dark);
+        }
+        
+        .tag.one-time {
+            background-color: var(--warning);
+            color: var(--bg-dark);
+        }
+        
+        .tag.milestone {
+            background-color: var(--success);
+            color: var(--bg-dark);
+        }
+        
+        .tag.deadline {
+            background-color: var(--danger);
+            color: var(--bg-dark);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--bg-light);
+        }
+        
+        th {
+            background-color: var(--bg-light);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: rgba(136, 192, 208, 0.05);
+        }
+        
+        .insights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .insight-card {
+            background-color: var(--bg-medium);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .insight-card h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .insight-card p {
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .badge.high {
+            background-color: var(--danger);
+            color: var(--text);
+        }
+        
+        .badge.medium {
+            background-color: var(--warning);
+            color: var(--bg-dark);
+        }
+        
+        .badge.low {
+            background-color: var(--success);
+            color: var(--bg-dark);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: var(--primary);
+            color: var(--text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: rgba(236, 239, 244, 0.6);
+        }
+        
+        @media (max-width: 768px) {
+            .stats-row {
+                flex-direction: column;
+            }
+            
+            .section-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .insights {
+                grid-template-columns: 1fr;
+            }
+            
+            .month-grid {
+                min-width: 1200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Strategic Content Calendar Planner</h1>
+        <p class="subtitle">Cross-platform content management | Unified scheduling | Gap detection</p>
+    </header>
+    
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="value" style="color: var(--info);">26</div>
+            <div class="label">Scheduled posts this month</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" style="color: var(--warning);">4</div>
+            <div class="label">Upcoming deadlines</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" style="color: var(--success);">87%</div>
+            <div class="label">Calendar coverage</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" style="color: var(--danger);">3</div>
+            <div class="label">Content gaps</div>
+        </div>
+    </div>
+    
+    <div class="btn-group">
+        <button class="btn">February 2026</button>
+        <button class="btn">March 2026</button>
+        <button class="btn">Add Content</button>
+        <button class="btn">Export Calendar</button>
+    </div>
+    
+    <div class="calendar">
+        <div class="calendar-header">
+            <h2>February 2026</h2>
+        </div>
+        
+        <div class="month-grid">
+            <!-- Column headers -->
+            <div class="day-header" style="background-color: var(--primary);">Platform</div>
+            <div class="day-header">1 Sa</div>
+            <div class="day-header">2 Su</div>
+            <div class="day-header">3 Mo</div>
+            <div class="day-header">4 Tu</div>
+            <div class="day-header">5 We</div>
+            <div class="day-header">6 Th</div>
+            <div class="day-header">7 Fr</div>
+            <div class="day-header">8 Sa</div>
+            <div class="day-header">9 Su</div>
+            <div class="day-header">10 Mo</div>
+            <div class="day-header">11 Tu</div>
+            <div class="day-header">12 We</div>
+            <div class="day-header">13 Th</div>
+            <div class="day-header">14 Fr</div>
+            <div class="day-header weekend">15 Sa</div>
+            <div class="day-header weekend">16 Su</div>
+            <div class="day-header">17 Mo</div>
+            <div class="day-header">18 Tu</div>
+            <div class="day-header">19 We</div>
+            <div class="day-header">20 Th</div>
+            <div class="day-header">21 Fr</div>
+            <div class="day-header weekend">22 Sa</div>
+            <div class="day-header weekend">23 Su</div>
+            <div class="day-header">24 Mo</div>
+            <div class="day-header">25 Tu</div>
+            <div class="day-header">26 We</div>
+            <div class="day-header">27 Th</div>
+            <div class="day-header">28 Fr</div>
+            
+            <!-- DonorBureau Row -->
+            <div class="row-header platform-db">DonorBureau</div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker db"></div>
+            </div>
+            
+            <!-- Rational Ground Row -->
+            <div class="row-header platform-rg">Rational Ground</div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker rg"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker rg"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker rg"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker rg"></div>
+                <div class="event-marker deadline"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker rg"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            
+            <!-- TLH Row -->
+            <div class="row-header platform-tlh">TLH</div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker tlh"></div>
+            </div>
+            
+            <!-- Hello AI Row -->
+            <div class="row-header platform-hello-ai">Hello AI</div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker hello-ai"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker hello-ai"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker hello-ai"></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell weekend"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell"></div>
+            <div class="day-cell has-event">
+                <div class="event-marker hello-ai"></div>
+            </div>
+            <div class="day-cell"></div>
+            
+            <!-- Twitter/X Row -->
+            <div class="row-header platform-personal">Twitter/X</div>
+            <div class="day-cell weekend has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell weekend has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell weekend has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell weekend has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell weekend has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell weekend has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell weekend has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell weekend has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+            <div class="day-cell has-event">
+                <div class="event-marker personal"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="insights">
+        <div class="insight-card">
+            <h3>Content Gaps Detected</h3>
+            <p>Three periods with low cross-platform coverage identified. Feb 18-20 has no Hello AI content. Feb 8-9 weekend has minimal activity. Feb 24-26 has no RG content.</p>
+            <span class="badge high">High Priority</span>
+        </div>
+        <div class="insight-card">
+            <h3>Content Synergy Opportunities</h3>
+            <p>Repurpose TLH estate planning content (Feb 17) to Hello AI (automation angle) and RG (economic angle). Create a cross-platform content package.</p>
+            <span class="badge medium">Medium Priority</span>
+        </div>
+        <div class="insight-card">
+            <h3>Upcoming Deadlines</h3>
+            <p>INBOUND 2026 CFP deadline (Feb 18), thesecondchancefamily.com expiration (Mar 2), yourdnasays.com expiration (Mar 7), Dermatologist follow-up (Mar 3)</p>
+            <span class="badge high">High Priority</span>
+        </div>
+        <div class="insight-card">
+            <h3>Content Frequency Analysis</h3>
+            <p>Twitter/X has consistent daily posts. DonorBureau follows Mon/Wed/Thu pattern. TLH follows Mon/Wed/Fri pattern. Hello AI is weekly (Thursdays). RG posts are irregular.</p>
+            <span class="badge low">Low Priority</span>
+        </div>
+    </div>
+    
+    <div class="section-grid">
+        <div class="card">
+            <h3><span class="db"></span>DonorBureau Content</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Content</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Feb 3</td>
+                        <td>SemperK9 Campaign</td>
+                        <td>Scheduled</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 5</td>
+                        <td>NRSC Recruitment</td>
+                        <td>Scheduled</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 6</td>
+                        <td>SoldierStrong Appeal</td>
+                        <td>Scheduled</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 10</td>
+                        <td>K9 Valentine's Campaign</td>
+                        <td>Drafted</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 12</td>
+                        <td>NCPD Emergency Alert</td>
+                        <td>Ideation</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h3><span class="rg"></span>Rational Ground Content</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Content</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Feb 4</td>
+                        <td>Screwtape Letter #17</td>
+                        <td>Published</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 10</td>
+                        <td>3-Year COVID Review</td>
+                        <td>Drafted</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 17</td>
+                        <td>Media Trust Analysis</td>
+                        <td>Ideation</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 18</td>
+                        <td>INBOUND CFP Deadline</td>
+                        <td><span class="badge deadline">Deadline</span></td>
+                    </tr>
+                    <tr>
+                        <td>Feb 24</td>
+                        <td>Screwtape Letter #18</td>
+                        <td>Scheduled</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h3><span class="tlh"></span>TLH Content</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Content</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Feb 3</td>
+                        <td>Estate Sale Email</td>
+                        <td>Published</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 5</td>
+                        <td>Senior Transition Guide</td>
+                        <td>Scheduled</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 7</td>
+                        <td>Google Business Review</td>
+                        <td>Scheduled</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 10</td>
+                        <td>New Listing Announcement</td>
+                        <td>Drafted</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 12</td>
+                        <td>Estate Planning Webinar</td>
+                        <td>Scheduled</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h3><span class="hello-ai"></span>Hello AI Content</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Content</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Feb 6</td>
+                        <td>AI Operator Morning Routine</td>
+                        <td>Published</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 13</td>
+                        <td>Family Management with AI</td>
+                        <td>Drafted</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 20</td>
+                        <td>Claude Opus Review</td>
+                        <td>Ideation</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 27</td>
+                        <td>AI Tools for Small Business</td>
+                        <td>Scheduled</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <h2>Upcoming Deadlines & Milestones</h2>
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Event</th>
+                    <th>Platform</th>
+                    <th>Priority</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Feb 18, 2026</td>
+                    <td>INBOUND 2026 CFP Deadline</td>
+                    <td>Personal</td>
+                    <td><span class="badge high">High</span></td>
+                </tr>
+                <tr>
+                    <td>Mar 2, 2026</td>
+                    <td>thesecondchancefamily.com Expiration</td>
+                    <td>TLH</td>
+                    <td><span class="badge high">High</span></td>
+                </tr>
+                <tr>
+                    <td>Mar 3, 2026</td>
+                    <td>Dermatologist Follow-up</td>
+                    <td>Personal</td>
+                    <td><span class="badge medium">Medium</span></td>
+                </tr>
+                <tr>
+                    <td>Mar 7, 2026</td>
+                    <td>yourdnasays.com Expiration</td>
+                    <td>Personal</td>
+                    <td><span class="badge medium">Medium</span></td>
+                </tr>
+                <tr>
+                    <td>Mar 2026</td>
+                    <td>New MacBook (M4 Max)</td>
+                    <td>Personal</td>
+                    <td><span class="badge low">Low</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <h2>Content Synergies & Cross-Platform Opportunities</h2>
+    <div class="card">
+        <ul>
+            <li>
+                <strong>Feb 17-18:</strong> Use TLH Estate Planning content to create:
+                <span class="tag one-time">Hello AI Article</span>
+                <span class="tag one-time">Twitter Thread</span>
+                <span class="tag one-time">RG Perspective</span>
+            </li>
+            <li>
+                <strong>Feb 24-25:</strong> Screwtape Letter #18 can generate:
+                <span class="tag one-time">Twitter Quotes (5)</span>
+                <span class="tag one-time">LinkedIn Article</span>
+            </li>
+            <li>
+                <strong>Feb 5-7:</strong> Service Dog content can cross-pollinate:
+                <span class="tag one-time">DB/SemperK9</span>
+                <span class="tag one-time">Personal X Thread</span>
+            </li>
+            <li>
+                <strong>Feb 13:</strong> Family Management with AI creates natural synergy:
+                <span class="tag one-time">Hello AI Article</span>
+                <span class="tag one-time">Personal X Thread</span>
+                <span class="tag one-time">LinkedIn Article</span>
+            </li>
+        </ul>
+    </div>
+    
+    <h2>Recurring Content Patterns</h2>
+    <div class="card">
+        <ul>
+            <li>
+                <strong>DonorBureau:</strong> Monday/Wednesday/Thursday cadence
+                <span class="tag recurring">Mon: New Campaigns</span>
+                <span class="tag recurring">Wed: Donor Upgrade</span>
+                <span class="tag recurring">Thu: Urgency Appeals</span>
+            </li>
+            <li>
+                <strong>TLH:</strong> Monday/Wednesday/Friday pattern
+                <span class="tag recurring">Mon: Lead Nurture</span>
+                <span class="tag recurring">Wed: Educational</span>
+                <span class="tag recurring">Fri: Social Proof</span>
+            </li>
+            <li>
+                <strong>Hello AI:</strong> Weekly Thursday posts
+                <span class="tag recurring">Thu: AI Case Studies</span>
+            </li>
+            <li>
+                <strong>Rational Ground:</strong> Biweekly + Screwtape Series
+                <span class="tag recurring">Biweekly: Analysis</span>
+                <span class="tag recurring">Monthly: Screwtape</span>
+            </li>
+            <li>
+                <strong>Twitter/X:</strong> Daily posts (3x daily sweep)
+                <span class="tag recurring">Morning: AI Operator</span>
+                <span class="tag recurring">Afternoon: Commentary</span>
+                <span class="tag recurring">Evening: Engagement</span>
+            </li>
+        </ul>
+    </div>
+    
+    <footer>
+        <p>Content Calendar Planner v1.0 | Built by Railstote | Last Updated: February 14, 2026 - 8:02 AM</p>
+    </footer>
+</body>
+</html>

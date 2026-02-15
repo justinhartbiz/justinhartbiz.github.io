@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reverse Org Chart 🎢</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-elevated: #1a1a24;
+            --teal-primary: #14b8a6;
+            --teal-light: #2dd4bf;
+            --teal-dim: #0d9488;
+            --amber: #f59e0b;
+            --amber-glow: rgba(245, 158, 11, 0.3);
+            --rose: #f43f5e;
+            --rose-glow: rgba(244, 63, 94, 0.3);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-subtle: rgba(20, 184, 166, 0.15);
+            --glow: rgba(20, 184, 166, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        header {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--teal-primary), var(--teal-dim));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: 0 0 30px var(--glow);
+        }
+        
+        .logo h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--teal-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 300;
+        }
+        
+        .hero {
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .hero h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        
+        .hero h2 span {
+            color: var(--teal-primary);
+        }
+        
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .timeline-container {
+            padding: 2rem 0 4rem;
+        }
+        
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--teal-primary);
+            border-radius: 2px;
+        }
+        
+        .horizon-labels {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .horizon-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .horizon-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .horizon-dot.now { background: var(--rose); box-shadow: 0 0 10px var(--rose-glow); }
+        .horizon-dot.soon { background: var(--amber); box-shadow: 0 0 10px var(--amber-glow); }
+        .horizon-dot.later { background: var(--teal-light); box-shadow: 0 0 10px var(--glow); }
+        
+        .org-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .role-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            position: relative;
+        }
+        
+        .role-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+        
+        .role-card.now::before {
+            background: linear-gradient(90deg, var(--rose), #fb7185);
+        }
+        
+        .role-card.soon::before {
+            background: linear-gradient(90deg, var(--amber), #fbbf24);
+        }
+        
+        .role-card.later::before {
+            background: linear-gradient(90deg, var(--teal-primary), var(--teal-light));
+        }
+        
+        .role-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .role-card.now:hover { border-color: var(--rose); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px var(--rose-glow); }
+        .role-card.soon:hover { border-color: var(--amber); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px var(--amber-glow); }
+        .role-card.later:hover { border-color: var(--teal-dim); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px var(--glow); }
+        
+        .role-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .role-company {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .role-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+        
+        .role-status.now {
+            background: rgba(244, 63, 94, 0.15);
+            color: var(--rose);
+        }
+        
+        .role-status.soon {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--amber);
+        }
+        
+        .role-status.later {
+            background: rgba(20, 184, 166, 0.15);
+            color: var(--teal-light);
+        }
+        
+        .role-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .role-ai {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 0.85rem;
+        }
+        
+        .role-ai-label {
+            color: var(--text-muted);
+            margin-bottom: 0.35rem;
+        }
+        
+        .role-ai-text {
+            color: var(--teal-light);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+        
+        .ai-absorbed {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            opacity: 0.9;
+        }
+        
+        .absorbed-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: linear-gradient(135deg, var(--rose), #fb7185);
+            color: white;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .row-label {
+            grid-column: 1 / -1;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .row-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-subtle);
+        }
+        
+        .insight {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .insight-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+        
+        .insight-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        .insight-text strong {
+            color: var(--teal-light);
+        }
+        
+        footer {
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-subtle);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        
+        @media (max-width: 900px) {
+            .role-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .horizon-labels {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">🎢</div>
+                <h1>Reverse Org Chart</h1>
+            </div>
+            <p class="tagline">One person's roles vs. the AI replacement timeline</p>
+        </header>
+        
+        <section class="hero">
+            <h2>When <span>AI</span> Meets <span>You</span></h2>
+            <p>Every role gets absorbed. The question is just when — and what becomes uniquely human.</p>
+        </section>
+        
+        <section class="timeline-container">
+            <div class="timeline-header">
+                <h3 class="section-title">AI Absorption Timeline</h3>
+                <div class="horizon-labels">
+                    <div class="horizon-label"><span class="horizon-dot now"></span>NOW</div>
+                    <div class="horizon-label"><span class="horizon-dot soon"></span>18 MO</div>
+                    <div class="horizon-label"><span class="horizon-dot later"></span>36 MO</div>
+                </div>
+            </div>
+            
+            <div class="org-chart">
+                <div class="row-label">Current Roles</div>
+                
+                <div class="role-row">
+                    <div class="role-card now">
+                        <div class="role-title">CMO</div>
+                        <div class="role-company">True Legacy Homes</div>
+                        <span class="role-status now">⚠️ MOST EXPOSED</span>
+                        <div class="role-desc">Overseeing all marketing strategy, creative direction, and campaign execution for a high-growth homebuilder.</div>
+                        <div class="role-ai">
+                            <div class="role-ai-label">AI Replacement:</div>
+                            <div class="role-ai-text">→ Already writing ad copy<br>→ A/B testing at scale<br>→ Real-time budget allocation</div>
+                        </div>
+                        <div class="absorbed-badge">🤖 70% ABSORBED</div>
+                    </div>
+                    
+                    <div class="role-card now">
+                        <div class="role-title">Head of Creative</div>
+                        <div class="role-company">DonorBureau</div>
+                        <span class="role-status now">⚠️ HIGH EXPOSURE</span>
+                        <div class="role-desc">Leading creative strategy for nonprofit fundraising campaigns across email, SMS, and landing pages.</div>
+                        <div class="role-ai">
+                            <div class="role-ai-label">AI Replacement:</div>
+                            <div class="role-ai-text">→ Generating variations<br>→ Predicting winners<br>→ Dynamic personalization</div>
+                        </div>
+                        <div class="absorbed-badge">🤖 60% ABSORBED</div>
+                    </div>
+                    
+                    <div class="role-card soon">
+                        <div class="role-title">Consultant</div>
+                        <div class="role-company">Multi-Client</div>
+                        <span class="role-status soon">⏳ MEDIUM EXPOSURE</span>
+                        <div class="role-desc">Fractional marketing leadership for select clients—strategy, team training, and execution oversight.</div>
+                        <div class="role-ai">
+                            <div class="role-ai-label">AI Replacement:</div>
+                            <div class="role-ai-text">→ AI consultants emerging<br>→ Custom knowledge bases<br>→ Voice-first advisors</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="role-row" style="margin-top: 1rem;">
+                    <div class="role-card now">
+                        <div class="role-title">Creator</div>
+                        <div class="role-company">Personal Brand</div>
+                        <span class="role-status now">⚠️ HUMAN EDGE</span>
+                        <div class="role-desc">Writing, speaking, and building in public. The authentic voice that no model can replicate—yet.</div>
+                        <div class="role-ai">
+                            <div class="role-ai-label">AI Replacement:</div>
+                            <div class="role-ai-text">→ Clones emerging<br>→ Voice synthesis<br>→ But trust is the moat</div>
+                        </div>
+                        <div class="absorbed-badge" style="background: linear-gradient(135deg, var(--teal-primary), var(--teal-dim));">💎 HUMAN TRACTION</div>
+                    </div>
+                    
+                    <div class="role-card later">
+                        <div class="role-title">Parent</div>
+                        <div class="role-company">The Hart Family</div>
+                        <span class="role-status later">🛡️ SAFE ZONE</span>
+                        <div class="role-desc">Raising three kids with intentionality, presence, and love. The role that defines everything else.</div>
+                        <div class="role-ai">
+                            <div class="role-ai-label">AI Replacement:</div>
+                            <div class="role-ai-text">→ Nanny bots coming?<br>→ Homework help<br>→ Never truly replaceable</div>
+                        </div>
+                    </div>
+                    
+                    <div class="role-card later">
+                        <div class="role-title">Decision Maker</div>
+                        <div class="role-company">All of the Above</div>
+                        <span class="role-status later">🛡️ SAFE ZONE</span>
+                        <div class="role-desc">The ultimate human role: judgment, taste, and the willingness to be responsible for outcomes.</div>
+                        <div class="role-ai">
+                            <div class="role-ai-label">AI Replacement:</div>
+                            <div class="role-ai-text">→ AI recommends<br>→ Humans decide<br>→ That's the asymmetry</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="insight">
+                <div class="insight-icon">💡</div>
+                <div class="insight-text">
+                    <strong>The pattern:</strong> Execution roles get absorbed first. Strategy follows. Identity and trust are the moats. The question isn't "will AI replace me?" — it's "what's left that's irreplaceably <em>mine</em>?"
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <p>🎢 Reverse Org Chart — Visualizing the collision of career and capability</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Add hover interactivity
+        document.querySelectorAll('.role-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        });
+    </script>
+</body>
+</html>

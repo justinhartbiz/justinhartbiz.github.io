@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meme Archaeology ⛏️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg: #0a0a0f;
+            --bg-lighter: #12121a;
+            --bg-card: #151520;
+            --teal: #00d4aa;
+            --teal-dim: #00d4aa40;
+            --text: #e0e0e0;
+            --text-dim: #808090;
+            --text-muted: #505060;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --blue: #3b82f6;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 50px 24px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .logo {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+        
+        h1 {
+            font-size: 36px;
+            color: var(--text);
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        h1 span {
+            color: var(--teal);
+        }
+        
+        .tagline {
+            color: var(--text-dim);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .date-range {
+            display: inline-block;
+            background: var(--bg-lighter);
+            border: 1px solid var(--teal-dim);
+            padding: 8px 20px;
+            border-radius: 50px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--teal);
+            font-family: 'SF Mono', monospace;
+        }
+        
+        .search-section {
+            background: var(--bg-lighter);
+            border: 1px solid var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .search-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .search-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--bg-card);
+            border-radius: 8px;
+            padding: 14px 18px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--teal);
+        }
+        
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            background: var(--bg);
+            border: 1px solid var(--bg-card);
+            color: var(--text-dim);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .filter-btn:hover {
+            border-color: var(--teal-dim);
+            color: var(--text);
+        }
+        
+        .filter-btn.active {
+            background: var(--teal-dim);
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        
+        .filter-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .results-count {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+        
+        .results-count span {
+            color: var(--teal);
+            font-weight: 600;
+        }
+        
+        .archive-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .meme-card {
+            background: var(--bg-card);
+            border: 1px solid transparent;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .meme-card:hover {
+            border-color: var(--teal-dim);
+            transform: translateY(-4px);
+        }
+        
+        .meme-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, var(--bg-lighter), var(--bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .meme-image::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 60%, var(--bg-card) 100%);
+        }
+        
+        .meme-placeholder {
+            opacity: 0.3;
+            font-size: 64px;
+        }
+        
+        .meme-content {
+            padding: 20px;
+        }
+        
+        .meme-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .meme-meta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .meme-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            background: var(--bg-lighter);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        
+        .tag.election { background: #3b82f620; color: var(--blue); }
+        .tag.viral { background: #f43f5e20; color: var(--rose); }
+        .tag.era { background: #f59e0b20; color: var(--amber); }
+        .tag.movement { background: #8b5cf620; color: #a855f7; }
+        
+        .spread-pattern {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--bg-lighter);
+        }
+        
+        .spread-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .spread-bar {
+            height: 6px;
+            background: var(--bg-lighter);
+            border-radius: 3px;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        .spread-segment {
+            height: 100%;
+        }
+        
+        .spread-segment. twitter { background: #1da1f2; }
+        .spread-segment.reddit { background: #ff4500; }
+        .spread-segment.facebook { background: #1877f2; }
+        .spread-segment.instagram { background: #e4405f; }
+        
+        .meme-detail {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 10, 15, 0.95);
+            z-index: 100;
+            overflow-y: auto;
+            padding: 40px;
+        }
+        
+        .meme-detail.active {
+            display: block;
+        }
+        
+        .detail-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .detail-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: none;
+            color: var(--text);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .detail-image {
+            width: 100%;
+            height: 300px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            margin-bottom: 24px;
+        }
+        
+        .detail-title {
+            font-size: 28px;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+        
+        .detail-meta {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--bg-card);
+        }
+        
+        .detail-meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-meta-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        
+        .detail-meta-value {
+            font-size: 15px;
+            color: var(--teal);
+            font-weight: 500;
+        }
+        
+        .detail-description {
+            color: var(--text-dim);
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+        
+        .detail-section {
+            margin-bottom: 24px;
+        }
+        
+        .detail-section h3 {
+            font-size: 14px;
+            color: var(--teal);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        
+        .detail-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        
+        .stat-box {
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-box-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .stat-box-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .excavation-note {
+            background: var(--bg-lighter);
+            border-left: 3px solid var(--teal);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 30px;
+        }
+        
+        .excavation-note h4 {
+            font-size: 13px;
+            color: var(--teal);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .excavation-note p {
+            font-size: 14px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .archive-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-row {
+                flex-direction: column;
+            }
+            .filter-group {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+            .meme-detail {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">⛏️</div>
+            <h1>Meme <span>Archaeology</span></h1>
+            <p class="tagline">Excavating the fossil record of viral political memes from the digital ages.</p>
+            <div class="date-range">2016 — 2026</div>
+        </header>
+        
+        <div class="search-section">
+            <div class="search-row">
+                <input type="text" class="search-input" placeholder="Search artifacts by name, origin, or description..." id="searchInput">
+            </div>
+            <div class="filter-row">
+                <button class="filter-btn active" data-filter="all">All Eras</button>
+                <button class="filter-btn" data-filter="2016">2016</button>
+                <button class="filter-btn" data-filter="2020">2020</button>
+                <button class="filter-btn" data-filter="2024">2024</button>
+                <button class="filter-btn" data-filter="viral">Viral</button>
+                <div class="filter-group">
+                    <span class="filter-label">Sort by:</span>
+                    <button class="filter-btn active" data-sort="date">Date</button>
+                    <button class="filter-btn" data-sort="impact">Impact</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-count">
+            Excavated <span id="resultsCount">12</span> artifacts
+        </div>
+        
+        <div class="archive-grid" id="archiveGrid">
+            <!-- Cards rendered by JS -->
+        </div>
+    </div>
+    
+    <div class="meme-detail" id="memeDetail">
+        <button class="detail-close" onclick="closeDetail()">×</button>
+        <div class="detail-content" id="detailContent">
+            <!-- Content rendered by JS -->
+        </div>
+    </div>
+    
+    <script>
+        const artifacts = [
+            {
+                id: 1,
+                title: "Pepe the Frog",
+                year: 2016,
+                origin: "4chan",
+                date: "2016-09",
+                spread: { twitter: 40, reddit: 30, facebook: 20, instagram: 10 },
+                tags: ["meme", "election", "movement"],
+                description: "Originally a harmless comic character created by Matt Furie, Pepe was co-opted and transformed into a symbol of the alt-right movement. Became one of the most recognizable political memes of the era.",
+                stats: { "Total Shares": "2.1M", "Peak Reach": "840M", "Duration": "18 months" }
+            },
+            {
+                id: 2,
+                title: "Crying Jordan",
+                year: 2016,
+                origin: "Twitter/Sports",
+                date: "2016-02",
+                spread: { twitter: 50, reddit: 25, facebook: 20, instagram: 5 },
+                tags: ["meme", "viral"],
+                description: "A photograph of Michael Jordan crying at his Hall of Fame induction became a ubiquitous reaction image. Transcended sports to become a universal symbol of regret, failure, and realization.",
+                stats: { "Total Shares": "5.7M", "Peak Reach": "2.1B", "Duration": "Ongoing" }
+            },
+            {
+                id: 3,
+                title: "This is Fine",
+                year: 2016,
+                origin: "Gunshow Comic",
+                date: "2016-11",
+                spread: { twitter: 35, reddit: 35, facebook: 15, instagram: 15 },
+                tags: ["meme", "viral"],
+                description: "The dog sitting in a burning room saying 'This is fine' became a staple of political commentary, representing denial and cognitive dissonance in the face of obvious crisis.",
+                stats: { "Total Shares": "1.8M", "Peak Reach": "620M", "Duration": "Ongoing" }
+            },
+            {
+                id: 4,
+                title: "Sleepy Joe",
+                year: 2020,
+                origin: "Trump Campaign",
+                date: "2020-05",
+                spread: { twitter: 60, facebook: 25, instagram: 10, reddit: 5 },
+                tags: ["election", "campaign"],
+                description: "A nickname and narrative pushed by the Trump campaign suggesting Joe Biden was cognitively decline. Spawned countless memes, edited videos, and was a central theme of the 2020 race.",
+                stats: { "Total Shares": "4.2M", "Peak Reach": "1.8B", "Duration": "7 months" }
+            },
+            {
+                id: 5,
+                title: "Let's Go Brandon",
+                year: 2021,
+                origin: "NASCAR",
+                date: "2021-10",
+                spread: { twitter: 45, facebook: 30, instagram: 15, reddit: 10 },
+                tags: ["viral", "movement"],
+                description: "Emerged from a NASCAR crowd chanting 'F*** Joe Biden' which was misreported as 'Let's Go Brandon.' Instantly became a nationwide anti-Biden slogan.",
+                stats: { "Total Shares": "8.9M", "Peak Reach": "3.2B", "Duration": "Ongoing" }
+            },
+            {
+                id: 6,
+                title: "Bernie Sanders Mittens",
+                year: 2021,
+                origin: "Inauguration",
+                date: "2021-01",
+                spread: { twitter: 55, instagram: 25, reddit: 15, facebook: 5 },
+                tags: ["viral", "election"],
+                description: "Senator Bernie Sanders sitting with mittens at Biden's inauguration became the defining meme of 2021. Spawned thousands of photoshop variations placing him in various scenarios.",
+                stats: { "Total Shares": "12.4M", "Peak Reach": "4.8B", "Duration": "3 months" }
+            },
+            {
+                id: 7,
+                title: "Stonks",
+                year: 2020,
+                origin: "Reddit/Stonks",
+                date: "2020-07",
+                spread: { reddit: 45, twitter: 30, instagram: 15, facebook: 10 },
+                tags: ["viral", "movement"],
+                description: "The misspelled 'Stonks' meme featuring a man in a suit appreciating stock gains became ubiquitous during the GameStop/Reddit WallStreetBets phenomenon.",
+                stats: { "Total Shares": "3.1M", "Peak Reach": "980M", "Duration": "6 months" }
+            },
+            {
+                id: 8,
+                title: "Deplatforming Memes",
+                year: 2021,
+                origin: "Multiple Platforms",
+                date: "2021-01",
+                spread: { twitter: 40, reddit: 35, facebook: 15, instagram: 10 },
+                tags: ["movement", "era"],
+                description: "After the January 6th Capitol riot, massive deplatforming of political figures led to memes about being 'redpilled,' 'censored,' and 'shadow banned.'",
+                stats: { "Total Shares": "2.4M", "Peak Reach": "720M", "Duration": "9 months" }
+            },
+            {
+                id: 9,
+                title: "Trump Card",
+                year: 2024,
+                origin: "Hush Money Trial",
+                date: "2024-04",
+                spread: { twitter: 65, truthsocial: 20, instagram: 10, reddit: 5 },
+                tags: ["election", "trial"],
+                description: "Memes surrounding Trump's criminal trials, hush money convictions, and mug shot. The Fulton County mug shot became instantly iconic and merchandise.",
+                stats: { "Total Shares": "6.8M", "Peak Reach": "2.9B", "Duration": "8 months" }
+            },
+            {
+                id: 10,
+                title: "Dark Brandon",
+                year: 2022,
+                origin: "Biden Campaign",
+                date: "2022-08",
+                spread: { twitter: 50, instagram: 25, reddit: 15, facebook: 10 },
+                tags: ["viral", "movement"],
+                description: "A radicalization of the Biden campaign's 'Dark Brandon' persona. Started as ironic memes about Biden being secretly powerful, evolved into genuine support.",
+                stats: { "Total Shares": "4.7M", "Peak Reach": "1.4B", "Duration": "Ongoing" }
+            },
+            {
+                id: 11,
+                title: "We Did It Joe",
+                year: 2024,
+                origin: "Biden Campaign",
+                date: "2024-11",
+                spread: { twitter: 55, instagram: 25, reddit: 15, facebook: 5 },
+                tags: ["election", "viral"],
+                description: "The celebration meme when Biden won 2020 transformed into coping memes when Trump won 2024. 'We did it Joe' became both triumphal and sardonic.",
+                stats: { "Total Shares": "7.2M", "Peak Reach": "2.6B", "Duration": "4 months" }
+            },
+            {
+                id: 12,
+                title: "RFK Jr. Worm",
+                year: 2024,
+                origin: "Podcast/Interview",
+                date: "2024-05",
+                spread: { twitter: 70, instagram: 15, reddit: 10, facebook: 5 },
+                tags: ["election", "viral"],
+                description: "RFK Jr. admitting on podcast he once ate a dead worm that 'may have been in his brain' became an instant meme phenomenon. The worm became a character.",
+                stats: { "Total Shares": "9.1M", "Peak Reach": "3.8B", "Duration": "2 weeks" }
+            }
+        ];
+        
+        function renderArtifacts(data) {
+            const grid = document.getElementById('archiveGrid');
+            const countEl = document.getElementById('resultsCount');
+            countEl.textContent = data.length;
+            
+            grid.innerHTML = data.map(art => `
+                <div class="meme-card" onclick="showDetail(${art.id})">
+                    <div class="meme-image">
+                        <span class="meme-placeholder">🖼️</span>
+                    </div>
+                    <div class="meme-content">
+                        <div class="meme-title">${art.title}</div>
+                        <div class="meme-meta">
+                            <span class="meta-item">📅 ${art.date}</span>
+                            <span class="meta-item">📍 ${art.origin}</span>
+                        </div>
+                        <div class="meme-tags">
+                            ${art.tags.map(t => `<span class="tag ${t}">${t}</span>`).join('')}
+                        </div>
+                        <div class="spread-pattern">
+                            <div class="spread-label">Spread Pattern</div>
+                            <div class="spread-bar">
+                                ${Object.entries(art.spread).map(([k, v]) => 
+                                    `<div class="spread-segment ${k}" style="width: ${v}%"></div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function showDetail(id) {
+            const art = artifacts.find(a => a.id === id);
+            if (!art) return;
+            
+            const detail = document.getElementById('memeDetail');
+            const content = document.getElementById('detailContent');
+            
+            content.innerHTML = `
+                <div class="detail-image">🖼️</div>
+                <h2 class="detail-title">${art.title}</h2>
+                <div class="detail-meta">
+                    <div class="detail-meta-item">
+                        <span class="detail-meta-label">Year</span>
+                        <span class="detail-meta-value">${art.year}</span>
+                    </div>
+                    <div class="detail-meta-item">
+                        <span class="detail-meta-label">Origin</span>
+                        <span class="detail-meta-value">${art.origin}</span>
+                    </div>
+                    <div class="detail-meta-item">
+                        <span class="detail-meta-label">Date</span>
+                        <span class="detail-meta-value">${art.date}</span>
+                    </div>
+                </div>
+                <p class="detail-description">${art.description}</p>
+                <div class="detail-section">
+                    <h3>Impact Metrics</h3>
+                    <div class="detail-stats">
+                        ${Object.entries(art.stats).map(([k, v]) => `
+                            <div class="stat-box">
+                                <div class="stat-box-value">${v}</div>
+                                <div class="stat-box-label">${k}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="excavation-note">
+                    <h4>⛏️ Excavation Notes</h4>
+                    <p>Archived from primary sources including archived forums, Wayback Machine, social media archives, and news documentation. Data cross-referenced with multiple sources for accuracy.</p>
+                </div>
+            `;
+            
+            detail.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeDetail() {
+            document.getElementById('memeDetail').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Search and filter
+        let currentFilter = 'all';
+        let currentSort = 'date';
+        let searchTerm = '';
+        
+        function filterData() {
+            let filtered = artifacts.filter(art => {
+                const matchesFilter = currentFilter === 'all' || 
+                    (currentFilter === 'viral' && art.tags.includes('viral')) ||
+                    art.year.toString() === currentFilter;
+                
+                const matchesSearch = !searchTerm || 
+                    art.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    art.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    art.origin.toLowerCase().includes(searchTerm.toLowerCase());
+                
+                return matchesFilter && matchesSearch;
+            });
+            
+            if (currentSort === 'date') {
+                filtered.sort((a, b) => b.date.localeCompare(a.date));
+            } else {
+                const impactOrder = { '2024': 0, '2020': 1, '2016': 2 };
+                filtered.sort((a, b) => impactOrder[a.year] - impactOrder[b.year]);
+            }
+            
+            renderArtifacts(filtered);
+        }
+        
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            filterData();
+        });
+        
+        document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                filterData();
+            });
+        });
+        
+        document.querySelectorAll('.filter-btn[data-sort]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn[data-sort]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSort = btn.dataset.sort;
+                filterData();
+            });
+        });
+        
+        document.getElementById('memeDetail').addEventListener('click', (e) => {
+            if (e.target.id === 'memeDetail') closeDetail();
+        });
+        
+        // Initial render
+        renderArtifacts(artifacts);
+    </script>
+</body>
+</html>
