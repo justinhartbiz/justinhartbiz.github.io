@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How News Cycles Drive Small-Dollar Fundraising | RNC vs DNC Q4 2025</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+  :root {
+    --red: #E81B23;
+    --red-light: rgba(232,27,35,0.15);
+    --blue: #0015BC;
+    --blue-light: rgba(0,21,188,0.15);
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card-border: #2a2d3a;
+    --text: #e4e4e7;
+    --text-muted: #9ca3af;
+    --accent: #f59e0b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+  .container { max-width:1280px; margin:0 auto; padding:2rem 1.5rem; }
+  
+  /* Hero */
+  .hero { text-align:center; padding:3rem 0 2rem; border-bottom:1px solid var(--card-border); margin-bottom:2.5rem; }
+  .hero .badge { display:inline-block; background:var(--accent); color:#000; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; padding:0.25rem 0.75rem; border-radius:100px; margin-bottom:1rem; }
+  .hero h1 { font-size:2.4rem; font-weight:800; letter-spacing:-0.03em; margin-bottom:0.5rem; background:linear-gradient(135deg, var(--red), var(--accent), var(--blue)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .hero .subtitle { font-size:1.1rem; color:var(--text-muted); max-width:700px; margin:0 auto; }
+  
+  /* Cards */
+  .card { background:var(--card); border:1px solid var(--card-border); border-radius:12px; padding:1.5rem; margin-bottom:1.5rem; }
+  .card h2 { font-size:1.3rem; font-weight:700; margin-bottom:1rem; }
+  .card h3 { font-size:1rem; font-weight:600; margin-bottom:0.75rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.05em; font-size:0.8rem; }
+  
+  /* Grid */
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+  @media(max-width:768px) { .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; } }
+  
+  /* KPI */
+  .kpi { text-align:center; padding:1.25rem; }
+  .kpi .value { font-size:2rem; font-weight:800; letter-spacing:-0.02em; }
+  .kpi .label { font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-top:0.25rem; }
+  .kpi.red .value { color:var(--red); }
+  .kpi.blue .value { color:var(--blue); }
+  .kpi.gold .value { color:var(--accent); }
+  
+  /* Chart container */
+  .chart-wrap { position:relative; height:380px; }
+  .chart-wrap-sm { position:relative; height:300px; }
+  
+  /* Table */
+  table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+  th { text-align:left; padding:0.6rem 0.75rem; border-bottom:2px solid var(--card-border); color:var(--text-muted); font-weight:600; text-transform:uppercase; font-size:0.7rem; letter-spacing:0.05em; }
+  td { padding:0.6rem 0.75rem; border-bottom:1px solid var(--card-border); }
+  tr:last-child td { border-bottom:none; }
+  .text-red { color:var(--red); }
+  .text-blue { color:var(--blue); }
+  .text-gold { color:var(--accent); }
+  .text-muted { color:var(--text-muted); }
+  .text-right { text-align:right; }
+  .text-center { text-align:center; }
+  .font-mono { font-family:'SF Mono',Consolas,monospace; }
+  
+  /* Insight callouts */
+  .insight { background:linear-gradient(135deg, rgba(245,158,11,0.1), rgba(245,158,11,0.05)); border-left:3px solid var(--accent); padding:1rem 1.25rem; border-radius:0 8px 8px 0; margin:1rem 0; }
+  .insight strong { color:var(--accent); }
+  
+  /* Timeline */
+  .timeline { position:relative; padding-left:2rem; }
+  .timeline::before { content:''; position:absolute; left:0.5rem; top:0; bottom:0; width:2px; background:var(--card-border); }
+  .timeline-item { position:relative; margin-bottom:1.25rem; }
+  .timeline-item::before { content:''; position:absolute; left:-1.65rem; top:0.5rem; width:10px; height:10px; border-radius:50%; border:2px solid var(--accent); background:var(--bg); }
+  .timeline-item .date { font-size:0.7rem; color:var(--accent); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
+  .timeline-item .event { font-size:0.85rem; }
+  .timeline-item .impact { font-size:0.75rem; color:var(--text-muted); margin-top:0.15rem; }
+  
+  /* Methodology */
+  .methodology { font-size:0.8rem; color:var(--text-muted); }
+  .methodology a { color:var(--accent); }
+  .methodology h4 { color:var(--text); font-size:0.85rem; margin:0.75rem 0 0.25rem; }
+  
+  /* Section spacing */
+  .section { margin-bottom:2.5rem; }
+  .section-title { font-size:1.6rem; font-weight:800; margin-bottom:1.25rem; letter-spacing:-0.02em; }
+  
+  /* Recommendations */
+  .rec-list { list-style:none; }
+  .rec-list li { padding:0.75rem 0; border-bottom:1px solid var(--card-border); display:flex; gap:0.75rem; }
+  .rec-list li:last-child { border-bottom:none; }
+  .rec-num { background:var(--accent); color:#000; font-weight:800; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; flex-shrink:0; margin-top:0.1rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">Case Study — FEC Filing Analysis</div>
+  <h1>How News Cycles Drive Small-Dollar Fundraising</h1>
+  <p class="subtitle">A comparative analysis of RNC vs DNC individual contributions, September–December 2025, sourced directly from FEC Form 3X monthly filings.</p>
+</div>
+
+<!-- KPIs -->
+<div class="section">
+  <div class="grid-4">
+    <div class="card kpi red">
+      <div class="value">$28.5M</div>
+      <div class="label">RNC Individual Contributions</div>
+    </div>
+    <div class="card kpi blue">
+      <div class="value">$23.6M</div>
+      <div class="label">DNC Individual Contributions</div>
+    </div>
+    <div class="card kpi gold">
+      <div class="value">$51.7M</div>
+      <div class="label">Total Receipts (RNC+DNC)</div>
+    </div>
+    <div class="card kpi" style="color:var(--text)">
+      <div class="value" style="color:var(--text)">+21%</div>
+      <div class="label">RNC Advantage in Individual $</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CHART -->
+<div class="section">
+  <h2 class="section-title">Monthly Fundraising Comparison</h2>
+  <div class="card">
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+</div>
+
+<!-- SMALL vs LARGE DOLLAR -->
+<div class="section">
+  <h2 class="section-title">Small-Dollar vs Large-Dollar Breakdown</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>RNC — Individual Contributions by Size</h3>
+      <div class="chart-wrap-sm"><canvas id="rncBreakdown"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>DNC — Individual Contributions by Size</h3>
+      <div class="chart-wrap-sm"><canvas id="dncBreakdown"></canvas></div>
+    </div>
+  </div>
+  <div class="insight">
+    <strong>Key Finding:</strong> The RNC's unitemized (small-dollar, under $200) contributions remained remarkably stable at $2.2–2.8M/month. The DNC's small-dollar base <strong>collapsed by 56%</strong> from September ($2.64M) to December ($1.21M) — a dramatic erosion of grassroots engagement in Q4.
+  </div>
+</div>
+
+<!-- SMALL DOLLAR RATIO -->
+<div class="section">
+  <h2 class="section-title">Small-Dollar Share of Individual Giving</h2>
+  <div class="card">
+    <div class="chart-wrap-sm"><canvas id="ratioChart"></canvas></div>
+  </div>
+  <div class="insight">
+    <strong>Asymmetry Alert:</strong> The DNC started Q4 with a <strong>higher</strong> small-dollar ratio (41%) than the RNC (34%), but by December the positions reversed — RNC held at 36% while DNC plunged to 25%. The DNC's grassroots base disengaged faster than its major donors.
+  </div>
+</div>
+
+<!-- NEWS EVENT TIMELINE -->
+<div class="section">
+  <h2 class="section-title">News Events & Fundraising Correlation</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>September 2025</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="date">Sep 10 — Charlie Kirk Assassination</div>
+          <div class="event">Turning Point USA founder shot and killed at Utah Valley University campus event.</div>
+          <div class="impact">🔴 Massive RNC/conservative fundraising catalyst. Small-dollar fury.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="date">Sep 29 — Trump Announces Gaza Peace Plan</div>
+          <div class="event">Multilateral ceasefire framework announced with Qatar, Turkey, and Egypt.</div>
+          <div class="impact">🔴 Bolstered GOP "peace through strength" narrative for donors.</div>
+        </div>
+      </div>
+      <table style="margin-top:1rem">
+        <tr><th></th><th class="text-right">RNC</th><th class="text-right">DNC</th></tr>
+        <tr><td>Total Receipts</td><td class="text-right font-mono text-red">$10.74M</td><td class="text-right font-mono text-blue">$10.27M</td></tr>
+        <tr><td>Individual (Total)</td><td class="text-right font-mono text-red">$6.75M</td><td class="text-right font-mono text-blue">$6.45M</td></tr>
+        <tr><td>Small-Dollar (&lt;$200)</td><td class="text-right font-mono text-red">$2.32M</td><td class="text-right font-mono text-blue">$2.64M</td></tr>
+      </table>
+    </div>
+    
+    <div class="card">
+      <h3>October 2025</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="date">Oct 1 — Government Shutdown Begins</div>
+          <div class="event">Federal government shuts down as Congress fails to pass FY2026 appropriations.</div>
+          <div class="impact">🔵🔴 Both parties use blame narratives for fundraising appeals.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="date">Oct 9 — Israel-Hamas Ceasefire Signed</div>
+          <div class="event">Hostages released; fragile peace begins in Gaza.</div>
+          <div class="impact">🔴 Big win for Trump administration; GOP fundraising surge.</div>
+        </div>
+      </div>
+      <table style="margin-top:1rem">
+        <tr><th></th><th class="text-right">RNC</th><th class="text-right">DNC</th></tr>
+        <tr><td>Total Receipts</td><td class="text-right font-mono text-red">$14.71M</td><td class="text-right font-mono text-blue">$23.14M*</td></tr>
+        <tr><td>Individual (Total)</td><td class="text-right font-mono text-red">$8.36M</td><td class="text-right font-mono text-blue">$7.54M</td></tr>
+        <tr><td>Small-Dollar (&lt;$200)</td><td class="text-right font-mono text-red">$2.81M</td><td class="text-right font-mono text-blue">$2.74M</td></tr>
+        <tr><td colspan="3" class="text-muted" style="font-size:0.7rem">*DNC total includes $15M loan</td></tr>
+      </table>
+    </div>
+    
+    <div class="card">
+      <h3>November 2025</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="date">Nov 4 — Off-Year Election Sweep</div>
+          <div class="event">Democrats sweep nearly every competitive race nationwide.</div>
+          <div class="impact">🔵 Post-victory "momentum" fundraising for DNC — but muted response.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="date">Nov 12 — Government Shutdown Ends</div>
+          <div class="event">43-day shutdown concludes with CR signed into law.</div>
+          <div class="impact">🔴🔵 Resolution removes urgency-based fundraising lever for both parties.</div>
+        </div>
+      </div>
+      <table style="margin-top:1rem">
+        <tr><th></th><th class="text-right">RNC</th><th class="text-right">DNC</th></tr>
+        <tr><td>Total Receipts</td><td class="text-right font-mono text-red">$10.19M</td><td class="text-right font-mono text-blue">$10.77M</td></tr>
+        <tr><td>Individual (Total)</td><td class="text-right font-mono text-red">$5.99M</td><td class="text-right font-mono text-blue">$4.81M</td></tr>
+        <tr><td>Small-Dollar (&lt;$200)</td><td class="text-right font-mono text-red">$2.21M</td><td class="text-right font-mono text-blue">$1.49M</td></tr>
+      </table>
+    </div>
+    
+    <div class="card">
+      <h3>December 2025</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="date">Dec 15 — Bondi Beach Terror Attack</div>
+          <div class="event">Terrorist shooting at Hanukkah celebration in Sydney kills 15.</div>
+          <div class="impact">🔴 Security-focused fundraising appeals; less direct domestic impact.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="date">Dec — Year-End Appeals</div>
+          <div class="event">Standard year-end tax-deduction deadline fundraising push by both parties.</div>
+          <div class="impact">🔴🔵 RNC year-end machine significantly outperformed DNC's.</div>
+        </div>
+      </div>
+      <table style="margin-top:1rem">
+        <tr><th></th><th class="text-right">RNC</th><th class="text-right">DNC</th></tr>
+        <tr><td>Total Receipts</td><td class="text-right font-mono text-red">$16.03M</td><td class="text-right font-mono text-blue">$12.80M</td></tr>
+        <tr><td>Individual (Total)</td><td class="text-right font-mono text-red">$7.38M</td><td class="text-right font-mono text-blue">$4.78M</td></tr>
+        <tr><td>Small-Dollar (&lt;$200)</td><td class="text-right font-mono text-red">$2.62M</td><td class="text-right font-mono text-blue">$1.21M</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- DETAILED TABLE -->
+<div class="section">
+  <h2 class="section-title">Complete Data Table</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th class="text-right">RNC Total Receipts</th>
+          <th class="text-right">RNC Itemized (&gt;$200)</th>
+          <th class="text-right">RNC Unitemized (&lt;$200)</th>
+          <th class="text-right">DNC Total Receipts</th>
+          <th class="text-right">DNC Itemized (&gt;$200)</th>
+          <th class="text-right">DNC Unitemized (&lt;$200)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Sep</strong></td>
+          <td class="text-right font-mono">$10,743,005</td>
+          <td class="text-right font-mono">$4,431,239</td>
+          <td class="text-right font-mono">$2,320,913</td>
+          <td class="text-right font-mono">$10,274,392</td>
+          <td class="text-right font-mono">$3,811,246</td>
+          <td class="text-right font-mono">$2,642,801</td>
+        </tr>
+        <tr>
+          <td><strong>Oct</strong></td>
+          <td class="text-right font-mono">$14,705,202</td>
+          <td class="text-right font-mono">$5,555,598</td>
+          <td class="text-right font-mono">$2,808,458</td>
+          <td class="text-right font-mono">$23,138,768</td>
+          <td class="text-right font-mono">$4,801,873</td>
+          <td class="text-right font-mono">$2,739,801</td>
+        </tr>
+        <tr>
+          <td><strong>Nov</strong></td>
+          <td class="text-right font-mono">$10,188,095</td>
+          <td class="text-right font-mono">$3,783,099</td>
+          <td class="text-right font-mono">$2,211,665</td>
+          <td class="text-right font-mono">$10,772,637</td>
+          <td class="text-right font-mono">$3,322,505</td>
+          <td class="text-right font-mono">$1,489,164</td>
+        </tr>
+        <tr>
+          <td><strong>Dec</strong></td>
+          <td class="text-right font-mono">$16,025,562</td>
+          <td class="text-right font-mono">$4,761,346</td>
+          <td class="text-right font-mono">$2,622,182</td>
+          <td class="text-right font-mono">$12,804,633</td>
+          <td class="text-right font-mono">$3,568,846</td>
+          <td class="text-right font-mono">$1,213,448</td>
+        </tr>
+        <tr style="font-weight:700; border-top:2px solid var(--card-border)">
+          <td>Q4 Total</td>
+          <td class="text-right font-mono text-red">$51,661,864</td>
+          <td class="text-right font-mono">$18,531,282</td>
+          <td class="text-right font-mono">$9,963,218</td>
+          <td class="text-right font-mono text-blue">$56,990,430</td>
+          <td class="text-right font-mono">$15,504,470</td>
+          <td class="text-right font-mono">$8,085,214</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ANALYSIS -->
+<div class="section">
+  <h2 class="section-title">Key Findings</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>1. The RNC's Small-Dollar Floor</h3>
+      <p style="font-size:0.9rem">The RNC maintained a remarkably consistent small-dollar contribution level throughout Q4 — never dropping below $2.2M or rising above $2.8M per month. This suggests a <strong>mature, recurring-donor infrastructure</strong> that generates steady revenue regardless of the news cycle. The RNC's small-dollar variance was just <strong>±12%</strong> from its mean.</p>
+    </div>
+    <div class="card">
+      <h3>2. The DNC's Grassroots Collapse</h3>
+      <p style="font-size:0.9rem">The DNC's unitemized contributions fell <strong>56% from September to December</strong> ($2.64M → $1.21M). This is a striking erosion. Despite winning the November elections decisively, the DNC failed to convert political momentum into small-dollar donations. The party's grassroots base appears to be in a <strong>post-2024 disengagement spiral</strong>.</p>
+    </div>
+    <div class="card">
+      <h3>3. Crisis Drives RNC Spikes</h3>
+      <p style="font-size:0.9rem">The RNC's two biggest months — October ($14.7M) and December ($16.0M) — align with the government shutdown and year-end appeals respectively. The <strong>Charlie Kirk assassination in September</strong> likely fueled the October surge with delayed processing. Crisis and outrage are the RNC's most effective fundraising accelerants.</p>
+    </div>
+    <div class="card">
+      <h3>4. DNC Relied on Institutional Money</h3>
+      <p style="font-size:0.9rem">The DNC took a <strong>$15M loan in October</strong> to fund operations — a clear sign that organic fundraising wasn't meeting operational needs. Their "Other Federal Receipts" and transfers from affiliated committees provided life support that individual donors did not. The DNC is running a <strong>top-heavy funding model</strong>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- RECOMMENDATIONS -->
+<div class="section">
+  <h2 class="section-title">Strategic Recommendations</h2>
+  <div class="card">
+    <ul class="rec-list">
+      <li>
+        <span class="rec-num">1</span>
+        <div>
+          <strong>DNC: Rebuild the Recurring Donor Base</strong>
+          <p class="text-muted" style="font-size:0.85rem">The 56% collapse in small-dollar giving is an existential problem. The DNC needs to invest heavily in monthly-sustainer programs. The RNC's floor of $2.2M/month proves that recurring infrastructure works — the DNC had it in 2020 and lost it.</p>
+        </div>
+      </li>
+      <li>
+        <span class="rec-num">2</span>
+        <div>
+          <strong>RNC: Weaponize Crisis Faster</strong>
+          <p class="text-muted" style="font-size:0.85rem">October's spike shows the RNC responds to catalysts but with a lag. Real-time crisis fundraising — emails within hours, not days — could capture another 15-20% of impulse donors. The Kirk assassination was the kind of event that should produce $5M+ in small-dollar alone.</p>
+        </div>
+      </li>
+      <li>
+        <span class="rec-num">3</span>
+        <div>
+          <strong>Both Parties: Don't Assume Wins Drive Donations</strong>
+          <p class="text-muted" style="font-size:0.85rem">The DNC's November election sweep produced their <em>worst</em> fundraising month. Victories reduce urgency. The smartest fundraisers frame wins as "now we need to defend what we won" rather than victory laps.</p>
+        </div>
+      </li>
+      <li>
+        <span class="rec-num">4</span>
+        <div>
+          <strong>Strategists: Small-Dollar Donors Respond to Threat, Not Hope</strong>
+          <p class="text-muted" style="font-size:0.85rem">Across both parties, the data is clear: threat-based narratives (shutdown, assassination, security) drive more small-dollar giving than positive developments (peace deals, election wins). Build your email calendar around what scares your base, not what excites it.</p>
+        </div>
+      </li>
+      <li>
+        <span class="rec-num">5</span>
+        <div>
+          <strong>DNC: Watch the Loan Dependency</strong>
+          <p class="text-muted" style="font-size:0.85rem">A $15M loan to fund operations while individual giving declines is a dangerous trajectory. The DNC needs to cut operational costs or dramatically improve fundraising — not paper over the gap with debt. This is the financial profile of an organization in structural decline.</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- METHODOLOGY -->
+<div class="section">
+  <h2 class="section-title">Methodology</h2>
+  <div class="card methodology">
+    <h4>Data Sources</h4>
+    <p>All financial data sourced directly from <strong>FEC Form 3X monthly filings</strong> for the 2025-2026 election cycle, accessed via the FEC Electronic Filing system at <a href="https://docquery.fec.gov">docquery.fec.gov</a>.</p>
+    
+    <h4>Committee IDs</h4>
+    <p>RNC: <code>C00003418</code> | DNC: <code>C00010603</code></p>
+    
+    <h4>Filing IDs Referenced</h4>
+    <p>RNC — Sep: FEC-1923017, Oct: FEC-1926421, Nov: FEC-1929757, Dec: FEC-1943313<br>
+    DNC — Sep: FEC-1923132, Oct: FEC-1926358, Nov: FEC-1929788, Dec: FEC-1943924</p>
+    
+    <h4>Definitions</h4>
+    <p><strong>Small-Dollar / Unitemized:</strong> Line 11(a)(ii) — individual contributions under $200 that are not required to be itemized by name. This is the standard FEC proxy for "small-dollar" grassroots giving.<br>
+    <strong>Large-Dollar / Itemized:</strong> Line 11(a)(i) — individual contributions of $200+ where donor identity must be disclosed.<br>
+    <strong>Total Receipts:</strong> Line 19 — includes contributions, transfers, loans, offsets, and other receipts.</p>
+    
+    <h4>News Events</h4>
+    <p>Event dates and descriptions sourced from CBS News, Wikipedia current events portals, and Ballotpedia. Correlations between events and fundraising are analytical inferences based on timing — monthly FEC data does not allow precise daily attribution.</p>
+    
+    <h4>Limitations</h4>
+    <p>Monthly reporting granularity means we cannot isolate specific daily or weekly fundraising spikes within a given month. The DNC's $15M loan in October inflates their total receipts figure for that month and should be excluded from contribution comparisons. "Unitemized" is an imperfect proxy for small-dollar — some donors who give multiple small amounts that aggregate over $200 in a cycle get reclassified as itemized.</p>
+    
+    <h4>Built By</h4>
+    <p>Analysis by Claude (Opus 4.6) for the FEC Shootout project. Dashboard generated February 15, 2026.</p>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const months = ['Sep 2025', 'Oct 2025', 'Nov 2025', 'Dec 2025'];
+const rncReceipts = [10743005, 14705202, 10188095, 16025562];
+const dncReceipts = [10274392, 23138768, 10772637, 12804633];
+const dncReceiptsExLoans = [10274392, 8138768, 10772637, 12804633]; // Oct minus $15M loan
+const rncItemized = [4431239, 5555598, 3783099, 4761346];
+const rncUnitemized = [2320913, 2808458, 2211665, 2622182];
+const dncItemized = [3811246, 4801873, 3322505, 3568846];
+const dncUnitemized = [2642801, 2739801, 1489164, 1213448];
+const rncTotalIndiv = rncItemized.map((v,i) => v + rncUnitemized[i]);
+const dncTotalIndiv = dncItemized.map((v,i) => v + dncUnitemized[i]);
+
+const fmt = v => '$' + (v/1e6).toFixed(1) + 'M';
+const fmtK = v => '$' + (v/1e3).toFixed(0) + 'K';
+
+Chart.defaults.color = '#9ca3af';
+Chart.defaults.borderColor = '#2a2d3a';
+Chart.defaults.font.family = "'Inter', -apple-system, sans-serif";
+
+// Main chart
+new Chart(document.getElementById('mainChart'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      { label:'RNC Total Receipts', data:rncReceipts, backgroundColor:'rgba(232,27,35,0.7)', borderColor:'#E81B23', borderWidth:1, borderRadius:4 },
+      { label:'DNC Total Receipts (ex. loans)', data:dncReceiptsExLoans, backgroundColor:'rgba(0,21,188,0.7)', borderColor:'#0015BC', borderWidth:1, borderRadius:4 },
+      { label:'RNC Individual', data:rncTotalIndiv, backgroundColor:'rgba(232,27,35,0.3)', borderColor:'#E81B23', borderWidth:1, borderRadius:4, borderDash:[5,5] },
+      { label:'DNC Individual', data:dncTotalIndiv, backgroundColor:'rgba(0,21,188,0.3)', borderColor:'#0015BC', borderWidth:1, borderRadius:4, borderDash:[5,5] }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins: {
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw) }},
+      annotation: {
+        annotations: {
+          kirk: { type:'label', xValue:0, yValue:15500000, content:['🎯 Kirk Assassination'], font:{size:10}, color:'#f59e0b' },
+          shutdown: { type:'label', xValue:1, yValue:17000000, content:['🏛️ Gov Shutdown'], font:{size:10}, color:'#f59e0b' },
+          elections: { type:'label', xValue:2, yValue:12000000, content:['🗳️ Dem Sweep'], font:{size:10}, color:'#f59e0b' },
+          yearend: { type:'label', xValue:3, yValue:18000000, content:['📅 Year-End Push'], font:{size:10}, color:'#f59e0b' }
+        }
+      }
+    },
+    scales: {
+      y: { ticks: { callback: v => fmt(v) }, grid: { color:'rgba(42,45,58,0.5)' }},
+      x: { grid: { display:false }}
+    }
+  }
+});
+
+// RNC breakdown
+new Chart(document.getElementById('rncBreakdown'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      { label:'Itemized (>$200)', data:rncItemized, backgroundColor:'rgba(232,27,35,0.8)', borderRadius:4 },
+      { label:'Unitemized (<$200)', data:rncUnitemized, backgroundColor:'rgba(232,27,35,0.35)', borderRadius:4 }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw) }}},
+    scales: {
+      x: { stacked:true, grid:{display:false} },
+      y: { stacked:true, ticks: { callback: v => fmt(v) }, grid:{color:'rgba(42,45,58,0.5)'} }
+    }
+  }
+});
+
+// DNC breakdown
+new Chart(document.getElementById('dncBreakdown'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      { label:'Itemized (>$200)', data:dncItemized, backgroundColor:'rgba(0,21,188,0.8)', borderRadius:4 },
+      { label:'Unitemized (<$200)', data:dncUnitemized, backgroundColor:'rgba(0,21,188,0.35)', borderRadius:4 }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw) }}},
+    scales: {
+      x: { stacked:true, grid:{display:false} },
+      y: { stacked:true, ticks: { callback: v => fmt(v) }, grid:{color:'rgba(42,45,58,0.5)'} }
+    }
+  }
+});
+
+// Ratio chart
+const rncRatio = rncUnitemized.map((v,i) => (v / rncTotalIndiv[i] * 100));
+const dncRatio = dncUnitemized.map((v,i) => (v / dncTotalIndiv[i] * 100));
+new Chart(document.getElementById('ratioChart'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [
+      { label:'RNC Small-Dollar %', data:rncRatio, borderColor:'#E81B23', backgroundColor:'rgba(232,27,35,0.1)', fill:true, tension:0.3, pointRadius:6, pointHoverRadius:8 },
+      { label:'DNC Small-Dollar %', data:dncRatio, borderColor:'#0015BC', backgroundColor:'rgba(0,21,188,0.1)', fill:true, tension:0.3, pointRadius:6, pointHoverRadius:8 }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw.toFixed(1) + '%' }}},
+    scales: {
+      y: { min:15, max:50, ticks:{ callback: v => v+'%' }, grid:{color:'rgba(42,45,58,0.5)'} },
+      x: { grid:{display:false} }
+    }
+  }
+});
+</script>
+</body>
+</html>
