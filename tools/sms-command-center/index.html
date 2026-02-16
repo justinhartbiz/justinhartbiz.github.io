@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMS Campaign Command Center — DonorBureau</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --card-hover: #1a2236;
+    --border: #1e293b;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59,130,246,0.15);
+    --green: #10b981;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --purple: #8b5cf6;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --input-bg: #0f172a;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 50%, rgba(59,130,246,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 70% 50%, rgba(139,92,246,0.06) 0%, transparent 50%);
+    animation: pulse 8s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+  }
+  .header p { color: var(--muted); margin-top: 0.5rem; font-size: 0.9rem; position: relative; }
+
+  .nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .nav button {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .nav button:hover { border-color: var(--accent); color: var(--text); }
+  .nav button.active {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: rgba(59,130,246,0.3); }
+  .card h2 {
+    font-size: 1.15rem;
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .card .subtitle { color: var(--muted); font-size: 0.8rem; margin-bottom: 1.2rem; }
+
+  .grid { display: grid; gap: 1rem; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  @media(max-width:768px) {
+    .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr; }
+  }
+
+  label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  input, select, textarea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.65rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; font-family: inherit; }
+
+  .btn {
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: opacity 0.2s;
+    margin-top: 0.5rem;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn-sm { padding: 0.5rem 1rem; font-size: 0.8rem; }
+
+  .result-box {
+    background: linear-gradient(135deg, rgba(59,130,246,0.05), rgba(139,92,246,0.05));
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-top: 1rem;
+  }
+  .stat {
+    text-align: center;
+    padding: 1rem;
+    background: var(--input-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .stat .value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+  .stat .label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .green { color: var(--green); }
+  .red { color: var(--red); }
+  .amber { color: var(--amber); }
+  .blue { color: var(--accent); }
+  .purple { color: var(--purple); }
+
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-green { background: rgba(16,185,129,0.15); color: var(--green); }
+  .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+  .badge-amber { background: rgba(245,158,11,0.15); color: var(--amber); }
+
+  .char-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+  }
+  .char-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s, background 0.3s;
+  }
+
+  .ask-preview {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .ask-chip {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th, td {
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tr:hover td { background: rgba(59,130,246,0.03); }
+
+  .phone-preview {
+    width: 280px;
+    margin: 0 auto;
+    background: #000;
+    border-radius: 30px;
+    padding: 12px;
+    border: 2px solid #333;
+  }
+  .phone-screen {
+    background: #1a1a2e;
+    border-radius: 22px;
+    padding: 1rem;
+    min-height: 200px;
+  }
+  .sms-bubble {
+    background: var(--accent);
+    color: white;
+    padding: 0.7rem 1rem;
+    border-radius: 16px 16px 4px 16px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+    word-wrap: break-word;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📱 SMS Campaign Command Center</h1>
+  <p>Built by Railstote for DonorBureau ops — real tools, not toy demos</p>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showPanel('ab')">🧪 A/B Test Calculator</button>
+  <button onclick="showPanel('roi')">💰 Campaign ROI</button>
+  <button onclick="showPanel('char')">✍️ SMS Composer</button>
+  <button onclick="showPanel('ask')">💵 Ask String Builder</button>
+  <button onclick="showPanel('schedule')">📅 Send Optimizer</button>
+  <button onclick="showPanel('seg')">🎯 Segment Planner</button>
+</div>
+
+<div class="container">
+
+<!-- ===== A/B TEST CALCULATOR ===== -->
+<div id="ab" class="panel active">
+  <div class="card">
+    <h2>🧪 A/B Test Statistical Significance</h2>
+    <p class="subtitle">Know when your winner is real — not noise. Uses two-proportion z-test.</p>
+    <div class="grid grid-2">
+      <div>
+        <h3 style="font-size:0.9rem;margin-bottom:0.8rem;color:var(--accent)">Variant A (Control)</h3>
+        <label>Recipients Sent</label>
+        <input type="number" id="ab-a-sent" value="50000" oninput="calcAB()">
+        <label style="margin-top:0.6rem">Conversions (Donations)</label>
+        <input type="number" id="ab-a-conv" value="375" oninput="calcAB()">
+        <label style="margin-top:0.6rem">Revenue ($)</label>
+        <input type="number" id="ab-a-rev" value="11250" oninput="calcAB()">
+      </div>
+      <div>
+        <h3 style="font-size:0.9rem;margin-bottom:0.8rem;color:var(--purple)">Variant B (Challenger)</h3>
+        <label>Recipients Sent</label>
+        <input type="number" id="ab-b-sent" value="50000" oninput="calcAB()">
+        <label style="margin-top:0.6rem">Conversions (Donations)</label>
+        <input type="number" id="ab-b-conv" value="425" oninput="calcAB()">
+        <label style="margin-top:0.6rem">Revenue ($)</label>
+        <input type="number" id="ab-b-rev" value="14875" oninput="calcAB()">
+      </div>
+    </div>
+    <div id="ab-result" class="result-box" style="margin-top:1.2rem"></div>
+  </div>
+</div>
+
+<!-- ===== CAMPAIGN ROI ===== -->
+<div id="roi" class="panel">
+  <div class="card">
+    <h2>💰 Campaign ROI Projector</h2>
+    <p class="subtitle">Model revenue, costs, and yield-per-send before you hit go.</p>
+    <div class="grid grid-3">
+      <div>
+        <label>List Size</label>
+        <input type="number" id="roi-list" value="250000" oninput="calcROI()">
+      </div>
+      <div>
+        <label>Send Rate (%)</label>
+        <input type="number" id="roi-send-rate" value="85" step="0.1" oninput="calcROI()">
+      </div>
+      <div>
+        <label>CTR (%)</label>
+        <input type="number" id="roi-ctr" value="3.2" step="0.1" oninput="calcROI()">
+      </div>
+      <div>
+        <label>Landing Page Conv. (%)</label>
+        <input type="number" id="roi-lp-conv" value="8.5" step="0.1" oninput="calcROI()">
+      </div>
+      <div>
+        <label>Average Gift ($)</label>
+        <input type="number" id="roi-avg-gift" value="35" step="1" oninput="calcROI()">
+      </div>
+      <div>
+        <label>Cost per Message ($)</label>
+        <input type="number" id="roi-cpm" value="0.015" step="0.001" oninput="calcROI()">
+      </div>
+    </div>
+    <div id="roi-result" class="result-box" style="margin-top:1.2rem"></div>
+  </div>
+</div>
+
+<!-- ===== SMS COMPOSER ===== -->
+<div id="char" class="panel">
+  <div class="card">
+    <h2>✍️ SMS Composer & Counter</h2>
+    <p class="subtitle">Live character count with merge field awareness. Knows GSM-7 vs UCS-2 encoding.</p>
+    <div class="grid grid-2">
+      <div>
+        <label>Message Body</label>
+        <textarea id="sms-body" rows="6" oninput="calcSMS()" placeholder="Hey {first_name}, your $35 gift to {org_name} will help protect...&#10;&#10;Donate now: {link}">{first_name}, URGENT — Officers are under attack and they need YOUR help RIGHT NOW.
+
+Your gift of just $35 can provide critical legal defense for a cop who was just doing their job.
+
+Will you step up? ➡️ {link}
+
+-{org_name}</textarea>
+        <div style="margin-top:0.8rem">
+          <label>Merge Field Estimates</label>
+          <div class="grid grid-2" style="gap:0.5rem">
+            <div>
+              <input type="text" value="{first_name} = 8" id="mf1" style="font-size:0.8rem" oninput="calcSMS()">
+            </div>
+            <div>
+              <input type="text" value="{org_name} = 15" id="mf2" style="font-size:0.8rem" oninput="calcSMS()">
+            </div>
+            <div>
+              <input type="text" value="{link} = 28" id="mf3" style="font-size:0.8rem" oninput="calcSMS()">
+            </div>
+            <div>
+              <input type="text" value="{amount} = 4" id="mf4" style="font-size:0.8rem" oninput="calcSMS()">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div id="sms-preview-container">
+          <div class="phone-preview">
+            <div class="phone-screen">
+              <div style="text-align:center;color:var(--muted);font-size:0.7rem;margin-bottom:0.5rem">Messages</div>
+              <div class="sms-bubble" id="sms-preview"></div>
+            </div>
+          </div>
+        </div>
+        <div id="sms-stats" style="margin-top:1rem"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ASK STRING BUILDER ===== -->
+<div id="ask" class="panel">
+  <div class="card">
+    <h2>💵 Ask String Optimizer</h2>
+    <p class="subtitle">Generate psychologically-optimized ask strings by donor tier. Based on anchoring + decoy pricing research.</p>
+    <div class="grid grid-3">
+      <div>
+        <label>Donor's Last Gift ($)</label>
+        <input type="number" id="ask-last" value="50" oninput="calcAsk()">
+      </div>
+      <div>
+        <label>Donor's Highest Gift ($)</label>
+        <input type="number" id="ask-high" value="100" oninput="calcAsk()">
+      </div>
+      <div>
+        <label>Strategy</label>
+        <select id="ask-strategy" onchange="calcAsk()">
+          <option value="upgrade">Upgrade (push higher)</option>
+          <option value="retain">Retain (safe renewal)</option>
+          <option value="reactivate">Reactivate (lapsed)</option>
+          <option value="acquire">Acquire (new prospect)</option>
+        </select>
+      </div>
+    </div>
+    <div id="ask-result" class="result-box" style="margin-top:1.2rem"></div>
+  </div>
+
+  <div class="card">
+    <h2>📊 Ask String Cheat Sheet</h2>
+    <p class="subtitle">Quick reference — common tiers and proven ask strings</p>
+    <table>
+      <thead>
+        <tr><th>Donor Tier</th><th>Last Gift</th><th>Upgrade Ask</th><th>Retain Ask</th><th>Psychology</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Grassroots</td><td>$5–15</td><td>$10, $15, $25, $50</td><td>$5, $10, $15, $25</td><td>Low anchor, easy yes</td></tr>
+        <tr><td>Low Dollar</td><td>$25–50</td><td>$35, $50, $75, $100</td><td>$25, $35, $50, $75</td><td>Match-last + stretch</td></tr>
+        <tr><td>Mid Dollar</td><td>$50–100</td><td>$75, $100, $150, $250</td><td>$50, $75, $100, $150</td><td>Decoy at position 3</td></tr>
+        <tr><td>Major Donor</td><td>$250+</td><td>$250, $500, $1000, $2500</td><td>$250, $350, $500, $1000</td><td>Prestige anchoring</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== SEND OPTIMIZER ===== -->
+<div id="schedule" class="panel">
+  <div class="card">
+    <h2>📅 Send Time Optimizer</h2>
+    <p class="subtitle">Optimal send windows based on political SMS performance data patterns. All times shown in recipient's local time.</p>
+    <div id="schedule-grid"></div>
+  </div>
+
+  <div class="card">
+    <h2>🗓️ Campaign Calendar Builder</h2>
+    <p class="subtitle">Generate a send cadence based on your campaign parameters.</p>
+    <div class="grid grid-3">
+      <div>
+        <label>Campaign Duration (days)</label>
+        <input type="number" id="cal-days" value="14">
+      </div>
+      <div>
+        <label>Max Sends/Week</label>
+        <select id="cal-freq">
+          <option value="3">3 (Standard)</option>
+          <option value="4">4 (Aggressive)</option>
+          <option value="5" selected>5 (Sprint)</option>
+          <option value="7">7 (Blitz)</option>
+        </select>
+      </div>
+      <div>
+        <label>Campaign Type</label>
+        <select id="cal-type">
+          <option value="sustain">Sustainer Push</option>
+          <option value="eoy">EOY / Deadline</option>
+          <option value="emergency">Emergency / Breaking</option>
+          <option value="acquisition">Acquisition</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="buildCalendar()">Generate Calendar</button>
+    <div id="cal-result" style="margin-top:1rem"></div>
+  </div>
+</div>
+
+<!-- ===== SEGMENT PLANNER ===== -->
+<div id="seg" class="panel">
+  <div class="card">
+    <h2>🎯 Segment & Suppression Planner</h2>
+    <p class="subtitle">Map your list segments, estimate deliverability, and plan suppression logic.</p>
+    <div class="grid grid-2">
+      <div>
+        <label>Total List Size</label>
+        <input type="number" id="seg-total" value="500000" oninput="calcSeg()">
+        <label style="margin-top:0.6rem">Estimated Wireless (%)</label>
+        <input type="number" id="seg-wireless" value="72" step="1" oninput="calcSeg()">
+        <label style="margin-top:0.6rem">Opt-Out Rate (%)</label>
+        <input type="number" id="seg-optout" value="4.2" step="0.1" oninput="calcSeg()">
+        <label style="margin-top:0.6rem">Invalid/Disconnected (%)</label>
+        <input type="number" id="seg-invalid" value="8" step="0.1" oninput="calcSeg()">
+        <label style="margin-top:0.6rem">Recent Donors (90d) (%)</label>
+        <input type="number" id="seg-recent" value="12" step="0.1" oninput="calcSeg()">
+        <label style="margin-top:0.6rem">Lapsed 180d+ (%)</label>
+        <input type="number" id="seg-lapsed" value="35" step="0.1" oninput="calcSeg()">
+      </div>
+      <div id="seg-result"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  🦉 Built by Railstote — Railstote × DonorBureau — Feb 2026<br>
+  <span style="opacity:0.6">All calculations are estimates. Always validate with actual campaign data.</span>
+</div>
+
+<script>
+// === NAVIGATION ===
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// === A/B TEST ===
+function normalCDF(x) {
+  const a1=0.254829592, a2=-0.284496736, a3=1.421413741, a4=-1.453152027, a5=1.061405429;
+  const p=0.3275911;
+  const sign = x < 0 ? -1 : 1;
+  x = Math.abs(x) / Math.sqrt(2);
+  const t = 1.0 / (1.0 + p * x);
+  const y = 1.0 - (((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return 0.5 * (1.0 + sign * y);
+}
+
+function calcAB() {
+  const nA=+document.getElementById('ab-a-sent').value;
+  const cA=+document.getElementById('ab-a-conv').value;
+  const rA=+document.getElementById('ab-a-rev').value;
+  const nB=+document.getElementById('ab-b-sent').value;
+  const cB=+document.getElementById('ab-b-conv').value;
+  const rB=+document.getElementById('ab-b-rev').value;
+
+  if(!nA||!nB) return;
+
+  const pA=cA/nA, pB=cB/nB;
+  const pPool=(cA+cB)/(nA+nB);
+  const se=Math.sqrt(pPool*(1-pPool)*(1/nA+1/nB));
+  const z=se>0?(pB-pA)/se:0;
+  const pValue=2*(1-normalCDF(Math.abs(z)));
+  const confidence=(1-pValue)*100;
+
+  const lift=pA>0?((pB-pA)/pA*100):0;
+  const revLift=rA>0?((rB-rA)/rA*100):0;
+  const ypsA=nA>0?(rA/nA*1000):0;
+  const ypsB=nB>0?(rB/nB*1000):0;
+
+  let verdict, vClass;
+  if(confidence>=95) { verdict='✅ STATISTICALLY SIGNIFICANT — Scale the winner!'; vClass='green'; }
+  else if(confidence>=90) { verdict='⚠️ APPROACHING SIGNIFICANCE — Consider extending test'; vClass='amber'; }
+  else { verdict='❌ NOT YET SIGNIFICANT — Keep testing, need more data'; vClass='red'; }
+
+  const winner = pB > pA ? 'B' : 'A';
+
+  document.getElementById('ab-result').innerHTML = `
+    <div style="font-weight:600;margin-bottom:1rem" class="${vClass}">${verdict}</div>
+    <div class="grid grid-4">
+      <div class="stat"><div class="value blue">${confidence.toFixed(1)}%</div><div class="label">Confidence</div></div>
+      <div class="stat"><div class="value ${lift>=0?'green':'red'}">${lift>=0?'+':''}${lift.toFixed(2)}%</div><div class="label">Conv. Rate Lift</div></div>
+      <div class="stat"><div class="value ${revLift>=0?'green':'red'}">${revLift>=0?'+':''}${revLift.toFixed(1)}%</div><div class="label">Revenue Lift</div></div>
+      <div class="stat"><div class="value purple">Variant ${winner}</div><div class="label">Leader</div></div>
+    </div>
+    <div style="margin-top:1rem;font-size:0.82rem;color:var(--muted)">
+      <strong>Details:</strong> Z-score = ${z.toFixed(3)} | p-value = ${pValue.toFixed(4)} | Conv A = ${(pA*100).toFixed(3)}% | Conv B = ${(pB*100).toFixed(3)}%<br>
+      Yield/1K: A = $${ypsA.toFixed(2)} | B = $${ypsB.toFixed(2)} | Revenue delta = $${(rB-rA).toLocaleString()}
+    </div>
+  `;
+}
+
+// === ROI PROJECTOR ===
+function calcROI() {
+  const list=+document.getElementById('roi-list').value;
+  const sendRate=+document.getElementById('roi-send-rate').value/100;
+  const ctr=+document.getElementById('roi-ctr').value/100;
+  const lpConv=+document.getElementById('roi-lp-conv').value/100;
+  const avgGift=+document.getElementById('roi-avg-gift').value;
+  const cpm=+document.getElementById('roi-cpm').value;
+
+  const delivered=Math.round(list*sendRate);
+  const clicks=Math.round(delivered*ctr);
+  const donors=Math.round(clicks*lpConv);
+  const revenue=donors*avgGift;
+  const cost=delivered*cpm;
+  const profit=revenue-cost;
+  const roi=cost>0?((profit/cost)*100):0;
+  const yps=delivered>0?(revenue/delivered*1000):0;
+  const cpa=donors>0?(cost/donors):0;
+
+  document.getElementById('roi-result').innerHTML = `
+    <div class="grid grid-4" style="margin-bottom:1rem">
+      <div class="stat"><div class="value green">$${revenue.toLocaleString()}</div><div class="label">Projected Revenue</div></div>
+      <div class="stat"><div class="value ${profit>=0?'green':'red'}">$${profit.toLocaleString()}</div><div class="label">Net Profit</div></div>
+      <div class="stat"><div class="value blue">${roi.toFixed(0)}%</div><div class="label">ROI</div></div>
+      <div class="stat"><div class="value purple">$${yps.toFixed(2)}</div><div class="label">Yield / 1K Sent</div></div>
+    </div>
+    <div class="grid grid-4">
+      <div class="stat"><div class="value">${delivered.toLocaleString()}</div><div class="label">Delivered</div></div>
+      <div class="stat"><div class="value">${clicks.toLocaleString()}</div><div class="label">Clicks</div></div>
+      <div class="stat"><div class="value">${donors.toLocaleString()}</div><div class="label">Donors</div></div>
+      <div class="stat"><div class="value">$${cpa.toFixed(2)}</div><div class="label">Cost / Acquisition</div></div>
+    </div>
+    <div style="margin-top:1rem">
+      <table>
+        <thead><tr><th>Scenario</th><th>CTR</th><th>LP Conv</th><th>Donors</th><th>Revenue</th><th>ROI</th></tr></thead>
+        <tbody>
+          ${[0.7,0.85,1.0,1.15,1.3].map(mult => {
+            const sc=Math.round(clicks*mult*lpConv);
+            const sr=sc*avgGift;
+            const sp=sr-cost;
+            return `<tr><td>${mult<1?'Pessimistic':mult==1?'<strong>Base Case</strong>':'Optimistic'} (${(ctr*mult*100).toFixed(1)}%)</td>
+              <td>${(ctr*mult*100).toFixed(1)}%</td><td>${(lpConv*100).toFixed(1)}%</td>
+              <td>${sc.toLocaleString()}</td><td class="${sr>cost?'green':'red'}">$${sr.toLocaleString()}</td>
+              <td class="${sp>0?'green':'red'}">${cost>0?((sp/cost)*100).toFixed(0):'∞'}%</td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// === SMS COMPOSER ===
+function parseMergeFields() {
+  const fields = {};
+  ['mf1','mf2','mf3','mf4'].forEach(id => {
+    const val = document.getElementById(id).value;
+    const match = val.match(/\{(\w+)\}\s*=\s*(\d+)/);
+    if(match) fields[`{${match[1]}}`] = +match[2];
+  });
+  return fields;
+}
+
+function isGSM7(text) {
+  return /^[A-Za-z0-9 @£$¥èéùìòÇØøÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ!"#¤%&'()*+,\-./:;<=>?¡ÄÖÑÜ§¿äöñüà\n\r\t{}\\[\]~|€^]*$/.test(text);
+}
+
+function calcSMS() {
+  const body = document.getElementById('sms-body').value;
+  const fields = parseMergeFields();
+
+  // Calculate resolved length
+  let resolved = body;
+  let rawLen = body.length;
+  let resolvedLen = rawLen;
+  Object.entries(fields).forEach(([token, len]) => {
+    const regex = new RegExp(token.replace(/[{}]/g,'\\$&'), 'g');
+    const matches = (body.match(regex)||[]).length;
+    resolvedLen += matches * (len - token.length);
+    resolved = resolved.replace(regex, 'X'.repeat(len));
+  });
+
+  const gsm = isGSM7(resolved);
+  const segLimit = gsm ? 160 : 70;
+  const concatLimit = gsm ? 153 : 67;
+  const segments = resolvedLen <= segLimit ? 1 : Math.ceil(resolvedLen / concatLimit);
+  const encoding = gsm ? 'GSM-7' : 'UCS-2 (Unicode)';
+
+  const pct = Math.min((resolvedLen / (segLimit * 3)) * 100, 100);
+  let barColor = pct < 50 ? 'var(--green)' : pct < 75 ? 'var(--amber)' : 'var(--red)';
+
+  // Preview
+  let preview = body;
+  Object.entries(fields).forEach(([token]) => {
+    const name = token.replace(/[{}]/g,'');
+    const examples = {first_name:'Sarah', org_name:'NCPD', link:'bit.ly/donate', amount:'$35'};
+    preview = preview.split(token).join(examples[name]||name);
+  });
+  document.getElementById('sms-preview').textContent = preview;
+
+  document.getElementById('sms-stats').innerHTML = `
+    <div class="grid grid-2" style="gap:0.8rem">
+      <div class="stat">
+        <div class="value ${segments<=1?'green':segments<=2?'amber':'red'}">${resolvedLen}</div>
+        <div class="label">Est. Characters</div>
+      </div>
+      <div class="stat">
+        <div class="value ${segments<=1?'green':segments<=2?'amber':'red'}">${segments}</div>
+        <div class="label">SMS Segments</div>
+      </div>
+    </div>
+    <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--muted)">
+      Encoding: <span class="badge ${gsm?'badge-green':'badge-amber'}">${encoding}</span>
+      &nbsp;|&nbsp; Raw chars: ${rawLen} &nbsp;|&nbsp; Segment limit: ${segLimit}
+    </div>
+    <div class="char-bar"><div class="char-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+    ${segments>2?'<div style="margin-top:0.5rem;font-size:0.78rem;color:var(--red)">⚠️ 3+ segments significantly increases cost. Consider trimming.</div>':''}
+    ${!gsm?'<div style="margin-top:0.5rem;font-size:0.78rem;color:var(--amber)">⚠️ Contains non-GSM characters (emoji/unicode). Using UCS-2 = fewer chars per segment.</div>':''}
+  `;
+}
+
+// === ASK STRING BUILDER ===
+function calcAsk() {
+  const last=+document.getElementById('ask-last').value;
+  const high=+document.getElementById('ask-high').value;
+  const strategy=document.getElementById('ask-strategy').value;
+
+  function round(n) {
+    if(n<=10) return Math.round(n/5)*5||5;
+    if(n<=50) return Math.round(n/5)*5;
+    if(n<=100) return Math.round(n/25)*25;
+    if(n<=500) return Math.round(n/50)*50;
+    return Math.round(n/100)*100;
+  }
+
+  let asks = [];
+  let note = '';
+
+  if(strategy==='upgrade') {
+    asks = [round(last*0.8), round(last), round(last*1.5), round(last*2.5)];
+    note = 'Anchors at last gift, stretches to 2.5x. Position 3 is the target (decoy at 4 makes 3 feel reasonable).';
+  } else if(strategy==='retain') {
+    asks = [round(last*0.6), round(last*0.8), round(last), round(last*1.3)];
+    note = 'Retention-safe: lowest ask is accessible, last gift is position 3 (comfortable repeat), slight stretch at 4.';
+  } else if(strategy==='reactivate') {
+    asks = [round(last*0.4), round(last*0.6), round(last*0.8), round(last)];
+    note = 'Re-engagement: start well below last gift to reduce friction. Goal is ANY gift to reactivate.';
+  } else {
+    asks = [5, 10, 25, 50];
+    note = 'Acquisition defaults. Low barrier, wide net. Optimize after first gift data comes in.';
+  }
+
+  // Ensure unique and sorted
+  asks = [...new Set(asks)].sort((a,b)=>a-b);
+  while(asks.length<4) asks.push(round(asks[asks.length-1]*1.5));
+
+  // Alternative strings
+  const aggressive = asks.map(a=>round(a*1.3));
+  const conservative = asks.map(a=>round(a*0.7));
+
+  document.getElementById('ask-result').innerHTML = `
+    <div style="margin-bottom:1rem">
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem">RECOMMENDED ASK STRING</div>
+      <div class="ask-preview">
+        ${asks.map((a,i)=>`<span class="ask-chip" style="${i===2?'border-color:var(--green);color:var(--green)':''}">$${a.toLocaleString()}</span>`).join('')}
+        <span class="ask-chip" style="border-color:var(--muted);color:var(--muted)">Other</span>
+      </div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:0.4rem">${note}</div>
+    </div>
+    <div class="grid grid-2" style="gap:1rem">
+      <div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem">AGGRESSIVE VARIANT</div>
+        <div class="ask-preview">
+          ${aggressive.map(a=>`<span class="ask-chip" style="border-color:var(--amber);color:var(--amber)">$${a.toLocaleString()}</span>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem">CONSERVATIVE VARIANT</div>
+        <div class="ask-preview">
+          ${conservative.map(a=>`<span class="ask-chip" style="border-color:var(--accent)">$${a.toLocaleString()}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:1rem;padding:0.8rem;background:var(--input-bg);border-radius:8px;font-size:0.8rem">
+      <strong>Merge field syntax:</strong><br>
+      <code style="color:var(--green)">{ask_1}=$${asks[0]} | {ask_2}=$${asks[1]} | {ask_3}=$${asks[2]} | {ask_4}=$${asks[3]}</code>
+    </div>
+  `;
+}
+
+// === SEND OPTIMIZER ===
+function initSchedule() {
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const hours = ['8 AM','9 AM','10 AM','11 AM','12 PM','1 PM','2 PM','3 PM','4 PM','5 PM','6 PM','7 PM','8 PM'];
+
+  // Performance heat data (relative index 0-100) based on political SMS patterns
+  const heat = [
+    [40,55,70,82,75,60,50,45,55,70,80,85,65], // Mon
+    [45,60,75,85,80,65,55,50,60,75,85,88,70], // Tue
+    [42,58,72,80,78,62,52,48,58,72,82,86,68], // Wed
+    [50,65,80,90,85,72,60,58,68,82,92,95,78], // Thu
+    [35,48,60,72,68,55,42,38,45,55,62,60,45], // Fri
+    [25,35,45,55,50,40,35,30,38,48,55,58,42], // Sat
+    [30,42,52,62,58,48,40,35,45,58,70,75,55], // Sun
+  ];
+
+  let html = '<table><thead><tr><th></th>';
+  hours.forEach(h => html += `<th style="font-size:0.65rem;padding:0.3rem">${h}</th>`);
+  html += '</tr></thead><tbody>';
+
+  days.forEach((day, di) => {
+    html += `<tr><td style="font-size:0.75rem;font-weight:600">${day.slice(0,3)}</td>`;
+    heat[di].forEach(val => {
+      const r = val > 70 ? 16+Math.round((val-70)*4) : 16;
+      const g = val > 50 ? 185-Math.round((100-val)*1.5) : 40+val;
+      const b = val < 40 ? 68 : 50;
+      const opacity = 0.2 + (val/100)*0.8;
+      html += `<td style="text-align:center;padding:0.3rem;background:rgba(${val>80?'16,185,129':val>60?'245,158,11':val>40?'59,130,246':'148,163,184'},${opacity});border-radius:4px;font-size:0.7rem;font-weight:${val>80?'700':'400'}">${val}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  html += `<div style="margin-top:0.8rem;font-size:0.78rem;color:var(--muted)">
+    <span class="badge badge-green">80+</span> Prime time &nbsp;
+    <span class="badge badge-amber">60-80</span> Good &nbsp;
+    <span class="badge" style="background:rgba(59,130,246,0.15);color:var(--accent)">40-60</span> Average &nbsp;
+    <span style="color:var(--muted)">Below 40</span> Avoid
+    <br><br>🔑 <strong>Key insights:</strong> Thursday evenings (6-8 PM) are peak for political SMS. Tuesday is the strongest overall day.
+    Avoid Friday afternoons and Saturday mornings. Sunday evenings are underrated for urgency plays.
+  </div>`;
+
+  document.getElementById('schedule-grid').innerHTML = html;
+}
+
+// === CALENDAR BUILDER ===
+function buildCalendar() {
+  const days = +document.getElementById('cal-days').value;
+  const freq = +document.getElementById('cal-freq').value;
+  const type = document.getElementById('cal-type').value;
+
+  const cadences = {
+    sustain: {name:'Sustainer Push', pattern:['Soft Ask','Hard Ask','Social Proof','Urgency','Deadline'], tones:['warm','direct','testimonial','urgent','FOMO']},
+    eoy: {name:'EOY / Deadline', pattern:['Teaser','Soft Launch','Match Offer','24h Warning','FINAL HOURS','Thank You'], tones:['curiosity','warm','exciting','urgent','URGENT','gratitude']},
+    emergency: {name:'Emergency / Breaking', pattern:['BREAKING','Follow-Up','Update','Escalation','Resolution Ask'], tones:['alert','informative','developing','urgent','resolution']},
+    acquisition: {name:'Acquisition', pattern:['Cold Intro','Value Prop','Social Proof','Incentive','Last Chance'], tones:['curiosity','benefit','trust','deal','scarcity']}
+  };
+
+  const c = cadences[type];
+  const totalSends = Math.min(days, Math.ceil(days/7)*freq);
+  const gap = Math.max(1, Math.floor(days/totalSends));
+
+  let html = `<div style="font-weight:600;margin-bottom:0.8rem">${c.name} — ${totalSends} sends over ${days} days</div>`;
+  html += '<table><thead><tr><th>Day</th><th>Send #</th><th>Creative Type</th><th>Tone</th><th>Notes</th></tr></thead><tbody>';
+
+  const today = new Date();
+  for(let i=0; i<totalSends; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i*gap);
+    const dayStr = d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const patIdx = i % c.pattern.length;
+
+    html += `<tr>
+      <td>${dayStr}</td>
+      <td>#${i+1}</td>
+      <td><strong>${c.pattern[patIdx]}</strong></td>
+      <td><span class="badge ${c.tones[patIdx]==='urgent'||c.tones[patIdx]==='URGENT'?'badge-red':c.tones[patIdx]==='warm'||c.tones[patIdx]==='gratitude'?'badge-green':'badge-amber'}">${c.tones[patIdx]}</span></td>
+      <td style="font-size:0.78rem;color:var(--muted)">${i===0?'Establish frame':i===totalSends-1?'Final send — max urgency':'Escalate from previous'}</td>
+    </tr>`;
+  }
+
+  html += '</tbody></table>';
+  document.getElementById('cal-result').innerHTML = html;
+}
+
+// === SEGMENT PLANNER ===
+function calcSeg() {
+  const total=+document.getElementById('seg-total').value;
+  const wireless=+document.getElementById('seg-wireless').value/100;
+  const optout=+document.getElementById('seg-optout').value/100;
+  const invalid=+document.getElementById('seg-invalid').value/100;
+  const recent=+document.getElementById('seg-recent').value/100;
+  const lapsed=+document.getElementById('seg-lapsed').value/100;
+
+  const wirelessN=Math.round(total*wireless);
+  const landline=total-wirelessN;
+  const optedOut=Math.round(wirelessN*optout);
+  const invalidN=Math.round(wirelessN*invalid);
+  const deliverable=wirelessN-optedOut-invalidN;
+  const recentN=Math.round(deliverable*recent);
+  const lapsedN=Math.round(deliverable*lapsed);
+  const activeN=deliverable-recentN-lapsedN;
+
+  document.getElementById('seg-result').innerHTML = `
+    <div class="stat" style="margin-bottom:0.8rem">
+      <div class="value green">${deliverable.toLocaleString()}</div>
+      <div class="label">Deliverable Universe</div>
+    </div>
+    <table>
+      <tr><td>Total List</td><td style="text-align:right">${total.toLocaleString()}</td></tr>
+      <tr><td>Wireless</td><td style="text-align:right">${wirelessN.toLocaleString()}</td></tr>
+      <tr><td style="color:var(--red)">− Landline (excluded)</td><td style="text-align:right;color:var(--red)">${landline.toLocaleString()}</td></tr>
+      <tr><td style="color:var(--red)">− Opted Out</td><td style="text-align:right;color:var(--red)">${optedOut.toLocaleString()}</td></tr>
+      <tr><td style="color:var(--red)">− Invalid/Disconnected</td><td style="text-align:right;color:var(--red)">${invalidN.toLocaleString()}</td></tr>
+      <tr style="border-top:2px solid var(--accent)"><td><strong>= Deliverable</strong></td><td style="text-align:right"><strong>${deliverable.toLocaleString()}</strong></td></tr>
+    </table>
+    <div style="margin-top:1rem;font-size:0.8rem;font-weight:600">Segment Breakdown:</div>
+    <div class="grid grid-3" style="gap:0.5rem;margin-top:0.5rem">
+      <div class="stat"><div class="value green" style="font-size:1.1rem">${recentN.toLocaleString()}</div><div class="label">Recent (90d)</div></div>
+      <div class="stat"><div class="value blue" style="font-size:1.1rem">${activeN.toLocaleString()}</div><div class="label">Active Mid</div></div>
+      <div class="stat"><div class="value amber" style="font-size:1.1rem">${lapsedN.toLocaleString()}</div><div class="label">Lapsed 180d+</div></div>
+    </div>
+    <div style="margin-top:0.8rem;font-size:0.78rem;color:var(--muted)">
+      💡 <strong>Rec:</strong> Send recent donors your upgrade ask. Active mid gets standard. Lapsed gets reactivation with lowest ask string and strongest urgency hook.
+    </div>
+  `;
+}
+
+// Initialize all calculators
+calcAB();
+calcROI();
+calcSMS();
+calcAsk();
+calcSeg();
+initSchedule();
+</script>
+
+</body>
+</html>

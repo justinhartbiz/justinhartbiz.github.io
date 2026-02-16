@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Emotion Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #6366F1;
+            --primary-dark: #4F46E5;
+            --secondary: #EC4899;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --dark: #1E293B;
+            --light: #F8FAFC;
+            --gray: #64748B;
+            --gray-light: #CBD5E1;
+            --white: #ffffff;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #0F172A;
+            color: var(--light);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2D3748;
+            margin-bottom: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--white);
+            margin-bottom: 0.5em;
+        }
+        
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            color: var(--light);
+            margin-top: 1.5rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+            margin-right: 12px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background-color: #1E293B;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #2D3748;
+            padding-bottom: 10px;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .card-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .metric {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--white);
+        }
+        
+        .metric-trend {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .trend-up {
+            color: var(--success);
+        }
+        
+        .trend-down {
+            color: var(--danger);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 30px;
+        }
+        
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        
+        .col {
+            flex: 1;
+            padding: 0 10px;
+            min-width: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--gray-light);
+            font-weight: 500;
+        }
+        
+        textarea, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #2D3748;
+            background-color: #1E293B;
+            color: var(--white);
+            font-family: inherit;
+            font-size: 0.875rem;
+            resize: vertical;
+        }
+        
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-icon {
+            margin-right: 8px;
+            font-size: 1.1em;
+        }
+        
+        .emotion-card {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .emotion-card.primary {
+            background: rgba(99, 102, 241, 0.1);
+            border-left-color: var(--primary);
+        }
+        
+        .emotion-card.secondary {
+            background: rgba(236, 72, 153, 0.1);
+            border-left-color: var(--secondary);
+        }
+        
+        .emotion-card.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left-color: var(--success);
+        }
+        
+        .emotion-card.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: var(--warning);
+        }
+        
+        .emotion-name {
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 5px;
+            color: var(--white);
+        }
+        
+        .emotion-percentage {
+            font-size: 0.875rem;
+            color: var(--gray-light);
+            margin-bottom: 10px;
+        }
+        
+        .emotion-bar {
+            height: 6px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .emotion-progress {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .primary .emotion-progress {
+            background-color: var(--primary);
+        }
+        
+        .secondary .emotion-progress {
+            background-color: var(--secondary);
+        }
+        
+        .success .emotion-progress {
+            background-color: var(--success);
+        }
+        
+        .warning .emotion-progress {
+            background-color: var(--warning);
+        }
+        
+        .dashboard-section {
+            margin-bottom: 40px;
+        }
+        
+        .dashboard-section-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--white);
+        }
+        
+        .dashboard-section-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .prediction-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .prediction-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: #1E293B;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .prediction-title {
+            font-size: 0.875rem;
+            color: var(--gray-light);
+            margin-bottom: 10px;
+        }
+        
+        .prediction-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+        
+        .prediction-high {
+            color: var(--success);
+        }
+        
+        .prediction-medium {
+            color: var(--warning);
+        }
+        
+        .prediction-low {
+            color: var(--danger);
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-primary {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+        
+        .badge-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        .badge-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        .badge-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .recommendation {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #1E293B;
+        }
+        
+        .recommendation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .recommendation-title {
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .recommendation-body {
+            font-size: 0.875rem;
+            color: var(--gray-light);
+        }
+        
+        .recommendation-example {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: var(--gray-light);
+        }
+        
+        .tab-container {
+            margin-bottom: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #2D3748;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--gray);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .tab.active {
+            color: var(--primary);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .segment-selector {
+            display: flex;
+            margin-bottom: 30px;
+            background-color: #1E293B;
+            border-radius: 8px;
+            padding: 5px;
+        }
+        
+        .segment-option {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--gray);
+            transition: all 0.2s ease;
+        }
+        
+        .segment-option.active {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+        
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #2D3748;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">💫</span>
+                <h1>Creative Emotion Analyzer</h1>
+            </div>
+        </header>
+        
+        <div class="dashboard-section">
+            <h2 class="dashboard-section-title">
+                <span class="dashboard-section-icon">✏️</span>
+                Analyze Your Content
+            </h2>
+            
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="creative-input">Enter your creative content</label>
+                        <textarea id="creative-input" rows="6" placeholder="Paste your SMS, email, or landing page copy here...">BREAKING: Our latest report has uncovered systemic issues with our public education system. Children are being left behind while special interests profit.
+
+But there is HOPE. With your support today, we can turn this around. Our team of experts has developed a new program that is showing incredible results.
+
+Will you donate $25 today to help a child receive the education they deserve? Every dollar makes a difference.
+
+[Yes, I'll Help a Child Today]</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="segment-select">Select target audience</label>
+                        <select id="segment-select">
+                            <option value="general">General Audience</option>
+                            <option value="high-value">High-Value Donors</option>
+                            <option value="new-donor">First-Time Donors</option>
+                            <option value="lapsed">Lapsed Donors (90+ days)</option>
+                            <option value="political">Political Segment</option>
+                            <option value="nonprofit">Nonprofit/Cause-Based</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="analyzeCreative()">
+                        <span class="btn-icon">✨</span>
+                        Analyze Emotions
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-section" id="results-section" style="display: none;">
+            <h2 class="dashboard-section-title">
+                <span class="dashboard-section-icon">📊</span>
+                Emotional Analysis Results
+            </h2>
+            
+            <div class="prediction-container">
+                <div class="prediction-card">
+                    <div class="prediction-title">Estimated Engagement Rate</div>
+                    <div class="prediction-value prediction-high" id="engagement-prediction">7.9%</div>
+                </div>
+                
+                <div class="prediction-card">
+                    <div class="prediction-title">Estimated Conversion Rate</div>
+                    <div class="prediction-value prediction-medium" id="conversion-prediction">2.3%</div>
+                </div>
+                
+                <div class="prediction-card">
+                    <div class="prediction-title">Emotional Complexity Score</div>
+                    <div class="prediction-value" id="complexity-score">7.2</div>
+                </div>
+                
+                <div class="prediction-card">
+                    <div class="prediction-title">Audience Resonance</div>
+                    <div class="prediction-value prediction-high" id="audience-resonance">High</div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Emotional Signature</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="emotion-radar-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Emotional Arc</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="emotion-timeline-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <h3>Primary Emotions</h3>
+                    
+                    <div class="emotion-card primary">
+                        <div class="emotion-name">Concern</div>
+                        <div class="emotion-percentage">32%</div>
+                        <div class="emotion-bar">
+                            <div class="emotion-progress" style="width: 32%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="emotion-card secondary">
+                        <div class="emotion-name">Hope</div>
+                        <div class="emotion-percentage">28%</div>
+                        <div class="emotion-bar">
+                            <div class="emotion-progress" style="width: 28%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="emotion-card success">
+                        <div class="emotion-name">Compassion</div>
+                        <div class="emotion-percentage">18%</div>
+                        <div class="emotion-bar">
+                            <div class="emotion-progress" style="width: 18%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="emotion-card warning">
+                        <div class="emotion-name">Urgency</div>
+                        <div class="emotion-percentage">14%</div>
+                        <div class="emotion-bar">
+                            <div class="emotion-progress" style="width: 14%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col">
+                    <h3>Emotional Arc Analysis</h3>
+                    
+                    <div class="recommendation">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">Strong Opening Concern</div>
+                            <span class="badge badge-success">Effective</span>
+                        </div>
+                        <div class="recommendation-body">
+                            Your opening establishes a problem that creates concern. This is effective for grabbing attention and creating emotional investment.
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">Hope Bridge</div>
+                            <span class="badge badge-success">Effective</span>
+                        </div>
+                        <div class="recommendation-body">
+                            You transition from concern to hope, creating a powerful emotional shift that motivates action.
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">Urgency Signal</div>
+                            <span class="badge badge-warning">Could Improve</span>
+                        </div>
+                        <div class="recommendation-body">
+                            The urgency level (14%) is lower than optimal for this segment (20-25% recommended).
+                        </div>
+                        <div class="recommendation-example">
+                            Suggestion: "Will you donate $25 <strong>right now</strong> to help a child receive the education they deserve? <strong>We have a limited matching grant that expires tonight.</strong>"
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-section">
+                <h2 class="dashboard-section-title">
+                    <span class="dashboard-section-icon">💡</span>
+                    Optimization Recommendations
+                </h2>
+                
+                <div class="tab-container">
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab('emotion-balance')">Emotion Balance</div>
+                        <div class="tab" onclick="switchTab('segment-matching')">Segment Matching</div>
+                        <div class="tab" onclick="switchTab('ab-testing')">A/B Test Ideas</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="emotion-balance">
+                        <div class="recommendation">
+                            <div class="recommendation-header">
+                                <div class="recommendation-title">Increase Urgency</div>
+                                <span class="badge badge-primary">+0.5% Est. Conversion</span>
+                            </div>
+                            <div class="recommendation-body">
+                                Your urgency level is 14%, which is below the optimal range of 20-25% for this type of message. Consider adding time-sensitive elements or limited availability.
+                            </div>
+                            <div class="recommendation-example">
+                                Example: "This matching grant expires at midnight tonight" or "Only 50 sponsorships available"
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation">
+                            <div class="recommendation-header">
+                                <div class="recommendation-title">Add Gratitude Element</div>
+                                <span class="badge badge-primary">+0.3% Est. Conversion</span>
+                            </div>
+                            <div class="recommendation-body">
+                                Adding a gratitude element to your CTA can increase conversions, especially with this segment.
+                            </div>
+                            <div class="recommendation-example">
+                                Example: "We're so grateful for supporters like you who make this work possible. Thank you for considering a gift today."
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation">
+                            <div class="recommendation-header">
+                                <div class="recommendation-title">Balance Concern/Outrage</div>
+                                <span class="badge badge-warning">Possible Risk</span>
+                            </div>
+                            <div class="recommendation-body">
+                                Your concern level is 32%, which is approaching the threshold where it can trigger defensive reactions in some readers.
+                            </div>
+                            <div class="recommendation-example">
+                                Suggestion: Soften with "Many children are falling behind" instead of "Children are being left behind"
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="segment-matching">
+                        <h3>Selected Segment: General Audience</h3>
+                        
+                        <div class="segment-selector">
+                            <div class="segment-option active" onclick="updateSegmentView('general')">General</div>
+                            <div class="segment-option" onclick="updateSegmentView('high-value')">High-Value</div>
+                            <div class="segment-option" onclick="updateSegmentView('new-donor')">New Donors</div>
+                            <div class="segment-option" onclick="updateSegmentView('lapsed')">Lapsed</div>
+                            <div class="segment-option" onclick="updateSegmentView('political')">Political</div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Segment Response Patterns</div>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="segment-response-chart"></canvas>
+                            </div>
+                            
+                            <div class="recommendation">
+                                <div class="recommendation-header">
+                                    <div class="recommendation-title">Segment Alignment</div>
+                                    <span class="badge badge-success">85% Match</span>
+                                </div>
+                                <div class="recommendation-body">
+                                    Your content aligns well with general audience preferences. This segment responds well to the Concern → Hope arc you've created, but could benefit from more specific impact statements.
+                                </div>
+                                <div class="recommendation-example">
+                                    Example: "Your $25 gift will provide 5 hours of specialized tutoring for a struggling student"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="ab-testing">
+                        <h3>A/B Test Variant Ideas</h3>
+                        
+                        <div class="recommendation">
+                            <div class="recommendation-header">
+                                <div class="recommendation-title">Variant A: Increase Urgency</div>
+                                <span class="badge badge-primary">Focus: Timing</span>
+                            </div>
+                            <div class="recommendation-body">
+                                Create a variant that increases the urgency signal from 14% to 25% by adding time constraints and limited availability.
+                            </div>
+                            <div class="recommendation-example">
+                                "BREAKING: Our latest report has uncovered systemic issues with our public education system. Children are being left behind while special interests profit.
+
+But there is HOPE. With your support <strong>TODAY ONLY</strong>, we can turn this around. Our team of experts has developed a new program that is showing incredible results.
+
+Will you donate $25 <strong>in the next 3 hours</strong> to help a child receive the education they deserve? <strong>We have a 2X MATCHING GRANT that EXPIRES AT MIDNIGHT!</strong>
+
+[Yes, I'll Help a Child Today]"
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation">
+                            <div class="recommendation-header">
+                                <div class="recommendation-title">Variant B: Gratitude Focus</div>
+                                <span class="badge badge-primary">Focus: Appreciation</span>
+                            </div>
+                            <div class="recommendation-body">
+                                Create a variant that adds gratitude elements to create a more positive emotional resonance.
+                            </div>
+                            <div class="recommendation-example">
+                                "BREAKING: Our latest report has uncovered systemic issues with our public education system. Children are being left behind while special interests profit.
+
+But there is HOPE. <strong>Thanks to generous supporters like you</strong>, we can turn this around. Our team of experts has developed a new program that is showing incredible results.
+
+Will you donate $25 today to help a child receive the education they deserve? <strong>We're deeply grateful for every gift that makes our work possible.</strong>
+
+[Yes, I'll Help a Child Today]
+
+<strong>P.S. Thank you for being someone who cares about our children's future.</strong>"
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation">
+                            <div class="recommendation-header">
+                                <div class="recommendation-title">Variant C: Personal Story</div>
+                                <span class="badge badge-primary">Focus: Emotional Connection</span>
+                            </div>
+                            <div class="recommendation-body">
+                                Create a variant that uses a personal story to increase emotional connection.
+                            </div>
+                            <div class="recommendation-example">
+                                "<strong>Meet Jacob. At just 8 years old, he was already three grade levels behind in reading. His teachers were overwhelmed, and his parents didn't know where to turn.</strong>
+
+Our latest report has uncovered systemic issues like this throughout our public education system. Children like Jacob are being left behind.
+
+But there is HOPE. <strong>After just 3 months in our program, Jacob is reading at grade level and rediscovering his love of learning.</strong> With your support today, we can help more children like him.
+
+Will you donate $25 today to help another child like Jacob receive the education they deserve?
+
+[Yes, I'll Help a Child Today]"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            Creative Emotion Analyzer v1.0 | Built by Railstote | February 15, 2026
+        </footer>
+    </div>
+
+    <script>
+        // Initialize charts and data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // We'll initialize charts when the analyze button is clicked
+        });
+
+        // Function to analyze creative content
+        function analyzeCreative() {
+            // Show results section
+            document.getElementById('results-section').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('results-section').scrollIntoView({
+                behavior: 'smooth'
+            });
+            
+            // Initialize radar chart
+            initRadarChart();
+            
+            // Initialize timeline chart
+            initTimelineChart();
+            
+            // Initialize segment response chart
+            initSegmentResponseChart();
+        }
+
+        // Function to initialize radar chart
+        function initRadarChart() {
+            const ctx = document.getElementById('emotion-radar-chart').getContext('2d');
+            
+            const data = {
+                labels: ['Concern', 'Hope', 'Compassion', 'Urgency', 'Inspiration', 'Gratitude', 'Frustration', 'Curiosity'],
+                datasets: [{
+                    label: 'Your Content',
+                    data: [32, 28, 18, 14, 6, 3, 8, 5],
+                    fill: true,
+                    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                    borderColor: 'rgb(99, 102, 241)',
+                    pointBackgroundColor: 'rgb(99, 102, 241)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(99, 102, 241)'
+                }, {
+                    label: 'Ideal Pattern',
+                    data: [25, 30, 15, 22, 10, 12, 5, 10],
+                    fill: true,
+                    backgroundColor: 'rgba(236, 72, 153, 0.2)',
+                    borderColor: 'rgb(236, 72, 153)',
+                    pointBackgroundColor: 'rgb(236, 72, 153)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(236, 72, 153)'
+                }]
+            };
+            
+            const config = {
+                type: 'radar',
+                data: data,
+                options: {
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            pointLabels: {
+                                color: 'rgb(203, 213, 225)',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            ticks: {
+                                color: 'rgb(203, 213, 225)',
+                                backdropColor: 'transparent'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgb(203, 213, 225)'
+                            }
+                        }
+                    }
+                },
+            };
+            
+            new Chart(ctx, config);
+        }
+
+        // Function to initialize timeline chart
+        function initTimelineChart() {
+            const ctx = document.getElementById('emotion-timeline-chart').getContext('2d');
+            
+            const data = {
+                labels: ['Opening', 'Problem', 'Solution', 'Ask', 'CTA'],
+                datasets: [
+                    {
+                        label: 'Concern',
+                        data: [30, 70, 20, 10, 5],
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                    },
+                    {
+                        label: 'Hope',
+                        data: [5, 10, 60, 40, 30],
+                        borderColor: 'rgb(236, 72, 153)',
+                        backgroundColor: 'rgba(236, 72, 153, 0.5)',
+                    },
+                    {
+                        label: 'Urgency',
+                        data: [10, 5, 10, 35, 40],
+                        borderColor: 'rgb(245, 158, 11)',
+                        backgroundColor: 'rgba(245, 158, 11, 0.5)',
+                    },
+                    {
+                        label: 'Compassion',
+                        data: [20, 25, 15, 20, 10],
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                    }
+                ]
+            };
+            
+            const config = {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: 'rgb(203, 213, 225)'
+                            }
+                        },
+                        title: {
+                            display: false,
+                            text: 'Emotional Arc Through Content'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgb(203, 213, 225)'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgb(203, 213, 225)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Emotion Intensity',
+                                color: 'rgb(203, 213, 225)'
+                            }
+                        }
+                    }
+                },
+            };
+            
+            new Chart(ctx, config);
+        }
+
+        // Function to initialize segment response chart
+        function initSegmentResponseChart() {
+            const ctx = document.getElementById('segment-response-chart').getContext('2d');
+            
+            const data = {
+                labels: ['Concern', 'Hope', 'Compassion', 'Urgency', 'Gratitude', 'Curiosity'],
+                datasets: [
+                    {
+                        label: 'Your Content',
+                        data: [32, 28, 18, 14, 3, 5],
+                        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                        borderColor: 'rgb(99, 102, 241)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Segment Preference',
+                        data: [25, 30, 15, 20, 15, 10],
+                        backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                        borderColor: 'rgb(236, 72, 153)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+            
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: 'rgb(203, 213, 225)'
+                            }
+                        },
+                        title: {
+                            display: false,
+                            text: 'Segment Response Patterns'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgb(203, 213, 225)'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgb(203, 213, 225)'
+                            }
+                        }
+                    }
+                },
+            };
+            
+            new Chart(ctx, config);
+        }
+
+        // Function to switch tabs
+        function switchTab(tabId) {
+            // Hide all tab content
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.remove('active');
+            });
+            
+            // Deactivate all tabs
+            document.querySelectorAll('.tab').forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Activate selected tab
+            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        }
+
+        // Function to update segment view
+        function updateSegmentView(segment) {
+            // Update segment selector UI
+            document.querySelectorAll('.segment-option').forEach(function(option) {
+                option.classList.remove('active');
+            });
+            document.querySelector(`.segment-option[onclick="updateSegmentView('${segment}')"]`).classList.add('active');
+            
+            // For demo purposes, we'd update the chart data here
+            // In a real implementation, this would pull segment-specific data
+            
+            // Update the segment name in the heading
+            const segmentNames = {
+                'general': 'General Audience',
+                'high-value': 'High-Value Donors',
+                'new-donor': 'New Donors',
+                'lapsed': 'Lapsed Donors',
+                'political': 'Political Segment'
+            };
+            
+            document.querySelector('#segment-matching h3').textContent = `Selected Segment: ${segmentNames[segment]}`;
+            
+            // In a real implementation, we'd update charts and recommendations here
+        }
+    </script>
+</body>
+</html>

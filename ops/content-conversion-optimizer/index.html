@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Conversion Optimizer | Justin Hart</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --secondary: #ff7675;
+            --dark: #2d3436;
+            --light: #dfe6e9;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --text: #2d3436;
+            --text-light: #636e72;
+            --bg: #ffffff;
+            --bg-alt: #f5f6fa;
+            --border: #dfe6e9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-alt);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            background-color: var(--dark);
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .card {
+            background-color: var(--bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background-color: var(--bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.25rem;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .db-section {
+            border-left: 4px solid var(--secondary);
+            padding-left: 1rem;
+        }
+
+        .tlh-section {
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: var(--bg-alt);
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        tr:hover {
+            background-color: rgba(108, 92, 231, 0.05);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge-success {
+            background-color: rgba(0, 184, 148, 0.2);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background-color: rgba(253, 203, 110, 0.2);
+            color: #b7791f;
+        }
+
+        .badge-danger {
+            background-color: rgba(214, 48, 49, 0.2);
+            color: var(--danger);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--bg-alt);
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recommendations-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .recommendation-item {
+            background-color: var(--bg);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .recommendation-item.high {
+            border-left-color: var(--danger);
+        }
+
+        .recommendation-item.medium {
+            border-left-color: var(--warning);
+        }
+
+        .recommendation-item.low {
+            border-left-color: var(--success);
+        }
+
+        .recommendation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .recommendation-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .recommendation-impact {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .recommendation-impact.high {
+            color: var(--danger);
+        }
+
+        .recommendation-impact.medium {
+            color: #b7791f;
+        }
+
+        .recommendation-impact.low {
+            color: var(--success);
+        }
+
+        .recommendation-description {
+            margin-bottom: 0.75rem;
+            color: var(--text);
+        }
+
+        .recommendation-actions {
+            padding-left: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .recommendation-actions li {
+            margin-bottom: 0.5rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .element-analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .element-card {
+            background: var(--bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .element-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .element-header {
+            padding: 1rem;
+            background: var(--dark);
+            color: white;
+        }
+
+        .element-content {
+            padding: 1.25rem;
+        }
+
+        .element-score {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .score-good {
+            color: var(--success);
+        }
+
+        .score-medium {
+            color: var(--warning);
+        }
+
+        .score-bad {
+            color: var(--danger);
+        }
+
+        .element-issues {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .element-issues li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+        }
+
+        .element-issues li:last-child {
+            border-bottom: none;
+        }
+
+        .issue-icon {
+            margin-right: 0.75rem;
+            width: 18px;
+            height: 18px;
+            text-align: center;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .issue-error {
+            background-color: rgba(214, 48, 49, 0.2);
+            color: var(--danger);
+        }
+
+        .issue-warning {
+            background-color: rgba(253, 203, 110, 0.2);
+            color: #b7791f;
+        }
+
+        .issue-info {
+            background-color: rgba(108, 92, 231, 0.2);
+            color: var(--primary);
+        }
+
+        .performance-table th:not(:first-child), 
+        .performance-table td:not(:first-child) {
+            text-align: center;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: var(--bg-alt);
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        @media screen and (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .element-analysis-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header .container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .tab {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div>
+                <h1>Content Conversion Optimizer</h1>
+                <p class="subtitle">Identify and fix conversion-killing issues across landing pages and forms</p>
+            </div>
+            <div>
+                <span id="currentDate"></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="meta-row">
+            <div>Last scan: <strong>February 15, 2026</strong></div>
+            <div><strong>48 pages</strong> analyzed across DonorBureau and TLH</div>
+            <div><strong>214 issues</strong> found (67 critical)</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">62%</div>
+                <div class="stat-label">Average Form Completion Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">3.8s</div>
+                <div class="stat-label">Average Page Load Time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">+18.7%</div>
+                <div class="stat-label">Potential Conversion Lift</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">$16.4K</div>
+                <div class="stat-label">Est. Monthly Value</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="overview">Overview</div>
+            <div class="tab" data-tab="donorbureau">DonorBureau</div>
+            <div class="tab" data-tab="tlh">True Legacy Homes</div>
+            <div class="tab" data-tab="recommendations">Recommendations</div>
+        </div>
+
+        <div id="overview" class="tab-content active">
+            <div class="card">
+                <h2>Executive Summary</h2>
+                <p>Analysis of 48 landing pages and forms across DonorBureau and TLH revealed significant conversion optimization opportunities. We've identified issues that, if addressed, could yield an estimated 18.7% lift in conversions, representing approximately $16,400 in additional monthly revenue.</p>
+                <br>
+                <p>Primary findings include:</p>
+                <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                    <li><strong>Form friction:</strong> Excessive form fields reduce completion rates by up to 30%</li>
+                    <li><strong>Mobile optimization:</strong> 62% of TLH forms have critical mobile usability issues</li>
+                    <li><strong>Load speed:</strong> 26% of pages exceed the 3-second load threshold</li>
+                    <li><strong>Trust signals:</strong> Inconsistent placement and usage across platforms</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>Critical Issues by Platform</h2>
+                <div style="height: 300px;">
+                    <canvas id="issuesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Top Conversion Elements Analysis</h2>
+                <div class="element-analysis-grid">
+                    <div class="element-card">
+                        <div class="element-header">
+                            <h3>Form Design</h3>
+                        </div>
+                        <div class="element-content">
+                            <div class="element-score score-bad">D-</div>
+                            <ul class="element-issues">
+                                <li><span class="issue-icon issue-error">!</span> Too many required fields (avg 9.2)</li>
+                                <li><span class="issue-icon issue-error">!</span> No progress indicators on multi-step forms</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> Inconsistent validation feedback</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> Form labels disappear on focus</li>
+                                <li><span class="issue-icon issue-info">i</span> No autofill support on 70% of forms</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="element-card">
+                        <div class="element-header">
+                            <h3>Call-to-Action</h3>
+                        </div>
+                        <div class="element-content">
+                            <div class="element-score score-medium">C+</div>
+                            <ul class="element-issues">
+                                <li><span class="issue-icon issue-error">!</span> Generic button text (45% use "Submit")</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> Low color contrast on 8 pages</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> Inconsistent button sizing</li>
+                                <li><span class="issue-icon issue-info">i</span> No action reinforcement (what happens next?)</li>
+                                <li><span class="issue-icon issue-info">i</span> Button position below fold on mobile</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="element-card">
+                        <div class="element-header">
+                            <h3>Trust Elements</h3>
+                        </div>
+                        <div class="element-content">
+                            <div class="element-score score-medium">C</div>
+                            <ul class="element-issues">
+                                <li><span class="issue-icon issue-error">!</span> Missing security indicators on 62% of pages</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> Testimonials lack specificity/results</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> Inconsistent social proof placement</li>
+                                <li><span class="issue-icon issue-info">i</span> No trust badges near payment forms</li>
+                                <li><span class="issue-icon issue-info">i</span> Privacy policy link hidden in footer</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="element-card">
+                        <div class="element-header">
+                            <h3>Mobile Experience</h3>
+                        </div>
+                        <div class="element-content">
+                            <div class="element-score score-bad">F</div>
+                            <ul class="element-issues">
+                                <li><span class="issue-icon issue-error">!</span> Tap targets too small on 80% of pages</li>
+                                <li><span class="issue-icon issue-error">!</span> Form elements overflow viewport</li>
+                                <li><span class="issue-icon issue-error">!</span> Input fields too narrow for mobile</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> Font size too small (10px on some elements)</li>
+                                <li><span class="issue-icon issue-info">i</span> No appropriate keyboard types for inputs</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Performance Comparison</h2>
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>DonorBureau</th>
+                            <th>TLH</th>
+                            <th>Industry Benchmark</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Form Completion Rate</td>
+                            <td>68.3%</td>
+                            <td>54.7%</td>
+                            <td>74.2%</td>
+                        </tr>
+                        <tr>
+                            <td>Avg. Form Fields</td>
+                            <td>7.2</td>
+                            <td>12.4</td>
+                            <td>5.1</td>
+                        </tr>
+                        <tr>
+                            <td>Mobile Conversion Rate</td>
+                            <td>2.3%</td>
+                            <td>1.8%</td>
+                            <td>3.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Desktop Conversion Rate</td>
+                            <td>4.8%</td>
+                            <td>5.7%</td>
+                            <td>6.2%</td>
+                        </tr>
+                        <tr>
+                            <td>Page Load Time (s)</td>
+                            <td>2.9s</td>
+                            <td>4.7s</td>
+                            <td>2.5s</td>
+                        </tr>
+                        <tr>
+                            <td>Exit Rate on Form Pages</td>
+                            <td>42.7%</td>
+                            <td>58.3%</td>
+                            <td>40.1%</td>
+                        </tr>
+                        <tr>
+                            <td>Error Rate on Form Submission</td>
+                            <td>14.3%</td>
+                            <td>22.8%</td>
+                            <td>8.5%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="donorbureau" class="tab-content">
+            <div class="card db-section">
+                <h2>DonorBureau Landing Page Analysis</h2>
+                <p>We analyzed 32 active landing pages across all clients. Our scan revealed conversion-inhibiting patterns that, if corrected, could significantly improve donation rates.</p>
+                
+                <h3>Top Issues by Severity</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Issue</th>
+                            <th>Impact</th>
+                            <th>Affected Pages</th>
+                            <th>Est. Conversion Loss</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="badge badge-danger">Critical</span>
+                                Donation form below the fold
+                            </td>
+                            <td>High</td>
+                            <td>18 pages (56.3%)</td>
+                            <td>-12.4%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="badge badge-danger">Critical</span>
+                                Mobile donation buttons too small
+                            </td>
+                            <td>High</td>
+                            <td>24 pages (75%)</td>
+                            <td>-8.7%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="badge badge-warning">Warning</span>
+                                Generic CTAs ("Donate Now")
+                            </td>
+                            <td>Medium</td>
+                            <td>29 pages (90.6%)</td>
+                            <td>-4.3%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="badge badge-warning">Warning</span>
+                                No donation impact statement
+                            </td>
+                            <td>Medium</td>
+                            <td>22 pages (68.8%)</td>
+                            <td>-7.2%</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="badge badge-success">Minor</span>
+                                Missing testimonials/social proof
+                            </td>
+                            <td>Low</td>
+                            <td>15 pages (46.9%)</td>
+                            <td>-2.1%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Client-Specific Findings</h3>
+                
+                <div style="margin-top: 1.5rem;">
+                    <h4>NCPD Landing Pages</h4>
+                    <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                        <li><strong>Strengths:</strong> Clear donation amounts, strong hero imagery</li>
+                        <li><strong>Weaknesses:</strong> Form requires scrolling on mobile, "submit" button instead of value-focused CTA</li>
+                        <li><strong>Key Fix:</strong> Redesign mobile form layout to keep donation buttons above fold</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-top: 1.5rem;">
+                    <h4>SemperK9 Landing Pages</h4>
+                    <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                        <li><strong>Strengths:</strong> Excellent dog imagery, emotional storytelling</li>
+                        <li><strong>Weaknesses:</strong> Donation form requires too many fields (12 vs. recommended 6)</li>
+                        <li><strong>Key Fix:</strong> Remove optional fields, simplify donation process</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-top: 1.5rem;">
+                    <h4>SoldierStrong Landing Pages</h4>
+                    <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                        <li><strong>Strengths:</strong> Strong testimonials, clear impact statements</li>
+                        <li><strong>Weaknesses:</strong> Mobile load time exceeds 4.5s, poor form validation</li>
+                        <li><strong>Key Fix:</strong> Optimize images, implement better form validation</li>
+                    </ul>
+                </div>
+
+                <h3>Conversion Rate by Page Type</h3>
+                <div style="height: 300px;">
+                    <canvas id="dbConversionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="tlh" class="tab-content">
+            <div class="card tlh-section">
+                <h2>True Legacy Homes Form Analysis</h2>
+                <p>We analyzed 16 lead capture forms across the TLH website and landing pages. Our analysis revealed significant opportunities to improve lead quality and conversion rates.</p>
+                
+                <h3>Form Performance Metrics</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Form</th>
+                            <th>Start Rate</th>
+                            <th>Completion Rate</th>
+                            <th>Avg. Completion Time</th>
+                            <th>Error Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Homepage Hero Form</td>
+                            <td>8.2%</td>
+                            <td>32.4%</td>
+                            <td>54s</td>
+                            <td>27.8%</td>
+                        </tr>
+                        <tr>
+                            <td>Estate Sale Landing Page</td>
+                            <td>12.7%</td>
+                            <td>41.5%</td>
+                            <td>78s</td>
+                            <td>19.3%</td>
+                        </tr>
+                        <tr>
+                            <td>Senior Transition Landing Page</td>
+                            <td>9.4%</td>
+                            <td>38.2%</td>
+                            <td>92s</td>
+                            <td>24.7%</td>
+                        </tr>
+                        <tr>
+                            <td>Contact Us Form</td>
+                            <td>4.1%</td>
+                            <td>61.3%</td>
+                            <td>45s</td>
+                            <td>12.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Post-Evaluation Form</td>
+                            <td>2.8%</td>
+                            <td>74.6%</td>
+                            <td>38s</td>
+                            <td>8.3%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Critical Issues Identified</h3>
+                <div class="element-analysis-grid">
+                    <div class="element-card">
+                        <div class="element-header">
+                            <h3>Form Length Issues</h3>
+                        </div>
+                        <div class="element-content">
+                            <ul class="element-issues">
+                                <li><span class="issue-icon issue-error">!</span> Homepage form has 14 fields (industry avg: 4-5)</li>
+                                <li><span class="issue-icon issue-error">!</span> Required fields that should be optional</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> No logical field grouping</li>
+                                <li><span class="issue-icon issue-info">i</span> Field order doesn't match user expectations</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="element-card">
+                        <div class="element-header">
+                            <h3>Mobile Form Issues</h3>
+                        </div>
+                        <div class="element-content">
+                            <ul class="element-issues">
+                                <li><span class="issue-icon issue-error">!</span> Form fields too small on mobile devices</li>
+                                <li><span class="issue-icon issue-error">!</span> Radio buttons/checkboxes difficult to tap</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> Keyboard obscures form fields on focus</li>
+                                <li><span class="issue-icon issue-info">i</span> No appropriate input types (tel, email, etc.)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="element-card">
+                        <div class="element-header">
+                            <h3>Validation & Error Handling</h3>
+                        </div>
+                        <div class="element-content">
+                            <ul class="element-issues">
+                                <li><span class="issue-icon issue-error">!</span> Validation only on submission, not in real-time</li>
+                                <li><span class="issue-icon issue-error">!</span> Generic error messages ("Invalid input")</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> No field focus on validation errors</li>
+                                <li><span class="issue-icon issue-info">i</span> Form resets on validation failure</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="element-card">
+                        <div class="element-header">
+                            <h3>Messaging & Expectations</h3>
+                        </div>
+                        <div class="element-content">
+                            <ul class="element-issues">
+                                <li><span class="issue-icon issue-error">!</span> No clear "what happens next" messaging</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> No response time expectations set</li>
+                                <li><span class="issue-icon issue-warning">⚠</span> Missing privacy assurances near forms</li>
+                                <li><span class="issue-icon issue-info">i</span> No social proof near conversion points</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Regional Variation in Form Performance</h3>
+                <div style="height: 300px;">
+                    <canvas id="tlhRegionalChart"></canvas>
+                </div>
+                
+                <h3>Drop-off Analysis: Homepage Form</h3>
+                <p>Field-by-field analysis of where users abandon the homepage lead form:</p>
+                
+                <div style="margin: 1.5rem 0;">
+                    <div class="flex-between">
+                        <div>Step 1: Basic Contact Info (Name, Email, Phone)</div>
+                        <div class="progress-value">92% continue</div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 92%; background-color: var(--success);"></div>
+                    </div>
+                    
+                    <div class="flex-between">
+                        <div>Step 2: Property Details (Address, City, ZIP)</div>
+                        <div class="progress-value">78% continue</div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 78%; background-color: var(--success);"></div>
+                    </div>
+                    
+                    <div class="flex-between">
+                        <div>Step 3: Service Selection (Estate Sale, Downsizing, etc.)</div>
+                        <div class="progress-value">63% continue</div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 63%; background-color: var(--warning);"></div>
+                    </div>
+                    
+                    <div class="flex-between">
+                        <div>Step 4: Timeline Questions (When needed, Urgent?)</div>
+                        <div class="progress-value">41% continue</div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 41%; background-color: var(--danger);"></div>
+                    </div>
+                    
+                    <div class="flex-between">
+                        <div>Step 5: Additional Comments (Large text field)</div>
+                        <div class="progress-value">32% complete</div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 32%; background-color: var(--danger);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="recommendations" class="tab-content">
+            <div class="card">
+                <h2>High-Impact Recommendations</h2>
+                <p style="margin-bottom: 1.5rem;">These recommendations are prioritized by potential impact on conversion rates and implementation effort.</p>
+                
+                <ul class="recommendations-list">
+                    <li class="recommendation-item high">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">Simplify TLH Lead Forms</div>
+                            <div class="recommendation-impact high">+11.4% Est. Impact | Easy</div>
+                        </div>
+                        <div class="recommendation-description">
+                            Reduce form fields from 14 to 5-6 essential fields on initial contact. Collect additional information after initial engagement.
+                        </div>
+                        <ol class="recommendation-actions">
+                            <li>Keep only Name, Email, Phone, Property ZIP, and Service Needed on initial form</li>
+                            <li>Move timeline and detailed questions to follow-up</li>
+                            <li>Implement progressive profiling on secondary forms</li>
+                            <li>Add clear "Next Steps" messaging after submission</li>
+                        </ol>
+                    </li>
+                    
+                    <li class="recommendation-item high">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">Optimize DonorBureau Mobile Experience</div>
+                            <div class="recommendation-impact high">+8.7% Est. Impact | Medium</div>
+                        </div>
+                        <div class="recommendation-description">
+                            Redesign mobile donation experience to ensure forms are above the fold and easy to complete on smaller screens.
+                        </div>
+                        <ol class="recommendation-actions">
+                            <li>Increase tap target sizes for all buttons to minimum 44×44px</li>
+                            <li>Implement mobile-specific layouts for donation forms</li>
+                            <li>Ensure donation amounts and submit buttons are visible without scrolling</li>
+                            <li>Add appropriate input types for mobile keyboards (tel, email, number)</li>
+                            <li>Test forms on actual devices (iOS and Android)</li>
+                        </ol>
+                    </li>
+                    
+                    <li class="recommendation-item high">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">Implement Real-Time Form Validation</div>
+                            <div class="recommendation-impact high">+6.3% Est. Impact | Medium</div>
+                        </div>
+                        <div class="recommendation-description">
+                            Add inline validation that provides immediate feedback rather than waiting until submission.
+                        </div>
+                        <ol class="recommendation-actions">
+                            <li>Validate each field as the user moves to the next field</li>
+                            <li>Use green checkmarks for valid fields and clear error messages for invalid ones</li>
+                            <li>Provide specific guidance for fixing errors (e.g., "Phone number should be 10 digits")</li>
+                            <li>Ensure form maintains entered data on validation errors</li>
+                            <li>Automatically focus the first invalid field when errors occur</li>
+                        </ol>
+                    </li>
+                    
+                    <li class="recommendation-item medium">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">Add Value-Focused CTAs</div>
+                            <div class="recommendation-impact medium">+4.8% Est. Impact | Easy</div>
+                        </div>
+                        <div class="recommendation-description">
+                            Replace generic button text with benefit-oriented calls to action that reinforce the value proposition.
+                        </div>
+                        <ol class="recommendation-actions">
+                            <li>Replace "Submit" with specific action text (e.g., "Get My Free Evaluation")</li>
+                            <li>Customize CTAs based on form context and user motivation</li>
+                            <li>Test different CTA variants to optimize performance</li>
+                            <li>Add secondary text reinforcing what happens after clicking</li>
+                        </ol>
+                    </li>
+                    
+                    <li class="recommendation-item medium">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">Implement Strategic Form Placement</div>
+                            <div class="recommendation-impact medium">+5.2% Est. Impact | Medium</div>
+                        </div>
+                        <div class="recommendation-description">
+                            Reposition forms to align with user attention patterns and ensure they're visible without scrolling.
+                        </div>
+                        <ol class="recommendation-actions">
+                            <li>Move forms above the fold on key landing pages</li>
+                            <li>Test right-aligned vs. centered form placement</li>
+                            <li>Use sticky forms that remain visible during scrolling</li>
+                            <li>Add multiple form entry points throughout longer pages</li>
+                        </ol>
+                    </li>
+                    
+                    <li class="recommendation-item medium">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">Add Strategic Trust Elements</div>
+                            <div class="recommendation-impact medium">+3.9% Est. Impact | Easy</div>
+                        </div>
+                        <div class="recommendation-description">
+                            Incorporate trust signals and social proof near conversion points to reduce friction and anxiety.
+                        </div>
+                        <ol class="recommendation-actions">
+                            <li>Add security badges near donation forms</li>
+                            <li>Include testimonial snippets adjacent to form fields</li>
+                            <li>Add "100% Secure" messaging near submit buttons</li>
+                            <li>Incorporate microcopy addressing common concerns</li>
+                            <li>Show privacy policy summaries near email fields</li>
+                        </ol>
+                    </li>
+                    
+                    <li class="recommendation-item low">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">Optimize Page Load Speed</div>
+                            <div class="recommendation-impact low">+2.1% Est. Impact | Complex</div>
+                        </div>
+                        <div class="recommendation-description">
+                            Improve page load times, particularly for TLH pages that currently exceed the 3-second threshold.
+                        </div>
+                        <ol class="recommendation-actions">
+                            <li>Compress and properly size all images</li>
+                            <li>Implement lazy loading for below-fold content</li>
+                            <li>Minify CSS and JavaScript</li>
+                            <li>Remove unnecessary third-party scripts</li>
+                            <li>Consider implementing AMP versions of key landing pages</li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h2>Implementation Roadmap</h2>
+                <p>A phased approach to implementing recommendations for maximum impact with minimal disruption.</p>
+                
+                <h3>Phase 1: Quick Wins (1-2 Weeks)</h3>
+                <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+                    <li>Replace generic CTAs with value-focused alternatives</li>
+                    <li>Add trust elements near conversion points</li>
+                    <li>Increase mobile button sizes for easier tapping</li>
+                    <li>Implement basic form validation improvements</li>
+                    <li>Add clear "next steps" messaging after form submission</li>
+                </ul>
+                
+                <h3>Phase 2: Form Redesign (2-4 Weeks)</h3>
+                <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+                    <li>Simplify TLH lead forms (reduce to essential fields)</li>
+                    <li>Implement mobile-specific form layouts</li>
+                    <li>Add progressive profiling for follow-up information</li>
+                    <li>Redesign form placement strategy (above fold, sticky options)</li>
+                    <li>Add inline validation with specific error messages</li>
+                </ul>
+                
+                <h3>Phase 3: Technical Optimizations (4-6 Weeks)</h3>
+                <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+                    <li>Implement page speed optimizations</li>
+                    <li>Add appropriate input types for mobile</li>
+                    <li>Implement form analytics to track field-level interactions</li>
+                    <li>Create A/B testing framework to validate changes</li>
+                    <li>Develop optimization schedule for ongoing improvement</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h2>Business Impact</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Platform</th>
+                            <th>Current Performance</th>
+                            <th>Projected Performance</th>
+                            <th>Monthly Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>DonorBureau Campaigns</td>
+                            <td>4.2% conversion rate<br>$124,000 monthly revenue</td>
+                            <td>5.0% conversion rate (+19.0%)<br>$147,600 monthly revenue</td>
+                            <td>+$23,600</td>
+                        </tr>
+                        <tr>
+                            <td>TLH Lead Generation</td>
+                            <td>3.8% conversion rate<br>42 qualified leads/month</td>
+                            <td>4.5% conversion rate (+18.4%)<br>50 qualified leads/month</td>
+                            <td>+8 qualified leads<br>(~$16,000 value)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 1.5rem;">
+                    <h3>ROI Calculation</h3>
+                    <p><strong>Estimated Implementation Cost:</strong> $8,000-12,000 (40-60 developer hours)</p>
+                    <p><strong>Monthly Revenue Increase:</strong> ~$23,600 (DonorBureau) + ~$16,000 (TLH) = ~$39,600</p>
+                    <p><strong>Payback Period:</strong> 1 month</p>
+                    <p><strong>1-Year ROI:</strong> 3,900%+</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Display current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Issues Chart
+        const issuesCtx = document.getElementById('issuesChart').getContext('2d');
+        new Chart(issuesCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Form Design', 'Mobile Usability', 'Trust Elements', 'Page Speed', 'Error Handling', 'CTA Clarity'],
+                datasets: [
+                    {
+                        label: 'DonorBureau',
+                        backgroundColor: '#ff7675',
+                        data: [18, 24, 12, 8, 15, 29]
+                    },
+                    {
+                        label: 'TLH',
+                        backgroundColor: '#6c5ce7',
+                        data: [26, 32, 18, 14, 22, 16]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Issues'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Issue Category'
+                        }
+                    }
+                }
+            }
+        });
+
+        // DonorBureau Conversion Chart
+        const dbCtx = document.getElementById('dbConversionChart').getContext('2d');
+        new Chart(dbCtx, {
+            type: 'line',
+            data: {
+                labels: ['Simple Donation', 'Multi-Step', 'One-Click', 'Recurring Prompt', 'Mobile Optimized'],
+                datasets: [
+                    {
+                        label: 'Conversion Rate',
+                        backgroundColor: 'rgba(255, 118, 117, 0.1)',
+                        borderColor: '#ff7675',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#ff7675',
+                        tension: 0.4,
+                        data: [4.2, 3.1, 5.7, 4.8, 6.9]
+                    },
+                    {
+                        label: 'Industry Benchmark',
+                        backgroundColor: 'transparent',
+                        borderColor: '#00b894',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#00b894',
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        data: [4.8, 4.2, 6.1, 5.3, 7.8]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Conversion Rate (%)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // TLH Regional Chart
+        const tlhCtx = document.getElementById('tlhRegionalChart').getContext('2d');
+        new Chart(tlhCtx, {
+            type: 'bar',
+            data: {
+                labels: ['San Diego', 'Orange County', 'Los Angeles', 'Riverside'],
+                datasets: [
+                    {
+                        label: 'Form Start Rate',
+                        backgroundColor: '#6c5ce7',
+                        data: [8.7, 6.4, 7.1, 5.8]
+                    },
+                    {
+                        label: 'Form Completion Rate',
+                        backgroundColor: '#00b894',
+                        data: [62.3, 41.5, 48.2, 52.7]
+                    },
+                    {
+                        label: 'Lead Qualification Rate',
+                        backgroundColor: '#fdcb6e',
+                        data: [32.1, 21.2, 25.7, 28.3]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Rate (%)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

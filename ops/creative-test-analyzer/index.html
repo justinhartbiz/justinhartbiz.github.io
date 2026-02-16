@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative A/B Test Analyzer | DonorBureau</title>
+    <style>
+        :root {
+            --primary: #3a86ff;
+            --success: #38b000;
+            --warning: #ffbe0b;
+            --danger: #ff006e;
+            --dark: #1e1e2e;
+            --darker: #181825;
+            --light: #cdd6f4;
+            --muted: #7f849c;
+            --border: #313244;
+            --card-bg: #292a37;
+            --winner: #38b00030;
+            --loser: #ff006e10;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--darker);
+            color: var(--light);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        header {
+            background-color: var(--dark);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        
+        header h1 {
+            margin: 0;
+            font-weight: 800;
+            color: white;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        header h1 span.emoji {
+            margin-right: 0.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-card h3 {
+            color: var(--muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .stat-card .context {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            color: var(--muted);
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .tab:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background-color: var(--card-bg);
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 180px;
+        }
+        
+        .filter-group label {
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+            color: var(--muted);
+        }
+        
+        .filter-group select, .filter-group input {
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid var(--border);
+            background-color: var(--darker);
+            color: var(--light);
+            font-size: 0.9rem;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h2 {
+            margin-bottom: 1rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .test-card {
+            background-color: var(--darker);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .test-card.winner::after {
+            content: "WINNER";
+            position: absolute;
+            top: 10px;
+            right: -18px;
+            background-color: var(--success);
+            color: white;
+            padding: 0.15rem 1rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transform: rotate(45deg);
+            z-index: 1;
+            letter-spacing: 0.05rem;
+        }
+        
+        .test-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: white;
+            padding-right: 1rem;
+        }
+        
+        .meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .meta span {
+            font-size: 0.8rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+        }
+        
+        .meta span:before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .metric {
+            display: flex;
+            flex-direction: column;
+            border-left: 2px solid var(--border);
+            padding-left: 0.5rem;
+        }
+        
+        .metric.positive {
+            border-left: 2px solid var(--success);
+        }
+        
+        .metric.negative {
+            border-left: 2px solid var(--danger);
+        }
+        
+        .metric .name {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+        
+        .metric .value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .variants {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .variant {
+            background-color: var(--loser);
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+            color: var(--light);
+        }
+        
+        .variant.winner {
+            background-color: var(--winner);
+            border-left: 3px solid var(--success);
+        }
+        
+        .variant-id {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            line-height: 1.5rem;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .pattern-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .pattern-card {
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pattern-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+            color: white;
+        }
+        
+        .pattern-card p {
+            margin-bottom: 1rem;
+            color: var(--light);
+            font-size: 0.95rem;
+        }
+        
+        .pattern-card .effect {
+            font-weight: 600;
+            color: var(--success);
+            margin-top: auto;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .confidence {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--muted);
+        }
+        
+        .confidence.high {
+            background-color: rgba(56, 176, 0, 0.15);
+            color: #38b000;
+        }
+        
+        .confidence.medium {
+            background-color: rgba(255, 190, 11, 0.15);
+            color: #ffbe0b;
+        }
+        
+        .confidence.low {
+            background-color: rgba(255, 0, 110, 0.15);
+            color: #ff006e;
+        }
+        
+        .test-detail {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .test-detail-card {
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .test-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .test-detail-header h3 {
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 1rem 0 2rem;
+        }
+        
+        .timeline {
+            position: relative;
+            margin: 2rem 0;
+            padding-left: 2rem;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        .timeline-item:before {
+            content: "";
+            position: absolute;
+            left: -2rem;
+            top: 0;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background-color: var(--primary);
+        }
+        
+        .timeline-item:after {
+            content: "";
+            position: absolute;
+            left: -1.5rem;
+            top: 1rem;
+            width: 2px;
+            height: calc(100% + 1rem);
+            background-color: var(--border);
+        }
+        
+        .timeline-item:last-child:after {
+            display: none;
+        }
+        
+        .timeline-item h4 {
+            font-size: 1.1rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline-item p {
+            color: var(--light);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline-item .date {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+        
+        .test-builder {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            border: 1px solid var(--border);
+            background-color: var(--darker);
+            color: var(--light);
+            font-size: 0.9rem;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .preview-card {
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            height: 100%;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.25rem;
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #2a75e8;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--muted);
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .test-detail, .test-builder {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        footer {
+            background-color: var(--dark);
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        
+        .chart-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .chart-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            background-color: var(--dark);
+            color: var(--muted);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .chart-tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><span class="emoji">🧪</span> Creative A/B Test Analyzer</h1>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3>Total Tests</h3>
+                <div class="value">187</div>
+                <div class="context">Across 7 clients</div>
+            </div>
+            <div class="stat-card">
+                <h3>Average Lift</h3>
+                <div class="value">14.2%</div>
+                <div class="context">Per winning variant</div>
+            </div>
+            <div class="stat-card">
+                <h3>Success Rate</h3>
+                <div class="value">63%</div>
+                <div class="context">Tests with significant results</div>
+            </div>
+            <div class="stat-card">
+                <h3>Revenue Impact</h3>
+                <div class="value">$247K</div>
+                <div class="context">Cumulative from test winners</div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="test-results">Test Results</div>
+            <div class="tab" data-tab="patterns">Winning Patterns</div>
+            <div class="tab" data-tab="test-builder">Test Builder</div>
+            <div class="tab" data-tab="knowledge-base">Knowledge Base</div>
+        </div>
+        
+        <div class="tab-content active" id="test-results">
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Client</label>
+                    <select id="client-filter">
+                        <option value="all">All Clients</option>
+                        <option value="SemperK9">SemperK9</option>
+                        <option value="HeroBox">HeroBox</option>
+                        <option value="SoldierStrong">SoldierStrong</option>
+                        <option value="NRSC">NRSC</option>
+                        <option value="RNC">RNC</option>
+                        <option value="NCPD">NCPD</option>
+                        <option value="Shai Fund">Shai Fund</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Test Type</label>
+                    <select id="type-filter">
+                        <option value="all">All Types</option>
+                        <option value="subjectLine">Subject Line</option>
+                        <option value="ctaDesign">CTA Design</option>
+                        <option value="askAmount">Ask Amount</option>
+                        <option value="narrativeVoice">Narrative Voice</option>
+                        <option value="personalization">Personalization</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Date Range</label>
+                    <select id="date-filter">
+                        <option value="all">All Time</option>
+                        <option value="last30">Last 30 Days</option>
+                        <option value="last90">Last 90 Days</option>
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Sort By</label>
+                    <select id="sort-filter">
+                        <option value="date-desc">Date (Newest)</option>
+                        <option value="date-asc">Date (Oldest)</option>
+                        <option value="impact-desc">Impact (Highest)</option>
+                        <option value="confidence-desc">Confidence (Highest)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Recent Tests</h2>
+                <div class="test-grid">
+                    <!-- Test 1 -->
+                    <div class="test-card winner">
+                        <h3>Subject Line Numbers Test</h3>
+                        <div class="meta">
+                            <span>SemperK9</span>
+                            <span>Subject Line</span>
+                            <span>Jan 24, 2026</span>
+                        </div>
+                        <div class="variants">
+                            <div class="variant">
+                                <span class="variant-id">A</span> Help our veterans heal
+                            </div>
+                            <div class="variant winner">
+                                <span class="variant-id">B</span> 3 veterans need your help today
+                            </div>
+                        </div>
+                        <div class="metrics">
+                            <div class="metric positive">
+                                <span class="name">Opens</span>
+                                <span class="value">+12.2%</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Conversion</span>
+                                <span class="value">+29.3%</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Revenue</span>
+                                <span class="value">+$420</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Confidence</span>
+                                <span class="value">94.2%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Test 2 -->
+                    <div class="test-card winner">
+                        <h3>CTA Button Color Test</h3>
+                        <div class="meta">
+                            <span>NRSC</span>
+                            <span>CTA Design</span>
+                            <span>Jan 22, 2026</span>
+                        </div>
+                        <div class="variants">
+                            <div class="variant">
+                                <span class="variant-id">A</span> Blue 'Donate Now' button
+                            </div>
+                            <div class="variant winner">
+                                <span class="variant-id">B</span> Red 'Donate Now' button
+                            </div>
+                        </div>
+                        <div class="metrics">
+                            <div class="metric">
+                                <span class="name">Opens</span>
+                                <span class="value">-0.6%</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Conversion</span>
+                                <span class="value">+22.8%</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Revenue</span>
+                                <span class="value">+$714</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Confidence</span>
+                                <span class="value">91.7%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Test 3 -->
+                    <div class="test-card winner">
+                        <h3>Donation Amount Recommendation</h3>
+                        <div class="meta">
+                            <span>HeroBox</span>
+                            <span>Ask Amount</span>
+                            <span>Jan 20, 2026</span>
+                        </div>
+                        <div class="variants">
+                            <div class="variant">
+                                <span class="variant-id">A</span> Equal options: $10, $25, $50, $100, Other
+                            </div>
+                            <div class="variant winner">
+                                <span class="variant-id">B</span> Recommended option: $10, $25 (Recommended), $50, $100, Other
+                            </div>
+                        </div>
+                        <div class="metrics">
+                            <div class="metric negative">
+                                <span class="name">Opens</span>
+                                <span class="value">-0.8%</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Avg. Donation</span>
+                                <span class="value">+12.9%</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Revenue</span>
+                                <span class="value">+$489</span>
+                            </div>
+                            <div class="metric">
+                                <span class="name">Confidence</span>
+                                <span class="value">87.3%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Test 4 -->
+                    <div class="test-card winner">
+                        <h3>First-Person vs. Org Voice</h3>
+                        <div class="meta">
+                            <span>SoldierStrong</span>
+                            <span>Narrative Voice</span>
+                            <span>Jan 18, 2026</span>
+                        </div>
+                        <div class="variants">
+                            <div class="variant">
+                                <span class="variant-id">A</span> SoldierStrong is providing exoskeletons to help...
+                            </div>
+                            <div class="variant winner">
+                                <span class="variant-id">B</span> My name is James. Thanks to SoldierStrong...
+                            </div>
+                        </div>
+                        <div class="metrics">
+                            <div class="metric">
+                                <span class="name">Opens</span>
+                                <span class="value">+0.6%</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Click-through</span>
+                                <span class="value">+33.5%</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Conversion</span>
+                                <span class="value">+53.2%</span>
+                            </div>
+                            <div class="metric positive">
+                                <span class="name">Confidence</span>
+                                <span class="value">95.6%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="patterns">
+            <div class="card">
+                <h2>Recurring Winning Patterns</h2>
+                <div class="pattern-list">
+                    <!-- Pattern 1 -->
+                    <div class="pattern-card">
+                        <h3>Numerical Specificity <span class="confidence high">High</span></h3>
+                        <p>Including specific numbers in subject lines or headlines increases engagement and credibility. Works particularly well with impact statements.</p>
+                        <p><strong>Best for:</strong> SemperK9, NRSC, HeroBox</p>
+                        <div class="effect">+9.7% average open rate</div>
+                    </div>
+                    
+                    <!-- Pattern 2 -->
+                    <div class="pattern-card">
+                        <h3>Color Psychology - Red CTAs <span class="confidence medium">Medium</span></h3>
+                        <p>Using red for call-to-action buttons increases urgency and conversion for political fundraising. Less effective for non-political clients.</p>
+                        <p><strong>Best for:</strong> NRSC, RNC</p>
+                        <div class="effect">+8.9% average conversion rate</div>
+                    </div>
+                    
+                    <!-- Pattern 3 -->
+                    <div class="pattern-card">
+                        <h3>First-Person Narrative <span class="confidence high">Very High</span></h3>
+                        <p>Using direct first-person storytelling from beneficiaries creates stronger emotional connection and higher engagement.</p>
+                        <p><strong>Best for:</strong> SoldierStrong, SemperK9, HeroBox</p>
+                        <div class="effect">+21.3% engagement across metrics</div>
+                    </div>
+                    
+                    <!-- Pattern 4 -->
+                    <div class="pattern-card">
+                        <h3>Name Personalization <span class="confidence high">Very High</span></h3>
+                        <p>Including recipient's first name in subject line or greeting increases open rates and engagement across all client types.</p>
+                        <p><strong>Best for:</strong> All clients</p>
+                        <div class="effect">+17.4% open rate, +12.6% click-through</div>
+                    </div>
+                    
+                    <!-- Pattern 5 -->
+                    <div class="pattern-card">
+                        <h3>Recommended Donation <span class="confidence high">High</span></h3>
+                        <p>Pre-selecting or highlighting a recommended donation amount increases average donation without affecting conversion rate.</p>
+                        <p><strong>Best for:</strong> HeroBox, SemperK9, NCPD</p>
+                        <div class="effect">+12.7% average donation amount</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="test-builder">
+            <div class="card">
+                <h2>Create New A/B Test</h2>
+                <div class="test-builder">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label>Client</label>
+                            <select>
+                                <option>SemperK9</option>
+                                <option>HeroBox</option>
+                                <option>SoldierStrong</option>
+                                <option>NRSC</option>
+                                <option>RNC</option>
+                                <option>NCPD</option>
+                                <option>Shai Fund</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Test Type</label>
+                            <select>
+                                <option>Subject Line</option>
+                                <option>CTA Design</option>
+                                <option>Ask Amount</option>
+                                <option>Narrative Voice</option>
+                                <option>Personalization</option>
+                                <option>Email Layout</option>
+                                <option>Image Selection</option>
+                                <option>Custom...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Hypothesis</label>
+                            <textarea placeholder="What are you testing and why do you expect it to work?"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Variant A (Control)</label>
+                            <textarea placeholder="Enter the control version here..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Variant B (Test)</label>
+                            <textarea placeholder="Enter the test version here..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Success Metrics</label>
+                            <select multiple>
+                                <option selected>Open Rate</option>
+                                <option selected>Click-through Rate</option>
+                                <option selected>Conversion Rate</option>
+                                <option selected>Revenue</option>
+                                <option>Average Donation</option>
+                                <option>Unsubscribe Rate</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sample Size Calculator</label>
+                            <div class="calculator-inputs">
+                                <input type="number" placeholder="Baseline conversion %" min="0" max="100" step="0.1" value="2.5">
+                                <input type="number" placeholder="Expected lift %" min="0" max="100" step="0.1" value="20">
+                                <input type="number" placeholder="Confidence level %" min="80" max="99" step="1" value="95">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button class="btn">Calculate Sample Size</button>
+                        </div>
+                    </div>
+                    <div class="preview-card">
+                        <h3>Test Preview & Sample Size</h3>
+                        
+                        <div class="form-group">
+                            <label>Required Sample Size</label>
+                            <div class="value">12,500 per variant</div>
+                            <div class="context">25,000 total sends</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Estimated Duration</label>
+                            <div class="value">3-5 days</div>
+                            <div class="context">Based on typical send volume</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Statistical Power</label>
+                            <div class="value">80%</div>
+                            <div class="context">Likelihood of detecting the effect if it exists</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Similar Past Tests</label>
+                            <div class="similar-tests">
+                                <div class="tag">TEST-2026-0198 (SemperK9)</div>
+                                <div class="tag">TEST-2026-0187 (HeroBox)</div>
+                                <div class="tag">TEST-2025-0982 (NCPD)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Recommended Analysis Date</label>
+                            <div class="value">February 20, 2026</div>
+                            <div class="context">Allow 48 hours after test completion</div>
+                        </div>
+                        
+                        <div class="actions">
+                            <button class="btn">Schedule Test</button>
+                            <button class="btn btn-outline">Save Draft</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="knowledge-base">
+            <div class="card">
+                <h2>Test Insights Library</h2>
+                
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Category</label>
+                        <select>
+                            <option>All Categories</option>
+                            <option>Subject Lines</option>
+                            <option>Visual Elements</option>
+                            <option>Donation Asks</option>
+                            <option>Messaging</option>
+                            <option>Personalization</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Client Type</label>
+                        <select>
+                            <option>All Clients</option>
+                            <option>Nonprofit</option>
+                            <option>Political</option>
+                            <option>Veterans</option>
+                            <option>Law Enforcement</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Search</label>
+                        <input type="text" placeholder="Search insights...">
+                    </div>
+                </div>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <h4>First-Person Narrative Consistently Outperforms</h4>
+                        <p>Across 18 tests and all nonprofit clients, first-person stories from beneficiaries outperform organizational voice by an average of 21.3% in engagement metrics.</p>
+                        <p>Application: Convert organizational messaging to first-person testimonials whenever authentic stories are available.</p>
+                        <div class="date">Updated Feb 12, 2026</div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h4>Mobile Optimization Critical for Donation Forms</h4>
+                        <p>Tests of identical donation pages with different mobile layouts showed a 34.2% increase in completion rate when forms were fully optimized for small screens.</p>
+                        <p>Application: Ensure all donation forms have touch-friendly inputs, minimal fields, and proper spacing.</p>
+                        <div class="date">Updated Feb 5, 2026</div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h4>Personalization Effectiveness Has No Ceiling</h4>
+                        <p>Multiple personalization elements (name, location, donation history) have shown cumulative positive effects without diminishing returns across all 22 tests.</p>
+                        <p>Application: Continue to increase personalization depth where data is available.</p>
+                        <div class="date">Updated Jan 28, 2026</div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h4>Urgency Elements Have Diminishing Returns</h4>
+                        <p>While deadlines and scarcity increase response rates, repeated use of "URGENT" messaging shows declining effectiveness over time (-5.8% per additional use within 7 days).</p>
+                        <p>Application: Reserve urgent messaging for truly time-sensitive appeals.</p>
+                        <div class="date">Updated Jan 15, 2026</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            Creative A/B Test Analyzer | DonorBureau | Last updated: February 15, 2026
+        </div>
+    </footer>
+    
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Hide all tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Show the corresponding tab content
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Simulated data loading functionality
+        // In a real implementation, this would fetch data from the test-data.json file
+        document.getElementById('client-filter').addEventListener('change', function() {
+            // Simulate filtering logic
+            console.log('Filtering by client:', this.value);
+        });
+        
+        document.getElementById('type-filter').addEventListener('change', function() {
+            // Simulate filtering logic
+            console.log('Filtering by type:', this.value);
+        });
+        
+        document.getElementById('date-filter').addEventListener('change', function() {
+            // Simulate filtering logic
+            console.log('Filtering by date:', this.value);
+        });
+        
+        document.getElementById('sort-filter').addEventListener('change', function() {
+            // Simulate sorting logic
+            console.log('Sorting by:', this.value);
+        });
+    </script>
+</body>
+</html>

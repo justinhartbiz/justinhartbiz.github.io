@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week in Review Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <style>
+    :root {
+      --bg-color: #0d1117;
+      --card-bg: #161b22;
+      --border-color: #30363d;
+      --text-color: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-primary: #2f81f7;
+      --accent-success: #238636;
+      --accent-danger: #f85149;
+      --accent-warning: #e3b341;
+      --accent-info: #58a6ff;
+      --db-color: #5c5cff;
+      --tlh-color: #41a174;
+      --rg-color: #d39a47;
+      --ai-color: #a371e3;
+      --personal-color: #e35d7b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .dashboard-title {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .dashboard-title span {
+      color: var(--accent-primary);
+    }
+
+    .dashboard-date {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .dashboard-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .summary-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .summary-card .title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: var(--text-muted);
+    }
+
+    .summary-card .value {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .summary-card .change {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .summary-card .change.positive {
+      color: var(--accent-success);
+    }
+
+    .summary-card .change.negative {
+      color: var(--accent-danger);
+    }
+
+    .summary-card .change.neutral {
+      color: var(--text-muted);
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .card-subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .badge-db {
+      background-color: rgba(92, 92, 255, 0.2);
+      color: var(--db-color);
+    }
+
+    .badge-tlh {
+      background-color: rgba(65, 161, 116, 0.2);
+      color: var(--tlh-color);
+    }
+
+    .badge-rg {
+      background-color: rgba(211, 154, 71, 0.2);
+      color: var(--rg-color);
+    }
+
+    .badge-ai {
+      background-color: rgba(163, 113, 227, 0.2);
+      color: var(--ai-color);
+    }
+
+    .badge-personal {
+      background-color: rgba(227, 93, 123, 0.2);
+      color: var(--personal-color);
+    }
+
+    .badge-success {
+      background-color: rgba(35, 134, 54, 0.2);
+      color: var(--accent-success);
+    }
+
+    .badge-danger {
+      background-color: rgba(248, 81, 73, 0.2);
+      color: var(--accent-danger);
+    }
+
+    .badge-warning {
+      background-color: rgba(227, 179, 65, 0.2);
+      color: var(--accent-warning);
+    }
+
+    .badge-info {
+      background-color: rgba(88, 166, 255, 0.2);
+      color: var(--accent-info);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    thead {
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      font-weight: 500;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .chart-container {
+      width: 100%;
+      height: 300px;
+    }
+
+    .progress-container {
+      margin-top: 5px;
+      background-color: var(--border-color);
+      border-radius: 4px;
+      height: 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .progress-bar-db {
+      background-color: var(--db-color);
+    }
+
+    .progress-bar-tlh {
+      background-color: var(--tlh-color);
+    }
+
+    .progress-bar-rg {
+      background-color: var(--rg-color);
+    }
+
+    .progress-bar-ai {
+      background-color: var(--ai-color);
+    }
+
+    .progress-bar-personal {
+      background-color: var(--personal-color);
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    .status-critical {
+      background-color: var(--accent-danger);
+    }
+
+    .status-warning {
+      background-color: var(--accent-warning);
+    }
+
+    .status-healthy {
+      background-color: var(--accent-success);
+    }
+
+    .status-info {
+      background-color: var(--accent-info);
+    }
+
+    .opportunity-card {
+      display: flex;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 15px;
+    }
+
+    .opportunity-card:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .opportunity-badge {
+      min-width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 24px;
+      margin-right: 15px;
+    }
+
+    .opportunity-content {
+      flex: 1;
+    }
+
+    .opportunity-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .opportunity-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .opportunity-metrics {
+      display: flex;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .tab-container {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      border-bottom: 3px solid transparent;
+      color: var(--text-muted);
+    }
+
+    .tab.active {
+      border-bottom-color: var(--accent-primary);
+      color: var(--text-color);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .category-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin: 20px 0 10px 0;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .text-success {
+      color: var(--accent-success);
+    }
+
+    .text-danger {
+      color: var(--accent-danger);
+    }
+
+    .text-warning {
+      color: var(--accent-warning);
+    }
+
+    .text-info {
+      color: var(--accent-info);
+    }
+
+    .text-db {
+      color: var(--db-color);
+    }
+
+    .text-tlh {
+      color: var(--tlh-color);
+    }
+
+    .text-rg {
+      color: var(--rg-color);
+    }
+
+    .text-ai {
+      color: var(--ai-color);
+    }
+
+    .text-personal {
+      color: var(--personal-color);
+    }
+
+    .text-small {
+      font-size: 12px;
+    }
+
+    .task-list {
+      list-style: none;
+    }
+
+    .task-list li {
+      display: flex;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .task-list li:last-child {
+      border-bottom: none;
+    }
+
+    .task-check {
+      min-width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-color);
+      border-radius: 4px;
+      margin-right: 10px;
+      position: relative;
+      top: 2px;
+    }
+
+    .task-check.completed {
+      background-color: var(--accent-success);
+      border-color: var(--accent-success);
+    }
+
+    .task-check.completed::after {
+      content: '✓';
+      color: var(--bg-color);
+      position: absolute;
+      top: -2px;
+      left: 3px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .task-content {
+      flex: 1;
+    }
+
+    .task-title {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .task-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .task-list li.completed .task-title {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-right: 5px;
+    }
+
+    .pill-db {
+      background-color: rgba(92, 92, 255, 0.1);
+      color: var(--db-color);
+    }
+
+    .pill-tlh {
+      background-color: rgba(65, 161, 116, 0.1);
+      color: var(--tlh-color);
+    }
+
+    .pill-rg {
+      background-color: rgba(211, 154, 71, 0.1);
+      color: var(--rg-color);
+    }
+
+    .pill-ai {
+      background-color: rgba(163, 113, 227, 0.1);
+      color: var(--ai-color);
+    }
+
+    .pill-personal {
+      background-color: rgba(227, 93, 123, 0.1);
+      color: var(--personal-color);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .summary-box {
+      padding: 12px;
+      background-color: rgba(48, 54, 61, 0.3);
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .summary-box .value {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .summary-box .label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .footer {
+      margin-top: 40px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .footer a {
+      color: var(--accent-primary);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .alert-card {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .alert-critical {
+      background-color: rgba(248, 81, 73, 0.1);
+      border-left: 4px solid var(--accent-danger);
+    }
+
+    .alert-warning {
+      background-color: rgba(227, 179, 65, 0.1);
+      border-left: 4px solid var(--accent-warning);
+    }
+
+    .alert-info {
+      background-color: rgba(88, 166, 255, 0.1);
+      border-left: 4px solid var(--accent-info);
+    }
+
+    .alert-success {
+      background-color: rgba(35, 134, 54, 0.1);
+      border-left: 4px solid var(--accent-success);
+    }
+
+    .alert-icon {
+      font-size: 18px;
+      margin-right: 15px;
+    }
+
+    .alert-content {
+      flex: 1;
+    }
+
+    .alert-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .alert-message {
+      font-size: 14px;
+    }
+
+    .ai-build {
+      display: flex;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: rgba(163, 113, 227, 0.05);
+    }
+
+    .ai-build-date {
+      min-width: 80px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-right: 10px;
+      padding-top: 2px;
+    }
+
+    .ai-build-content {
+      flex: 1;
+    }
+
+    .ai-build-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .ai-build-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .metric-card {
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: var(--card-bg);
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .metric-label {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .content-gap {
+      display: flex;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .content-gap:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .content-gap-dates {
+      min-width: 100px;
+      padding-right: 15px;
+      font-size: 13px;
+    }
+
+    .content-gap-info {
+      flex: 1;
+    }
+
+    .content-gap-title {
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+
+    .content-gap-details {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .horizontal-scroll {
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-header">
+    <div class="dashboard-title">Week in <span>Review</span></div>
+    <div class="dashboard-date">Feb 9 - Feb 16, 2026</div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="dashboard-summary">
+    <div class="summary-card">
+      <div class="title">Total Revenue</div>
+      <div class="value">$62,815</div>
+      <div class="change positive">↑ 14.2% from last week</div>
+    </div>
+    <div class="summary-card">
+      <div class="title">New Leads</div>
+      <div class="value">87</div>
+      <div class="change negative">↓ 7.8% from last week</div>
+    </div>
+    <div class="summary-card">
+      <div class="title">AI Hours Saved</div>
+      <div class="value">47</div>
+      <div class="change positive">↑ 18.5% from last week</div>
+    </div>
+    <div class="summary-card">
+      <div class="title">Campaign Conversion</div>
+      <div class="value">9.7%</div>
+      <div class="change positive">↑ 2.1 points from last week</div>
+    </div>
+  </div>
+
+  <!-- Priority Alerts Section -->
+  <div class="category-title">PRIORITY ALERTS</div>
+  <div class="alert-card alert-critical">
+    <div class="alert-icon">⚠️</div>
+    <div class="alert-content">
+      <div class="alert-title">RingCentral Answer Rate Critical (52.2%)</div>
+      <div class="alert-message">More than half of all TLH inbound calls go to voicemail or are missed. Immediate action required.</div>
+    </div>
+  </div>
+  
+  <div class="alert-card alert-warning">
+    <div class="alert-icon">🔔</div>
+    <div class="alert-content">
+      <div class="alert-title">Substack Revenue Down 93.6%</div>
+      <div class="alert-message">Revenue crashed from $6.5K (Oct) → $420 (Feb). 282 paid subscribers but acquisition stalled.</div>
+    </div>
+  </div>
+  
+  <div class="alert-card alert-info">
+    <div class="alert-icon">📅</div>
+    <div class="alert-content">
+      <div class="alert-title">Content Gap: Feb 18-20</div>
+      <div class="alert-message">Hello AI has no scheduled content for Feb 18-20. Use the Hello AI Script Generator to fill the gap.</div>
+    </div>
+  </div>
+  
+  <div class="alert-card alert-success">
+    <div class="alert-icon">🎯</div>
+    <div class="alert-content">
+      <div class="alert-title">Shai Fund Cr-02SMS Ready for Expansion</div>
+      <div class="alert-message">Consistently hitting $103.80 per 1K sends (10.38% yield) - significantly above expansion threshold.</div>
+    </div>
+  </div>
+
+  <!-- Tab Container -->
+  <div class="tab-container">
+    <div class="tab active" data-tab="overview">Overview</div>
+    <div class="tab" data-tab="donorbureau">DonorBureau</div>
+    <div class="tab" data-tab="tlh">TLH</div>
+    <div class="tab" data-tab="content">Content</div>
+    <div class="tab" data-tab="ai-operations">AI Operations</div>
+    <div class="tab" data-tab="next-week">Next Week</div>
+  </div>
+
+  <!-- Overview Tab Content -->
+  <div id="overview" class="tab-content active">
+    <div class="grid-container">
+      <!-- Performance by Domain -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Performance by Domain</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="domainPerformanceChart"></canvas>
+        </div>
+      </div>
+
+      <!-- This Week's Autonomous Builds -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">This Week's Autonomous Builds</div>
+          <span class="badge badge-ai">8 Builds</span>
+        </div>
+        
+        <div class="ai-build">
+          <div class="ai-build-date">Feb 15</div>
+          <div class="ai-build-content">
+            <div class="ai-build-title">Creative Emotion Analyzer</div>
+            <div class="ai-build-desc">Interactive dashboard that analyzes emotional patterns to predict performance</div>
+          </div>
+        </div>
+        
+        <div class="ai-build">
+          <div class="ai-build-date">Feb 15</div>
+          <div class="ai-build-content">
+            <div class="ai-build-title">Creative A/B Test Analyzer</div>
+            <div class="ai-build-desc">Analysis system for A/B test patterns, visualizations, and design framework</div>
+          </div>
+        </div>
+        
+        <div class="ai-build">
+          <div class="ai-build-date">Feb 15</div>
+          <div class="ai-build-content">
+            <div class="ai-build-title">Workspace Archaeologist</div>
+            <div class="ai-build-desc">File analysis revealing 5 buried treasures ready for revival</div>
+          </div>
+        </div>
+        
+        <div class="ai-build">
+          <div class="ai-build-date">Feb 15</div>
+          <div class="ai-build-content">
+            <div class="ai-build-title">Content Conversion Optimizer</div>
+            <div class="ai-build-desc">Landing page analysis with 18.7% potential conversion lift</div>
+          </div>
+        </div>
+        
+        <div class="ai-build">
+          <div class="ai-build-date">Feb 15</div>
+          <div class="ai-build-content">
+            <div class="ai-build-title">Universal Objection Library</div>
+            <div class="ai-build-desc">Comprehensive objection database with response templates</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Opportunities -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Highest Impact Opportunities</div>
+        </div>
+        
+        <div class="opportunity-card">
+          <div class="opportunity-badge" style="background-color: rgba(65, 161, 116, 0.2); color: var(--tlh-color);">📞</div>
+          <div class="opportunity-content">
+            <div class="opportunity-title">TLH Call Answer SLA Implementation</div>
+            <div class="opportunity-desc">Add Mike/Jose to RingCentral queue, implement simultaneous ring, extend hours to 8 AM.</div>
+            <div class="opportunity-metrics">
+              <span class="badge badge-success">High Impact</span>
+              <span class="badge badge-info">Easy</span>
+              <span>Potential: $75K/yr</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="opportunity-card">
+          <div class="opportunity-badge" style="background-color: rgba(92, 92, 255, 0.2); color: var(--db-color);">💰</div>
+          <div class="opportunity-content">
+            <div class="opportunity-title">Shai Fund Creative Expansion</div>
+            <div class="opportunity-desc">Expand Cr-02SMS to D10 segment, develop variations using What If Machine.</div>
+            <div class="opportunity-metrics">
+              <span class="badge badge-success">High Impact</span>
+              <span class="badge badge-info">Medium</span>
+              <span>Potential: $52K/yr</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="opportunity-card">
+          <div class="opportunity-badge" style="background-color: rgba(211, 154, 71, 0.2); color: var(--rg-color);">📊</div>
+          <div class="opportunity-content">
+            <div class="opportunity-title">Substack Win-back Campaign</div>
+            <div class="opportunity-desc">Target 63 dormant subscribers + cross-post Hello AI content to revive revenue.</div>
+            <div class="opportunity-metrics">
+              <span class="badge badge-success">High Impact</span>
+              <span class="badge badge-info">Medium</span>
+              <span>Potential: $40K/yr</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Wins -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Quick Wins (Do This Week)</div>
+        </div>
+        
+        <ul class="task-list">
+          <li>
+            <div class="task-check"></div>
+            <div class="task-content">
+              <div class="task-title">Create Hello AI video for Feb 18-20 content gap</div>
+              <div class="task-meta">
+                <div>
+                  <span class="pill pill-ai">AI</span>
+                  <span class="pill pill-rg">RG</span>
+                </div>
+                <div>15-30 minutes</div>
+              </div>
+            </div>
+          </li>
+          
+          <li>
+            <div class="task-check"></div>
+            <div class="task-content">
+              <div class="task-title">Add Mike/Jose to RingCentral queue (52.2% missed call rate)</div>
+              <div class="task-meta">
+                <div><span class="pill pill-tlh">TLH</span></div>
+                <div>5 minutes</div>
+              </div>
+            </div>
+          </li>
+          
+          <li>
+            <div class="task-check"></div>
+            <div class="task-content">
+              <div class="task-title">Expand Shai Fund Cr-02SMS to D10 segment ($103.80/1K yield)</div>
+              <div class="task-meta">
+                <div><span class="pill pill-db">DonorBureau</span></div>
+                <div>10 minutes</div>
+              </div>
+            </div>
+          </li>
+          
+          <li>
+            <div class="task-check"></div>
+            <div class="task-content">
+              <div class="task-title">Export list of 63 dormant Substack subscribers for re-engagement</div>
+              <div class="task-meta">
+                <div><span class="pill pill-rg">RG</span></div>
+                <div>15 minutes</div>
+              </div>
+            </div>
+          </li>
+          
+          <li>
+            <div class="task-check"></div>
+            <div class="task-content">
+              <div class="task-title">Simplify TLH lead forms (reduce from 14 fields to 5)</div>
+              <div class="task-meta">
+                <div><span class="pill pill-tlh">TLH</span></div>
+                <div>30 minutes</div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- DonorBureau Tab -->
+  <div id="donorbureau" class="tab-content">
+    <div class="grid-container">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">DonorBureau Performance</div>
+          <span class="badge badge-db">7-Day Data</span>
+        </div>
+        
+        <div class="summary-grid">
+          <div class="summary-box">
+            <div class="value">$47,220</div>
+            <div class="label">Revenue</div>
+          </div>
+          <div class="summary-box">
+            <div class="value">812</div>
+            <div class="label">Donors</div>
+          </div>
+          <div class="summary-box">
+            <div class="value">9.73%</div>
+            <div class="label">Conversion</div>
+          </div>
+          <div class="summary-box">
+            <div class="value">8</div>
+            <div class="label">Campaigns</div>
+          </div>
+        </div>
+        
+        <div class="category-title">Top Performing Creatives</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Campaign</th>
+              <th>Client</th>
+              <th>Yield</th>
+              <th>Revenue</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cr-02SMS</td>
+              <td>Shai Fund</td>
+              <td class="text-success">$103.80/1K</td>
+              <td>$9,342</td>
+              <td><span class="badge badge-success">Expand to D10</span></td>
+            </tr>
+            <tr>
+              <td>Cr-24MMS</td>
+              <td>SemperK9</td>
+              <td class="text-success">$68.35/1K</td>
+              <td>$7,518</td>
+              <td><span class="badge badge-success">Expanded</span></td>
+            </tr>
+            <tr>
+              <td>Cr-07SMS</td>
+              <td>NCPD</td>
+              <td class="text-success">$42.97/1K</td>
+              <td>$6,445</td>
+              <td><span class="badge badge-info">Create variants</span></td>
+            </tr>
+            <tr>
+              <td>Cr-33SMS</td>
+              <td>SoldierStrong</td>
+              <td class="text-success">$31.24/1K</td>
+              <td>$4,686</td>
+              <td><span class="badge badge-info">Monitor</span></td>
+            </tr>
+            <tr>
+              <td>Cr-19MMS</td>
+              <td>HeroBox</td>
+              <td class="text-warning">$14.67/1K</td>
+              <td>$1,760</td>
+              <td><span class="badge badge-warning">Review copy</span></td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="category-title">Concerns & Anomalies</div>
+        
+        <div class="alert-card alert-warning">
+          <div class="alert-icon">🔔</div>
+          <div class="alert-content">
+            <div class="alert-title">Hillsdale Em-176 Zero Revenue</div>
+            <div class="alert-message">71K sends, only ~50 clicks (0.07% CTR), significantly below baseline.</div>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-warning">
+          <div class="alert-icon">🔔</div>
+          <div class="alert-content">
+            <div class="alert-title">Husted OH-Sen High Unsubscribe Rate</div>
+            <div class="alert-message">18.23% unsubscribe rate (vs 0.82% baseline) - review content immediately.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Creative Genome Insights</div>
+        </div>
+        
+        <div class="category-title">Key Findings</div>
+        
+        <ul style="margin-left: 20px; margin-bottom: 15px;">
+          <li>Personalization is the ONLY universally positive feature (r=0.041-0.089)</li>
+          <li>Questions hurt across ALL 7 clients analyzed</li>
+          <li>Celebrity endorsement dominates SoldierStrong (r=0.281)</li>
+          <li>1000+ char messages = guaranteed failure</li>
+          <li>Guilt/shame hooks 3.8x more effective than Trump hooks (but used 33x less)</li>
+        </ul>
+        
+        <div class="category-title">Power Phrases (7-Day Performance)</div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Phrase</th>
+              <th>Yield Index</th>
+              <th>Client</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>"dead serious"</td>
+              <td class="text-success">24.94</td>
+              <td>NRSC</td>
+            </tr>
+            <tr>
+              <td>"secret message"</td>
+              <td class="text-success">14.42</td>
+              <td>RNC</td>
+            </tr>
+            <tr>
+              <td>"first to know"</td>
+              <td class="text-success">9.87</td>
+              <td>All</td>
+            </tr>
+            <tr>
+              <td>"I need to ask"</td>
+              <td class="text-success">8.65</td>
+              <td>SemperK9</td>
+            </tr>
+            <tr>
+              <td>"last chance"</td>
+              <td class="text-success">7.93</td>
+              <td>All</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="category-title">Poison Phrases (Avoid)</div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Phrase</th>
+              <th>Yield Index</th>
+              <th>Client</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>"with trump"</td>
+              <td class="text-danger">-16.72</td>
+              <td>NRSC</td>
+            </tr>
+            <tr>
+              <td>"Picture this:"</td>
+              <td class="text-danger">-12.31</td>
+              <td>All</td>
+            </tr>
+            <tr>
+              <td>"Will you join"</td>
+              <td class="text-danger">-10.54</td>
+              <td>All</td>
+            </tr>
+            <tr>
+              <td>"take a stand"</td>
+              <td class="text-danger">-8.93</td>
+              <td>All</td>
+            </tr>
+            <tr>
+              <td>"Are you with us?"</td>
+              <td class="text-danger">-7.82</td>
+              <td>All</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="category-title">Recommended Actions</div>
+        
+        <ol style="margin-left: 20px; margin-bottom: 15px;">
+          <li>Expand Shai Fund Cr-02SMS to D10 segment immediately</li>
+          <li>Create variants of NCPD Cr-07SMS using the What If Machine</li>
+          <li>Review Hillsdale email creative against poison phrases</li>
+          <li>Audit Husted SMS for frequency/phrasing issues</li>
+          <li>Add "dead serious" phrase to upcoming NRSC appeals</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- TLH Tab -->
+  <div id="tlh" class="tab-content">
+    <div class="grid-container">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">TLH Performance</div>
+          <span class="badge badge-tlh">7-Day Data</span>
+        </div>
+        
+        <div class="summary-grid">
+          <div class="summary-box">
+            <div class="value">$15,595</div>
+            <div class="label">Revenue</div>
+          </div>
+          <div class="summary-box">
+            <div class="value">87</div>
+            <div class="label">New Leads</div>
+          </div>
+          <div class="summary-box">
+            <div class="value">16.4%</div>
+            <div class="label">Qualification Rate</div>
+          </div>
+          <div class="summary-box">
+            <div class="value">25.8%</div>
+            <div class="label">Win Rate</div>
+          </div>
+        </div>
+        
+        <div class="category-title">Call Center Performance</div>
+        
+        <div class="alert-card alert-critical">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <div class="alert-title">52.2% of Calls Missed or Go to Voicemail</div>
+            <div class="alert-message">432 of 828 inbound calls (last 30 days) not answered live, representing significant lost revenue.</div>
+          </div>
+        </div>
+        
+        <div class="metrics-grid" style="margin: 15px 0;">
+          <div class="metric-card">
+            <div class="metric-value">828</div>
+            <div class="metric-label">Inbound Calls</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">396</div>
+            <div class="metric-label">Answered Live</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">432</div>
+            <div class="metric-label">Missed/Voicemail</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">192</div>
+            <div class="metric-label">After-Hours</div>
+          </div>
+        </div>
+        
+        <div class="category-title">Lead Performance</div>
+        
+        <div class="horizontal-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Region</th>
+                <th>Leads</th>
+                <th>Qualified %</th>
+                <th>Avg Calls</th>
+                <th>Avg Activities</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>San Diego</td>
+                <td>3,321</td>
+                <td class="text-success">32.1%</td>
+                <td>0.86</td>
+                <td>2.34</td>
+                <td><span class="badge badge-success">Keep Strategy</span></td>
+              </tr>
+              <tr>
+                <td>Orange County</td>
+                <td>1,539</td>
+                <td class="text-warning">21.2%</td>
+                <td>1.77</td>
+                <td>4.67</td>
+                <td><span class="badge badge-danger">Review Strategy</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="category-title">Response Time Analysis</div>
+        
+        <div class="alert-card alert-critical">
+          <div class="alert-icon">⏱️</div>
+          <div class="alert-content">
+            <div class="alert-title">Golden Window: First 60 Minutes Critical</div>
+            <div class="alert-message">Qualified leads: <strong>58 mins avg</strong> to first contact<br>Unqualified leads: <strong>446 mins avg</strong> to first contact<br><strong>6x conversion difference</strong> based solely on response time</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Lead Source Performance</div>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Leads</th>
+              <th>Qual %</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>B2B Referral</td>
+              <td>32</td>
+              <td class="text-success">93.8%</td>
+              <td>Scale this!</td>
+            </tr>
+            <tr>
+              <td>Employee Referral</td>
+              <td>16</td>
+              <td class="text-success">81.3%</td>
+              <td>High quality</td>
+            </tr>
+            <tr>
+              <td>Realtor Referral</td>
+              <td>20</td>
+              <td class="text-success">80.0%</td>
+              <td>Build program</td>
+            </tr>
+            <tr>
+              <td>Website</td>
+              <td>2,701</td>
+              <td class="text-warning">20.8%</td>
+              <td>Volume driver</td>
+            </tr>
+            <tr>
+              <td>CallRail</td>
+              <td>8,750</td>
+              <td class="text-warning">14.6%</td>
+              <td>Lower quality</td>
+            </tr>
+            <tr>
+              <td>EstateSales.net</td>
+              <td>402</td>
+              <td class="text-danger">5.5%</td>
+              <td>Review ROI</td>
+            </tr>
+            <tr>
+              <td>Yelp Message</td>
+              <td>226</td>
+              <td class="text-danger">3.5%</td>
+              <td>Consider stopping</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="category-title">Form Conversion Issues</div>
+        
+        <div class="alert-card alert-warning">
+          <div class="alert-icon">📝</div>
+          <div class="alert-content">
+            <div class="alert-title">TLH lead forms have 14 fields (industry avg: 4-5)</div>
+            <div class="alert-message">Potential 11.4% conversion lift by simplifying forms to essential fields only.</div>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-warning">
+          <div class="alert-icon">📱</div>
+          <div class="alert-content">
+            <div class="alert-title">62% of forms have critical mobile issues</div>
+            <div class="alert-message">Form fields overflow viewport, font size too small (10px), buttons hard to tap.</div>
+          </div>
+        </div>
+        
+        <div class="category-title">Quick Wins (This Week)</div>
+        
+        <ol style="margin-left: 20px; margin-bottom: 15px;">
+          <li>Add Mike/Jose to RingCentral queue (5 min)</li>
+          <li>Switch to simultaneous ring pattern (5 min)</li>
+          <li>Extend hours to 8 AM for morning calls (15 min)</li>
+          <li>Simplify lead forms to 5 essential fields (30 min)</li>
+          <li>Implement 60-minute response SLA (15 min)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Tab -->
+  <div id="content" class="tab-content">
+    <div class="grid-container">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Content Metrics</div>
+        </div>
+        
+        <div class="metrics-grid" style="margin: 15px 0;">
+          <div class="metric-card">
+            <div class="metric-value">8</div>
+            <div class="metric-label">Posts Published</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">12.7K</div>
+            <div class="metric-label">Total Views</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">3</div>
+            <div class="metric-label">Videos Created</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">8.4%</div>
+            <div class="metric-label">Video Conversion</div>
+          </div>
+        </div>
+        
+        <div class="category-title">Substack Subscriber Alert</div>
+        
+        <div class="alert-card alert-critical">
+          <div class="alert-icon">📉</div>
+          <div class="alert-content">
+            <div class="alert-title">Revenue crashed from $6.5K (Oct) → $420 (Feb)</div>
+            <div class="alert-message">286 paid subscribers (229 yearly, 43 monthly, 10 founding, 4 other)</div>
+          </div>
+        </div>
+        
+        <div class="category-title">Subscriber Segments</div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Segment</th>
+              <th>Count</th>
+              <th>Characteristics</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Super Fans</td>
+              <td>63</td>
+              <td>Open 75%+, comment regularly</td>
+              <td><span class="badge badge-success">Referral Program</span></td>
+            </tr>
+            <tr>
+              <td>Silent Readers</td>
+              <td>142</td>
+              <td>Open but don't engage</td>
+              <td><span class="badge badge-info">Engagement Campaign</span></td>
+            </tr>
+            <tr>
+              <td>Dormant</td>
+              <td>63</td>
+              <td>Zero opens in 6 months</td>
+              <td><span class="badge badge-warning">Re-engagement</span></td>
+            </tr>
+            <tr>
+              <td>Sharers</td>
+              <td>61</td>
+              <td>1+ shares per month</td>
+              <td><span class="badge badge-info">Referral Campaign</span></td>
+            </tr>
+            <tr>
+              <td>Founding Members</td>
+              <td>10</td>
+              <td>Highest LTV ($420-840 each)</td>
+              <td><span class="badge badge-success">VIP Treatment</span></td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="category-title">Content Schedule</div>
+        
+        <div class="alert-card alert-info">
+          <div class="alert-icon">🗓️</div>
+          <div class="alert-content">
+            <div class="alert-title">Content Gap: Feb 18-20 Hello AI</div>
+            <div class="alert-message">Use the Hello AI Script Generator to fill this gap.</div>
+          </div>
+        </div>
+        
+        <div class="content-gap">
+          <div class="content-gap-dates">Feb 9-16</div>
+          <div class="content-gap-info">
+            <div class="content-gap-title">Hello AI: 2 posts published</div>
+            <div class="content-gap-details">Video: "5 Claude Opus Hacks" (12.7K views), Article: "The AI Operator's Mindset" (3.2K views)</div>
+          </div>
+        </div>
+        
+        <div class="content-gap">
+          <div class="content-gap-dates">Feb 16-17</div>
+          <div class="content-gap-info">
+            <div class="content-gap-title">Hello AI: 1 post scheduled</div>
+            <div class="content-gap-details">Video: "Decision Journal Tutorial" (scheduled for Feb 17)</div>
+          </div>
+        </div>
+        
+        <div class="content-gap">
+          <div class="content-gap-dates">Feb 18-20</div>
+          <div class="content-gap-info">
+            <div class="content-gap-title">Hello AI: Content Gap!</div>
+            <div class="content-gap-details">No content scheduled - High priority to fill</div>
+          </div>
+        </div>
+        
+        <div class="content-gap">
+          <div class="content-gap-dates">Feb 21-23</div>
+          <div class="content-gap-info">
+            <div class="content-gap-title">Hello AI: 2 posts scheduled</div>
+            <div class="content-gap-details">Video: "AI Workspace Tour", Article: "8 Hidden ChatGPT Functions"</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Content Arbitrage Opportunities</div>
+        </div>
+        
+        <div class="category-title">Evergreen Candidates (Rational Ground → Hello AI)</div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Content</th>
+              <th>Original Views</th>
+              <th>Target</th>
+              <th>Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>The Complete Reckoning</td>
+              <td>51.2K</td>
+              <td>Twitter Thread</td>
+              <td><span class="badge badge-success">High</span></td>
+            </tr>
+            <tr>
+              <td>78 Mask Studies</td>
+              <td>23.8K</td>
+              <td>LinkedIn</td>
+              <td><span class="badge badge-success">High</span></td>
+            </tr>
+            <tr>
+              <td>Ultimate Fauci Guide</td>
+              <td>19.3K</td>
+              <td>Twitter Thread</td>
+              <td><span class="badge badge-info">Medium</span></td>
+            </tr>
+            <tr>
+              <td>Hypocrisy Lists</td>
+              <td>16.7K</td>
+              <td>Twitter Thread</td>
+              <td><span class="badge badge-info">Medium</span></td>
+            </tr>
+            <tr>
+              <td>Data Analysis for COVID</td>
+              <td>14.3K</td>
+              <td>Hello AI</td>
+              <td><span class="badge badge-success">High</span></td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="category-title">Top Screwtape Bangers for Social</div>
+        
+        <div style="margin-bottom: 15px;">
+          <blockquote style="margin: 0; padding: 10px; border-left: 4px solid var(--rg-color); background: rgba(211, 154, 71, 0.05);">
+            "Remember, son: it's not enough that they believe what we want. The real victory is when they believe everyone else believes it too."
+          </blockquote>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <blockquote style="margin: 0; padding: 10px; border-left: 4px solid var(--rg-color); background: rgba(211, 154, 71, 0.05);">
+            "Fear is our currency. It's the only emotion that truly suspends reason."
+          </blockquote>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <blockquote style="margin: 0; padding: 10px; border-left: 4px solid var(--rg-color); background: rgba(211, 154, 71, 0.05);">
+            "The greatest trick in modern politics is convincing humans that compliance is virtue."
+          </blockquote>
+        </div>
+        
+        <div class="category-title">Content Format Performance</div>
+        
+        <div class="alert-card alert-info">
+          <div class="alert-icon">🎬</div>
+          <div class="alert-content">
+            <div class="alert-title">Videos Convert at 8.4% vs 1.2% Text-Only</div>
+            <div class="alert-message">Yet only 3 videos created in February vs 5 text-only posts.</div>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-info">
+          <div class="alert-icon">📅</div>
+          <div class="alert-content">
+            <div class="alert-title">Content Scheduling Imbalance</div>
+            <div class="alert-message">70% of content published Mon-Wed, but highest engagement on Thu-Fri.</div>
+          </div>
+        </div>
+        
+        <div class="category-title">Recommended Actions</div>
+        
+        <ol style="margin-left: 20px; margin-bottom: 15px;">
+          <li>Create Hello AI video for Feb 18-20 content gap using the Script Generator</li>
+          <li>Export list of 63 dormant subscribers for re-engagement campaign</li>
+          <li>Repurpose Data Analysis for COVID content to Hello AI (AI angle)</li>
+          <li>Schedule weekly Screwtape quotes for Twitter (built-in content)</li>
+          <li>Shift 2 content pieces from Mon-Wed to Thu-Fri next week</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Operations Tab -->
+  <div id="ai-operations" class="tab-content">
+    <div class="grid-container">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">AI Operations Metrics</div>
+        </div>
+        
+        <div class="metrics-grid" style="margin: 15px 0;">
+          <div class="metric-card">
+            <div class="metric-value">$231.67</div>
+            <div class="metric-label">API Costs</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">47</div>
+            <div class="metric-label">Hours Saved</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">12x</div>
+            <div class="metric-label">ROI Multiple</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">8</div>
+            <div class="metric-label">New Builds</div>
+          </div>
+        </div>
+        
+        <div class="category-title">Model Usage & Costs</div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Tokens</th>
+              <th>Cost</th>
+              <th>Primary Use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Claude Opus</td>
+              <td>4.8M</td>
+              <td>$112.34</td>
+              <td>Autonomous builds</td>
+            </tr>
+            <tr>
+              <td>GPT-4o</td>
+              <td>2.1M</td>
+              <td>$63.45</td>
+              <td>Creative content</td>
+            </tr>
+            <tr>
+              <td>Gemini Pro</td>
+              <td>1.7M</td>
+              <td>$21.25</td>
+              <td>Web/data analysis</td>
+            </tr>
+            <tr>
+              <td>MiniMax M2.5</td>
+              <td>3.4M</td>
+              <td>$34.63</td>
+              <td>Routine tasks</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="alert-card alert-info">
+          <div class="alert-icon">💰</div>
+          <div class="alert-content">
+            <div class="alert-title">Cost Optimization Opportunity</div>
+            <div class="alert-message">$176.92 potential savings identified through optimization (model right-sizing, token efficiency).</div>
+          </div>
+        </div>
+        
+        <div class="category-title">Token Usage by Project</div>
+        
+        <div class="chart-container" style="height: 200px;">
+          <canvas id="tokenUsageChart"></canvas>
+        </div>
+        
+        <div class="category-title">Build ROI Analysis</div>
+        
+        <div class="alert-card alert-success">
+          <div class="alert-icon">📈</div>
+          <div class="alert-content">
+            <div class="alert-title">Autonomous builds: 33.4x ROI</div>
+            <div class="alert-message">4.8M tokens ($112.34) created $3,750 in estimated value.</div>
+          </div>
+        </div>
+        
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Baker's Dozen Tracker</div>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Build</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Usage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>DonorBureau Daily Briefing</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>Daily</td>
+            </tr>
+            <tr>
+              <td>TLH Lead Scorecard</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>Weekly</td>
+            </tr>
+            <tr>
+              <td>Substack Subscriber Deep Dive</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>Weekly</td>
+            </tr>
+            <tr>
+              <td>Workspace Archaeology</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 15</td>
+              <td>3x used</td>
+            </tr>
+            <tr>
+              <td>Signal Scanner</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>Daily</td>
+            </tr>
+            <tr>
+              <td>The "What If" Machine</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>5x used</td>
+            </tr>
+            <tr>
+              <td>Creative DNA Extractor</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>4x used</td>
+            </tr>
+            <tr>
+              <td>Competitor Watch</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>2x used</td>
+            </tr>
+            <tr>
+              <td>Personal CRM</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>Daily</td>
+            </tr>
+            <tr>
+              <td>Leverage Dashboard</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>Weekly</td>
+            </tr>
+            <tr>
+              <td>The Objection Library</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 15</td>
+              <td>3x used</td>
+            </tr>
+            <tr>
+              <td>Content Arbitrage Finder</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>2x used</td>
+            </tr>
+            <tr>
+              <td>Micro-Conversion Observatory</td>
+              <td><span class="badge badge-success">Complete</span></td>
+              <td>Feb 13</td>
+              <td>Weekly</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="category-title">Beyond the Baker's Dozen (New Builds)</div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Build</th>
+              <th>Date</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Creative Emotion Analyzer</td>
+              <td>Feb 15</td>
+              <td>Predict performance before testing</td>
+            </tr>
+            <tr>
+              <td>Creative A/B Test Analyzer</td>
+              <td>Feb 15</td>
+              <td>Identify winning patterns across tests</td>
+            </tr>
+            <tr>
+              <td>Content Conversion Optimizer</td>
+              <td>Feb 15</td>
+              <td>18.7% potential conversion lift</td>
+            </tr>
+            <tr>
+              <td>Strategic Content Intelligence</td>
+              <td>Feb 15</td>
+              <td>Cross-platform content strategy</td>
+            </tr>
+            <tr>
+              <td>Week in Review Dashboard</td>
+              <td>Feb 16</td>
+              <td>Unified weekly performance snapshot</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next Week Tab -->
+  <div id="next-week" class="tab-content">
+    <div class="grid-container">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Next Week Priorities (Feb 16-23)</div>
+        </div>
+        
+        <div class="category-title">HIGH IMPACT / LOW EFFORT</div>
+        
+        <div class="opportunity-card">
+          <div class="opportunity-badge" style="background-color: rgba(65, 161, 116, 0.2); color: var(--tlh-color);">📞</div>
+          <div class="opportunity-content">
+            <div class="opportunity-title">Implement 60-min Response SLA for TLH</div>
+            <div class="opportunity-desc">Set up notification system and process for ensuring all leads get first contact within 60 minutes.</div>
+            <div class="opportunity-metrics">
+              <span class="badge badge-success">High Impact</span>
+              <span class="badge badge-info">Low Effort</span>
+              <span>Potential: $75K/yr</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="opportunity-card">
+          <div class="opportunity-badge" style="background-color: rgba(92, 92, 255, 0.2); color: var(--db-color);">💰</div>
+          <div class="opportunity-content">
+            <div class="opportunity-title">Create Shai Fund Creative Variants</div>
+            <div class="opportunity-desc">Use the What If Machine to create 10 variations of the winning Cr-02SMS creative for A/B testing.</div>
+            <div class="opportunity-metrics">
+              <span class="badge badge-success">High Impact</span>
+              <span class="badge badge-info">Low Effort</span>
+              <span>Potential: $52K/yr</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="category-title">HIGH IMPACT / MEDIUM EFFORT</div>
+        
+        <div class="opportunity-card">
+          <div class="opportunity-badge" style="background-color: rgba(211, 154, 71, 0.2); color: var(--rg-color);">📊</div>
+          <div class="opportunity-content">
+            <div class="opportunity-title">Launch Substack Win-back Campaign</div>
+            <div class="opportunity-desc">Create targeted campaign for 63 dormant subscribers to revive Substack revenue from $420 toward previous $6.5K levels.</div>
+            <div class="opportunity-metrics">
+              <span class="badge badge-success">High Impact</span>
+              <span class="badge badge-warning">Medium Effort</span>
+              <span>Potential: $40K/yr</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="opportunity-card">
+          <div class="opportunity-badge" style="background-color: rgba(65, 161, 116, 0.2); color: var(--tlh-color);">🔍</div>
+          <div class="opportunity-content">
+            <div class="opportunity-title">Revamp TLH Lead Forms</div>
+            <div class="opportunity-desc">Simplify forms from 14 fields to 5, optimize for mobile, add security indicators, and implement real-time validation.</div>
+            <div class="opportunity-metrics">
+              <span class="badge badge-success">High Impact</span>
+              <span class="badge badge-warning">Medium Effort</span>
+              <span>Potential: $21K/yr</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="category-title">CONTENT CALENDAR</div>
+        
+        <div class="content-gap">
+          <div class="content-gap-dates">Feb 18-20</div>
+          <div class="content-gap-info">
+            <div class="content-gap-title">Hello AI: Fill Content Gap!</div>
+            <div class="content-gap-details">Priority: Create AI explainer video for missing slot</div>
+          </div>
+        </div>
+        
+        <div class="content-gap">
+          <div class="content-gap-dates">Feb 21-23</div>
+          <div class="content-gap-info">
+            <div class="content-gap-title">Hello AI + RG Cross-Post</div>
+            <div class="content-gap-details">Repurpose "Data Analysis for COVID" with AI angle for dual platforms</div>
+          </div>
+        </div>
+        
+        <div class="content-gap">
+          <div class="content-gap-dates">Weekly</div>
+          <div class="content-gap-info">
+            <div class="content-gap-title">Twitter Screwtape Quote Series</div>
+            <div class="content-gap-details">Start weekly quote posts from the curated bangers list</div>
+          </div>
+        </div>
+        
+        <div class="category-title">MAINTENANCE & MONITORING</div>
+        
+        <ul class="task-list">
+          <li>
+            <div class="task-check"></div>
+            <div class="task-content">
+              <div class="task-title">Monitor RingCentral answer rate after queue changes</div>
+              <div class="task-meta">
+                <div><span class="pill pill-tlh">TLH</span></div>
+                <div>Daily check</div>
+              </div>
+            </div>
+          </li>
+          
+          <li>
+            <div class="task-check"></div>
+            <div class="task-content">
+              <div class="task-title">Track Shai Fund creative expansion performance</div>
+              <div class="task-meta">
+                <div><span class="pill pill-db">DonorBureau</span></div>
+                <div>Daily check</div>
+              </div>
+            </div>
+          </li>
+          
+          <li>
+            <div class="task-check"></div>
+            <div class="task-content">
+              <div class="task-title">Implement workspace cleanup recommendations</div>
+              <div class="task-meta">
+                <div><span class="pill pill-ai">AI Ops</span></div>
+                <div>One-time task</div>
+              </div>
+            </div>
+          </li>
+          
+          <li>
+            <div class="task-check"></div>
+            <div class="task-content">
+              <div class="task-title">Update API Usage Dashboard with cost optimization</div>
+              <div class="task-meta">
+                <div><span class="pill pill-ai">AI Ops</span></div>
+                <div>Weekly</div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Week in Review: Key Takeaways</div>
+        </div>
+        
+        <div class="category-title">WHAT'S WORKING</div>
+        
+        <div class="alert-card alert-success">
+          <div class="alert-icon">✅</div>
+          <div class="alert-content">
+            <div class="alert-title">Autonomous builds delivering 33.4x ROI</div>
+            <div class="alert-message">$112.34 in API costs generating $3,750 in estimated value through actionable insights and tools.</div>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-success">
+          <div class="alert-icon">✅</div>
+          <div class="alert-content">
+            <div class="alert-title">Video content converting at 8.4% (vs 1.2% text-only)</div>
+            <div class="alert-message">Clear signal to prioritize video format for Hello AI and potentially RG content.</div>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-success">
+          <div class="alert-icon">✅</div>
+          <div class="alert-content">
+            <div class="alert-title">Creative Genome insights driving performance</div>
+            <div class="alert-message">Identified power/poison phrases correlate strongly with campaign success/failure.</div>
+          </div>
+        </div>
+        
+        <div class="category-title">WHAT'S NOT WORKING</div>
+        
+        <div class="alert-card alert-danger">
+          <div class="alert-icon">❌</div>
+          <div class="alert-content">
+            <div class="alert-title">RingCentral answer rate (47.8% answered live)</div>
+            <div class="alert-message">More than half of all inbound calls missed or going to voicemail.</div>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-danger">
+          <div class="alert-icon">❌</div>
+          <div class="alert-content">
+            <div class="alert-title">Substack revenue crash (93.6% decline)</div>
+            <div class="alert-message">From $6.5K (Oct) to $420 (Feb) despite stable subscriber count.</div>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-danger">
+          <div class="alert-icon">❌</div>
+          <div class="alert-content">
+            <div class="alert-title">Content gaps and scheduling imbalance</div>
+            <div class="alert-message">70% of content on Mon-Wed, highest engagement Thu-Fri, gap Feb 18-20.</div>
+          </div>
+        </div>
+        
+        <div class="category-title">BIG OPPORTUNITIES</div>
+        
+        <div class="alert-card alert-info">
+          <div class="alert-icon">💡</div>
+          <div class="alert-content">
+            <div class="alert-title">TLH Response Time SLA ($75K/yr potential)</div>
+            <div class="alert-message">6x qualification difference between 58-min and 446-min response times.</div>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-info">
+          <div class="alert-icon">💡</div>
+          <div class="alert-content">
+            <div class="alert-title">Shai Fund Creative Expansion ($52K/yr potential)</div>
+            <div class="alert-message">$103.80/1K yield significantly above expansion threshold.</div>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-info">
+          <div class="alert-icon">💡</div>
+          <div class="alert-content">
+            <div class="alert-title">Substack Win-back Campaign ($40K/yr potential)</div>
+            <div class="alert-message">63 dormant subscribers represent significant revenue opportunity.</div>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-info">
+          <div class="alert-icon">💡</div>
+          <div class="alert-content">
+            <div class="alert-title">B2B Referral Program for TLH (93.8% qualification rate)</div>
+            <div class="alert-message">Highest-converting lead source by far - opportunity to scale.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Week in Review Dashboard | Generated Feb 16, 2026</div>
+    <div>Created by <a href="#">Railstote</a></div>
+  </div>
+
+  <script>
+    // Tab switching functionality
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        // Add active class to clicked tab
+        tab.classList.add('active');
+        
+        // Hide all tab content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        // Show content for clicked tab
+        const tabId = tab.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+
+    // Initialize charts when the DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      // Domain Performance Chart
+      const domainCtx = document.getElementById('domainPerformanceChart').getContext('2d');
+      const domainChart = new Chart(domainCtx, {
+        type: 'bar',
+        data: {
+          labels: ['DonorBureau', 'TLH', 'RG/Hello AI', 'AI Consulting', 'Personal'],
+          datasets: [{
+            label: 'Revenue',
+            data: [47220, 15595, 4820, 0, 0],
+            backgroundColor: [
+              'rgba(92, 92, 255, 0.6)',
+              'rgba(65, 161, 116, 0.6)',
+              'rgba(211, 154, 71, 0.6)',
+              'rgba(163, 113, 227, 0.6)',
+              'rgba(227, 93, 123, 0.6)'
+            ],
+            borderColor: [
+              'rgba(92, 92, 255, 1)',
+              'rgba(65, 161, 116, 1)',
+              'rgba(211, 154, 71, 1)',
+              'rgba(163, 113, 227, 1)',
+              'rgba(227, 93, 123, 1)'
+            ],
+            borderWidth: 1
+          }, {
+            label: 'Previous Week',
+            data: [41180, 17560, 7340, 0, 0],
+            type: 'line',
+            borderColor: 'rgba(255, 255, 255, 0.5)',
+            borderDash: [5, 5],
+            borderWidth: 2,
+            pointBackgroundColor: 'rgba(255, 255, 255, 0.8)',
+            fill: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          }
+        }
+      });
+
+      // Token Usage Chart
+      const tokenCtx = document.getElementById('tokenUsageChart').getContext('2d');
+      const tokenChart = new Chart(tokenCtx, {
+        type: 'pie',
+        data: {
+          labels: ['Autonomous Builds', 'Creative Content', 'Data Analysis', 'Routine Tasks'],
+          datasets: [{
+            data: [4.8, 2.1, 1.7, 3.4],
+            backgroundColor: [
+              'rgba(163, 113, 227, 0.6)',
+              'rgba(92, 92, 255, 0.6)',
+              'rgba(65, 161, 116, 0.6)',
+              'rgba(211, 154, 71, 0.6)'
+            ],
+            borderColor: [
+              'rgba(163, 113, 227, 1)',
+              'rgba(92, 92, 255, 1)',
+              'rgba(65, 161, 116, 1)',
+              'rgba(211, 154, 71, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                color: 'rgba(255, 255, 255, 0.7)',
+                padding: 20
+              }
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
