@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLH Strategic Command Center — V2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#030305;--star:#E2E2E8;--muted:#6B6B78;--gold:#FFD28E;--red:#D66D50;--blue:#7F9CBB;--glass:rgba(255,255,255,.03);--border:rgba(255,255,255,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void);color:var(--star);font-family:'JetBrains Mono',monospace;line-height:1.6;min-height:100vh}
+h1,h2,h3,h4{font-family:'Playfair Display',serif}
+h2{font-size:1.6rem;border-bottom:1px solid var(--border);padding-bottom:.5rem;margin:2rem 0 1rem}
+h3{font-size:1.2rem;color:var(--gold);margin:1.5rem 0 .75rem}
+h4{font-size:1rem;margin:1rem 0 .5rem}
+a{color:var(--blue);text-decoration:none}
+a:hover{color:var(--gold)}
+ul,ol{margin:0 0 1rem 1.5rem}
+p{margin:0 0 1rem}
+.sf{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-2;background:radial-gradient(1px 1px at 10% 10%,#fff 100%,transparent),radial-gradient(1px 1px at 40% 70%,#fff 100%,transparent),radial-gradient(2px 2px at 70% 30%,#fff 100%,transparent);background-size:550px 550px;opacity:.25}
+.ph{position:fixed;bottom:-40vh;right:-20vw;width:120vw;height:120vw;border-radius:50%;background:radial-gradient(circle at 50% 0%,transparent 40%,#2a2a35 60%,var(--red) 65%,var(--gold) 68%,transparent 72%);z-index:-1;filter:blur(40px);opacity:.5}
+.app{display:flex;height:100vh}
+.side{width:260px;border-right:1px solid var(--border);padding:5rem 1rem 1rem;overflow-y:auto;flex-shrink:0}
+.main{flex:1;overflow-y:auto;padding:5rem 2.5rem 2rem}
+.hdr{position:fixed;top:0;left:0;right:0;height:56px;background:rgba(3,3,5,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:20}
+.hdr h1{font-size:1.2rem;margin:0;letter-spacing:2px}
+.ni{display:flex;align-items:center;padding:.7rem;margin-bottom:.4rem;border:1px solid transparent;border-radius:4px;cursor:pointer;transition:.2s;font-size:.85rem}
+.ni:hover{background:rgba(255,255,255,.05);border-color:var(--border)}
+.ni.act{background:rgba(255,210,142,.1);border-color:var(--gold)}
+.ni span:first-child{margin-right:.7rem;font-size:1.1rem}
+.tab{display:none}.tab.active{display:block}
+.g{background:var(--glass);border:1px solid var(--border);border-radius:4px;padding:1.25rem;margin-bottom:1rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem}
+.sc{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:1rem;text-align:center}
+.sc .v{font-size:1.8rem;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif}
+.sc .l{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:.25rem}
+table{width:100%;border-collapse:collapse;margin:1rem 0}
+th,td{border:1px solid var(--border);padding:.6rem .8rem;text-align:left;font-size:.85rem}
+th{background:rgba(255,255,255,.05);text-transform:uppercase;letter-spacing:1px;font-size:.75rem}
+tr:hover{background:rgba(255,255,255,.03)}
+.v2{display:inline-block;background:rgba(255,210,142,.15);color:var(--gold);border:1px solid rgba(255,210,142,.3);padding:.1rem .4rem;font-size:.65rem;border-radius:2px;font-weight:700;letter-spacing:.5px;vertical-align:middle}
+.badge{display:inline-block;padding:.15rem .5rem;font-size:.7rem;font-weight:700;border-radius:2px;letter-spacing:.5px}
+.bg-g{background:rgba(43,155,70,.2);color:#4ade80;border:1px solid rgba(74,222,128,.3)}
+.bg-y{background:rgba(234,179,8,.2);color:#facc15;border:1px solid rgba(250,204,21,.3)}
+.bg-r{background:rgba(225,29,72,.2);color:#fb7185;border:1px solid rgba(251,113,133,.3)}
+.bg-b{background:rgba(127,156,187,.2);color:var(--blue);border:1px solid rgba(127,156,187,.3)}
+.ac{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:4px;margin-bottom:.5rem;overflow:hidden}
+.ac summary{padding:.75rem 1rem;cursor:pointer;font-weight:500;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.ac summary::-webkit-details-marker{display:none}
+.ac summary::after{content:'▸';color:var(--muted);transition:.2s}
+.ac[open] summary::after{transform:rotate(90deg)}
+.ac .inner{padding:1rem;border-top:1px solid var(--border)}
+.agc{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:4px;padding:1.25rem;cursor:default;transition:.2s}
+.agc:hover{border-color:var(--gold);box-shadow:0 0 15px rgba(255,210,142,.1)}
+.agc .em{font-size:2rem;margin-right:.75rem}
+.agc .top{display:flex;align-items:center;margin-bottom:.75rem}
+.agc .nm{font-size:1.1rem;font-weight:600}
+.agc .rl{font-size:.8rem;color:var(--muted)}
+.footer{border-top:1px solid var(--border);padding:1.5rem 0;text-align:center;font-size:.8rem;color:var(--muted);margin-top:3rem}
+.bar-row{display:flex;align-items:center;margin-bottom:.5rem}
+.bar-label{width:140px;font-size:.8rem;flex-shrink:0}
+.bar-track{flex:1;height:24px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;display:flex;align-items:center;padding-left:.5rem;font-size:.7rem;font-weight:700}
+@media(max-width:768px){.side{display:none}.main{padding:5rem 1rem 1rem}}
+@media print{.side,.hdr,.sf,.ph{display:none}.main{padding:.5rem}}
+</style>
+</head>
+<body>
+<div class="sf"></div>
+<div class="ph"></div>
+<div class="hdr">
+  <h1>TLH STRATEGIC COMMAND CENTER</h1>
+  <div style="font-size:.8rem;color:var(--muted)">V2.0 — 2026-02-16</div>
+</div>
+<div class="app">
+<div class="side">
+  <div class="ni act" onclick="show('playbook')"><span>📋</span><span>Playbook</span></div>
+  <div class="ni" onclick="show('ops')"><span>⚙️</span><span>Operating System</span></div>
+  <div class="ni" onclick="show('agents')"><span>🤖</span><span>Agent Orchestra</span></div>
+  <div class="ni" onclick="show('inventory')"><span>📦</span><span>Master Inventory</span></div>
+  <div class="ni" onclick="show('sunset')"><span>🌅</span><span>Sunsetted Review</span></div>
+  <div class="ni" onclick="show('drift')"><span>⚠️</span><span>Drift Report</span></div>
+</div>
+<div class="main">
+
+<!-- ===== PLAYBOOK ===== -->
+<div id="playbook" class="tab active">
+<h2>📋 The TLH Playbook</h2>
+<p class="text-muted" style="color:var(--muted);font-size:.85rem">Canonical reference for all operations, AI agents, and human collaborators</p>
+
+<div class="cards">
+  <div class="sc"><div class="v">$150K</div><div class="l">Client LTV</div></div>
+  <div class="sc"><div class="v">93%</div><div class="l">LTV from Home Purchase</div></div>
+  <div class="sc"><div class="v">$50K/mo</div><div class="l">Marketing Budget</div></div>
+  <div class="sc"><div class="v">8</div><div class="l">AI Agents</div></div>
+</div>
+
+<div class="g">
+<h3>Mission & The Economic Truth</h3>
+<p>True Legacy Homes helps families navigate life's hardest transitions — the death of a loved one, a parent's move to care, the letting go of a family home — with dignity, speed, and fairness.</p>
+<p><strong style="color:var(--gold)">TLH is a home acquisition company disguised as an estate sale company.</strong></p>
+<ul>
+<li><strong>Externally:</strong> TLH is the one trusted partner for estate transitions</li>
+<li><strong>Internally:</strong> Estate sales are the visible entry product. The profit engine is home purchase (buy → renovate → flip)</li>
+<li>Estate sale: ~$10K (7% of LTV) • Home purchase: ~$140K+ (93% of LTV)</li>
+</ul>
+</div>
+
+<div class="g">
+<h3>Operational SLAs <span class="v2">V2 ADDITION</span></h3>
+<p><em>AI and marketing cannot fix broken plumbing. These supersede all marketing initiatives.</em></p>
+<table>
+<tr><th>SLA</th><th>Target</th><th>Current</th></tr>
+<tr><td>Phone Answer Rate (inside sales line)</td><td>&gt;80%</td><td>Unmeasured — needs baseline</td></tr>
+<tr><td>Speed-to-Lead (PPC)</td><td>&lt;5 minutes</td><td>Unknown</td></tr>
+<tr><td>Speed-to-Lead (other)</td><td>&lt;4 business hours</td><td>Unknown</td></tr>
+<tr><td>VIP Partner Routing</td><td>Direct to Senior Closer</td><td>Not implemented</td></tr>
+</table>
+<p><strong style="color:var(--red)">Circuit Breaker:</strong> If answer rate drops below 60%, paid ads are automatically paused.</p>
+</div>
+
+<div class="g">
+<h3>The Conversion Engine — "Two Checks" <span class="v2">V2 ADDITION</span></h3>
+<p>Because 93% of margin comes from home purchase, the in-home consultation is the highest-leverage 60 minutes in the business.</p>
+<blockquote style="border-left:3px solid var(--gold);padding-left:1rem;margin:1rem 0;font-style:italic;color:var(--gold)">"We can manage the estate sale and hand you a check for the contents. Or, our clients' biggest relief usually comes when we buy the home directly, as-is, with the contents still inside. That's a second, much larger check for the home itself, and you walk away this week."</blockquote>
+<p><strong>Incentive Alignment:</strong> Account Managers compensated disproportionately on home acquisition attachment, not just estate sale signatures.</p>
+</div>
+
+<div class="g">
+<h3>Acquisition Logic — 4 Tiers</h3>
+<table>
+<tr><th>Tier</th><th>Channel</th><th>CAC</th><th>Target</th></tr>
+<tr><td>1</td><td>Proactive Intelligence (Beacon agent)</td><td>~$50/mo</td><td>40-80 leads/mo</td></tr>
+<tr><td>2</td><td>Partner Referrals (Scout agent)</td><td>$0</td><td>30% of pipeline</td></tr>
+<tr><td>3 <span class="v2">V2</span></td><td>Alumni Engine — 1,500+ past clients</td><td>$0</td><td>5-15 referrals/mo</td></tr>
+<tr><td>4</td><td>Demand Capture (Paid)</td><td>&lt;$5K</td><td>High-intent only</td></tr>
+</table>
+</div>
+
+<div class="g">
+<h3>Budget Allocation ($50K/mo)</h3>
+<div class="bar-row"><div class="bar-label">Partners</div><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--gold)">30% — $15K</div></div></div>
+<div class="bar-row"><div class="bar-label">SEO/Content</div><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--blue)">30% — $15K</div></div></div>
+<div class="bar-row"><div class="bar-label">Google Ads</div><div class="bar-track"><div class="bar-fill" style="width:20%;background:var(--red)">20% — $10K</div></div></div>
+<div class="bar-row"><div class="bar-label">Direct Mail</div><div class="bar-track"><div class="bar-fill" style="width:10%;background:#4ade80">10% — $5K</div></div></div>
+<div class="bar-row"><div class="bar-label">Tools/Attrib</div><div class="bar-track"><div class="bar-fill" style="width:10%;background:#a78bfa">10% — $5K</div></div></div>
+</div>
+
+<div class="g">
+<h3>Geographic Rules</h3>
+<table>
+<tr><th>Market</th><th>Status</th><th>Cost/Win</th><th>Rule</th></tr>
+<tr><td>San Diego</td><td><span class="badge bg-g">PROVEN</span></td><td>$3,502</td><td>Defend and maintain</td></tr>
+<tr><td>Orange County</td><td><span class="badge bg-r">BROKEN</span></td><td>$10,266</td><td>FIX before expanding. Kill PMAX.</td></tr>
+<tr><td>Los Angeles</td><td><span class="badge bg-y">VIABLE</span></td><td>$5,146</td><td>Search only. Zero PMAX.</td></tr>
+</table>
+<p><strong>Expansion moratorium</strong> until OC cost/win &lt;$5K for 3 consecutive months.</p>
+</div>
+
+<div class="g">
+<h3>Care Placement Ruling <span class="v2">V2 ADDITION</span></h3>
+<p><span class="badge bg-r">KILLED</span> as internal B2C service. <span class="badge bg-g">REBORN</span> as B2B Partnership Layer.</p>
+<p>TLH refers to vetted placement agencies. They route families who need to liquidate homes back to TLH.</p>
+</div>
+
+<div class="g">
+<h3>Brand Firewalls <span class="v2">V2 ADDITION</span></h3>
+<p><strong>Consumer Brand:</strong> True Legacy Homes — families, attorneys, facilities. Dignity, legacy, transition.</p>
+<p><strong>Wholesaler Firewall:</strong> All investor transactions through <strong>TLH Acquisitions LLC</strong> (isolated DBA). If an investor Googles the buyer entity, they must NOT find "True Legacy Homes."</p>
+</div>
+
+<div class="g">
+<h3>What TLH Does NOT Do (Anti-Drift Rules)</h3>
+<ol>
+<li>Does not optimize for estate sale volume</li>
+<li>Does not run PMAX or phrase-match PPC</li>
+<li>Does not spread budget across 8+ channels</li>
+<li>Does not cold-call grieving families (14-day minimum)</li>
+<li>Does not market without attribution</li>
+<li>Does not expand until OC is fixed</li>
+<li>Does not send marketing before the funeral — ever</li>
+</ol>
+</div>
+
+<div class="g">
+<h3>Key Metrics</h3>
+<table>
+<tr><th>Metric</th><th>Target</th><th>Current</th></tr>
+<tr><td>Estate Sale → Home Purchase Conversion</td><td>30%+</td><td style="color:var(--red)">Untracked</td></tr>
+<tr><td>Cost/Home Purchase (SD)</td><td>&lt;$5K</td><td style="color:#4ade80">$3,502</td></tr>
+<tr><td>Cost/Home Purchase (OC)</td><td>&lt;$5K</td><td style="color:var(--red)">$10,266</td></tr>
+<tr><td>Partner-Sourced Deals</td><td>30%+</td><td style="color:var(--red)">~0%</td></tr>
+<tr><td>Phone Answer Rate</td><td>&gt;80%</td><td style="color:var(--gold)">Unmeasured</td></tr>
+<tr><td>Beacon Leads/Week</td><td>10+</td><td>~4</td></tr>
+<tr><td>Active Referring Partners</td><td>30+</td><td style="color:var(--red)">~0</td></tr>
+</table>
+</div>
+
+<div class="g">
+<h3>90-Day Execution Roadmap <span class="v2">V2 ADDITION</span></h3>
+<details class="ac"><summary>Phase 1: Stop the Bleeding (Days 1-30)</summary><div class="inner">
+<ul>
+<li>Kill OC PMAX, LA PMAX, all phrase-match PPC</li>
+<li>Consolidate phones, implement &gt;80% answer rate SLA</li>
+<li>CRM Tech Freeze — map 183 Salesforce flows</li>
+<li>Attribution lock — DNI tracking + required SF source fields</li>
+</ul></div></details>
+<details class="ac"><summary>Phase 2: Build the Partner Engine (Days 31-60)</summary><div class="inner">
+<ul>
+<li>Deploy Beacon V2 with probate court scraper</li>
+<li>Scout identifies Top 20 probate attorneys SD/OC</li>
+<li>Launch Alumni referral sequence to 1,500+ past clients</li>
+<li>Finalize Estate Liquidity Bridge ($5K advance)</li>
+</ul></div></details>
+<details class="ac"><summary>Phase 3: Scale & Optimize (Days 61-90)</summary><div class="inner">
+<ul>
+<li>Penny shifts content to "sell inherited house" keywords</li>
+<li>Formalize Estate Sale → Home Purchase tracking in SF</li>
+<li>Evaluate OC: if cost/win &lt;$5K, resume exact-match search</li>
+<li>Shoot 3 premium video testimonials</li>
+</ul></div></details>
+</div>
+
+<div class="g">
+<h3>Estate Liquidity Bridge <span class="v2">V2 ADDITION</span></h3>
+<p>The ultimate moat: advance <strong>$5K-$10K</strong> against estate proceeds to cover immediate clean-out, care facility deposits, or funeral costs. Makes TLH the estate's bridge bank. Eliminates all competition.</p>
+</div>
+</div>
+
+<!-- ===== OPERATING SYSTEM ===== -->
+<div id="ops" class="tab">
+<h2>⚙️ Strategic Operating System</h2>
+<p style="color:var(--muted);font-size:.85rem">The Growth Engine — how TLH finds, converts, and retains clients</p>
+
+<div class="cards">
+  <div class="sc"><div class="v">5</div><div class="l">Funnel Layers</div></div>
+  <div class="sc"><div class="v">$150K</div><div class="l">LTV per Client</div></div>
+  <div class="sc"><div class="v">43:1</div><div class="l">SD LTV:CAC</div></div>
+  <div class="sc"><div class="v">15:1</div><div class="l">OC LTV:CAC</div></div>
+</div>
+
+<div class="g">
+<h3>The Growth Funnel</h3>
+<table>
+<tr><th>Layer</th><th>Function</th><th>Cost</th><th>Output</th></tr>
+<tr><td>1. Intelligence</td><td>Beacon + Partners → pre-qualified leads</td><td>~$50/mo</td><td>Pre-Google leads</td></tr>
+<tr><td>2. Demand Capture</td><td>PPC + SEO + Direct Mail</td><td>~$25K/mo</td><td>Attributed inbound</td></tr>
+<tr><td>3. Conversion</td><td>Speed-to-lead → Consultation → "Two Checks"</td><td>Sales team</td><td>Signed contracts</td></tr>
+<tr><td>4. Fulfillment</td><td>Estate sale → Home purchase → Flip</td><td>Operations</td><td>Revenue</td></tr>
+<tr><td>5. Flywheel</td><td>Memory book → Referral → Alumni Engine</td><td>~$0</td><td>Compounding leads</td></tr>
+</table>
+</div>
+
+<div class="g">
+<h3>Trigger Map — Urgency Tiers</h3>
+<table>
+<tr><th>Tier</th><th>Trigger</th><th>Score</th><th>Detection</th></tr>
+<tr><td><span class="badge bg-r">IMMEDIATE</span></td><td>Death of homeowner</td><td>+100</td><td>✅ Beacon (SD)</td></tr>
+<tr><td><span class="badge bg-r">IMMEDIATE</span></td><td>Probate filing</td><td>+85</td><td>❌ Priority #1</td></tr>
+<tr><td><span class="badge bg-r">IMMEDIATE</span></td><td>Hospitalization / fall</td><td>+90</td><td>❌ Need partnerships</td></tr>
+<tr><td><span class="badge bg-y">HIGH</span></td><td>Care facility move</td><td>+50</td><td>❌ Need partnerships</td></tr>
+<tr><td><span class="badge bg-y">HIGH</span></td><td>Tax default</td><td>+35</td><td>⚠️ Partial</td></tr>
+<tr><td><span class="badge bg-b">MODERATE</span></td><td>Expired MLS listing</td><td>+15</td><td>❌ No access</td></tr>
+<tr><td><span class="badge bg-b">MODERATE</span></td><td>20+ year homeowner 65+</td><td>+15</td><td>✅ Mail lists</td></tr>
+</table>
+</div>
+
+<div class="g">
+<h3>10x Opportunities</h3>
+<ol>
+<li><strong>Probate attorney network</strong> — 20 attorneys × 25 referrals/yr = 500 leads at $0 CAC</li>
+<li><strong>Beacon at scale</strong> — probate + obituary + tax default + assessor = 40-80 pre-qualified leads/mo</li>
+<li><strong>Estate Liquidity Bridge</strong> — advance $5-10K, lock in deal, eliminate competition <span class="v2">V2</span></li>
+<li><strong>Fix OC</strong> — $33K overspent for same 5 wins; reallocate to partners</li>
+<li><strong>Alumni Engine</strong> — 1,500+ past clients at $0 CAC <span class="v2">V2</span></li>
+</ol>
+</div>
+
+<div class="g">
+<h3>Channel Hierarchy</h3>
+<p><strong>Kill:</strong> PMAX (all markets), phrase-match PPC, generic Facebook, Caring.com</p>
+<p><strong>Concentrate:</strong> Partners (30%) + SEO (30%) + Exact Match Search (20%) + Mail (10%) + Tools (10%)</p>
+<p><strong>Rule:</strong> If a channel can't be tracked via CallRail DNI, UTMs, or SF source codes, it gets zero budget.</p>
+</div>
+</div>
+
+<!-- ===== AGENT ORCHESTRA ===== -->
+<div id="agents" class="tab">
+<h2>🤖 Agent Orchestra</h2>
+<p style="color:var(--muted);font-size:.85rem">8 AI agents. Clear hierarchy. Every one traces to home acquisition.</p>
+
+<div class="cards">
+  <div class="sc"><div class="v">8</div><div class="l">Active Agents</div></div>
+  <div class="sc"><div class="v">15→8</div><div class="l">Consolidated</div></div>
+  <div class="sc"><div class="v">1</div><div class="l">Fully Automated</div></div>
+  <div class="sc"><div class="v">$50/mo</div><div class="l">Beacon Cost</div></div>
+</div>
+
+<div class="cards">
+<div class="agc"><div class="top"><span class="em">🎼</span><div><div class="nm">Maestro</div><div class="rl">Orchestrator — Justin</div></div></div><p style="font-size:.85rem">Coordinates all agents. Morning briefings, weekly rollups, escalation routing, quality monitoring.</p></div>
+<div class="agc"><div class="top"><span class="em">🔦</span><div><div class="nm">Beacon</div><div class="rl">Lead Discovery — Justin/Paul</div></div></div><p style="font-size:.85rem">Finds families before they Google. Obituaries, probate filings, tax defaults, property verification. Target: 40-80 leads/mo.</p></div>
+<div class="agc"><div class="top"><span class="em">🔍</span><div><div class="nm">Scout</div><div class="rl">BD/Partnership Hunter — Jamison</div></div></div><p style="font-size:.85rem">Builds the partner referral network. Top 20 attorneys, facility partnerships, partner scoring, quarterly dividends.</p></div>
+<div class="agc"><div class="top"><span class="em">💌</span><div><div class="nm">Grace</div><div class="rl">CRM Intelligence — Jonathan/James</div></div></div><p style="font-size:.85rem">Scores leads (0-100), monitors pipeline SLAs, flags estate-sale→home-purchase cross-sell opportunities.</p></div>
+<div class="agc"><div class="top"><span class="em">📝</span><div><div class="nm">Penny</div><div class="rl">Content Engine — Brett</div></div></div><p style="font-size:.85rem">SEO blogs, guides, partner collateral. Owns "sell inherited house California" and every variation.</p></div>
+<div class="agc"><div class="top"><span class="em">🐦</span><div><div class="nm">Lark</div><div class="rl">Listings & Social — Debbie</div></div></div><p style="font-size:.85rem">Estate sale listings, social promotion, review management. Makes every sale a marketing event.</p></div>
+<div class="agc"><div class="top"><span class="em">📊</span><div><div class="nm">Ledger</div><div class="rl">Performance Analyst — Justin</div></div></div><p style="font-size:.85rem">Single source of truth for ROI. Kill losers fast, double winners. Budget police across every channel.</p></div>
+<div class="agc"><div class="top"><span class="em">📬</span><div><div class="nm">Piper</div><div class="rl">Shopper Email — Automated</div></div></div><p style="font-size:.85rem">Weekly estate sale shopper email. Now weaponized with "Soft Ask" referral module. <span class="v2">V2</span></p></div>
+</div>
+
+<div class="g">
+<h3>Data Flow</h3>
+<ol>
+<li>Beacon discovers leads → Grace scores and routes</li>
+<li>Beacon identifies attorney patterns → Scout targets partnerships</li>
+<li>Scout brings partner referrals → Grace tracks attribution</li>
+<li>Penny creates assets → Lark distributes</li>
+<li>Ledger monitors everything → Maestro acts on insights</li>
+<li>Maestro coordinates all → Justin approves strategic decisions</li>
+</ol>
+</div>
+
+<div class="g">
+<h3>Implementation Priority</h3>
+<table>
+<tr><th>Phase</th><th>Agent</th><th>Timeline</th><th>Status</th></tr>
+<tr><td>1</td><td>🔦 Beacon (enhance)</td><td>This month</td><td><span class="badge bg-y">IN PROGRESS</span></td></tr>
+<tr><td>1</td><td>📊 Ledger</td><td>This month</td><td><span class="badge bg-g">API READY</span></td></tr>
+<tr><td>1</td><td>🎼 Maestro</td><td>This month</td><td><span class="badge bg-y">IN PROGRESS</span></td></tr>
+<tr><td>2</td><td>💌 Grace</td><td>Next month</td><td><span class="badge bg-b">PLANNED</span></td></tr>
+<tr><td>2</td><td>🔍 Scout</td><td>Next month</td><td><span class="badge bg-b">PLANNED</span></td></tr>
+<tr><td>3</td><td>📝 Penny</td><td>Month 3</td><td><span class="badge bg-b">PLANNED</span></td></tr>
+<tr><td>3</td><td>🐦 Lark</td><td>Month 3</td><td><span class="badge bg-b">PLANNED</span></td></tr>
+<tr><td>—</td><td>📬 Piper</td><td>—</td><td><span class="badge bg-g">ACTIVE</span></td></tr>
+</table>
+</div>
+</div>
+
+<!-- ===== MASTER INVENTORY ===== -->
+<div id="inventory" class="tab">
+<h2>📦 Master Strategic Inventory</h2>
+<p style="color:var(--muted);font-size:.85rem">Every audience, channel, message, tactic, and mechanism — cataloged by source</p>
+
+<div class="cards">
+  <div class="sc"><div class="v">30+</div><div class="l">Audiences</div></div>
+  <div class="sc"><div class="v">40+</div><div class="l">Channels</div></div>
+  <div class="sc"><div class="v">16</div><div class="l">Trigger Types</div></div>
+  <div class="sc"><div class="v">15</div><div class="l">Agent Concepts</div></div>
+</div>
+
+<details class="ac"><summary>🎯 Primary Audiences</summary><div class="inner">
+<table>
+<tr><th>Audience</th><th>Relevance</th></tr>
+<tr><td>Adult Daughters 45-65 ("The Overwhelmed Daughter")</td><td><span class="badge bg-r">CRITICAL</span></td></tr>
+<tr><td>Estate Executors / Probate Reps</td><td><span class="badge bg-r">CRITICAL</span></td></tr>
+<tr><td>Families needing urgent placement</td><td><span class="badge bg-r">CRITICAL</span></td></tr>
+<tr><td>Widowed Seniors 65-85</td><td><span class="badge bg-y">HIGH</span></td></tr>
+<tr><td>"House Rich, Cash Poor" Seniors</td><td><span class="badge bg-y">HIGH</span></td></tr>
+</table></div></details>
+
+<details class="ac"><summary>🤝 B2B / Referral Partners</summary><div class="inner">
+<table>
+<tr><th>Partner</th><th>Relevance</th><th>Volume</th></tr>
+<tr><td>Probate Attorneys</td><td><span class="badge bg-r">CRITICAL</span></td><td>1 atty = 10-50 referrals/yr</td></tr>
+<tr><td>Professional Fiduciaries (OC)</td><td><span class="badge bg-r">CRITICAL</span></td><td>Multiple estates simultaneously</td></tr>
+<tr><td>Senior Living Facilities</td><td><span class="badge bg-y">HIGH</span></td><td>5-15 move-ins/mo = houses</td></tr>
+<tr><td>Hospital Discharge Planners</td><td><span class="badge bg-y">HIGH</span></td><td>Crisis = urgency = fast close</td></tr>
+<tr><td>Senior Move Managers (NASMM)</td><td><span class="badge bg-y">HIGH</span></td><td>Preferred vendor flywheel</td></tr>
+</table></div></details>
+
+<details class="ac"><summary>📡 Channel Tiers</summary><div class="inner">
+<p><strong>Tier 1 (Proven):</strong> Google exact match, Partner referrals, Beacon agent, SEO/Content, Direct mail, Local SEO/GBP</p>
+<p><strong>Tier 2 (Supporting):</strong> Facebook/IG (when attribution works), Nextdoor, LinkedIn, Email nurture, Seminars</p>
+<p><strong>Tier 3 (Lower):</strong> Bing, YouTube pre-roll, Print, Events, TikTok</p>
+<p><strong style="color:var(--red)">KILL:</strong> PMAX (all), Phrase match PPC, Generic Facebook, Caring.com</p>
+</div></details>
+
+<details class="ac"><summary>💬 Messaging Themes</summary><div class="inner">
+<ul>
+<li><strong>Brand:</strong> "From overwhelmed to done."</li>
+<li><strong>Promise:</strong> "Make the call. We handle everything — and you get a check, not a bill."</li>
+<li><strong>Speed:</strong> "Consultation 48 Hours. Cash Offer 7 Days. Complete by 30."</li>
+<li><strong>Daughter:</strong> "ONE call handles everything."</li>
+<li><strong>Attorney:</strong> "We handle the junk, the jewelry, and the keys. 48-hour Value Audit."</li>
+<li><strong>OC Premium:</strong> Discretion, stewardship, "Sotheby's brochure" quality</li>
+</ul></div></details>
+
+<details class="ac"><summary>🔧 Acquisition Tactics</summary><div class="inner">
+<table>
+<tr><th>Tactic</th><th>Impact</th><th>Status</th></tr>
+<tr><td>Beacon obituary → property verify → probate</td><td><span class="badge bg-r">CRITICAL</span></td><td>⚠️ Partial</td></tr>
+<tr><td>Probate court scraper</td><td><span class="badge bg-r">VERY HIGH</span></td><td>❌ #1 Priority</td></tr>
+<tr><td>Probate attorney network (Top 20)</td><td><span class="badge bg-r">VERY HIGH</span></td><td>❌ Not started</td></tr>
+<tr><td>Alumni Engine — past client referrals <span class="v2">V2</span></td><td><span class="badge bg-y">HIGH</span></td><td>❌ Not structured</td></tr>
+<tr><td>"Two Checks" consultation protocol <span class="v2">V2</span></td><td><span class="badge bg-r">CRITICAL</span></td><td>❌ Not codified</td></tr>
+<tr><td>Estate Liquidity Bridge ($5-10K) <span class="v2">V2</span></td><td><span class="badge bg-r">VERY HIGH</span></td><td>❌ Q2 2026</td></tr>
+</table></div></details>
+</div>
+
+<!-- ===== SUNSETTED REVIEW ===== -->
+<div id="sunset" class="tab">
+<h2>🌅 Sunsetted Mechanisms Review</h2>
+<p style="color:var(--muted);font-size:.85rem">What was killed, what should be revived, and under what conditions</p>
+
+<div class="cards">
+  <div class="sc"><div class="v">8</div><div class="l">Mechanisms Reviewed</div></div>
+  <div class="sc"><div class="v">3</div><div class="l">Revive</div></div>
+  <div class="sc"><div class="v">3</div><div class="l">Kill Permanently</div></div>
+  <div class="sc"><div class="v">2</div><div class="l">Redesign</div></div>
+</div>
+
+<details class="ac"><summary><span class="badge bg-y">REDESIGNED</span> Care Placement <span class="v2">V2 RULING</span></summary><div class="inner">
+<p><strong>Was:</strong> Free-to-family senior care placement service. Revenue from facility commissions (~$5K).</p>
+<p><strong>V2 Ruling:</strong> <strong style="color:var(--red)">KILLED</strong> as internal B2C service. <strong style="color:#4ade80">REBORN</strong> as B2B Partnership Layer.</p>
+<p>TLH refers to vetted placement agencies (Elder Answers, CarePatrol). They route families who need to liquidate homes back to TLH. "Life Transition Needs Assessment" remains the primary consultation tool.</p>
+</div></details>
+
+<details class="ac"><summary><span class="badge bg-g">REVIVE</span> Past Client Referral Program <span class="v2">V2 APPROVED</span></summary><div class="inner">
+<p><strong>Opportunity:</strong> 1,500+ past clients at $150K LTV = massive untapped $0 CAC network.</p>
+<p><strong>Plan:</strong> 3-email referral sequence + annual holiday card + $500 bounty or charity donation. Track in SF as "Past Client Referral." Expected: 5-15 referrals/month within 6 months.</p>
+</div></details>
+
+<details class="ac"><summary><span class="badge bg-y">REDESIGNED</span> Wholesaler Program</summary><div class="inner">
+<p><strong>Proceed with brand firewall.</strong> All investor transactions through <strong>TLH Acquisitions LLC</strong> (isolated DBA). No public TLH branding on wholesaler materials. Dedicated POC, not the estate sale team.</p>
+</div></details>
+
+<details class="ac"><summary><span class="badge bg-g">REVIVE</span> Professional Referral System</summary><div class="inner">
+<p>Build for the first time. Scout agent manages identification + outreach. Partner portal → CRM → concierge assignment. Referral fees: $200-$500 (attorneys), $1K (agents), reciprocal (NASMM). Budget: $15K/mo (30%).</p>
+</div></details>
+
+<details class="ac"><summary><span class="badge bg-r">KILL</span> OC PMAX / Broad PPC</summary><div class="inner">
+<p>1 win at $12,327. 78% no-response rate. PMAX is a black box that can't optimize for low-volume niche business. Kill permanently.</p>
+</div></details>
+
+<details class="ac"><summary><span class="badge bg-r">KILL</span> TV / "Free" Messaging</summary><div class="inner">
+<p>Generated 60-80% unqualified leads. "Free" attracts wrong audience. Keep dead.</p>
+</div></details>
+
+<details class="ac"><summary><span class="badge bg-r">KILL</span> Multi-Market Expansion</summary><div class="inner">
+<p>Plans for Denver, Phoenix, Bay Area, Seattle, DFW. Unanimously premature. Haven't proven OC yet. Revival trigger: OC cost/win &lt;$5K for 3 consecutive months AND 30%+ partner pipeline AND SD stable.</p>
+</div></details>
+
+<details class="ac"><summary><span class="badge bg-y">REDESIGNED</span> RB Hyper-Local Pilot</summary><div class="inner">
+<p>Strip to 3 channels: Google exact match + direct mail (probate) + partner (Ed Brown Senior Center). Run 90 days, kill if &lt;3 consultations/month.</p>
+</div></details>
+</div>
+
+<!-- ===== DRIFT REPORT ===== -->
+<div id="drift" class="tab">
+<h2>⚠️ Strategic Drift Report</h2>
+<p style="color:var(--muted);font-size:.85rem">Where thinking diverged, efforts conflict, and acquisition focus dilutes</p>
+
+<div class="cards">
+  <div class="sc"><div class="v">9</div><div class="l">Drift Categories</div></div>
+  <div class="sc"><div class="v">3</div><div class="l">Resolved in V2</div></div>
+  <div class="sc"><div class="v">3</div><div class="l">Critical / Open</div></div>
+  <div class="sc"><div class="v">3</div><div class="l">Medium / Open</div></div>
+</div>
+
+<table>
+<tr><th>#</th><th>Drift</th><th>Severity</th><th>Status</th></tr>
+<tr><td>1</td><td>Estate sale volume vs. acquisition conversion</td><td><span class="badge bg-r">CRITICAL</span></td><td><span class="badge bg-y">OPEN</span> — "Two Checks" codified, metric still untracked</td></tr>
+<tr><td>2</td><td>Channel sprawl (8 channels, no dominance)</td><td><span class="badge bg-r">CRITICAL</span></td><td><span class="badge bg-g">V2 ADDRESSED</span> — Colonel Blotto allocation codified</td></tr>
+<tr><td>3</td><td>OC geographic overreach</td><td><span class="badge bg-y">HIGH</span></td><td><span class="badge bg-g">V2 ADDRESSED</span> — Expansion moratorium</td></tr>
+<tr><td>4</td><td>Partner underinvestment (8% → 30%)</td><td><span class="badge bg-r">CRITICAL</span></td><td><span class="badge bg-y">OPEN</span> — Budget reallocation pending</td></tr>
+<tr><td>5</td><td>Agent overlap risk</td><td><span class="badge bg-b">MEDIUM</span></td><td><span class="badge bg-g">V2 RESOLVED</span> — 8 named agents, clear ownership</td></tr>
+<tr><td>6</td><td>Care Placement limbo</td><td><span class="badge bg-y">HIGH</span></td><td><span class="badge bg-g">V2 RESOLVED</span> — Explicit ruling made</td></tr>
+<tr><td>7</td><td>Technology accumulation (183 flows)</td><td><span class="badge bg-y">HIGH</span></td><td><span class="badge bg-y">OPEN</span> — CRM Code Freeze declared</td></tr>
+<tr><td>8</td><td>Planning document contradictions</td><td><span class="badge bg-b">MEDIUM</span></td><td><span class="badge bg-g">V2 ADDRESSED</span> — Playbook is canonical</td></tr>
+<tr><td>9 <span class="v2">V2</span></td><td>Alumni Engine neglect</td><td><span class="badge bg-y">HIGH</span></td><td><span class="badge bg-y">OPEN</span> — 1,500+ clients untapped</td></tr>
+</table>
+
+<div class="g" style="margin-top:1.5rem">
+<h3>Key Contradictions Resolved</h3>
+<table>
+<tr><th>Area</th><th>Was</th><th>V2 Resolution</th></tr>
+<tr><td>Probate attorneys</td><td>Paul rated "Low Value"</td><td>Adopted as highest-ROI partner</td></tr>
+<tr><td>Partner budget</td><td>8% of spend</td><td>30% ($15K/mo)</td></tr>
+<tr><td>OC approach</td><td>Same playbook as SD</td><td>Needs "Coastal Concierge" positioning</td></tr>
+<tr><td>Care Placement</td><td>Zombie — neither alive nor dead</td><td>Killed as service, reborn as B2B layer</td></tr>
+<tr><td>Wholesalers</td><td>"Brand firewall" undefined</td><td>TLH Acquisitions LLC mandate</td></tr>
+</table>
+</div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+  Powered by Railstote 🦉 • TLH Strategic Command Center V2.0 • Last updated 2026-02-16
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+function show(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('act'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('act');
+  document.querySelector('.main').scrollTop=0;
+}
+</script>
+</body>
+</html>
