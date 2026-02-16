@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ancestor Simulator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#c8c8d0;font-family:'Courier New',monospace;min-height:100vh;padding:40px 20px}
+h1{font-size:1.8em;color:#fff;text-align:center;margin-bottom:8px}
+.sub{color:#555;font-size:.8em;text-align:center;margin-bottom:30px;max-width:550px;margin-left:auto;margin-right:auto}
+.setup{max-width:600px;margin:0 auto 30px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+label{color:#666;font-size:.7em;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px}
+input,select{width:100%;background:#111;border:1px solid #333;color:#ddd;padding:10px;font-family:inherit;font-size:.8em;border-radius:6px}
+button{display:block;margin:16px auto 0;background:#1a2e1a;color:#68ee68;border:1px solid #2a4e2a;padding:10px 28px;font-family:inherit;cursor:pointer;border-radius:6px;font-size:.85em}
+button:hover{background:#2a4e2a}
+.sim{max-width:800px;margin:0 auto;display:none}
+.constraints{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.constraint{background:#0d0d14;border:1px solid #1a2e1a;border-radius:8px;padding:16px;text-align:center}
+.constraint .icon{font-size:1.5em;margin-bottom:6px}
+.constraint .label{color:#68ee68;font-size:.75em;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.constraint .val{color:#fff;font-size:.9em}
+.decision{background:#0d0d14;border:1px solid #2e2e1a;border-radius:8px;padding:24px;margin-top:16px}
+.decision h3{color:#eecc68;font-size:.9em;margin-bottom:12px}
+.decision p{color:#888;font-size:.8em;line-height:1.7}
+.decision .choices{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+.decision .choices button{background:#111;color:#ccc;border:1px solid #333;font-size:.8em;padding:8px 16px;margin:0}
+.decision .choices button:hover{background:#222;color:#fff}
+.reflection{margin-top:20px;padding:16px;background:#0a0a12;border-left:2px solid #555;border-radius:0 6px 6px 0;display:none}
+.reflection p{color:#777;font-size:.8em;line-height:1.7}
+.meta{color:#333;font-size:.7em;text-align:center;margin-top:40px}
+</style>
+</head>
+<body>
+<h1>The Ancestor Simulator</h1>
+<p class="sub">Adopt the complete constraints of an ancestor's life. Then face a decision they faced. Feel the limits.</p>
+
+<div class="setup" id="setup">
+<div class="row">
+<div><label>Ancestor's Name</label><input id="aName" placeholder="e.g., Mary Ellen Hart"></div>
+<div><label>Approximate Year</label><input id="aYear" type="number" placeholder="e.g., 1847" value="1847"></div>
+</div>
+<div class="row">
+<div><label>Location</label><input id="aLoc" placeholder="e.g., Nauvoo, Illinois"></div>
+<div><label>Occupation</label><input id="aOcc" placeholder="e.g., Farmer / Homemaker"></div>
+</div>
+<button onclick="simulate()">Enter Their World</button>
+</div>
+
+<div class="sim" id="sim">
+<div class="constraints" id="constraints"></div>
+<div class="decision" id="decision"></div>
+<div class="reflection" id="reflection"></div>
+</div>
+
+<p class="meta">You would not have done better. You would have done differently — with less.</p>
+
+<script>
+const eraData = {
+  pre1800:{life:35,radius:5,light:'Candle/fire only',med:'Herbal/prayer',comm:'Foot messenger',literacy:'~20%',pop:'<1B humans alive'},
+  e1800:{life:40,radius:15,light:'Oil lamp',med:'Basic surgery, no anesthesia',comm:'Letter (weeks)',literacy:'~40%',pop:'1B humans alive'},
+  m1800:{life:42,radius:30,light:'Gas lamp',med:'Chloroform emerging',comm:'Telegraph (hours)',literacy:'~55%',pop:'1.2B humans alive'},
+  l1800:{life:45,radius:50,light:'Early electric',med:'Germ theory new',comm:'Telegraph/early telephone',literacy:'~65%',pop:'1.5B humans alive'},
+  e1900:{life:50,radius:100,light:'Electric light',med:'Basic antibiotics',comm:'Telephone/telegraph',literacy:'~75%',pop:'1.6B humans alive'},
+  m1900:{life:65,radius:500,light:'Electric everywhere',med:'Penicillin, vaccines',comm:'Radio/telephone',literacy:'~85%',pop:'2.5B humans alive'},
+};
+
+const decisions = [
+  {q:'The river has been rising for three days. Your crops are on the low ground. Do you harvest early (losing 40% yield) or wait and risk the flood?',choices:['Harvest now — certainty over hope','Wait two more days — the river might hold','Move the family to high ground and abandon the crop']},
+  {q:'A letter arrives: your brother 200 miles west has land available but you must decide within the month. Moving means leaving everyone you know. Staying means the land you\'re on, which is increasingly exhausted.',choices:['Go west — new soil, new start','Stay — the devil you know','Send your oldest child to scout and report back']},
+  {q:'Your neighbor\'s child is sick with something you don\'t recognize. They ask for help. The nearest doctor is two days\' ride. Do you bring the child into your home (risking your own family) or keep distance?',choices:['Bring them in — you\'d want the same','Keep distance — your children come first','Ride for the doctor yourself — leave your family for 4 days']},
+  {q:'Winter stores are lower than expected. You can ration now (everyone hungry but surviving) or slaughter the breeding pair of pigs (full bellies now, nothing to breed in spring).',choices:['Ration — suffer now, survive later','Slaughter — you can\'t plan on a spring you might not see','Trade labor to a neighbor for food — lose autonomy, keep the pigs']},
+  {q:'A traveling preacher says there\'s a gathering of saints 400 miles away. Your spouse wants to go. You\'re not sure. The journey is dangerous and you\'d leave everything built here.',choices:['Go — faith over security','Stay — God is here too','Compromise — wait one year, see if the gathering holds']},
+];
+
+function getEra(year){
+  if(year<1800) return eraData.pre1800;
+  if(year<1840) return eraData.e1800;
+  if(year<1870) return eraData.m1800;
+  if(year<1900) return eraData.l1800;
+  if(year<1940) return eraData.e1900;
+  return eraData.m1900;
+}
+
+function simulate(){
+  const name = document.getElementById('aName').value || 'Your Ancestor';
+  const year = parseInt(document.getElementById('aYear').value) || 1847;
+  const loc = document.getElementById('aLoc').value || 'Rural America';
+  const occ = document.getElementById('aOcc').value || 'Subsistence farmer';
+  const era = getEra(year);
+
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('sim').style.display = 'block';
+
+  document.getElementById('constraints').innerHTML = `
+    <div class="constraint"><div class="icon">💀</div><div class="label">Life Expectancy</div><div class="val">${era.life} years</div></div>
+    <div class="constraint"><div class="icon">🗺️</div><div class="label">Information Radius</div><div class="val">${era.radius} miles</div></div>
+    <div class="constraint"><div class="icon">🕯️</div><div class="label">After-Dark Light</div><div class="val">${era.light}</div></div>
+    <div class="constraint"><div class="icon">💊</div><div class="label">Medical Access</div><div class="val">${era.med}</div></div>
+    <div class="constraint"><div class="icon">📨</div><div class="label">Communication</div><div class="val">${era.comm}</div></div>
+    <div class="constraint"><div class="icon">📖</div><div class="label">Literacy Rate</div><div class="val">${era.literacy}</div></div>
+    <div class="constraint"><div class="icon">🌍</div><div class="label">World Population</div><div class="val">${era.pop}</div></div>
+    <div class="constraint"><div class="icon">📍</div><div class="label">Location</div><div class="val">${loc}, ${year}</div></div>
+  `;
+
+  const d = decisions[Math.floor(Math.random()*decisions.length)];
+  const choicesHtml = d.choices.map(c => `<button onclick="reflect(this)">${c}</button>`).join('');
+  document.getElementById('decision').innerHTML = `
+    <h3>${name}'s Decision — ${loc}, ${year}</h3>
+    <p>${d.q}</p>
+    <p style="color:#555;font-size:.75em;margin-top:10px">Remember: No Google. No phone call. No car. No hospital. Life expectancy ${era.life}. Information radius ${era.radius} miles. Choose.</p>
+    <div class="choices">${choicesHtml}</div>
+  `;
+}
+
+function reflect(btn){
+  const r = document.getElementById('reflection');
+  r.style.display = 'block';
+  r.innerHTML = `<p>You chose under their constraints. Notice what you wanted to reach for — a phone, a search engine, a car, a doctor, a forecast — and couldn't. Every "obvious" decision you've ever made was subsidized by infrastructure ${document.getElementById('aName').value||'your ancestor'} didn't have. Your judgment is not superior. It is differently equipped.</p>`;
+  document.querySelectorAll('.choices button').forEach(b => {
+    b.style.opacity = b===btn ? '1' : '0.3';
+    b.style.pointerEvents = 'none';
+  });
+}
+</script>
+</body>
+</html>

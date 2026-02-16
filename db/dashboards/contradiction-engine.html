@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contradiction Engine</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#c8c8d0;font-family:'Courier New',monospace;min-height:100vh;padding:40px 20px;display:flex;flex-direction:column;align-items:center}
+h1{font-size:1.8em;color:#fff;margin-bottom:8px}
+.sub{color:#555;font-size:.8em;margin-bottom:40px;text-align:center;max-width:500px}
+.inputs{width:100%;max-width:700px;display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.belief-box{display:flex;flex-direction:column}
+.belief-box label{color:#666;font-size:.75em;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+textarea{background:#111;border:1px solid #333;color:#ddd;padding:14px;font-family:inherit;font-size:.85em;border-radius:8px;resize:none;height:100px}
+textarea::placeholder{color:#444}
+button{background:#2e1a1a;color:#ee6868;border:1px solid #4e2a2a;padding:10px 28px;font-family:inherit;cursor:pointer;border-radius:6px;transition:all .2s;font-size:.85em}
+button:hover{background:#4e2a2a}
+.result{max-width:700px;width:100%;margin-top:30px}
+.collision{background:#0d0d14;border:1px solid #2e1a1a;border-radius:8px;padding:30px;text-align:center}
+.collision h2{color:#ee6868;font-size:1em;margin-bottom:20px;text-transform:uppercase;letter-spacing:2px}
+.pivot{color:#fff;font-size:.95em;line-height:1.8;margin:20px 0;padding:20px;background:#0a0a12;border-radius:6px}
+.diagram{margin:20px auto;text-align:center}
+.diagram canvas{border-radius:8px}
+.verdict{color:#555;font-size:.8em;margin-top:20px;font-style:italic;padding:16px;border-top:1px solid #1a1a2e}
+.meta{color:#333;font-size:.7em;margin-top:40px}
+@media(max-width:600px){.inputs{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Contradiction Engine</h1>
+<p class="sub">Enter two things you believe simultaneously. This tool finds exactly where they collide. It will not resolve them.</p>
+
+<div class="inputs">
+<div class="belief-box">
+<label>Belief A</label>
+<textarea id="beliefA" placeholder="e.g., People should be free to make their own choices"></textarea>
+</div>
+<div class="belief-box">
+<label>Belief B</label>
+<textarea id="beliefB" placeholder="e.g., Children need to be protected from harmful content"></textarea>
+</div>
+</div>
+<button onclick="collide()">Locate the Collision</button>
+<div class="result" id="result"></div>
+<p class="meta">This is your contradiction. It may not need solving.</p>
+
+<script>
+const pivotTemplates = [
+  {pivot:'The question of AGENCY SCOPE', desc:'Both beliefs implicitly define who counts as a full agent. Belief A extends agency broadly. Belief B restricts it for a subgroup. The collision is not about values — it\'s about where you draw the line around "full person." Every position on this line is defensible. None is neutral.'},
+  {pivot:'The question of TEMPORAL FRAME', desc:'One belief privileges the present (freedom now). The other privileges the future (protection for what comes later). They collide because the present self and the future self have different interests, and you are implicitly choosing which self matters more. Both selves are you.'},
+  {pivot:'The question of SYSTEM vs. INDIVIDUAL', desc:'One belief centers the individual\'s right to choose. The other centers a systemic outcome. The collision is structural: optimizing for individual choice degrades the system, and optimizing for the system constrains the individual. This is not solvable — only navigable.'},
+  {pivot:'The question of KNOWN vs. FELT', desc:'One belief is grounded in a principle you can articulate. The other is grounded in a feeling you can defend but not fully formalize. The collision reveals that your moral architecture uses two different foundations simultaneously — and they don\'t share a floor.'},
+  {pivot:'The question of UNIVERSAL vs. PARTICULAR', desc:'One belief applies everywhere. The other makes an exception. The collision asks: is the exception evidence that the universal rule is wrong, or evidence that reality is more complex than any rule? Both answers are true. Neither resolves the tension.'},
+  {pivot:'The question of CONTROL', desc:'Both beliefs express a desire for a specific outcome. But achieving one requires relinquishing control that the other demands. You want to hold two levers simultaneously, but they\'re mechanically linked — pulling one pushes the other. The design is the problem, not your grip.'},
+  {pivot:'The question of WHO BEARS THE COST', desc:'Both beliefs produce outcomes someone pays for. The collision is about cost distribution: who absorbs the downside of each principle? The uncomfortable truth is that principles always have a bill, and the person paying it is rarely the person announcing the principle.'},
+  {pivot:'The question of IDENTITY', desc:'One belief reflects who you want to be. The other reflects what you actually do. The collision is between your aspirational self and your operational self. They coexist because identity is not singular — you are genuinely both of these people, simultaneously.'}
+];
+
+function collide() {
+  const a = document.getElementById('beliefA').value.trim();
+  const b = document.getElementById('beliefB').value.trim();
+  if(!a || !b) return;
+
+  const template = pivotTemplates[Math.floor(Math.random()*pivotTemplates.length)];
+
+  let html = `<div class="collision">
+    <h2>Collision Point Located</h2>
+    <div class="diagram"><canvas id="collisionCanvas" width="600" height="200"></canvas></div>
+    <div class="pivot">
+      <strong>${template.pivot}</strong><br><br>
+      ${template.desc}
+    </div>
+    <div class="verdict">
+      This contradiction lives in you. It is not a bug — it is the structure of holding two real things simultaneously. 
+      Most people paper over this. You just looked at it directly.
+    </div>
+  </div>`;
+
+  document.getElementById('result').innerHTML = html;
+
+  setTimeout(() => {
+    const c = document.getElementById('collisionCanvas');
+    if(!c) return;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#06060a';
+    ctx.fillRect(0,0,600,200);
+    // Belief A circle
+    ctx.beginPath();
+    ctx.arc(220,100,80,0,Math.PI*2);
+    ctx.strokeStyle = 'rgba(120,180,255,0.3)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(120,180,255,0.05)';
+    ctx.fill();
+    // Belief B circle
+    ctx.beginPath();
+    ctx.arc(380,100,80,0,Math.PI*2);
+    ctx.strokeStyle = 'rgba(255,120,120,0.3)';
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,120,120,0.05)';
+    ctx.fill();
+    // Collision point
+    ctx.beginPath();
+    ctx.arc(300,100,8,0,Math.PI*2);
+    ctx.fillStyle = '#ee6868';
+    ctx.fill();
+    ctx.fillStyle = 'rgba(238,104,104,0.15)';
+    ctx.beginPath();
+    ctx.arc(300,100,30,0,Math.PI*2);
+    ctx.fill();
+    // Labels
+    ctx.font = '10px Courier New';
+    ctx.fillStyle = '#4488bb';
+    ctx.textAlign = 'center';
+    ctx.fillText('Belief A', 220, 195);
+    ctx.fillStyle = '#bb4444';
+    ctx.fillText('Belief B', 380, 195);
+    ctx.fillStyle = '#ee6868';
+    ctx.fillText('collision', 300, 145);
+  }, 100);
+}
+</script>
+</body>
+</html>

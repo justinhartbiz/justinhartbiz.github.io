@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Inverted Resume</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#c8c8d0;font-family:'Courier New',monospace;min-height:100vh;padding:40px 20px}
+h1{font-size:1.8em;color:#fff;text-align:center;margin-bottom:8px}
+.sub{color:#555;font-size:.8em;text-align:center;margin-bottom:30px;max-width:500px;margin-left:auto;margin-right:auto}
+.input-section{max-width:600px;margin:0 auto 30px}
+textarea{width:100%;background:#111;border:1px solid #333;color:#ddd;padding:14px;font-family:inherit;font-size:.85em;border-radius:8px;resize:vertical;min-height:140px}
+textarea::placeholder{color:#444}
+button{display:block;margin:12px auto 0;background:#1a1a2e;color:#7b68ee;border:1px solid #2a2a4e;padding:10px 28px;font-family:inherit;cursor:pointer;border-radius:6px;font-size:.85em}
+button:hover{background:#2a2a4e}
+.resume{max-width:700px;margin:0 auto;display:none}
+.resume-header{text-align:center;padding:24px;border-bottom:2px solid #1a1a2e;margin-bottom:24px}
+.resume-header h2{color:#fff;font-size:1.1em;margin-bottom:4px}
+.resume-header .tagline{color:#ee6868;font-size:.75em;text-transform:uppercase;letter-spacing:2px}
+.section{margin-bottom:24px}
+.section h3{color:#7b68ee;font-size:.8em;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #1a1a2e}
+.item{padding:8px 0;border-bottom:1px solid #0d0d14}
+.item .title{color:#ccc;font-size:.85em}
+.item .detail{color:#555;font-size:.75em;margin-top:2px}
+.footer{text-align:center;padding:20px;border-top:2px solid #1a1a2e;margin-top:20px}
+.footer p{color:#444;font-size:.75em;font-style:italic}
+.meta{color:#333;font-size:.7em;text-align:center;margin-top:40px}
+</style>
+</head>
+<body>
+<h1>The Inverted Resume</h1>
+<p class="sub">Enter what you do. This generates a formal resume of everything you don't.</p>
+
+<div class="input-section">
+<textarea id="skills" placeholder="List your skills, domains, tools, and experience. One per line.&#10;&#10;Example:&#10;Political consulting&#10;AI/ML tools&#10;Fundraising&#10;Content writing&#10;Real estate&#10;JavaScript&#10;Public speaking&#10;Family management"></textarea>
+<button onclick="invert()">Generate Anti-Resume</button>
+</div>
+
+<div class="resume" id="resume"></div>
+<p class="meta">You are equally defined by what you've never done.</p>
+
+<script>
+const domainComplement = {
+  'technology':['Carpentry','Plumbing','Electrical wiring','Welding','Textile manufacturing','Ceramic glazing','Glassblowing'],
+  'politics':['Particle physics','Marine biology','Soil science','Atmospheric chemistry','Mycology','Entomology','Paleontology'],
+  'writing':['Sculpture','Dance choreography','Musical composition','Architecture','Film editing','Printmaking','Jewelry making'],
+  'finance':['Herbalism','Beekeeping','Animal tracking','Seed saving','Fermentation','Foraging','Tide reading'],
+  'marketing':['Cartography','Bookbinding','Stone masonry','Timber framing','Blacksmithing','Loom weaving','Leather tanning'],
+  'speaking':['Deep listening practice','Sign language','Braille literacy','Silent meditation','Mime','Lip reading','Whistled languages'],
+  'management':['Solo wilderness survival','Monastic discipline','Hermit craft','Single-handed sailing','Solo mountaineering','Cave exploration','Desert navigation'],
+  'ai':['Hand illustration','Analog photography','Letterpress printing','Hand-drawn animation','Pen-and-ink drafting','Calligraphy','Engraving'],
+  'real estate':['Nomadic living','Van dwelling','Boat living','Tent-based existence','Tree house construction','Underground dwelling','Floating architecture'],
+  'family':['Monastic life','Solo travel','Childless-by-choice philosophy','Digital nomad existence','Commune living','Military service','Maritime career'],
+  'default':['Falconry','Puppetry','Perfumery','Locksmithing','Taxidermy','Horology','Coopering','Chandlery']
+};
+
+const toolComplement = {
+  'javascript':['Lathe','Forge','Kiln','Spinning wheel','Loom','Anvil','Potter\'s wheel'],
+  'ai':['Sextant','Astrolabe','Slide rule','Abacus','Hand drill','Drawknife','Froe'],
+  'default':['Theodolite','Calipers','Bellows','Crucible','Mandrel','Burnisher','Swage block']
+};
+
+const collabComplement = ['Worked with a composer','Collaborated with a dancer','Co-created with a child under 10','Built something with a stranger','Created with someone who doesn\'t speak your language','Made something with an elderly person','Worked with an animal trainer','Collaborated with a prisoner','Co-designed with a person with disability'];
+
+function detectPresent(text) {
+  const t = text.toLowerCase();
+  const found = [];
+  if(/tech|software|code|program|develop/i.test(t)) found.push('technology');
+  if(/politi|campaign|fundrais|lobby|govern/i.test(t)) found.push('politics');
+  if(/writ|blog|content|copy|edit/i.test(t)) found.push('writing');
+  if(/financ|invest|money|crypto|trade/i.test(t)) found.push('finance');
+  if(/market|brand|ad|seo|growth/i.test(t)) found.push('marketing');
+  if(/speak|present|pitch|debate/i.test(t)) found.push('speaking');
+  if(/manag|lead|team|hire|ops/i.test(t)) found.push('management');
+  if(/ai|machine learn|model|gpt|claude/i.test(t)) found.push('ai');
+  if(/real estate|property|house|probate/i.test(t)) found.push('real estate');
+  if(/family|kid|child|parent/i.test(t)) found.push('family');
+  if(/javascript|js|react|node/i.test(t)) found.push('javascript');
+  return [...new Set(found)];
+}
+
+function invert() {
+  const text = document.getElementById('skills').value.trim();
+  if(!text) return;
+  const present = detectPresent(text);
+  if(present.length===0) present.push('default');
+
+  let skills = [];
+  present.forEach(p => {
+    const pool = domainComplement[p] || domainComplement['default'];
+    skills.push(...pool);
+  });
+  skills = [...new Set(skills)].slice(0,14);
+
+  let tools = [];
+  present.forEach(p => {
+    const pool = toolComplement[p] || toolComplement['default'];
+    tools.push(...pool);
+  });
+  tools = [...new Set(tools)].slice(0,7);
+
+  const collabs = collabComplement.sort(()=>Math.random()-.5).slice(0,5);
+
+  const lines = text.split('\n').filter(l=>l.trim());
+  const neverDomains = ['Pure mathematics','Competitive athletics','Laboratory chemistry','Theater performance','Classical music','Subsistence farming','Commercial fishing','Emergency medicine'].filter(d => !text.toLowerCase().includes(d.toLowerCase())).slice(0,6);
+
+  document.getElementById('resume').style.display = 'block';
+  document.getElementById('resume').innerHTML = `
+    <div class="resume-header">
+      <h2>ANTI-RESUME</h2>
+      <div class="tagline">A formal accounting of absence</div>
+    </div>
+
+    <div class="section">
+      <h3>Skills Never Acquired</h3>
+      ${skills.map(s=>`<div class="item"><div class="title">${s}</div><div class="detail">0 years experience · Never attempted · No known interest</div></div>`).join('')}
+    </div>
+
+    <div class="section">
+      <h3>Tools Never Touched</h3>
+      ${tools.map(t=>`<div class="item"><div class="title">${t}</div><div class="detail">Never held · Never trained · Never considered</div></div>`).join('')}
+    </div>
+
+    <div class="section">
+      <h3>Collaborations Never Attempted</h3>
+      ${collabs.map(c=>`<div class="item"><div class="title">${c}</div><div class="detail">No record of this collaboration type in any context</div></div>`).join('')}
+    </div>
+
+    <div class="section">
+      <h3>Domains Never Entered</h3>
+      ${neverDomains.map(d=>`<div class="item"><div class="title">${d}</div><div class="detail">Entire field unexplored · Unknown unknowns likely extensive</div></div>`).join('')}
+    </div>
+
+    <div class="footer">
+      <p>Based on ${lines.length} stated competencies, this document identifies ${skills.length + tools.length + collabs.length + neverDomains.length} structured absences.<br>
+      Your life is ${lines.length} things deep and ${skills.length + tools.length + collabs.length + neverDomains.length} things wide in the negative.</p>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

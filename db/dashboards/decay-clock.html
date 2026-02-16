@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decay Clock</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#c8c8d0;font-family:'Courier New',monospace;min-height:100vh;padding:40px 20px}
+h1{font-size:1.8em;color:#fff;text-align:center;margin-bottom:8px}
+.sub{color:#555;font-size:.8em;text-align:center;margin-bottom:30px}
+.add-section{max-width:600px;margin:0 auto 30px;display:flex;gap:8px}
+.add-section input,.add-section select{background:#111;border:1px solid #333;color:#ddd;padding:10px;font-family:inherit;font-size:.8em;border-radius:6px}
+.add-section input{flex:1}
+.add-section select{width:160px}
+.add-section button{background:#1a1a1a;color:#ee6868;border:1px solid #333;padding:10px 16px;font-family:inherit;cursor:pointer;border-radius:6px;font-size:.8em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;max-width:1000px;margin:0 auto}
+.artifact{background:#0d0d14;border:1px solid #1a1a2e;border-radius:8px;padding:16px;position:relative;overflow:hidden;transition:opacity .3s}
+.artifact .name{color:#fff;font-size:.85em;margin-bottom:4px}
+.artifact .type{color:#555;font-size:.7em;margin-bottom:10px}
+.bar-bg{height:6px;background:#111;border-radius:3px;overflow:hidden;margin-bottom:6px}
+.bar-fill{height:100%;border-radius:3px;transition:width 1s}
+.remaining{color:#666;font-size:.7em}
+.dead{opacity:.3}
+.dead .name{text-decoration:line-through}
+.summary{max-width:600px;margin:30px auto 0;background:#0d0d14;border:1px solid #1a1a2e;border-radius:8px;padding:20px;text-align:center}
+.summary h3{color:#ee6868;font-size:.85em;margin-bottom:10px}
+.summary p{color:#666;font-size:.8em;line-height:1.6}
+.meta{color:#333;font-size:.7em;text-align:center;margin-top:30px}
+</style>
+</head>
+<body>
+<h1>Decay Clock</h1>
+<p class="sub">Everything you build is already decomposing. This dashboard shows the entropy.</p>
+
+<div class="add-section">
+<input type="text" id="name" placeholder="Name of thing you built">
+<select id="type">
+<option value="tweet">Tweet (18 min)</option>
+<option value="post">Social Post (4 hrs)</option>
+<option value="email">Email (2 days)</option>
+<option value="blogpost">Blog Post (6 months)</option>
+<option value="video">Video (1 year)</option>
+<option value="tool" selected>Software Tool (2 years)</option>
+<option value="course">Course (3 years)</option>
+<option value="book">Book (20 years)</option>
+<option value="building">Building (80 years)</option>
+<option value="institution">Institution (200 years)</option>
+</select>
+<button onclick="addArtifact()">Add</button>
+</div>
+
+<div class="grid" id="grid"></div>
+<div class="summary" id="summary" style="display:none"></div>
+<p class="meta">Entropy is not your enemy. It's your editor.</p>
+
+<script>
+const halfLives = {tweet:.0125,post:.167,email:2,blogpost:180,video:365,tool:730,course:1095,book:7300,building:29200,institution:73000};
+const colors = {tweet:'#ff4444',post:'#ff6644',email:'#ff8844',blogpost:'#ffaa44',video:'#ffcc44',tool:'#aacc44',course:'#88cc66',book:'#44aa88',building:'#4488aa',institution:'#4466cc'};
+
+let artifacts = [
+  {name:'Campaign Dashboard',type:'tool',created:Date.now()-86400000*30},
+  {name:'SMS Analysis Thread',type:'post',created:Date.now()-86400000*2},
+  {name:'Donor Genome Project',type:'tool',created:Date.now()-86400000*3},
+  {name:'Blog: AI Operator',type:'blogpost',created:Date.now()-86400000*7},
+  {name:'Product Landing Page',type:'tool',created:Date.now()-86400000*5},
+  {name:'Fundraising Video',type:'video',created:Date.now()-86400000*14},
+];
+
+function addArtifact(){
+  const name = document.getElementById('name').value.trim();
+  const type = document.getElementById('type').value;
+  if(!name) return;
+  artifacts.push({name,type,created:Date.now()});
+  document.getElementById('name').value = '';
+  render();
+}
+
+function render(){
+  const now = Date.now();
+  let html = '';
+  let alive = 0, dead = 0;
+  artifacts.forEach(a => {
+    const ageDays = (now - a.created) / 86400000;
+    const hl = halfLives[a.type];
+    const remaining = Math.pow(0.5, ageDays/hl);
+    const pct = Math.max(0, remaining * 100);
+    const isDead = pct < 5;
+    if(isDead) dead++; else alive++;
+    const color = colors[a.type];
+    html += `<div class="artifact ${isDead?'dead':''}">
+      <div class="name">${a.name}</div>
+      <div class="type">${a.type} · half-life: ${hl < 1 ? Math.round(hl*24)+'h' : hl < 365 ? Math.round(hl)+'d' : Math.round(hl/365)+'y'}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="remaining">${pct.toFixed(1)}% relevance remaining</div>
+    </div>`;
+  });
+  document.getElementById('grid').innerHTML = html;
+
+  if(artifacts.length > 0){
+    const s = document.getElementById('summary');
+    s.style.display = 'block';
+    s.innerHTML = `<h3>Entropy Report</h3><p>${alive} artifacts still decaying · ${dead} effectively dissolved<br>Most of what you build will be gone before you notice it left.</p>`;
+  }
+}
+
+render();
+setInterval(render, 60000);
+</script>
+</body>
+</html>

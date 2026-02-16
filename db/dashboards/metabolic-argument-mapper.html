@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metabolic Argument Mapper</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#c8c8d0;font-family:'Courier New',monospace;min-height:100vh;padding:40px 20px}
+h1{font-size:1.6em;color:#fff;text-align:center;margin-bottom:8px}
+.sub{color:#555;font-size:.8em;text-align:center;margin-bottom:30px;max-width:550px;margin-left:auto;margin-right:auto}
+.input-area{max-width:600px;margin:0 auto 20px}
+input[type=text]{width:100%;background:#111;border:1px solid #333;color:#ddd;padding:14px;font-family:inherit;font-size:.85em;border-radius:8px}
+input::placeholder{color:#444}
+button{display:block;margin:12px auto;background:#1a2e1a;color:#68ee68;border:1px solid #2a4e2a;padding:10px 28px;font-family:inherit;cursor:pointer;border-radius:6px;font-size:.85em}
+button:hover{background:#2a4e2a}
+.ecosystem{display:none;max-width:900px;margin:0 auto}
+.eco-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.organ{background:#0d0d14;border-radius:8px;padding:20px;border:1px solid #1a1a2e}
+.organ h3{font-size:.8em;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.organ ul{list-style:none;padding:0}
+.organ li{color:#888;font-size:.8em;padding:6px 0;border-bottom:1px solid #0a0a12;line-height:1.5}
+.organ li::before{margin-right:8px}
+.energy h3{color:#68ee68}.energy li::before{content:'⚡'}
+.waste h3{color:#ee6868}.waste li::before{content:'💨'}
+.symbiot h3{color:#6888ee}.symbiot li::before{content:'🤝'}
+.parasite h3{color:#ee68ee}.parasite li::before{content:'🪱'}
+.health{margin-top:20px;background:#0d0d14;border:1px solid #1a1a2e;border-radius:8px;padding:20px;text-align:center}
+.health h3{color:#eecc68;font-size:.8em;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.health p{color:#777;font-size:.8em;line-height:1.7}
+.diagram{margin-top:20px;text-align:center}
+.diagram canvas{border-radius:8px}
+.meta{color:#333;font-size:.7em;text-align:center;margin-top:40px}
+@media(max-width:600px){.eco-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Metabolic Argument Mapper</h1>
+<p class="sub">Arguments are not logical structures. They are living ecosystems. Enter one and see what it eats, what it excretes, what lives inside it.</p>
+
+<div class="input-area">
+<input type="text" id="arg" placeholder="Enter an argument or debate topic (e.g., 'Universal basic income')">
+<button onclick="metabolize()">Metabolize</button>
+</div>
+
+<div class="ecosystem" id="ecosystem"></div>
+<p class="meta">Arguments are alive. Treat them accordingly.</p>
+
+<script>
+const templates = [
+  {
+    energy:['Outrage at perceived injustice','Anecdotal evidence (high-emotional, low-statistical)','Media amplification cycles','Identity-group solidarity','Fear of personal vulnerability to the problem'],
+    waste:['Tribal polarization between camps','Oversimplified sloganeering','Empathy fatigue in adjacent populations','Policy paralysis from competing narratives','Dehumanization of opposing position holders'],
+    symbiot:['Adjacent arguments that share audience attention','Historical precedent arguments that provide legitimacy','Personal testimony that provides emotional nutrients','Academic research that provides structural support'],
+    parasite:['Bad-faith actors who use the argument to gain followers','Grifters who monetize the controversy without advancing it','Whataboutism sub-arguments that hijack the host','Purity tests that consume energy without producing insight','Straw-man variants that weaken the host by association'],
+    health:'This argument is a moderately healthy ecosystem with high energy throughput but significant waste accumulation. The parasite load is concerning — multiple sub-arguments are consuming attention without contributing to resolution. The primary risk is monoculture: the argument feeds on a narrow emotional band, making it brittle.'
+  },
+  {
+    energy:['Genuine curiosity about systemic alternatives','Economic anxiety in the affected population','Technological disruption creating urgency','Cross-partisan appeal elements','Utopian imagination fuel'],
+    waste:['False dichotomy framing (all or nothing)','Pilot-program fetishism (endless testing, no scaling)','Moral hazard accusations that generate heat, not light','Inflation of claims by both advocates and critics','Compassion signaling without structural commitment'],
+    symbiot:['Automation anxiety arguments (shared audience)','Inequality data that provides empirical nutrients','Philosophical dignity arguments that provide moral scaffolding','International comparison arguments that provide perspective'],
+    parasite:['Tech-bro solutionism that co-opts the framing','Political campaigns that invoke it without implementing','Trolley-problem reductions that trivialize complexity','Slippery-slope arguments that drain energy into hypotheticals','Cost-only analyses that amputate the benefit side'],
+    health:'This argument has diverse energy sources — a sign of ecosystem health. However, the parasite load is high. Multiple actors feed on the attention this argument generates without contributing to its development. The symbiotic relationships are strong but underutilized. Prognosis: chronically debated, rarely metabolized into action.'
+  },
+  {
+    energy:['Personal experience of the problem','Moral clarity (clear right/wrong framing)','Social media amplification algorithms','Celebrity/authority endorsement cycles','Seasonal news cycle triggers'],
+    waste:['Callout culture residue','Nuance extinction in public discourse','Ally-performance theater','Counter-backlash exhaustion cycles','Archive-weaponization (old statements resurfaced)'],
+    symbiot:['Legal reform arguments that provide structural pathway','Educational reform arguments that share root causes','Mental health discourse that provides emotional vocabulary','Historical justice movements that provide narrative templates'],
+    parasite:['Rage-bait content creators','Both-sides framing that parasitizes neutrality','Tone-policing sub-arguments that derail substance','Definitional disputes that consume all available energy','Victim-hierarchy competitions that fragment solidarity'],
+    health:'This argument\'s metabolism is running hot — high energy intake, high waste output, rapid cycling. The ecosystem is dominated by fast-twitch emotional responses rather than slow-build structural analysis. Symbiotes exist but can\'t compete with parasites for attention. The argument is metabolically active but nutritionally poor.'
+  }
+];
+
+function metabolize(){
+  const arg = document.getElementById('arg').value.trim();
+  if(!arg) return;
+  const t = templates[Math.floor(Math.random()*templates.length)];
+
+  document.getElementById('ecosystem').style.display = 'block';
+  document.getElementById('ecosystem').innerHTML = `
+    <div class="diagram"><canvas id="metaCanvas" width="700" height="250"></canvas></div>
+    <div class="eco-grid">
+      <div class="organ energy"><h3>Energy Sources (What It Eats)</h3><ul>${t.energy.map(e=>`<li>${e}</li>`).join('')}</ul></div>
+      <div class="organ waste"><h3>Waste Products (What It Excretes)</h3><ul>${t.waste.map(e=>`<li>${e}</li>`).join('')}</ul></div>
+      <div class="organ symbiot"><h3>Symbiotes (What Lives With It)</h3><ul>${t.symbiot.map(e=>`<li>${e}</li>`).join('')}</ul></div>
+      <div class="organ parasite"><h3>Parasites (What Feeds On It)</h3><ul>${t.parasite.map(e=>`<li>${e}</li>`).join('')}</ul></div>
+    </div>
+    <div class="health"><h3>Ecosystem Health Assessment</h3><p>${t.health}</p></div>
+  `;
+
+  setTimeout(()=>{
+    const c = document.getElementById('metaCanvas');
+    if(!c) return;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#06060a';
+    ctx.fillRect(0,0,700,250);
+    // Central organism
+    ctx.beginPath();
+    ctx.ellipse(350,125,60,40,0,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(100,100,100,0.15)';
+    ctx.fill();
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#888';
+    ctx.font = '10px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('THE ARGUMENT', 350, 128);
+    // Energy arrows (left)
+    for(let i=0;i<3;i++){
+      const y = 60+i*50;
+      ctx.beginPath();ctx.moveTo(100,y);ctx.lineTo(280,100+i*15);
+      ctx.strokeStyle='rgba(104,238,104,0.3)';ctx.stroke();
+      ctx.fillStyle='#68ee6866';ctx.beginPath();ctx.arc(100,y,4,0,Math.PI*2);ctx.fill();
+    }
+    ctx.fillStyle='#68ee68';ctx.font='9px Courier New';ctx.textAlign='left';ctx.fillText('ENERGY IN',30,30);
+    // Waste arrows (right)
+    for(let i=0;i<3;i++){
+      const y = 60+i*50;
+      ctx.beginPath();ctx.moveTo(420,100+i*15);ctx.lineTo(600,y);
+      ctx.strokeStyle='rgba(238,104,104,0.3)';ctx.stroke();
+      ctx.fillStyle='#ee686866';ctx.beginPath();ctx.arc(600,y,4,0,Math.PI*2);ctx.fill();
+    }
+    ctx.fillStyle='#ee6868';ctx.textAlign='right';ctx.fillText('WASTE OUT',670,30);
+    // Parasites (bottom)
+    for(let i=0;i<4;i++){
+      const x = 250+i*60;
+      ctx.beginPath();ctx.arc(x,210,6,0,Math.PI*2);ctx.fillStyle='rgba(238,104,238,0.4)';ctx.fill();
+    }
+    ctx.fillStyle='#ee68ee';ctx.textAlign='center';ctx.fillText('PARASITES',350,240);
+  },100);
+}
+</script>
+</body>
+</html>

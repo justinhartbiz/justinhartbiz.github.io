@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Silence Topography</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#c8c8d0;font-family:'Courier New',monospace;min-height:100vh;padding:40px 20px}
+h1{font-size:1.8em;color:#fff;text-align:center;margin-bottom:8px}
+.sub{color:#555;font-size:.8em;text-align:center;margin-bottom:30px;max-width:500px;margin-left:auto;margin-right:auto}
+.phase{max-width:650px;margin:0 auto}
+.question{background:#0d0d14;border:1px solid #1a1a2e;border-radius:8px;padding:20px;margin-bottom:16px}
+.question .q{color:#ccc;font-size:.85em;margin-bottom:12px;line-height:1.5}
+.question .type{color:#7b68ee;font-size:.7em;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.slider-row{display:flex;align-items:center;gap:10px}
+.slider-row input[type=range]{flex:1;accent-color:#7b68ee}
+.slider-row .val{color:#555;font-size:.8em;width:30px;text-align:right}
+.labels{display:flex;justify-content:space-between;font-size:.65em;color:#444;margin-top:2px}
+button{display:block;margin:20px auto;background:#1a1a2e;color:#7b68ee;border:1px solid #2a2a4e;padding:12px 30px;font-family:inherit;cursor:pointer;border-radius:6px;font-size:.85em}
+button:hover{background:#2a2a4e}
+.map{display:none;max-width:800px;margin:0 auto}
+.map canvas{display:block;margin:0 auto;border-radius:8px}
+.map-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:16px}
+.map-legend .leg{display:flex;align-items:center;gap:6px;font-size:.7em;color:#888}
+.map-legend .swatch{width:12px;height:12px;border-radius:3px}
+.reading{max-width:600px;margin:20px auto 0;background:#0d0d14;border:1px solid #1a1a2e;border-radius:8px;padding:20px;display:none}
+.reading p{color:#777;font-size:.8em;line-height:1.7}
+.meta{color:#333;font-size:.7em;text-align:center;margin-top:40px}
+</style>
+</head>
+<body>
+<h1>Silence Topography</h1>
+<p class="sub">Map the architecture of what goes unsaid in your life. Silence is not empty — it has structure.</p>
+
+<div class="phase" id="phase">
+<div class="question" data-type="avoidant">
+<div class="type">Avoidant Silence</div>
+<div class="q">How much are you actively not saying — things you know but choose to withhold from people close to you?</div>
+<div class="slider-row"><input type="range" min="0" max="10" value="3" class="sl"><div class="val">3</div></div>
+<div class="labels"><span>Almost nothing</span><span>Constantly withholding</span></div>
+</div>
+<div class="question" data-type="reverent">
+<div class="type">Reverent Silence</div>
+<div class="q">How much silence in your life is sacred — things too important or intimate to speak aloud?</div>
+<div class="slider-row"><input type="range" min="0" max="10" value="5" class="sl"><div class="val">5</div></div>
+<div class="labels"><span>Nothing feels sacred</span><span>Many things are too sacred to speak</span></div>
+</div>
+<div class="question" data-type="ignorant">
+<div class="type">Ignorant Silence</div>
+<div class="q">How many important questions have you simply never thought to ask — not avoided, but never occurred to you?</div>
+<div class="slider-row"><input type="range" min="0" max="10" value="6" class="sl"><div class="val">6</div></div>
+<div class="labels"><span>Very few blind spots</span><span>Vast unknown unknowns</span></div>
+</div>
+<div class="question" data-type="protective">
+<div class="type">Protective Silence</div>
+<div class="q">How much do you stay quiet to protect others — truths that would hurt people you love?</div>
+<div class="slider-row"><input type="range" min="0" max="10" value="4" class="sl"><div class="val">4</div></div>
+<div class="labels"><span>Radical honesty</span><span>Carrying many protective secrets</span></div>
+</div>
+<div class="question" data-type="exhausted">
+<div class="type">Exhausted Silence</div>
+<div class="q">How often do you stay silent not by choice but because you lack the energy to speak?</div>
+<div class="slider-row"><input type="range" min="0" max="10" value="5" class="sl"><div class="val">5</div></div>
+<div class="labels"><span>Rarely too tired to speak</span><span>Frequently silenced by fatigue</span></div>
+</div>
+<div class="question" data-type="strategic">
+<div class="type">Strategic Silence</div>
+<div class="q">How much do you stay quiet because speaking would weaken your position?</div>
+<div class="slider-row"><input type="range" min="0" max="10" value="4" class="sl"><div class="val">4</div></div>
+<div class="labels"><span>Always speak my mind</span><span>Frequently calculate silence</span></div>
+</div>
+<div class="question" data-type="forgotten">
+<div class="type">Forgotten Silence</div>
+<div class="q">How many things did you once want to say that you've now forgotten you ever wanted to say?</div>
+<div class="slider-row"><input type="range" min="0" max="10" value="7" class="sl"><div class="val">7</div></div>
+<div class="labels"><span>I remember everything</span><span>Many lost words</span></div>
+</div>
+<button onclick="renderMap()">Map My Silence</button>
+</div>
+
+<div class="map" id="map">
+<canvas id="topoCanvas" width="700" height="400"></canvas>
+<div class="map-legend" id="legend"></div>
+</div>
+<div class="reading" id="reading"></div>
+<p class="meta">Your silence has a shape. Now you can see it.</p>
+
+<script>
+document.querySelectorAll('.sl').forEach(s => {
+  s.addEventListener('input', e => {
+    e.target.closest('.slider-row').querySelector('.val').textContent = e.target.value;
+  });
+});
+
+const silenceColors = {
+  avoidant:'#ee4444',reverent:'#7b68ee',ignorant:'#444444',
+  protective:'#44aa88',exhausted:'#aa8844',strategic:'#4488aa',forgotten:'#666688'
+};
+const silenceLabels = {
+  avoidant:'Avoidant',reverent:'Reverent',ignorant:'Ignorant',
+  protective:'Protective',exhausted:'Exhausted',strategic:'Strategic',forgotten:'Forgotten'
+};
+
+function renderMap(){
+  const vals = {};
+  document.querySelectorAll('.question').forEach(q => {
+    vals[q.dataset.type] = parseInt(q.querySelector('.sl').value);
+  });
+
+  document.getElementById('phase').style.display = 'none';
+  document.getElementById('map').style.display = 'block';
+  document.getElementById('reading').style.display = 'block';
+
+  const c = document.getElementById('topoCanvas');
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#06060a';
+  ctx.fillRect(0,0,700,400);
+
+  const types = Object.keys(vals);
+  const cx = 350, cy = 200;
+
+  // Draw topographic rings
+  types.forEach((t,i) => {
+    const angle = (i / types.length) * Math.PI * 2 - Math.PI/2;
+    const val = vals[t];
+    const maxR = 150;
+    for(let ring = val; ring > 0; ring--) {
+      const r = (ring/10) * maxR;
+      const x = cx + Math.cos(angle) * r * 0.4;
+      const y = cy + Math.sin(angle) * r * 0.4;
+      ctx.beginPath();
+      ctx.ellipse(x, y, r*0.6, r*0.4, angle, 0, Math.PI*2);
+      const col = silenceColors[t];
+      ctx.strokeStyle = col + '30';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    // Peak marker
+    const peakR = (vals[t]/10) * 150;
+    const px = cx + Math.cos(angle) * peakR * 0.4;
+    const py = cy + Math.sin(angle) * peakR * 0.4;
+    ctx.beginPath();
+    ctx.arc(px, py, 4, 0, Math.PI*2);
+    ctx.fillStyle = silenceColors[t];
+    ctx.fill();
+    ctx.font = '9px Courier New';
+    ctx.fillStyle = silenceColors[t];
+    ctx.textAlign = 'center';
+    ctx.fillText(silenceLabels[t], px, py - 10);
+  });
+
+  // Legend
+  let legHtml = '';
+  types.forEach(t => {
+    legHtml += `<div class="leg"><div class="swatch" style="background:${silenceColors[t]}"></div>${silenceLabels[t]}: ${vals[t]}/10</div>`;
+  });
+  document.getElementById('legend').innerHTML = legHtml;
+
+  // Dominant silence
+  const sorted = types.sort((a,b) => vals[b]-vals[a]);
+  const dominant = sorted[0];
+  const readings = {
+    avoidant:'Your dominant silence is avoidant — things known but withheld. This is active silence, requiring energy to maintain. It shapes your relationships by what it conceals.',
+    reverent:'Your dominant silence is reverent — sacred things held inward. This silence is a form of devotion. It protects what matters most by refusing to expose it to language.',
+    ignorant:'Your dominant silence is ignorant — questions never asked, not from avoidance but from genuine blind spots. This is the most honest and most dangerous silence.',
+    protective:'Your dominant silence is protective — truths withheld to spare others. You are carrying weight that no one asked you to carry and no one knows you hold.',
+    exhausted:'Your dominant silence is exhausted — words unspoken because the energy to speak them doesn\'t exist. This is not choice. It is depletion masquerading as peace.',
+    strategic:'Your dominant silence is strategic — calculated withholding for advantage. This silence is a tool. The question is whether the tool is still serving you or you\'re serving it.',
+    forgotten:'Your dominant silence is forgotten — things once urgent now dissolved. This is the silence of time itself, erasing what once felt essential. It is both merciful and terrifying.'
+  };
+
+  document.getElementById('reading').innerHTML = `<p>${readings[dominant]}</p><p style="margin-top:12px;color:#555">Your quietest region: ${silenceLabels[sorted[sorted.length-1]]} (${vals[sorted[sorted.length-1]]}/10). This is where you are most voiced, most expressed, most present. The low ground on your silence map is where you live out loud.</p>`;
+}
+</script>
+</body>
+</html>

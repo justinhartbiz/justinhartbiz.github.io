@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Familiar Stranger</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#c8c8d0;font-family:'Courier New',monospace;min-height:100vh;padding:40px 20px;display:flex;flex-direction:column;align-items:center}
+h1{font-size:1.8em;color:#fff;margin-bottom:8px}
+.sub{color:#555;font-size:.8em;margin-bottom:30px;text-align:center;max-width:500px}
+.object-display{max-width:700px;width:100%;text-align:center;margin-bottom:20px}
+.object-name{font-size:2.5em;color:#fff;margin-bottom:4px}
+.object-emoji{font-size:4em;margin-bottom:8px}
+.ordinary{color:#444;font-size:.75em;text-transform:uppercase;letter-spacing:3px}
+.timer{font-size:1.4em;color:#ee6868;margin:16px 0;font-variant-numeric:tabular-nums}
+.layers{max-width:700px;width:100%;margin-top:10px}
+.layer{background:#0d0d14;border:1px solid #1a1a2e;border-radius:8px;margin-bottom:10px;overflow:hidden;cursor:pointer}
+.layer-header{padding:16px;display:flex;justify-content:space-between;align-items:center}
+.layer-header .label{font-size:.8em;text-transform:uppercase;letter-spacing:1px}
+.layer-header .toggle{color:#444;font-size:.8em}
+.layer-body{padding:0 16px 16px;display:none}
+.layer-body p{color:#888;font-size:.8em;line-height:1.7}
+.layer.open .layer-body{display:block}
+.layer.open .toggle{transform:rotate(90deg)}
+.l1 .label{color:#68ee68}.l1{border-color:#1a2e1a}
+.l2 .label{color:#6888ee}.l2{border-color:#1a1a2e}
+.l3 .label{color:#ee8844}.l3{border-color:#2e1a0a}
+.l4 .label{color:#ee68ee}.l4{border-color:#2e1a2e}
+.l5 .label{color:#ee6868}.l5{border-color:#2e1a1a}
+button{background:#1a1a2e;color:#7b68ee;border:1px solid #2a2a4e;padding:10px 24px;font-family:inherit;cursor:pointer;border-radius:6px;font-size:.85em;margin-top:16px}
+button:hover{background:#2a2a4e}
+.meta{color:#333;font-size:.7em;margin-top:40px}
+</style>
+</head>
+<body>
+<h1>The Familiar Stranger</h1>
+<p class="sub">One mundane object. Five layers of unfamiliarity. 60 seconds to see it as if for the first time.</p>
+
+<div class="object-display">
+<div class="object-emoji" id="emoji">🥄</div>
+<div class="object-name" id="objName">Spoon</div>
+<div class="ordinary">An ordinary object</div>
+<div class="timer" id="timer">1:00</div>
+</div>
+
+<div class="layers" id="layers"></div>
+<button onclick="newObject()">Another Object</button>
+<p class="meta">The extraordinary is hiding inside the ordinary. It always was.</p>
+
+<script>
+const objects = [
+  {name:'Spoon',emoji:'🥄',
+    material:'The spoon is likely stainless steel — an alloy of iron, chromium, and nickel. The iron was forged in a dying star\'s core billions of years ago, ejected in a supernova, drifted through space as dust, accreted into the Earth, was mined from the ground, smelted at 1,500°C, and shaped into this curve you put in your mouth without thinking.',
+    physics:'The concave shape exploits surface tension to hold liquid above the rim. The handle acts as a lever — your fingers are the fulcrum. The metal conducts heat 15x faster than the ceramic bowl it sits in, which is why a metal spoon in hot soup burns your lip before the bowl burns your hand.',
+    nature:'No spoon exists in nature. But the cupped hand is the evolutionary prototype. Pelican bills, water lily pads, and certain beetle shells all use concavity to hold liquid. The spoon is biomimicry so old we forgot it was mimicry.',
+    culture:'30% of the world\'s population has never used a spoon. In Ethiopia, injera bread IS the spoon. In Japan, chopsticks and direct-from-bowl drinking replace it. The spoon is not universal — it\'s a specific cultural choice about the interface between food and mouth.',
+    strange:'The word "spoon" comes from the Old Norse "spánn" meaning "chip of wood." The earliest known spoons are 20,000 years old. In Wales, hand-carved wooden "love spoons" were given as romantic tokens — the complexity of the carving signaled the seriousness of intent. A spoon was once a love letter.'
+  },
+  {name:'Doorknob',emoji:'🚪',
+    material:'Most doorknobs are brass — an alloy of copper and zinc. Brass is naturally antimicrobial: bacteria that land on it die within hours. Your doorknob is quietly killing pathogens every day. The copper in it was likely mined in Chile, shipped across the Pacific, refined in China, cast in a factory, and installed by someone whose name you\'ll never know.',
+    physics:'A doorknob is a wheel and axle — one of the six simple machines identified by Renaissance engineers. When you turn it, you\'re converting rotational torque into linear motion (the latch retracting). The round shape maximizes the radius, minimizing the force needed. It\'s a solved physics problem you engage with 30+ times a day.',
+    nature:'No animal builds doors. But trapdoor spiders build hinged burrow covers. Beaver dams have underwater entrances that function as one-way valves. The concept of "controlled passage" exists in nature, but the doorknob\'s rotational mechanism is purely human.',
+    culture:'The modern doorknob was patented in 1878. Before that: latches, bars, ropes, curtains. In Japan, sliding doors (fusuma) eliminate the knob entirely. Some argue the doorknob is hostile design — it requires grip strength that excludes people with arthritis. The lever handle is slowly replacing it as an accessibility correction.',
+    strange:'Doorknobs in public buildings carry the DNA of every person who touched them that day. A 2014 study found that a single doorknob in an office building accumulated genetic material from 150+ individuals in one week. Your doorknob knows more hands than you do.'
+  },
+  {name:'Shadow',emoji:'🌑',
+    material:'A shadow has no material existence. It is the absence of photons — a hole in light. And yet it behaves as if it\'s a thing: it has shape, edges, and movement. It\'s the only "object" in your daily life that is defined entirely by what it\'s NOT.',
+    physics:'Shadows travel faster than light. If you wave a flashlight across a distant wall, the shadow\'s edge can sweep across the surface faster than c (the speed of light). This doesn\'t violate relativity because the shadow isn\'t a physical object — no information is transmitted. It\'s a loophole in physics.',
+    nature:'Most deep-sea creatures have never experienced shadow — there\'s no light to block. Shadow is a surface phenomenon. Underground, underwater, in deep space: shadow doesn\'t exist. It requires a very specific set of conditions: a light source, an opaque object, and a surface to catch the absence.',
+    culture:'In Japanese aesthetics (In\'ei Raisan — "In Praise of Shadows"), shadow is not the enemy of light but its partner. Western culture associates shadow with evil, ignorance, Plato\'s cave. Eastern traditions often see shadow as where beauty lives — in the ambiguity between lit and unlit.',
+    strange:'You have never seen your own shadow\'s face. Your shadow is always facing away from the light source that creates it. If you could look at your shadow from the light\'s perspective, it would be invisible — because from there, you\'re blocking it. Your shadow exists only for others.'
+  },
+  {name:'Key',emoji:'🔑',
+    material:'A standard key is nickel-plated brass. The specific pattern of cuts on its edge is one arrangement out of approximately 100,000 possible combinations for a standard pin tumbler lock. Your key is a physical password — a three-dimensional code that you carry in your pocket.',
+    physics:'A key works by aligning spring-loaded pins to a precise height — the "shear line." When all pins align, the cylinder rotates. It\'s a mechanical logic gate: all conditions must be TRUE simultaneously. Your key is an AND gate made of metal.',
+    nature:'Hermit crabs carry their homes. Certain wasps seal their nests with a pebble that fits exactly one entrance. The concept of "one-shape-fits-one-lock" exists in nature — enzyme-substrate interactions in biochemistry work on the same principle. Your key is a macro-scale enzyme.',
+    culture:'Keys have been symbols of authority since ancient Egypt (4,000 years). The Pope\'s keys, the "key to the city," the key ceremony in real estate — all treat a mechanical device as a symbol of trust transfer. No other simple machine carries this much symbolic weight.',
+    strange:'The average person carries 2-5 keys. Each one opens a space that contains the majority of everything they own, everyone they love, or everywhere they work. A few grams of cut metal is the only barrier between your life and any stranger. The entire concept of private space rests on a piece of brass smaller than your finger.'
+  },
+  {name:'Mirror',emoji:'🪞',
+    material:'A modern mirror is a sheet of glass coated with a thin layer of aluminum or silver — just a few atoms thick. You see yourself through a metallic film thinner than a wavelength of light. The glass is melted sand (silicon dioxide). You examine your face in liquified beach.',
+    physics:'A mirror doesn\'t actually reverse left and right. It reverses front and back. Your reflection is a depth-inverted copy — the mirror swaps the axis perpendicular to its surface. The "left-right reversal" is an illusion created by your brain\'s attempt to interpret the depth swap.',
+    nature:'Still water was the first mirror. Narcissus didn\'t need technology. Some animals (dolphins, elephants, magpies) pass the mirror test — they recognize themselves. Most don\'t. Self-recognition via reflection is rare in nature. You belong to a small club of species that can use a mirror.',
+    culture:'In Judaism, mirrors are covered during shiva (mourning) — reflection is considered vanity-adjacent in grief. In Feng Shui, mirror placement determines energy flow. In Mesoamerican cultures, obsidian mirrors were portals to other worlds. The mirror\'s meaning varies more across cultures than almost any other household object.',
+    strange:'You have never seen your own face directly. Every image of yourself — mirror, photo, video — is mediated. The face you identify as "yours" is a reversed image (mirror) or a frozen frame (photo). You are the only person who has never seen you the way everyone else does.'
+  },
+  {name:'Salt',emoji:'🧂',
+    material:'Table salt is sodium chloride — NaCl. Sodium is a soft metal that explodes on contact with water. Chlorine is a poisonous gas used as a chemical weapon in WWI. Combined, they form a crystal you put on your food. The most benign substance in your kitchen is made of two lethal ingredients.',
+    physics:'Salt crystals are perfect cubes at the atomic level — each sodium ion surrounded by six chloride ions in a repeating lattice. If you could zoom in far enough, a grain of salt looks like a tiny city grid. It\'s one of the most geometrically ordered structures in nature.',
+    nature:'Every cell in your body requires salt to function. Your tears are salty. Your blood is salty. The ocean you evolved from is salty. You carry the sea inside you — salt is the chemical memory of where life began.',
+    culture:'Salt was money. The word "salary" comes from "salarium" — the salt ration given to Roman soldiers. Wars were fought over salt. Cities were built on salt deposits. Gandhi\'s Salt March helped end British colonial rule in India. A condiment reshaped empires.',
+    strange:'There are approximately 10 quintillion (10,000,000,000,000,000,000) atoms in a single grain of salt. That\'s more atoms in one grain than there are grains of sand on Earth. The small thing on your table is incomprehensibly vast on the inside.'
+  }
+];
+
+let current = null;
+let timerInterval = null;
+
+function newObject(){
+  if(timerInterval) clearInterval(timerInterval);
+  const candidates = objects.filter(o => o !== current);
+  current = candidates[Math.floor(Math.random()*candidates.length)];
+  
+  document.getElementById('emoji').textContent = current.emoji;
+  document.getElementById('objName').textContent = current.name;
+  
+  // Timer
+  let seconds = 60;
+  document.getElementById('timer').textContent = '1:00';
+  document.getElementById('timer').style.color = '#ee6868';
+  timerInterval = setInterval(()=>{
+    seconds--;
+    if(seconds<=0){clearInterval(timerInterval);document.getElementById('timer').textContent='0:00';document.getElementById('timer').style.color='#333';return;}
+    document.getElementById('timer').textContent = `0:${seconds.toString().padStart(2,'0')}`;
+  },1000);
+
+  // Layers
+  const layers = [
+    {cls:'l1',label:'Material History',text:current.material},
+    {cls:'l2',label:'Physics',text:current.physics},
+    {cls:'l3',label:'Evolutionary Analogs',text:current.nature},
+    {cls:'l4',label:'Cultural Variations',text:current.culture},
+    {cls:'l5',label:'One Strange Fact',text:current.strange}
+  ];
+  
+  document.getElementById('layers').innerHTML = layers.map(l => `
+    <div class="layer ${l.cls}" onclick="this.classList.toggle('open')">
+      <div class="layer-header">
+        <span class="label">${l.label}</span>
+        <span class="toggle">▶</span>
+      </div>
+      <div class="layer-body"><p>${l.text}</p></div>
+    </div>
+  `).join('');
+}
+
+newObject();
+</script>
+</body>
+</html>
