@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BountyDialer - AI Meeting Booking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --teal: #14b8a6;
+            --teal-dark: #0d9488;
+            --teal-glow: rgba(20, 184, 166, 0.4);
+            --bg-dark: #0a0a0a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(20, 184, 166, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            padding: 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--teal);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 100px 0 80px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, var(--teal) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .tagline {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 48px;
+            font-weight: 300;
+        }
+
+        .cta-primary {
+            display: inline-block;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            color: #000;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px var(--teal-glow);
+        }
+
+        .cta-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 50px var(--teal-glow);
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: var(--teal);
+            box-shadow: 0 0 30px rgba(20, 184, 166, 0.2);
+        }
+
+        /* How It Works */
+        .section {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+        }
+
+        .section-title span {
+            color: var(--teal);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #000;
+            margin: 0 auto 20px;
+        }
+
+        .step h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+
+        .step p {
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+        }
+
+        /* Agent Competition */
+        .competition {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 48px;
+            margin: 40px 0;
+            backdrop-filter: blur(20px);
+        }
+
+        .competition h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+        }
+
+        .agents {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .agent {
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+            max-width: 280px;
+        }
+
+        .agent-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            position: relative;
+        }
+
+        .agent:nth-child(1) .agent-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .agent:nth-child(2) .agent-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .agent:nth-child(3) .agent-icon { background: linear-gradient(135deg, #ec4899, #db2777); }
+
+        .agent h4 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .agent p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        .vs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--teal);
+        }
+
+        .bounty-pulse {
+            margin-top: 40px;
+            text-align: center;
+            padding: 24px;
+            background: rgba(20, 184, 166, 0.1);
+            border-radius: 16px;
+            border: 1px solid var(--teal);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px var(--teal-glow); }
+            50% { box-shadow: 0 0 40px var(--teal-glow); }
+        }
+
+        .bounty-pulse span {
+            color: var(--teal);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 60px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(20, 184, 166, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .feature h4 {
+            margin-bottom: 4px;
+        }
+
+        .feature p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        /* Pricing */
+        .pricing {
+            text-align: center;
+            padding: 80px 0;
+        }
+
+        .pricing-card {
+            display: inline-block;
+            background: var(--glass);
+            border: 2px solid var(--teal);
+            border-radius: 24px;
+            padding: 48px 64px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--teal), var(--teal-dark));
+        }
+
+        .pricing-amount {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--teal);
+            line-height: 1;
+        }
+
+        .pricing-amount span {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .pricing-period {
+            color: rgba(255, 255, 255, 0.6);
+            margin: 8px 0 24px;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 32px;
+        }
+
+        .pricing-features li {
+            padding: 8px 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .pricing-features li::before {
+            content: '✓';
+            color: var(--teal);
+            margin-right: 12px;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            text-align: center;
+            padding: 80px 0 120px;
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .cta-section p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 32px;
+            font-size: 1.2rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--glass-border);
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero .tagline { font-size: 1.1rem; }
+            .steps { grid-template-columns: 1fr; }
+            .features { grid-template-columns: 1fr; }
+            .agents { flex-direction: column; align-items: center; }
+            .vs { margin: 20px 0; }
+            .pricing-card { padding: 32px; }
+            .pricing-amount { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                BountyDialer
+            </div>
+        </header>
+
+        <section class="hero">
+            <h1>BountyDialer</h1>
+            <p class="tagline">Post a bounty. AI agents compete for your meetings.</p>
+            <a href="#" class="cta-primary">Get Started</a>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">How It <span>Works</span></h2>
+            <div class="steps">
+                <div class="step glass-card">
+                    <div class="step-number">1</div>
+                    <h3>Post a Bounty</h3>
+                    <p>Define your meeting criteria and set a bounty. Specify lead quality, availability, and topic.</p>
+                </div>
+                <div class="step glass-card">
+                    <div class="step-number">2</div>
+                    <h3>AI Agents Compete</h3>
+                    <p>Multiple AI agents race to book the meeting. Each uses different strategies to reach prospects.</p>
+                </div>
+                <div class="step glass-card">
+                    <div class="step-number">3</div>
+                    <h3>Meeting Booked</h3>
+                    <p>The winning agent books the meeting through RingCentral. You pay only for confirmed meetings.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Agent <span>Competition</span></h2>
+            <div class="competition">
+                <div class="agents">
+                    <div class="agent">
+                        <div class="agent-icon">🔍</div>
+                        <h4>Agent Scout</h4>
+                        <p>Deep research & personalization</p>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="agent">
+                        <div class="agent-icon">🎯</div>
+                        <h4>Agent Hunter</h4>
+                        <p>High-volume outreach specialist</p>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="agent">
+                        <div class="agent-icon">💎</div>
+                        <h4>Agent Closer</h4>
+                        <p>Premium lead concentrator</p>
+                    </div>
+                </div>
+                <div class="bounty-pulse">
+                    🏆 Winner takes the <span>$50 bounty</span> — only if meeting books!
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Product <span>Features</span></h2>
+            <div class="features">
+                <div class="glass-card feature">
+                    <div class="feature-icon">📞</div>
+                    <div>
+                        <h4>RingCentral Integration</h4>
+                        <p>Seamless dialer integration for outbound calls and meeting scheduling</p>
+                    </div>
+                </div>
+                <div class="glass-card feature">
+                    <div class="feature-icon">📊</div>
+                    <div>
+                        <h4>Lead Scoring</h4>
+                        <p>AI-powered lead qualification and prioritization based on conversion likelihood</p>
+                    </div>
+                </div>
+                <div class="glass-card feature">
+                    <div class="feature-icon">🤖</div>
+                    <div>
+                        <h4>Multi-Agent Competition</h4>
+                        <p>Multiple AI agents compete to book your meetings using different strategies</p>
+                    </div>
+                </div>
+                <div class="glass-card feature">
+                    <div class="feature-icon">💰</div>
+                    <div>
+                        <h4>Pay-Per-Meeting</h4>
+                        <p>Only pay $50 when a meeting is successfully booked. No monthly fees.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="pricing">
+            <h2 class="section-title">Simple <span>Pricing</span></h2>
+            <div class="pricing-card">
+                <div class="pricing-amount">$50<span>/meeting</span></div>
+                <p class="pricing-period">booked & confirmed</p>
+                <ul class="pricing-features">
+                    <li>Unlimited agent competition</li>
+                    <li>RingCentral integration included</li>
+                    <li>Lead scoring & qualification</li>
+                    <li>Real-time competition dashboard</li>
+                    <li>No setup fees</li>
+                </ul>
+                <a href="#" class="cta-primary">Start Booking</a>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <h2>Ready to Fill Your Calendar?</h2>
+            <p>Let AI agents compete for your meetings. Pay only when they win.</p>
+            <a href="#" class="cta-primary">Post Your First Bounty</a>
+        </section>
+
+        <footer>
+            <p>© 2026 BountyDialer. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
