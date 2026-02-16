@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Machine Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --money-green: #00d4aa;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --warning-red: #ff4a4a;
+            --success-green: #4caf50;
+            --quick-win-blue: #4a90ff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--money-green);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(0, 212, 170, 0) 0%, rgba(0, 212, 170, 0.1) 100%);
+            z-index: 0;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--money-green);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .money-symbol {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 5rem;
+            color: rgba(0, 212, 170, 0.1);
+            transform: rotate(15deg);
+        }
+        
+        /* Dashboard Sections */
+        .dashboard-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--money-green);
+        }
+        
+        .section-header .total {
+            background-color: rgba(0, 212, 170, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: var(--money-green);
+            font-weight: 600;
+        }
+        
+        /* Idea Cards */
+        .idea-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .idea-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .idea-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .idea-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--money-green), transparent);
+        }
+        
+        .idea-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        
+        .idea-card .potential {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--money-green);
+            margin-bottom: 10px;
+        }
+        
+        .idea-card .description {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+        
+        .idea-card .effort {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .effort-bar {
+            height: 8px;
+            width: 80px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-left: 10px;
+            overflow: hidden;
+        }
+        
+        .effort-fill {
+            height: 100%;
+            background-color: var(--money-green);
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 2px solid var(--money-green);
+        }
+        
+        /* Quick Wins */
+        .quick-wins {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .quick-win-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-left: 3px solid var(--quick-win-blue);
+        }
+        
+        .checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid var(--quick-win-blue);
+            margin-right: 15px;
+            position: relative;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .checkbox.checked {
+            background-color: var(--quick-win-blue);
+            border-color: var(--quick-win-blue);
+        }
+        
+        .checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        
+        .quick-win-details {
+            flex: 1;
+        }
+        
+        .quick-win-details h4 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .quick-win-details p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .quick-win-value {
+            font-weight: 600;
+            color: var(--quick-win-blue);
+            margin-left: 10px;
+            font-size: 0.9rem;
+        }
+        
+        /* Deadline Warning */
+        .deadline-warning {
+            background-color: rgba(255, 74, 74, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--warning-red);
+        }
+        
+        .deadline-icon {
+            font-size: 2.5rem;
+            margin-right: 20px;
+            color: var(--warning-red);
+        }
+        
+        .deadline-info {
+            flex: 1;
+        }
+        
+        .deadline-info h3 {
+            font-size: 1.2rem;
+            color: var(--warning-red);
+            margin-bottom: 5px;
+        }
+        
+        .deadline-info p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+        
+        .countdown {
+            background-color: var(--warning-red);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        /* Timeline */
+        .timeline {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 15px 20px;
+        }
+        
+        .timeline-header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .timeline-header h3 {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+        
+        .timeline-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            padding-top: 5px;
+        }
+        
+        .timeline-bar {
+            height: 30px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .timeline-progress {
+            position: absolute;
+            height: 100%;
+            background: linear-gradient(90deg, var(--money-green) 0%, rgba(0, 212, 170, 0.7) 100%);
+            border-radius: 6px;
+        }
+
+        .timeline-milestone {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .timeline-milestone::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: white;
+        }
+
+        .timeline-today {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background-color: var(--warning-red);
+            z-index: 2;
+        }
+        
+        .timeline-today::after {
+            content: '⏰';
+            position: absolute;
+            top: -15px;
+            left: -7px;
+            font-size: 0.85rem;
+        }
+
+        .timeline-milestone-label {
+            position: absolute;
+            bottom: -20px;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .idea-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline-label {
+                padding-top: 0;
+                margin-top: 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+        }
+
+        /* Footer */
+        .dashboard-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .dashboard-footer span {
+            color: var(--money-green);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="money-symbol">💰</div>
+            <h1>Money Machine Dashboard</h1>
+            <p>Track your most profitable opportunities, quick wins, and timeline projections. Focus on the highest ROI activities first.</p>
+        </div>
+
+        <!-- Deadline Warning -->
+        <div class="deadline-warning">
+            <div class="deadline-icon">⚠️</div>
+            <div class="deadline-info">
+                <h3>INBOUND Deadline Approaching!</h3>
+                <p>The INBOUND conference deadline is February 18th. Finalize all preparations to maximize your ROI.</p>
+            </div>
+            <div class="countdown">3 Days Left</div>
+        </div>
+
+        <!-- Idea Cards Section -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2>Revenue-Generating Ideas</h2>
+                <div class="total">Potential: $652K</div>
+            </div>
+            
+            <div class="idea-cards">
+                <!-- Card 1 -->
+                <div class="idea-card">
+                    <div class="rank-badge">1</div>
+                    <h3>Enterprise Consulting Program</h3>
+                    <div class="potential">$360K</div>
+                    <div class="description">Comprehensive consulting package for enterprise clients, including strategy, implementation, and support.</div>
+                    <div class="effort">Effort: High
+                        <div class="effort-bar">
+                            <div class="effort-fill" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card 2 -->
+                <div class="idea-card">
+                    <div class="rank-badge">2</div>
+                    <h3>AI Integration Solutions</h3>
+                    <div class="potential">$120K</div>
+                    <div class="description">Customized AI solutions for streamlining client business processes and decision making.</div>
+                    <div class="effort">Effort: Medium
+                        <div class="effort-bar">
+                            <div class="effort-fill" style="width: 60%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card 3 -->
+                <div class="idea-card">
+                    <div class="rank-badge">3</div>
+                    <h3>Digital Transformation Workshop</h3>
+                    <div class="potential">$85K</div>
+                    <div class="description">Intensive workshop series helping traditional businesses pivot to digital-first operations.</div>
+                    <div class="effort">Effort: Medium
+                        <div class="effort-bar">
+                            <div class="effort-fill" style="width: 55%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card 4 -->
+                <div class="idea-card">
+                    <div class="rank-badge">4</div>
+                    <h3>Subscription Advisory Service</h3>
+                    <div class="potential">$72K</div>
+                    <div class="description">Ongoing advisory subscription for businesses needing continuous guidance and support.</div>
+                    <div class="effort">Effort: Medium-High
+                        <div class="effort-bar">
+                            <div class="effort-fill" style="width: 70%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card 5 -->
+                <div class="idea-card">
+                    <div class="rank-badge">5</div>
+                    <h3>INBOUND Conference Sponsorship</h3>
+                    <div class="potential">$45K</div>
+                    <div class="description">Strategic sponsorship at INBOUND to generate high-quality leads and partnerships.</div>
+                    <div class="effort">Effort: Medium
+                        <div class="effort-bar">
+                            <div class="effort-fill" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card 6 -->
+                <div class="idea-card">
+                    <div class="rank-badge">6</div>
+                    <h3>Exclusive Mastermind Group</h3>
+                    <div class="potential">$36K</div>
+                    <div class="description">Facilitated mastermind group connecting industry leaders for collaboration and growth.</div>
+                    <div class="effort">Effort: Low-Medium
+                        <div class="effort-bar">
+                            <div class="effort-fill" style="width: 40%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card 7 -->
+                <div class="idea-card">
+                    <div class="rank-badge">7</div>
+                    <h3>Content Marketing System</h3>
+                    <div class="potential">$28K</div>
+                    <div class="description">Systematic content creation and distribution strategy for consistent lead generation.</div>
+                    <div class="effort">Effort: Medium
+                        <div class="effort-bar">
+                            <div class="effort-fill" style="width: 55%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card 8 -->
+                <div class="idea-card">
+                    <div class="rank-badge">8</div>
+                    <h3>Industry-Specific Case Studies</h3>
+                    <div class="potential">$24K</div>
+                    <div class="description">In-depth case studies demonstrating ROI and success metrics for vertical markets.</div>
+                    <div class="effort">Effort: Low-Medium
+                        <div class="effort-bar">
+                            <div class="effort-fill" style="width: 35%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card 9 -->
+                <div class="idea-card">
+                    <div class="rank-badge">9</div>
+                    <h3>Specialized Training Program</h3>
+                    <div class="potential">$20K</div>
+                    <div class="description">Focused training programs for teams implementing new technologies or methodologies.</div>
+                    <div class="effort">Effort: Low-Medium
+                        <div class="effort-bar">
+                            <div class="effort-fill" style="width: 40%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card 10 -->
+                <div class="idea-card">
+                    <div class="rank-badge">10</div>
+                    <h3>Referral Partnership Program</h3>
+                    <div class="potential">$12K</div>
+                    <div class="description">Structured referral program with complementary service providers for passive lead generation.</div>
+                    <div class="effort">Effort: Low
+                        <div class="effort-bar">
+                            <div class="effort-fill" style="width: 25%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Wins Section -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2>This Week's Quick Wins</h2>
+                <div class="total">Potential: $27K</div>
+            </div>
+            
+            <div class="quick-wins">
+                <div class="quick-win-item">
+                    <div class="checkbox"></div>
+                    <div class="quick-win-details">
+                        <h4>Finalize INBOUND presentation deck</h4>
+                        <p>Complete slide deck, rehearse timing, and prepare handouts for distribution</p>
+                    </div>
+                    <div class="quick-win-value">$7K</div>
+                </div>
+                
+                <div class="quick-win-item">
+                    <div class="checkbox"></div>
+                    <div class="quick-win-details">
+                        <h4>Reach out to 5 enterprise prospects</h4>
+                        <p>Contact and schedule initial consultations with high-value prospects from last month's webinar</p>
+                    </div>
+                    <div class="quick-win-value">$8K</div>
+                </div>
+                
+                <div class="quick-win-item">
+                    <div class="checkbox"></div>
+                    <div class="quick-win-details">
+                        <h4>Launch LinkedIn campaign</h4>
+                        <p>Activate targeted ad campaign focused on decision-makers in finance and healthcare</p>
+                    </div>
+                    <div class="quick-win-value">$5K</div>
+                </div>
+                
+                <div class="quick-win-item">
+                    <div class="checkbox"></div>
+                    <div class="quick-win-details">
+                        <h4>Optimize service packages page</h4>
+                        <p>Update pricing, streamline offerings, and improve conversion elements on services page</p>
+                    </div>
+                    <div class="quick-win-value">$4K</div>
+                </div>
+                
+                <div class="quick-win-item">
+                    <div class="checkbox"></div>
+                    <div class="quick-win-details">
+                        <h4>Follow up with recent proposals</h4>
+                        <p>Reconnect with 3 clients who received proposals in the last 14 days</p>
+                    </div>
+                    <div class="quick-win-value">$3K</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Timeline Projections -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2>Timeline Projections</h2>
+            </div>
+            
+            <div class="timeline">
+                <div class="timeline-grid">
+                    <div class="timeline-header">
+                        <h3>Q1 2026 Revenue Roadmap</h3>
+                    </div>
+                    
+                    <div class="timeline-label">INBOUND Conference</div>
+                    <div class="timeline-bar">
+                        <div class="timeline-progress" style="width: 80%;"></div>
+                        <div class="timeline-today" style="left: 78%;"></div>
+                        <div class="timeline-milestone" style="left: 100%;">
+                            <div class="timeline-milestone-label">Feb 18</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-label">Enterprise Program</div>
+                    <div class="timeline-bar">
+                        <div class="timeline-progress" style="width: 40%;"></div>
+                        <div class="timeline-milestone" style="left: 60%;">
+                            <div class="timeline-milestone-label">Mar 5</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-label">AI Solutions Launch</div>
+                    <div class="timeline-bar">
+                        <div class="timeline-progress" style="width: 25%;"></div>
+                        <div class="timeline-milestone" style="left: 75%;">
+                            <div class="timeline-milestone-label">Mar 25</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-label">Workshops Series</div>
+                    <div class="timeline-bar">
+                        <div class="timeline-progress" style="width: 30%;"></div>
+                        <div class="timeline-milestone" style="left: 45%;">
+                            <div class="timeline-milestone-label">Mar 1</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-label">Q1 Revenue Target</div>
+                    <div class="timeline-bar">
+                        <div class="timeline-progress" style="width: 55%;"></div>
+                        <div class="timeline-milestone" style="left: 100%;">
+                            <div class="timeline-milestone-label">Mar 31</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="dashboard-footer">
+            <p>Money Machine Dashboard | Last Updated: <span>February 15, 2026</span> | <span>Created by Claude</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Toggle checkboxes
+        document.querySelectorAll('.checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                this.classList.toggle('checked');
+            });
+        });
+        
+        // You could add more interactive features here
+        // Like sorting the ideas by potential, filtering, etc.
+    </script>
+</body>
+</html>

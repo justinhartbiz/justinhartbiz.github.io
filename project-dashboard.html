@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Railstote Command Center 🦉</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --border: #334155;
+  --text: #f1f5f9;
+  --text-dim: #94a3b8;
+  --red: #ef4444;
+  --orange: #f97316;
+  --yellow: #eab308;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --pink: #ec4899;
+  --cyan: #06b6d4;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container { max-width: 1400px; margin: 0 auto; }
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header h1 {
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header h1 span { font-size: 32px; }
+
+.last-updated {
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+/* Stats Row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-card .number {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-card .label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card.active .number { color: var(--green); }
+.stat-card.complete .number { color: var(--blue); }
+.stat-card.blocked .number { color: var(--orange); }
+.stat-card.urgent .number { color: var(--red); }
+.stat-card.skills .number { color: var(--purple); }
+
+/* Alerts */
+.alerts {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.1));
+  border: 1px solid var(--red);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.alerts h3 {
+  color: var(--red);
+  font-size: 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.alert-item:last-child { border-bottom: none; }
+
+.alert-icon { font-size: 18px; }
+
+.alert-content { flex: 1; }
+
+.alert-title { font-weight: 600; font-size: 14px; }
+
+.alert-desc { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+.alert-deadline {
+  background: var(--red);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  background: var(--card);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.tab {
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tab:hover { background: var(--border); color: var(--text); }
+
+.tab.active {
+  background: var(--blue);
+  color: white;
+}
+
+.tab .badge {
+  background: rgba(255,255,255,0.2);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  margin-left: 6px;
+}
+
+/* Sections */
+.section { display: none; }
+.section.active { display: block; }
+
+/* Project Grid */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.project-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.project-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.project-title {
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-title .icon { font-size: 18px; }
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.active { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+.status-badge.complete { background: rgba(59, 130, 246, 0.2); color: var(--blue); }
+.status-badge.blocked { background: rgba(249, 115, 22, 0.2); color: var(--orange); }
+.status-badge.urgent { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+.status-badge.parked { background: rgba(148, 163, 184, 0.2); color: var(--text-dim); }
+
+.project-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.project-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.meta-tag {
+  background: var(--border);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.project-files {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.project-files h4 {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.file-item {
+  font-size: 11px;
+  color: var(--cyan);
+  font-family: 'SF Mono', Monaco, monospace;
+  word-break: break-all;
+}
+
+/* Skills Grid */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.skill-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.skill-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.skill-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Quick Links */
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.quick-link {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s;
+}
+
+.quick-link:hover {
+  border-color: var(--blue);
+  transform: translateY(-2px);
+}
+
+.quick-link .icon { font-size: 24px; }
+
+.quick-link .info h4 { font-size: 14px; margin-bottom: 2px; }
+
+.quick-link .info p { font-size: 11px; color: var(--text-dim); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1><span>🦉</span> Railstote Command Center</h1>
+    <div class="last-updated">Last updated: Feb 8, 2026 • 08:30 PST</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card active">
+      <div class="number">5</div>
+      <div class="label">Active</div>
+    </div>
+    <div class="stat-card complete">
+      <div class="number">12</div>
+      <div class="label">Complete</div>
+    </div>
+    <div class="stat-card blocked">
+      <div class="number">2</div>
+      <div class="label">Blocked</div>
+    </div>
+    <div class="stat-card urgent">
+      <div class="number">1</div>
+      <div class="label">Urgent</div>
+    </div>
+    <div class="stat-card skills">
+      <div class="number">18</div>
+      <div class="label">Skills</div>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="alerts">
+    <h3>🚨 Needs Attention</h3>
+    <div class="alert-item">
+      <span class="alert-icon">🎤</span>
+      <div class="alert-content">
+        <div class="alert-title">INBOUND 2026 Proposals</div>
+        <div class="alert-desc">2 talks drafted. NOT SUBMITTED. Major AI Operator brand launch opportunity.</div>
+      </div>
+      <span class="alert-deadline">Feb 18</span>
+    </div>
+    <div class="alert-item">
+      <span class="alert-icon">🐦</span>
+      <div class="alert-content">
+        <div class="alert-title">X Thread Awaiting Approval</div>
+        <div class="alert-desc">Tweets 2-7 in HOLD.md for 48+ hours.</div>
+      </div>
+      <span class="alert-deadline" style="background: var(--orange);">48+ hrs</span>
+    </div>
+    <div class="alert-item">
+      <span class="alert-icon">📝</span>
+      <div class="alert-content">
+        <div class="alert-title">Silver Crash Post</div>
+        <div class="alert-desc">4 charts done, nearly ready. Sitting since Feb 2.</div>
+      </div>
+      <span class="alert-deadline" style="background: var(--yellow); color: black;">Ready</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="showSection('active')">🔥 Active <span class="badge">5</span></button>
+    <button class="tab" onclick="showSection('donorbureau')">📱 DonorBureau</button>
+    <button class="tab" onclick="showSection('tlh')">🏠 TLH</button>
+    <button class="tab" onclick="showSection('personal')">👤 Personal</button>
+    <button class="tab" onclick="showSection('content')">📝 Content</button>
+    <button class="tab" onclick="showSection('skills')">🧰 Skills <span class="badge">18</span></button>
+    <button class="tab" onclick="showSection('links')">🔗 Quick Links</button>
+  </div>
+
+  <!-- Active Section -->
+  <div class="section active" id="active">
+    <div class="project-grid">
+      <div class="project-card" style="border-color: var(--green);">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🤖</span> TLH AI Marketing Team</div>
+          <span class="status-badge active">Active</span>
+        </div>
+        <div class="project-desc">Design AI agents to amplify Brett + Debbie. Architecture + 8-week plan done. Dashboard live.</div>
+        <div class="project-meta">
+          <span class="meta-tag">4 Agents</span>
+          <span class="meta-tag">Week 1 of 8</span>
+          <span class="meta-tag">Dashboard Built</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">tlh/marketing-team/AI-MARKETING-TEAM-ARCHITECTURE.md</span>
+            <span class="file-item">justinhart.biz/tlh/marketing-dashboard/</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card" style="border-color: var(--blue);">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🐟</span> Dory Memory System</div>
+          <span class="status-badge complete">Published</span>
+        </div>
+        <div class="project-desc">Skill published to ClawHub. Article on Hello AI. Landing page on justinhart.biz. QMD backend enabled.</div>
+        <div class="project-meta">
+          <span class="meta-tag">ClawHub v1.0.0</span>
+          <span class="meta-tag">QMD Enabled</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">skills/dory-memory/SKILL.md</span>
+            <span class="file-item">justinhart.biz-repo/dory/</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card" style="border-color: var(--green);">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🎵</span> I Stand All Amazed</div>
+          <span class="status-badge complete">Videos Done</span>
+        </div>
+        <div class="project-desc">36/37 AI videos generated. Gallery built. $11 total cost. Ready for final edit.</div>
+        <div class="project-meta">
+          <span class="meta-tag">36 videos</span>
+          <span class="meta-tag">37 frames</span>
+          <span class="meta-tag">~$11</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">gfl/i-stand-all-amazed/gallery.html</span>
+            <span class="file-item">gfl/i-stand-all-amazed/videos/</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card" style="border-color: var(--purple);">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">💼</span> AI Creative Director Page</div>
+          <span class="status-badge complete">Live</span>
+        </div>
+        <div class="project-desc">Consulting landing page with animated terminal demo. Built with Opus 4.6.</div>
+        <div class="project-meta">
+          <span class="meta-tag">justinhart.biz</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">justinhart.biz-repo/ai-creative-director/</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card" style="border-color: var(--orange);">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">✍️</span> Screwtape Rebuild</div>
+          <span class="status-badge blocked">On Hold</span>
+        </div>
+        <div class="project-desc">Chapter 1 Pass 1 complete. 4-model shootout done. Curated Letter I ready. Paused per Justin.</div>
+        <div class="project-meta">
+          <span class="meta-tag">Ch1 Pass 1</span>
+          <span class="meta-tag">~950 words</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">rg/chapter-drafting/chapter-01-letter1-CURATED.md</span>
+            <span class="file-item">justinhart.biz-repo/staging/screwtape-curator/</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DonorBureau Section -->
+  <div class="section" id="donorbureau">
+    <div class="project-grid">
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🐘</span> RNC</div>
+          <span class="status-badge active">Active</span>
+        </div>
+        <div class="project-desc">500-creative analysis, Vance survey shootout v2 complete. Daily packets.</div>
+        <div class="project-meta">
+          <span class="meta-tag">683 polls</span>
+          <span class="meta-tag">$0.031/send</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">db/political/rnc/RNC_DATA_ANALYSIS.md</span>
+            <span class="file-item">db/political/rnc/RNC_Creative_Playbook.md</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🚔</span> NCPD</div>
+          <span class="status-badge blocked">Forensics Pending</span>
+        </div>
+        <div class="project-desc">Police defense fundraising. Creative forensics in progress. Lamond case active.</div>
+        <div class="project-meta">
+          <span class="meta-tag">10+ cases</span>
+          <span class="meta-tag">Wife voice 72%</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">db/nonprofit/ncpd/NCPD_CREATIVE_FORENSICS.md</span>
+            <span class="file-item">db/nonprofit/ncpd/Lamond/</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🐕</span> SemperK9</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">4 Valentine's creatives (Cr-231–234). Forensics + shootout complete.</div>
+        <div class="project-meta">
+          <span class="meta-tag">Dogs + Vets</span>
+          <span class="meta-tag">$25 ask</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">db/nonprofit/semperk9/SEMPERK9_CREATIVE_FORENSICS.md</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">💪</span> SoldierStrong</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">Creative forensics, 10 Rules, provenance dashboard, rules game.</div>
+        <div class="project-meta">
+          <span class="meta-tag">Dana Perino 7x</span>
+          <span class="meta-tag">351-500 chars</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">db/nonprofit/soldierstrong/SOLDIERSTRONG_CREATIVE_FORENSICS.md</span>
+            <span class="file-item">db/nonprofit/soldierstrong/soldierstrong-rules-game.html</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">📦</span> HeroBox</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">7 Valentine's creatives (Cr-344–350). Shootout + LP complete.</div>
+        <div class="project-meta">
+          <span class="meta-tag">Care packages</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">db/nonprofit/herobox/herobox-shootout-valentines.html</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🗳️</span> Whatley Victory</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">5 creatives uploaded. Survey LP concepts complete.</div>
+        <div class="project-meta">
+          <span class="meta-tag">3 MMS</span>
+          <span class="meta-tag">2 SMS</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">db/political/whatley/</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🎯</span> Creative Shootout Skill</div>
+          <span class="status-badge active">Active</span>
+        </div>
+        <div class="project-desc">Multi-model SMS/MMS shootout. Ideas Mode for auto-concept generation.</div>
+        <div class="project-meta">
+          <span class="meta-tag">6 client refs</span>
+          <span class="meta-tag">Ideas Mode</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">skills/creative-shootout/SKILL.md</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TLH Section -->
+  <div class="section" id="tlh">
+    <div class="project-grid">
+      <div class="project-card" style="border-color: var(--green);">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🤖</span> AI Marketing Team</div>
+          <span class="status-badge active">Week 1</span>
+        </div>
+        <div class="project-desc">4-agent architecture to amplify Brett + Debbie. Dashboard live. 8-week implementation plan.</div>
+        <div class="project-meta">
+          <span class="meta-tag">Calacanis Patterns</span>
+          <span class="meta-tag">$50K+ budget</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">tlh/marketing-team/AI-MARKETING-TEAM-ARCHITECTURE.md</span>
+            <span class="file-item"><a href="https://justinhart.biz/tlh/marketing-dashboard/" target="_blank" style="color: var(--green);">Live Dashboard →</a></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">📊</span> Exec Dashboard</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">6-tab dashboard for Wednesday exec meetings.</div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">tlh/exec-dashboard.html</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🔍</span> OC Competitive Intel</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">Grasons vulnerability analysis. South OC beachhead. SEO land-grab.</div>
+        <div class="project-meta">
+          <span class="meta-tag">DR 29 vs DR 0-9</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">tlh/OC-COMPETITIVE-INTELLIGENCE.md</span>
+            <span class="file-item">tlh/estate-sale-intelligence-dashboard.html</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🎙️</span> iHeartRadio Ads</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">10 scripts, 20 audio files. Ready for Ashley.</div>
+        <div class="project-meta">
+          <span class="meta-tag">Sarah voice</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">tlh/radio-ads/SCRIPTS.md</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">⚙️</span> Salesforce Audit</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">Full audit, ERD, flow inventory, sales process map.</div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">tlh/salesforce-audit/</span>
+            <span class="file-item">justinhart.biz-repo/tlh/tlh-salesforce/</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">📈</span> Reverse Funnel</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">3-market funnel calculator with editable rates.</div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">tlh/reverse-funnel.html</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Personal Section -->
+  <div class="section" id="personal">
+    <div class="project-grid">
+      <div class="project-card" style="border-color: var(--red);">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🎤</span> INBOUND 2026</div>
+          <span class="status-badge urgent">10 Days Left</span>
+        </div>
+        <div class="project-desc">2 talk proposals drafted. NOT SUBMITTED. Major AI Operator brand launch opportunity.</div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">personal/ai-operator-launch-kit/INBOUND-2026-SUBMISSIONS.md</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">📰</span> AI Learned to Swim</div>
+          <span class="status-badge complete">Published</span>
+        </div>
+        <div class="project-desc">Published to Hello AI + Rational Ground. HeyGen video done.</div>
+        <div class="project-meta">
+          <span class="meta-tag">4 case studies</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">blogs/ai-operator-article/draft-v2.md</span>
+            <span class="file-item">blogs/ai-operator-article/LAUNCH-KIT.md</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">💼</span> AI Creative Director</div>
+          <span class="status-badge complete">Live</span>
+        </div>
+        <div class="project-desc">Consulting landing page. $3.5-5K/mo retainer model.</div>
+        <div class="project-meta">
+          <span class="meta-tag">justinhart.biz</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item"><a href="https://justinhart.biz/ai-creative-director/" target="_blank" style="color: var(--cyan);">Live Page →</a></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🎯</span> Brand Strategy</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">MASTER-PLAN complete. Campaign-Grade AI positioning. Speaking circuit targets.</div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">personal/brand-strategy/MASTER-PLAN.md</span>
+            <span class="file-item">personal/brand-strategy/HARTIFICIAL-INTELLIGENCE-PLAN.md</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">📊</span> Working Genius</div>
+          <span class="status-badge complete">Done</span>
+        </div>
+        <div class="project-desc">Invention + Discernment. Railstote = E+T complement.</div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">personal/working-genius-analysis.md</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <div class="section" id="content">
+    <div class="project-grid">
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">📧</span> Rational Ground</div>
+          <span class="status-badge active">22K subs</span>
+        </div>
+        <div class="project-desc">Primary Substack. COVID/political commentary. Custom domain live.</div>
+        <div class="project-meta">
+          <span class="meta-tag">rationalground.com</span>
+          <span class="meta-tag">285 paid</span>
+          <span class="meta-tag">$20.8K ARR</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🤖</span> Hello AI</div>
+          <span class="status-badge active">Growing</span>
+        </div>
+        <div class="project-desc">AI content Substack. Dory article published.</div>
+        <div class="project-meta">
+          <span class="meta-tag">helloai.substack.com</span>
+        </div>
+      </div>
+
+      <div class="project-card" style="border-color: var(--yellow);">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">📝</span> Silver Crash Post</div>
+          <span class="status-badge parked">Nearly Ready</span>
+        </div>
+        <div class="project-desc">4 charts done. Just needs final polish. Sitting since Feb 2.</div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">drafts/silver-crash-blog-draft.md</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">✍️</span> Screwtape Rebuild</div>
+          <span class="status-badge blocked">On Hold</span>
+        </div>
+        <div class="project-desc">Chapter 1 Pass 1 complete. Curated Letter I ready.</div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">rg/chapter-drafting/</span>
+            <span class="file-item">rg/screwtape-style-guide.md</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title"><span class="icon">🎵</span> I Stand All Amazed</div>
+          <span class="status-badge complete">Videos Done</span>
+        </div>
+        <div class="project-desc">36 AI videos for hymn visualization. Gallery ready.</div>
+        <div class="project-meta">
+          <span class="meta-tag">Go Forward Labs</span>
+        </div>
+        <div class="project-files">
+          <h4>Key Files</h4>
+          <div class="file-list">
+            <span class="file-item">gfl/i-stand-all-amazed/gallery.html</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skills Section -->
+  <div class="section" id="skills">
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="skill-name">🎯 creative-shootout</div>
+        <div class="skill-desc">Multi-model SMS/MMS creative generation</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">📊 creative-forensics</div>
+        <div class="skill-desc">Yield analysis, 10 Laws extraction</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">📱 donorbureau-dashboard</div>
+        <div class="skill-desc">Browser automation for DB creative input</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">🐟 dory-memory</div>
+        <div class="skill-desc">File-based memory system for AI agents</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">📹 yt-to-blog</div>
+        <div class="skill-desc">YouTube → blog → Substack → X → video</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">📹 yt-content-engine</div>
+        <div class="skill-desc">Full content pipeline from YouTube</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">🌳 gedcom-explorer</div>
+        <div class="skill-desc">Family tree visualization from GEDCOM</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">🎸 wyld-stallyns</div>
+        <div class="skill-desc">Legend council (14 advisors)</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">🔢 token-usage</div>
+        <div class="skill-desc">API usage tracking across providers</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">🔍 model-thinker</div>
+        <div class="skill-desc">Scott Page many-model thinking lens</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">📄 ab-test-setup</div>
+        <div class="skill-desc">A/B test design template</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">✍️ copywriting</div>
+        <div class="skill-desc">Conversion copy framework</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">📧 email-sequence</div>
+        <div class="skill-desc">Drip campaign design</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">🧠 marketing-psychology</div>
+        <div class="skill-desc">Behavioral science for marketing</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">📈 page-cro</div>
+        <div class="skill-desc">Landing page optimization</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">💰 paid-ads</div>
+        <div class="skill-desc">PPC strategy template</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">📰 fedreg-pipeline</div>
+        <div class="skill-desc">Federal Register monitoring</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">🏛️ civic-nexus</div>
+        <div class="skill-desc">Civic engagement tools</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Links Section -->
+  <div class="section" id="links">
+    <div class="quick-links">
+      <a href="https://justinhart.biz" target="_blank" class="quick-link">
+        <span class="icon">🌐</span>
+        <div class="info">
+          <h4>justinhart.biz</h4>
+          <p>Personal website (GitHub Pages)</p>
+        </div>
+      </a>
+      <a href="https://justinhart.biz/tlh/marketing-dashboard/" target="_blank" class="quick-link">
+        <span class="icon">🏠</span>
+        <div class="info">
+          <h4>TLH Marketing Dashboard</h4>
+          <p>AI Marketing Team plan</p>
+        </div>
+      </a>
+      <a href="https://justinhart.biz/dory/" target="_blank" class="quick-link">
+        <span class="icon">🐟</span>
+        <div class="info">
+          <h4>Dory Memory System</h4>
+          <p>Teaching AI to Remember</p>
+        </div>
+      </a>
+      <a href="https://dashboard.donorbureau.com" target="_blank" class="quick-link">
+        <span class="icon">📱</span>
+        <div class="info">
+          <h4>DonorBureau Dashboard</h4>
+          <p>SMS/MMS fundraising platform</p>
+        </div>
+      </a>
+      <a href="https://rationalground.com" target="_blank" class="quick-link">
+        <span class="icon">📧</span>
+        <div class="info">
+          <h4>Rational Ground</h4>
+          <p>Primary Substack (22K subs)</p>
+        </div>
+      </a>
+      <a href="https://helloai.substack.com" target="_blank" class="quick-link">
+        <span class="icon">🤖</span>
+        <div class="info">
+          <h4>Hello AI</h4>
+          <p>AI content Substack</p>
+        </div>
+      </a>
+      <a href="https://truelegacyhomes2.my.salesforce.com" target="_blank" class="quick-link">
+        <span class="icon">⚙️</span>
+        <div class="info">
+          <h4>TLH Salesforce</h4>
+          <p>CRM dashboard</p>
+        </div>
+      </a>
+      <a href="https://clawhub.com" target="_blank" class="quick-link">
+        <span class="icon">🐾</span>
+        <div class="info">
+          <h4>ClawHub</h4>
+          <p>Agent skills marketplace</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

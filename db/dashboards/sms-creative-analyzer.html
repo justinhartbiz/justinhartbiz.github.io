@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMS Creative Analyzer v3 — DonorBureau Intel Tool</title>
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #0f1117;
+    --card: #151821;
+    --card-border: #1e2230;
+    --card-hover: #1a1f2e;
+    --accent: #6366f1;
+    --accent2: #818cf8;
+    --accent-glow: rgba(99,102,241,0.12);
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.15);
+    --yellow: #eab308;
+    --yellow-dim: rgba(234,179,8,0.15);
+    --red: #ef4444;
+    --red-dim: rgba(239,68,68,0.15);
+    --orange: #f97316;
+    --orange-dim: rgba(249,115,22,0.15);
+    --cyan: #06b6d4;
+    --cyan-dim: rgba(6,182,212,0.12);
+    --purple: #a855f7;
+    --purple-dim: rgba(168,85,247,0.12);
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --dim: #64748b;
+    --dimmer: #475569;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0c0a1e 0%, #1a1547 40%, #0f0d24 100%);
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(99,102,241,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content:'';position:absolute;top:-50%;right:-10%;width:400px;height:400px;
+    background:radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .header-inner { position:relative; z-index:1; max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .header-left { display:flex; align-items:center; gap:16px; }
+  .header h1 { font-size:22px; font-weight:700; letter-spacing:-0.5px; }
+  .header h1 span { color:var(--accent); }
+  .header .tagline { color:var(--dim); font-size:12px; margin-top:2px; }
+  .header-right { display:flex; align-items:center; gap:12px; }
+  .client-select {
+    background: rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.3);
+    color:var(--text); padding:8px 14px; border-radius:8px; font-size:13px;
+    font-weight:600; cursor:pointer; outline:none;
+  }
+  .client-select option { background:var(--card); }
+  .badge {
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    color: white; font-size: 10px; font-weight: 700;
+    padding: 5px 14px; border-radius: 20px;
+    letter-spacing: 0.8px; text-transform: uppercase;
+  }
+  .version-badge {
+    background:var(--green-dim); color:var(--green); font-size:10px; font-weight:700;
+    padding:4px 10px; border-radius:12px; letter-spacing:0.5px;
+  }
+
+  .container { max-width:1400px; margin:0 auto; padding:20px 28px; }
+
+  /* Grid */
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-bottom:20px; }
+  @media(max-width:1100px) { .grid-3 { grid-template-columns:1fr; } }
+  @media(max-width:900px) { .grid-2 { grid-template-columns:1fr; } }
+  .span-2 { grid-column: span 2; }
+  @media(max-width:900px) { .span-2 { grid-column: span 1; } }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #2a2f42; }
+  .card-title {
+    font-size:12px; font-weight:700; text-transform:uppercase;
+    letter-spacing:1px; color:var(--dim); margin-bottom:14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .card-title .icon { font-size:15px; }
+  .card-title .pill {
+    font-size:9px; padding:2px 8px; border-radius:8px;
+    background:var(--accent-glow); color:var(--accent2);
+    margin-left:auto; font-weight:600; letter-spacing:0.5px;
+  }
+
+  /* Input */
+  .input-area {
+    width:100%; min-height:200px;
+    background: var(--bg2); border:1px solid var(--card-border);
+    border-radius:10px; color:var(--text);
+    font-family:'SF Mono','Fira Code','Cascadia Code',monospace;
+    font-size:13px; line-height:1.65; padding:16px;
+    resize:vertical; transition:border-color 0.2s;
+  }
+  .input-area:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+  .input-area::placeholder { color:var(--dimmer); }
+
+  .char-info { display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:11px; color:var(--dim); }
+  .char-info .count { font-family:'SF Mono',monospace; font-size:14px; font-weight:700; }
+  .char-info .count.good { color:var(--green); }
+  .char-info .count.warn { color:var(--yellow); }
+  .char-info .count.over { color:var(--red); }
+
+  /* Controls */
+  .controls { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  .btn {
+    padding:10px 20px; border-radius:10px; font-size:13px; font-weight:700;
+    border:none; cursor:pointer; transition:all 0.2s; letter-spacing:0.3px;
+  }
+  .btn:active { transform:scale(0.97); }
+  .btn-primary {
+    background:linear-gradient(135deg, var(--accent), #7c3aed);
+    color:white; box-shadow:0 2px 12px rgba(99,102,241,0.3);
+  }
+  .btn-primary:hover { box-shadow:0 4px 20px rgba(99,102,241,0.4); transform:translateY(-1px); }
+  .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--card-border); }
+  .btn-ghost:hover { border-color:var(--dim); color:var(--text); }
+  .btn-sm { padding:6px 12px; font-size:11px; border-radius:8px; }
+
+  .presets { display:flex; gap:5px; margin-top:12px; flex-wrap:wrap; }
+  .preset-btn {
+    padding:5px 11px; border-radius:8px; font-size:10px; font-weight:600;
+    background:var(--bg2); border:1px solid var(--card-border); color:var(--dim);
+    cursor:pointer; transition:all 0.2s; letter-spacing:0.3px;
+  }
+  .preset-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-glow); }
+
+  /* Score Ring */
+  .score-section { display:flex; flex-direction:column; align-items:center; padding:10px 0; }
+  .score-ring { width:150px; height:150px; position:relative; }
+  .score-ring svg { transform:rotate(-90deg); }
+  .score-ring circle { fill:none; stroke-width:8; stroke-linecap:round; }
+  .score-ring .bg { stroke:var(--card-border); }
+  .score-ring .fill { transition:stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1), stroke 0.3s; }
+  .score-value {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    text-align:center;
+  }
+  .score-value .num { font-size:44px; font-weight:800; letter-spacing:-2px; }
+  .score-value .label { font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:1.5px; }
+  .score-grade { font-size:14px; font-weight:700; margin-top:10px; letter-spacing:0.3px; }
+
+  /* Metric bars */
+  .metrics { display:flex; flex-direction:column; gap:10px; margin-top:14px; width:100%; }
+  .metric-row { display:flex; align-items:center; gap:10px; }
+  .metric-label { font-size:11px; color:var(--muted); width:140px; flex-shrink:0; }
+  .metric-bar-bg { flex:1; height:6px; background:var(--bg); border-radius:3px; overflow:hidden; }
+  .metric-bar { height:100%; border-radius:3px; transition:width 0.8s cubic-bezier(0.4,0,0.2,1); }
+  .metric-score { font-family:'SF Mono',monospace; font-size:11px; font-weight:700; width:28px; text-align:right; }
+
+  /* Predictions */
+  .prediction-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .pred-card {
+    background:var(--bg2); border:1px solid var(--card-border);
+    border-radius:10px; padding:16px; text-align:center;
+  }
+  .pred-card .pred-label { font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+  .pred-card .pred-value { font-size:28px; font-weight:800; letter-spacing:-1px; }
+  .pred-card .pred-sub { font-size:10px; color:var(--dim); margin-top:4px; }
+
+  /* Insights */
+  .insight {
+    display:flex; gap:10px; padding:10px 12px; border-radius:10px;
+    margin-bottom:6px; font-size:12px; line-height:1.5;
+    background:var(--bg2); border:1px solid var(--card-border);
+  }
+  .insight .tag {
+    font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px;
+    padding:2px 8px; border-radius:6px; flex-shrink:0; height:fit-content; margin-top:2px;
+  }
+  .tag-boost { background:var(--green-dim); color:var(--green); }
+  .tag-warn { background:var(--yellow-dim); color:var(--yellow); }
+  .tag-risk { background:var(--red-dim); color:var(--red); }
+  .tag-tip { background:var(--accent-glow); color:var(--accent2); }
+  .tag-data { background:var(--cyan-dim); color:var(--cyan); }
+
+  /* Similar creatives */
+  .similar-item {
+    background:var(--bg2); border:1px solid var(--card-border);
+    border-radius:10px; padding:14px; margin-bottom:8px;
+    transition:border-color 0.2s; cursor:default;
+  }
+  .similar-item:hover { border-color:var(--accent); }
+  .similar-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .similar-name { font-size:13px; font-weight:700; color:var(--accent2); }
+  .similar-stats { display:flex; gap:10px; font-size:10px; font-family:'SF Mono',monospace; }
+  .similar-stats span { padding:3px 8px; border-radius:6px; font-weight:600; }
+  .similar-preview { font-size:11px; color:var(--muted); line-height:1.5; }
+  .similar-match { font-size:10px; color:var(--dim); margin-top:6px; display:flex; align-items:center; gap:6px; }
+  .match-bar { width:60px; height:4px; background:var(--card-border); border-radius:2px; overflow:hidden; }
+  .match-fill { height:100%; border-radius:2px; background:var(--accent); }
+
+  /* Emotion grid */
+  .emotion-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .emotion-cell {
+    padding:10px 8px; border-radius:10px; text-align:center;
+    font-size:11px; font-weight:600; transition:all 0.3s;
+    background:var(--bg2); border:1px solid var(--card-border);
+  }
+  .emotion-cell .emoji { font-size:18px; display:block; margin-bottom:3px; }
+  .emotion-cell .elabel { font-size:10px; color:var(--dim); margin-top:2px; font-weight:500; }
+
+  /* Ask pills */
+  .ask-pills { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .ask-pill {
+    padding:4px 10px; border-radius:8px; font-size:12px; font-weight:700;
+    font-family:'SF Mono',monospace;
+  }
+  .ask-low { background:var(--green-dim); color:var(--green); }
+  .ask-mid { background:var(--yellow-dim); color:var(--yellow); }
+  .ask-high { background:var(--orange-dim); color:var(--orange); }
+  .ask-max { background:var(--red-dim); color:var(--red); }
+
+  /* Benchmark table */
+  .bench-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .bench-table th {
+    text-align:left; padding:8px 10px; color:var(--dim); font-weight:600;
+    font-size:10px; text-transform:uppercase; letter-spacing:0.8px;
+    border-bottom:1px solid var(--card-border);
+  }
+  .bench-table td { padding:8px 10px; border-bottom:1px solid rgba(30,34,48,0.5); }
+  .bench-table tr:hover td { background:rgba(99,102,241,0.03); }
+
+  /* Archetype badges */
+  .archetype-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:10px; font-size:12px; font-weight:700;
+    margin-bottom:12px;
+  }
+
+  /* History */
+  .history-list { max-height:180px; overflow-y:auto; }
+  .history-item {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 10px; border-radius:8px; margin-bottom:3px;
+    background:var(--bg2); cursor:pointer; font-size:11px; transition:all 0.2s;
+    border:1px solid transparent;
+  }
+  .history-item:hover { border-color:var(--accent); background:var(--accent-glow); }
+  .history-item .preview { color:var(--muted); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:12px; }
+  .history-item .hscore { font-weight:700; font-family:'SF Mono',monospace; }
+
+  /* Footer */
+  .footer {
+    text-align:center; padding:20px; color:var(--dimmer); font-size:10px;
+    border-top:1px solid var(--card-border); margin-top:24px;
+  }
+
+  /* Animations */
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .fade-in { animation: fadeIn 0.3s ease; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--card-border); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--dim); }
+
+  /* Type toggle */
+  .type-toggle { display:flex; gap:0; margin-bottom:12px; }
+  .type-btn {
+    padding:7px 16px; font-size:11px; font-weight:700; cursor:pointer;
+    background:var(--bg2); border:1px solid var(--card-border); color:var(--dim);
+    transition:all 0.2s; letter-spacing:0.3px;
+  }
+  .type-btn:first-child { border-radius:8px 0 0 8px; }
+  .type-btn:last-child { border-radius:0 8px 8px 0; }
+  .type-btn.active { background:var(--accent); color:white; border-color:var(--accent); }
+
+  /* Data-driven indicator */
+  .data-driven {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:9px; color:var(--cyan); font-weight:600;
+    letter-spacing:0.5px; text-transform:uppercase;
+  }
+  .data-driven::before {
+    content:''; width:5px; height:5px; border-radius:50%;
+    background:var(--cyan); animation:pulse 2s infinite;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <div>
+        <h1>📡 SMS Creative <span>Analyzer</span></h1>
+        <div class="tagline" id="tagline">Data-driven creative intelligence · Scored on 500 real creatives</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <select class="client-select" id="client-select" onchange="switchClient()">
+        <option value="ncpd">NCPD (Bert & Jim)</option>
+        <option value="rnc">RNC</option>
+      </select>
+      <span class="version-badge">v3.0</span>
+      <span class="badge">DonorBureau Intel</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Row 1: Input + Score + Predictions -->
+  <div class="grid-3">
+    <!-- Input -->
+    <div class="card">
+      <div class="card-title"><span class="icon">✍️</span> Creative Input <span class="pill">PASTE & ANALYZE</span></div>
+      <div class="type-toggle">
+        <div class="type-btn active" onclick="setType('sms')">SMS</div>
+        <div class="type-btn" onclick="setType('mms')">MMS</div>
+      </div>
+      <textarea class="input-area" id="creative-input" placeholder="Paste your SMS/MMS creative here...&#10;&#10;Merge fields: [firstname], [firstname|Friend], [link], [trackingcode]&#10;Include your full message text as it would be sent."></textarea>
+      <div class="char-info">
+        <div>
+          <span class="count" id="char-count">0</span> chars · <span id="segment-info">0 segments</span> · <span id="encoding-info">GSM-7</span>
+        </div>
+        <span class="data-driven">Real Data Scoring</span>
+      </div>
+      <div class="controls">
+        <button class="btn btn-primary" onclick="analyze()">⚡ Analyze Creative</button>
+        <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+        <button class="btn btn-ghost" onclick="exportReport()">📋 Report</button>
+      </div>
+      <div class="presets" id="presets-container">
+        <!-- Presets will be loaded here by JS -->
+      </div>
+    </div>
+
+    <!-- Score -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🎯</span> Performance Score <span class="pill">DATA-DRIVEN</span></div>
+      <div class="score-section">
+        <div class="score-ring">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle class="bg" cx="75" cy="75" r="65"/>
+            <circle class="fill" id="score-arc" cx="75" cy="75" r="65"
+              stroke-dasharray="408" stroke-dashoffset="408"/>
+          </svg>
+          <div class="score-value">
+            <div class="num" id="score-num">—</div>
+            <div class="label">Score</div>
+          </div>
+        </div>
+        <div class="score-grade" id="score-grade" style="color:var(--dim)">Enter creative to analyze</div>
+        <div id="archetype-display" style="margin-top:10px;text-align:center;"></div>
+        <div class="metrics" id="metrics"></div>
+      </div>
+    </div>
+
+    <!-- Predictions -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🔮</span> Predictions <span class="pill" id="prediction-pill">NCPD MODEL</span></div>
+      <div class="prediction-grid" id="prediction-grid">
+        <div class="pred-card">
+          <div class="pred-label" id="pred-polls-label">Est. Polls</div>
+          <div class="pred-value" id="pred-polls" style="color:var(--dim)">—</div>
+          <div class="pred-sub" id="pred-polls-sub">send frequency</div>
+        </div>
+        <div class="pred-card">
+          <div class="pred-label">Est. Yield/Send</div>
+          <div class="pred-value" id="pred-yield" style="color:var(--dim)">—</div>
+          <div class="pred-sub">$/recipient</div>
+        </div>
+        <div class="pred-card">
+          <div class="pred-label">Est. Click Rate</div>
+          <div class="pred-value" id="pred-ctr" style="color:var(--dim)">—</div>
+          <div class="pred-sub">% of sends</div>
+        </div>
+        <div class="pred-card">
+          <div class="pred-label">Est. Conv Rate</div>
+          <div class="pred-value" id="pred-cr" style="color:var(--dim)">—</div>
+          <div class="pred-sub">% of clicks</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="card-title" style="margin-bottom:8px"><span class="icon">💲</span> Ask String Analysis</div>
+        <div id="ask-analysis" style="color:var(--dim);font-size:12px;">No ask amounts detected</div>
+        <div class="ask-pills" id="ask-pills"></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="card-title" style="margin-bottom:8px"><span class="icon">🧠</span> Emotional Profile</div>
+        <div class="emotion-grid" id="emotion-grid">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Insights + Similar Creatives -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="icon">💡</span> Insights & Recommendations <span class="pill" id="insights-pill">FROM 500 CREATIVES</span></div>
+      <div id="insights">
+        <div style="color:var(--dim);font-size:12px;padding:20px 0;text-align:center;">
+          Paste a creative and hit Analyze to get data-backed insights
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🏆</span> Similar Top Performers <span class="pill" id="benchmark-avg-header">BENCHMARK</span></div>
+      <div id="similar-creatives">
+        <div style="color:var(--dim);font-size:12px;padding:20px 0;text-align:center;">
+          Analyze a creative to see similar top performers
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Benchmark Table + History -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title" id="benchmark-table-title"><span class="icon">📊</span> Benchmark vs NCPD Data</div>
+      <table class="bench-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Yours</th>
+            <th id="benchmark-col-avg">NCPD Avg</th>
+            <th id="benchmark-col-top">Top Tier</th>
+            <th>Delta</th>
+          </tr>
+        </thead>
+        <tbody id="benchmark-body">
+          <tr><td colspan="5" style="color:var(--dim);text-align:center;padding:16px;">Analyze a creative to see benchmarks</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📁</span> Session History</div>
+      <div class="history-list" id="history-list">
+        <div style="color:var(--dim);font-size:11px;text-align:center;padding:16px;">Analyzed creatives appear here</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span id="footer-text">Built by 🦉 Railstote for DonorBureau · SMS Creative Analyzer v3.0 · Scored on 500 NCPD creatives · Feb 2026</span>
+</div>
+
+<script>
+// ============================================================
+// STATE MANAGEMENT
+// ============================================================
+let currentClient = 'ncpd';
+let msgType = 'sms';
+let historyList = [];
+
+
+// ============================================================
+// NCPD DATA & LOGIC
+// ============================================================
+const NCPD_BENCHMARKS = {
+  all: { avgPolls:3.2, avgCR:9.41, avgYS:0.041, avgCTR:4.82, avgLen:570, avgDonated:3865, count:500 },
+  top: { avgPolls:29.9, avgCR:10.83, avgYS:0.077, avgCTR:5.09, avgLen:832, avgDonated:62304, count:18 },
+  mid: { avgPolls:8.0, avgCR:17.91, avgYS:0.110, avgCTR:4.69, avgLen:698, avgDonated:10991, count:48 },
+  low: { avgPolls:1.5, avgCR:8.33, avgYS:0.033, avgCTR:4.82, avgLen:551, avgDonated:1075, count:434 }
+};
+
+const NCPD_TOP_CREATIVES = [
+  { id:'Cr-297', polls:75, cr:3.06, ys:0.075, ctr:10.60, donated:99198, author:'Justin Hart',
+    msg:'😭 [firstname], this is Kimberly, Chance\'s wife. I don\'t know how to do this, but I am BEGGING you. I\'m watching my husband prepare for a trial that could take him away from us forever. He doesn\'t deserve this. Our babies don\'t deserve this. We need help, and we need it NOW. If you\'ve ever thought about helping, this is the time. Please, stand with Chance before it\'s too late: [link]',
+    archetype:'wife_plea', tags:['wife','trial','begging','ALL CAPS','emoji opener','firstname'] },
+  { id:'Cr-207b', polls:65, cr:41.50, ys:0.224, ctr:2.35, donated:103838, author:'Justin Hart',
+    msg:'[firstname|Friend] - this is Sheriff David Clarke. I rarely take this step, but I sense this family needs me. I want you to - please - just read this and do what your heart compels you to do.',
+    archetype:'authority', tags:['sheriff','authority','family','firstname','long form'] },
+  { id:'Cr-270x', polls:35, cr:42.98, ys:0.354, ctr:3.28, donated:73028, author:'Justin Hart',
+    msg:'Dear [firstname|Friend], This is Kimberly Bretches, wife of Officer Chance Bretches. I\'m reaching out with a mother\'s plea for justice. My husband, a devoted officer and father of three, faces an unthinkable 99-year prison sentence for upholding the law.',
+    archetype:'wife_plea', tags:['wife','letter format','ask ladder','BLM','prison','trial','firstname'] },
+  { id:'Cr-83', polls:34, cr:8.55, ys:0.050, ctr:5.69, donated:55894, author:'Legacy',
+    msg:'My sweet husband, Mark, is innocent. Please don\'t let him die in prison! Hello, my name is Sarah Bessner. I\'m the proud wife of Michigan State Trooper Mark Bessner.',
+    archetype:'wife_plea', tags:['wife','prison','hero story','specific details','photo reference'] },
+  { id:'Cr-06', polls:33, cr:3.94, ys:0.049, ctr:2.16, donated:177058, author:'Legacy',
+    msg:'On July 26, 2018, Officer Andrew Delke chased down a suspect who was armed with a semi-automatic weapon. When he lawfully told the suspect to drop his weapon, the suspect refused to comply.',
+    archetype:'hero_story', tags:['third person','specific date','specific details','hero story'] },
+  { id:'Cr-164b', polls:33, cr:5.47, ys:0.018, ctr:3.07, donated:23011, author:'Legacy',
+    msg:'hello [firstname] - I\'m Alex\'s mom. This isn\'t another callous plea for your wallet. No, this is a mother\'s anguished cry for justice.',
+    archetype:'mother', tags:['mother','firstname','emotional','justice','sacrifice'] },
+  { id:'Cr-102c', polls:32, cr:0, ys:0, ctr:3.80, donated:80356, author:'Legacy',
+    msg:'This is Sheriff David Clarke. Please take a moment to read this message - an innocent cop\'s life may depend on it.',
+    archetype:'authority', tags:['sheriff','authority','99 years','BLM','riots'] },
+  { id:'Cr-297x', polls:31, cr:0, ys:0, ctr:7.32, donated:104061, author:'Justin Hart',
+    msg:'😭 [firstname], this is Kimberly, Chance\'s wife. I don\'t know how to do this, but I am BEGGING you.',
+    archetype:'wife_plea', tags:['wife','emoji','begging','ALL CAPS','firstname'] },
+  { id:'Cr-42', polls:28, cr:4.64, ys:0.020, ctr:3.22, donated:132782, author:'Legacy',
+    msg:'I\'m pleading with you as a mother and a wife for help to protect my husband Officer Chance Bretches.',
+    archetype:'wife_plea', tags:['wife','mother','pleading','socialist DA','trial','urgent'] },
+  { id:'Cr-83tma', polls:24, cr:0, ys:0, ctr:5.03, donated:67338, author:'Legacy',
+    msg:'I\'m reaching out to you ONE more time. My sweet husband, Mark, is innocent. Please don\'t let him die in prison!',
+    archetype:'wife_plea', tags:['wife','prison','re-engagement','ONE MORE TIME'] },
+  { id:'Cr-95c', polls:23, cr:0, ys:0, ctr:3.98, donated:53638, author:'Legacy',
+    msg:'My son, Officer Chris Taylor, is going on trial on February 21st. I\'m pleading with you to help save my son\'s life.',
+    archetype:'mother', tags:['mother','trial','specific date','murder charge','Soros DA'] },
+  { id:'Cr-414SMS', polls:22, cr:0.87, ys:0.008, ctr:2.55, donated:7764, author:'Justin Hart',
+    msg:'Hi [firstname|friend], It\'s about Chance. His world is shattering. I fear for his future. Here\'s the latest >> [link]',
+    archetype:'short_hook', tags:['short','hook','firstname','curiosity gap','link'] },
+  { id:'Cr-400', polls:18, cr:7.23, ys:0.028, ctr:3.47, donated:11471, author:'Katherine Horne',
+    msg:'[firstname|Friend], Kimberly here. I\'m begging for help. My husband, Officer Chance Bretches, is facing years in prison. Not for a crime, but for protecting our community.',
+    archetype:'wife_plea', tags:['wife','begging','prison','children','firstname','concise'] },
+  { id:'Cr-93b', polls:7, cr:146.7, ys:1.046, ctr:2.85, donated:11405, author:'Legacy',
+    msg:'This is Sheriff David Clarke. I\'m asking you to step up for my friend, Austin Posey.',
+    archetype:'authority', tags:['sheriff','authority','personal ask','friend'] },
+  { id:'Cr-227b', polls:14, cr:48.9, ys:0.599, ctr:3.12, donated:15029, author:'Legacy',
+    msg:'Chris saved the lives of his fellow officers that day... and now he\'s facing life in prison.',
+    archetype:'hero_story', tags:['hero story','prison','ellipsis hook','emotional contrast'] },
+];
+
+const NCPD_PRESETS = {
+  'wife_plea': { name: '👑 Wife Plea', text: '😭 [firstname], this is Kimberly, Chance\'s wife. I don\'t know how to do this, but I am BEGGING you. I\'m watching my husband prepare for a trial that could take him away from us forever. He doesn\'t deserve this. Our babies don\'t deserve this. We need help, and we need it NOW. If you\'ve ever thought about helping, this is the time. Please, stand with Chance before it\'s too late: [link]' },
+  'sheriff': { name: '🏛️ Sheriff Clarke', text: '[firstname|Friend] - this is Sheriff David Clarke. I rarely take this step, but I sense this family needs me. I want you to - please - just read this and do what your heart compels you to do: [link]' },
+  'mother': { name: '💔 Mother\'s Cry', text: 'hello [firstname] - I\'m Alex\'s mom. This isn\'t another callous plea for your wallet. No, this is a mother\'s anguished cry for justice. My son is a hero, and the Soros-funded DA wants to put him in prison for life. We need your help: [link]' },
+  'hero_story': { name: '🦸 Hero Story', text: 'On July 26, 2018, Officer Andrew Delke chased down a suspect who was armed with a semi-automatic weapon. When he lawfully told the suspect to drop his weapon, the suspect refused to comply. Officer Delke defended himself and his community. Now, a radical prosecutor wants to send him to prison for murder. Stand with this hero: [link]' },
+  'short_hook': { name: '🎣 Short Hook', text: 'Hi [firstname|friend], It\'s about Chance. His world is shattering. I fear for his future. Here\'s the latest >> [link]' },
+  'reactivation': { name: '⏰ Re-engage', text: 'I\'m reaching out to you ONE more time, [firstname]. My sweet husband, Mark, is innocent. Please don\'t let him die in prison! His trial starts next week, and we are out of time. Please, if you can help, do it now: [link]' }
+};
+
+// Pattern detection for NCPD
+function detectNCPD(text) {
+  const lower = text.toLowerCase();
+  const d = {};
+  d.wife_voice = /\b(wife|wife's|husband'?s?\s+wife|i'?m\s+.*wife|this is.*wife|kimberly|sarah|kim|amy)\b/i.test(text) && (/\bmy\s+(husband|spouse)\b/i.test(text) || /wife\s+of/i.test(text) || /\bwife\b/i.test(lower));
+  d.family_mention = /\b(family|families|kids|children|babies|baby|babies|father|mother|husband|wife|son|daughter|mom|dad|parent)\b/i.test(text);
+  d.trial_urgency = /\b(trial|court|verdict|sentenced|sentencing|arraign|hearing|indict|indictment)\b/i.test(text);
+  d.prison_mention = /\b(prison|jail|incarcerat|behind bars|locked up|years?\s+(in|sentence)|life\s+in|die\s+in)\b/i.test(text);
+  d.authority_figure = /\b(sheriff|chief|sergeant|commander|general|colonel|captain)\b/i.test(text) || /sheriff\s+\w+\s+clarke/i.test(text) || /david\s+clarke/i.test(text);
+  d.begging_pleading = /\b(beg(ging)?|plead(ing)?|implor(e|ing)|desper(ate|ately)|i'?m\s+beg(ging)?)\b/i.test(text);
+  d.urgent_language = /\b(urgent|NOW|immediately|time\s+is\s+running|before\s+it'?s\s+too\s+late|emergency|critical|can'?t\s+wait|running\s+out\s+of\s+time)\b/.test(text);
+  const capsWords = (text.match(/\b[A-Z]{3,}\b/g) || []).filter(w => !['SMS','MMS','USA','ATF','BLM','NCPD','PCP','DA'].includes(w));
+  d.allcaps_emphasis = capsWords.length >= 1;
+  d.allcaps_count = capsWords.length;
+  d.firstname_merge = /\[firstname/i.test(text) || /\{firstname/i.test(text);
+  d.msg_length = text.length;
+  d.optimal_length = text.length >= 300 && text.length <= 900;
+  d.too_short = text.length < 200;
+  d.letter_format = /^dear\s/i.test(text.trim());
+  d.specific_details = (/\b(officer|sergeant|trooper|sgt\.|cpl\.|lt\.)\s+[A-Z][a-z]+/i.test(text) ? 1 : 0) + (/\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d/i.test(text) || /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/.test(text) ? 1 : 0) + (/\b\d+[\s-]year/i.test(text) || /\b99[\s-]year/i.test(text) || /life\s+in\s+prison/i.test(text) ? 1 : 0) + (/\b(manslaughter|murder|assault|felony|aggravated)\b/i.test(text) ? 1 : 0);
+  d.has_specific_details = d.specific_details >= 2;
+  const amounts = text.match(/\$\d+/g);
+  d.ask_amounts = amounts ? amounts.map(a => parseInt(a.replace('$',''))) : [];
+  d.ask_ladder = d.ask_amounts.length >= 2;
+  d.link_present = /\[link\]|https?:\/\/|bit\.ly|\blink\b.*>>|>>\s*\[/i.test(text);
+  const has1st = /\b(I|I'm|I've|my|me|we|our|we're)\b/.test(text);
+  const has2nd = /\b(you|your|you're|you've)\b/i.test(text);
+  const has3rd = /\b(he|she|his|her|they|their|him|officer|sergeant)\b/i.test(text);
+  d.multi_voice = (has1st ? 1 : 0) + (has2nd ? 1 : 0) + (has3rd ? 1 : 0) >= 2;
+  const emojiMatch = text.match(/[\u{1F600}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]/gu);
+  d.emoji_count = emojiMatch ? emojiMatch.length : 0;
+  d.excessive_emoji = d.emoji_count >= 3;
+  d.emotional_emoji_opener = d.emoji_count === 1 && /^[\u{1F600}-\u{1F9FF}\u{2600}-\u{26FF}]/u.test(text.trim());
+  d.no_story = text.length < 150 && !d.family_mention && !d.trial_urgency;
+  d.generic_ask = !d.family_mention && !d.trial_urgency && !d.has_specific_details && !d.wife_voice;
+  d.soros_mention = /\b(soros|george\s+soros)\b/i.test(text);
+  d.blm_mention = /\b(BLM|black\s+lives\s+matter)\b/i.test(text);
+  d.socialist_mention = /\b(socialist|socialism|leftist|far[\s-]left|radical\s+prosecutor|radical\s+DA)\b/i.test(text);
+  d.hero_language = /\b(hero|brave|courag|selfless|protect(ed|ing)|served?|decorated|saving\s+lives)\b/i.test(text);
+  d.enemy_named = d.soros_mention || d.socialist_mention || /\b(cop[\s-]hat(ing|er)|anti[\s-]cop|anti[\s-]police)\b/i.test(text);
+  d.mother_voice = /\b(i'?m\s+.*mom|my\s+son|as\s+a\s+mother|mother'?s?\s+(plea|cry|anguish))\b/i.test(text);
+  return d;
+}
+
+function calculateScoreNCPD(d) {
+  let score = 30; // base
+  if (d.wife_voice) score += 22; else if (d.mother_voice) score += 16;
+  if (d.family_mention) score += 8; if (d.trial_urgency) score += 8;
+  if (d.prison_mention) score += 7; if (d.authority_figure) score += 10;
+  if (d.begging_pleading) score += 6; if (d.urgent_language) score += 5;
+  if (d.allcaps_emphasis) score += 4 + Math.min(d.allcaps_count, 3);
+  if (d.firstname_merge) score += 6; if (d.optimal_length) score += 8;
+  if (d.letter_format) score += 3; if (d.has_specific_details) score += 6;
+  if (d.ask_ladder) score += 4; if (d.link_present) score += 4;
+  if (d.multi_voice) score += 4; if (d.emotional_emoji_opener) score += 2;
+  if (d.hero_language) score += 3; if (d.enemy_named) score += 3;
+  if (d.blm_mention) score += 2;
+  if (d.excessive_emoji) score -= 8; if (d.too_short && !d.link_present) score -= 8;
+  if (d.no_story) score -= 6; if (d.generic_ask) score -= 5;
+  if (d.msg_length > 1400) score -= 4; if (!d.link_present) score -= 5;
+  if (!d.firstname_merge) score -= 3;
+  return Math.max(5, Math.min(100, Math.round(score)));
+}
+
+function predictNCPD(d) {
+  let polls = 1;
+  if (d.wife_voice) polls += 10; else if (d.mother_voice) polls += 6;
+  if (d.family_mention) polls += 3; if (d.trial_urgency) polls += 4; if (d.prison_mention) polls += 3;
+  if (d.authority_figure) polls += 4; if (d.allcaps_emphasis) polls += 2;
+  if (d.msg_length >= 300 && d.msg_length <= 900) polls += 3; if (d.firstname_merge) polls += 2;
+  if (d.ask_ladder) polls += 1; if (d.begging_pleading) polls += 2; if (d.urgent_language) polls += 2;
+  if (d.hero_language) polls += 1; if (d.enemy_named) polls += 1; if (d.has_specific_details) polls += 2;
+  if (d.multi_voice) polls += 1; if (d.excessive_emoji) polls -= 3; if (d.too_short && !d.wife_voice) polls -= 2;
+  if (d.generic_ask) polls -= 2;
+  
+  let ys = 0.01;
+  if (d.authority_figure) ys += 0.08; if (d.wife_voice && d.trial_urgency) ys += 0.05;
+  else if (d.wife_voice) ys += 0.03; if (d.has_specific_details) ys += 0.03;
+  if (d.ask_ladder) ys += 0.02; if (d.firstname_merge) ys += 0.01; if (d.multi_voice) ys += 0.02;
+  if (d.prison_mention) ys += 0.02; if (d.family_mention) ys += 0.01; if (d.letter_format) ys += 0.01;
+  if (d.hero_language) ys += 0.01; if (d.excessive_emoji) ys -= 0.02; if (d.generic_ask) ys -= 0.02;
+
+  let ctr = 3.0;
+  if (d.wife_voice) ctr += 1.5; if (d.emotional_emoji_opener) ctr += 1.2; if (d.firstname_merge) ctr += 0.5;
+  if (d.urgent_language) ctr += 0.5; if (d.begging_pleading) ctr += 0.3; if (d.link_present) ctr += 0.5;
+  if (!d.link_present) ctr -= 2.0; if (d.too_short) ctr -= 0.5; if (d.excessive_emoji) ctr -= 0.8;
+
+  let cr = 5.0;
+  if (d.authority_figure) cr += 15; if (d.ask_ladder) cr += 5; if (d.wife_voice && d.letter_format) cr += 8;
+  else if (d.wife_voice) cr += 3; if (d.has_specific_details) cr += 4; if (d.prison_mention) cr += 2;
+  if (d.family_mention) cr += 2; if (d.firstname_merge) cr += 1; if (d.too_short) cr -= 3;
+  if (d.generic_ask) cr -= 4;
+
+  return {
+      polls: Math.max(1, Math.round(polls)),
+      ys: Math.max(0, ys),
+      ctr: Math.max(0.5, Math.min(15, ctr)),
+      cr: Math.max(1, Math.min(50, cr))
+  };
+}
+
+function getArchetypeNCPD(d) {
+  if (d.wife_voice) return { name:'Wife\'s Plea', emoji:'💍', color:'var(--purple)', bg:'var(--purple-dim)', desc:'Matches the #1 archetype — wife/family voice drives highest polls (avg 30+ polls)' };
+  if (d.authority_figure) return { name:'Authority Endorsement', emoji:'🏛️', color:'var(--cyan)', bg:'var(--cyan-dim)', desc:'Matches Sheriff Clarke archetype — drives highest conversion rates (41%+ CR)' };
+  if (d.mother_voice) return { name:'Mother\'s Anguished Cry', emoji:'💔', color:'var(--red)', bg:'var(--red-dim)', desc:'Strong emotional archetype — mother perspective resonates deeply (avg 25+ polls)' };
+  if (d.hero_language && d.has_specific_details) return { name:'Hero Story', emoji:'🦸', color:'var(--orange)', bg:'var(--orange-dim)', desc:'Detailed narrative archetype — specific stories build trust (avg $177K top earner)' };
+  if (d.msg_length < 200 && d.link_present) return { name:'Short Hook', emoji:'🎣', color:'var(--yellow)', bg:'var(--yellow-dim)', desc:'Curiosity-gap approach — works for re-engagement but lower conversion' };
+  return { name:'General Appeal', emoji:'📢', color:'var(--muted)', bg:'rgba(148,163,184,0.1)', desc:'No strong archetype detected — consider adopting a wife plea or authority voice' };
+}
+
+function getEmotionsNCPD(d) {
+    return [
+        { emoji:'😭', label:'Plea/Grief', score: Math.min(100, (d.begging_pleading?35:0) + (d.wife_voice?30:0) + (d.mother_voice?25:0) + (d.prison_mention?15:0)) },
+        { emoji:'😤', label:'Outrage', score: Math.min(100, (d.enemy_named?30:0) + (d.socialist_mention?20:0) + (d.soros_mention?20:0) + (d.blm_mention?15:0) + (d.allcaps_count*8)) },
+        { emoji:'😰', label:'Urgency', score: Math.min(100, (d.urgent_language?35:0) + (d.trial_urgency?25:0) + (d.allcaps_emphasis?15:0) + (d.begging_pleading?10:0)) },
+        { emoji:'🏛️', label:'Authority', score: Math.min(100, (d.authority_figure?60:0) + (d.hero_language?20:0) + (d.has_specific_details?15:0)) },
+        { emoji:'👨‍👩‍👧', label:'Family', score: Math.min(100, (d.wife_voice?40:0) + (d.mother_voice?35:0) + (d.family_mention?25:0) + (d.prison_mention?10:0)) },
+        { emoji:'🏆', label:'Pride', score: Math.min(100, (d.hero_language?40:0) + (d.multi_voice?10:0)) },
+    ];
+}
+
+function generateInsightsNCPD(d) {
+    const insights = [];
+    if (d.wife_voice) { insights.push({ tag:'DATA', type:'tag-data', text:'Wife voice detected — NCPD\'s #1 pattern. 72% of top-tier creatives (≥15 polls) use wife/spouse perspective vs only 11% of low performers.' }); }
+    else if (d.mother_voice) { insights.push({ tag:'DATA', type:'tag-data', text:'Mother voice detected — strong archetype. Average 25+ polls. Consider also testing a wife variant for comparison.' }); }
+    else if (!d.family_mention) { insights.push({ tag:'RISK', type:'tag-risk', text:'No wife/family voice. This is the single biggest predictor of success — 72% of top NCPD creatives use it. Consider rewriting from wife or mother POV.' }); }
+    if (d.authority_figure) { insights.push({ tag:'DATA', type:'tag-data', text:'Authority figure detected — Sheriff Clarke creatives average 41.5% conversion rate and $0.22 yield/send. Highest ROI archetype.' }); }
+    if (!d.firstname_merge) { insights.push({ tag:'WARN', type:'tag-warn', text:'Missing [firstname] merge. 50% of top performers use it vs 34% of low. Add [firstname] or [firstname|Friend] for personalization.' }); }
+    if (d.excessive_emoji) { insights.push({ tag:'DATA', type:'tag-risk', text:`Excessive emoji detected (${d.emoji_count}). Only 11% of top NCPD performers use emoji vs 42% of low performers. Reduce to 0-1 emoji max.` }); }
+    else if (d.emotional_emoji_opener) { insights.push({ tag:'BOOST', type:'tag-boost', text:'Single emotional emoji opener — Cr-297 (75 polls, #1 creative) uses this exact pattern: 😭 opener + wife voice.' }); }
+    if (d.allcaps_emphasis && d.allcaps_count >= 2) { insights.push({ tag:'BOOST', type:'tag-boost', text:`${d.allcaps_count} ALL CAPS emphasis words detected. 83% of top performers use this vs 56% of low. Words like BEGGING, NOW, MURDER create impact.` }); }
+    else if (!d.allcaps_emphasis) { insights.push({ tag:'TIP', type:'tag-tip', text:'No ALL CAPS emphasis. 83% of top NCPD creatives use strategic CAPS for emotional impact (BEGGING, NOW, NEVER, MURDER).' }); }
+    if (d.optimal_length) { insights.push({ tag:'BOOST', type:'tag-boost', text:`Message length (${d.msg_length} chars) is in the optimal range. Top NCPD creatives average 832 chars — storytelling wins over brevity.` }); }
+    else if (d.too_short) { insights.push({ tag:'DATA', type:'tag-warn', text:`Message is short (${d.msg_length} chars). NCPD top performers average 832 chars. Longer, story-driven creatives dramatically outperform short blasts.` }); }
+    else if (d.msg_length > 1200) { insights.push({ tag:'TIP', type:'tag-tip', text:`Long message (${d.msg_length} chars). Sweet spot is 300-900 chars. Consider tightening while keeping key emotional elements.` }); }
+    if (d.trial_urgency && d.prison_mention) { insights.push({ tag:'BOOST', type:'tag-boost', text:'Trial + prison urgency combo detected. This creates concrete stakes — "99-year sentence" and "trial starts soon" are among the highest-performing NCPD hooks.' }); }
+    else if (!d.trial_urgency) { insights.push({ tag:'TIP', type:'tag-tip', text:'No trial/court urgency. 50% of top NCPD creatives reference an upcoming trial — it creates a deadline and concrete stakes.' }); }
+    if (!d.link_present) { insights.push({ tag:'RISK', type:'tag-risk', text:'No link detected. Every NCPD creative needs a donation URL — [link] or full URL.' }); }
+    if (d.multi_voice) { insights.push({ tag:'BOOST', type:'tag-boost', text:'Multi-voice narrative (1st/2nd/3rd person). NCPD\'s best voice combo — "First/Second/Third" averages 4.2 polls vs 1.6 for third-person only.' }); }
+    if (d.enemy_named) { insights.push({ tag:'BOOST', type:'tag-boost', text:'Named antagonist detected. "Soros-funded DA", "radical prosecutors", "cop-hating" — specific enemies drive outrage and action.' }); }
+    return insights;
+}
+
+
+// ============================================================
+// RNC DATA & LOGIC
+// ============================================================
+// Updated from real DonorBureau data: 500 creatives, 683 polls, May 2024–Feb 2026
+const RNC_BENCHMARKS = {
+  all: { avgPolls:1.6, avgCR:0.146, avgYS:0.031, avgCTR:5.44, avgLen:145, avgDonated:321, count:425 },
+  top: { avgPolls:5.4, avgCR:0.50, avgYS:0.10, avgCTR:9.0, avgLen:275, avgDonated:4000, count:20 },
+  mid: { avgPolls:2.0, avgCR:0.15, avgYS:0.015, avgCTR:5.5, avgLen:120, avgDonated:500, count:50 },
+  low: { avgPolls:1.0, avgCR:0.04, avgYS:0.002, avgCTR:3.0, avgLen:110, avgDonated:50, count:350 }
+};
+
+// Updated from REAL performance data — Top performers by weighted yield/send (DB Donors, 683 polls)
+const RNC_TOP_CREATIVES = [
+    { id:'Cr-293', archetype:'guilt_escalation', ys:0.153, donated:5058, ctr:9.59, msg: "Should we GIVE UP, [firstname]? We've texted you 7 TIMES asking you." },
+    { id:'Cr-670', archetype:'named_signer', ys:0.148, donated:1470, msg: "Get in [firstname], we're going campaigning! It's Lara Trump." },
+    { id:'Cr-654', archetype:'named_signer', ys:0.147, donated:4119, ctr:8.64, msg: "We need to talk, [firstname]. Lara Trump here. VITAL election research." },
+    { id:'Cr-589', archetype:'poll_survey', ys:0.133, donated:3369, msg: "[firstname], it's Lara Trump…take our Trump White House Survey." },
+    { id:'Cr-606', archetype:'guilt_escalation', ys:0.130, donated:5280, ctr:6.58, msg: "😢 What else can I say? Your voice matters! Take the Presidential Canvass." },
+    { id:'Cr-647', archetype:'poll_survey', ys:0.114, donated:2717, ctr:6.54, msg: "[firstname], VITAL election research in [zipcode]. Who is Tim Walz?" },
+    { id:'Cr-657', archetype:'named_signer', ys:0.107, donated:2962, ctr:6.74, msg: "FROM THE DESK OF JD VANCE: Ever since President Trump asked me…" },
+    { id:'Cr-667', archetype:'identity_confirm', ys:0.101, donated:7359, ctr:6.66, msg: "You were one of the ONLY Republicans who hadn't pledged. Join the Trump Gold Club." },
+    { id:'Cr-702SMS', archetype:'breaking_news', ys:0.089, donated:7193, ctr:19.20, msg: "TRUMP WINS THE WHITE HOUSE. You carried us to VICTORY." },
+    { id:'Cr-703SMS', archetype:'identity_confirm', ys:0.088, donated:2770, ctr:13.31, msg: "PRESIDENT-ELECT TRUMP'S FIRST [statecode] DONOR LIST. Claim your spot." },
+    { id:'Cr-939SMS', archetype:'vip_selection', ys:0.060, donated:7691, ctr:8.24, msg: "JD Vance made a big decision about [firstname]." },
+    { id:'Cr-981SMS', archetype:'named_signer', ys:0.041, donated:5996, msg: "It's Don Jr., I'm here to listen to [firstname]." },
+    { id:'Cr-795', archetype:'breaking_news', ys:0.053, donated:5128, ctr:8.03, msg: "🛑 BREAKING—White House Situation Room just lit up." },
+    { id:'Cr-1040', archetype:'platform_audit', ys:0.063, donated:2896, msg: "🚨 DO NOT IGNORE 🚨 Authorized by GOP HQ. Leadership is closing…" },
+    { id:'Cr-935', archetype:'platform_audit', ys:0.063, donated:2963, ctr:6.23, msg: "❌ Your Republican account shows TERMINATED status." },
+    { id:'Cr-744', archetype:'vip_selection', ys:0.051, donated:840, ctr:10.19, msg: "Your name was read aloud in the Chairman's office." },
+];
+
+const RNC_PRESETS = {
+    'identity_confirm': { name: '🗳️ Identity Confirm', text: '🚨[statename]! Urgent request for [firstname] to confirm you still vote Republican. Your voter record is marked PENDING. Confirm now: [link]' },
+    'wrong_number': { name: '🔍 Wrong Number', text: 'Hi, I\'m looking for [firstname]. Is this the right number? My name is Chloe, I\'m a volunteer with the GOP.' },
+    'poll_survey': { name: '📊 Poll Survey', text: '[firstname], we need your input for the official GOP 2026 Platform Strategy. Please rank your Top 3 priorities (Immigration, Economy, Election Integrity): [link]' },
+    'lara_personal': { name: '✍️ Lara Personal', text: 'It\'s Lara. We need to talk, [firstname]. What I\'m seeing from the radical Left in [statename] is deeply concerning. I need you with me. [link]' },
+    'guilt_escalation': { name: '😔 Guilt Escalation', text: 'FINAL NOTICE for [firstname]. Your support for President Trump has been noted as UNRESPONSIVE. This is getting SAD! We can only count on our most dedicated patriots. [link]' },
+    'membership_close': { name: '⏰ Membership Close', text: 'THIS IS IT! Trump Life Membership CLOSES TONIGHT at MIDNIGHT. This is your LAST CHANCE to become a Life Member and get your name on the official plaque. [link]' },
+    'social_proof': { name: '👥 Social Proof Stack', text: '[firstname], Ronna McDaniel, Kellyanne Conway, and Newt Gingrich are all asking for your help to save our country. We have a 1000% MATCH active for patriots in [statename] for the next 60 minutes ONLY. [link]' },
+    'breaking_news': { name: '📰 Breaking News', text: 'BREAKING: TRUMP WINS THE WHITE HOUSE. Read the full story here: [link]' },
+};
+
+function detectRNC(text) {
+    const d = {};
+    d._text = text;
+    const lower = text.toLowerCase();
+    const firstLine = text.split('\n')[0] || '';
+    
+    d.statename_hook = /\[statename\]/i.test(text.substring(0, 80));
+    d.firstname_merge = /\[firstname\]/i.test(text);
+    d.identity_confirm = /\b(confirm|verify|still republican|voted republican|voter)\b/i.test(lower);
+    d.poll_survey = /\b(poll|survey|rank|canvass|priorities|#1|#2|#3)\b/i.test(lower);
+
+    const signers = ['Lara Trump', 'JD Vance', 'Don Jr', 'Jim Jordan', 'Ronna McDaniel', 'Kellyanne', 'Newt Gingrich', 'Blake Masters'];
+    const detectedSigners = signers.filter(s => new RegExp(s.replace(' ', '\\s+'), 'i').test(text));
+    d.named_signer = detectedSigners.length > 0;
+    d.signer_name = detectedSigners.join(', ');
+    d.signer_count = detectedSigners.length;
+    d.five_plus_signers = d.signer_count >= 5;
+    
+    d.vance_first_person = /\b(vance)\b/i.test(text) && /\b(i'm|i am|i've)\b/i.test(lower);
+    d.vance_third_person = /\b(vance)\b/i.test(text) && /\b(vance just|vance made|vance reviewed)\b/i.test(lower);
+    d.lara_trump = /\b(lara\s+trump|it's lara)\b/i.test(lower);
+
+    d.guilt_language = /\b(SAD|embarrass|FINAL NOTICE|NOWHERE|unresponsive)\b/.test(text);
+    d.membership_product = /\b(membership|charter member|life member)\b/i.test(lower);
+    d.match_offer = /\b(match|500%|1000%)\b/i.test(lower);
+    d.deadline_language = /\b(midnight|closes tonight|expires|last chance)\b/i.test(lower);
+    d.social_proof_numbers = /\b\d+\s+republicans\s+have\b/i.test(lower);
+    d.allcaps_headline = (firstLine.match(/[A-Z]/g) || []).length / firstLine.length > 0.6 && firstLine.length > 10;
+    d.breaking_news = /\b(BREAKING|JUST IN|WINS|VICTORY)\b/.test(text);
+    d.wrong_number = /\b(right number|looking for)\b/i.test(lower);
+    d.platform_audit = /\b(OVERDUE|unconfirmed|ballot|record)\b/.test(text);
+    d.tribal_identity = /\b(republican|patriot|conservative|gop|maga)\b/i.test(lower);
+
+    d.emoji_alert = text.trim().startsWith('🚨');
+    d.emoji_announce = text.trim().startsWith('📣');
+    const emojiMatch = text.match(/[\u{1F600}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]/gu);
+    d.emoji_count = emojiMatch ? new Set(emojiMatch).size : 0;
+    d.excessive_emoji = d.emoji_count >= 3;
+
+    d.celebrity_nodrop = /\b(elon|musk)\b/i.test(lower) && !d.tribal_identity;
+    d.issue_policy = /\b(gas price|immigration|border)\b/i.test(lower) && !d.identity_confirm;
+    d.gimmick_hook = /\b(PIN|code)\b/i.test(text) && /\b\d{4,}\b/.test(text);
+    d.vague_cta = /\b(click here|learn more|donate now)\b/i.test(lower) && !d.identity_confirm && !d.poll_survey;
+    
+    d.has_trump = /trump/i.test(text);
+    d.has_election = /\b(vote|voter|voting|election|ballot|canvass|pledge|midterm)\b/i.test(lower);
+    d.multi_voice = /\b(i'm|i am|it's|i need)\b/i.test(lower) && /\b(you|your|you're)\b/i.test(lower) && /\b(he|she|they|trump|vance|president)\b/i.test(lower);
+
+    d.link_present = /\[link\]|https?:\/\/|bit\.ly/i.test(text);
+    d.msg_length = text.length;
+    d.optimal_length = d.msg_length >= 160 && d.msg_length <= 300; // Updated: MMS sweet spot
+    d.too_short = d.msg_length < 80;
+    const amounts = text.match(/\$\d+/g);
+    d.ask_amounts = amounts ? amounts.map(a => parseInt(a.replace('$',''))) : [];
+    d.ask_ladder = d.ask_amounts.length >= 2;
+
+    return d;
+}
+
+// Weights updated from real DonorBureau data (500 creatives, 683 polls)
+function calculateScoreRNC(d) {
+    let score = 25;
+    // Trump mention is #1 predictor: 8.4x yield lift
+    const hasTrump = /trump/i.test(d._text || '');
+    if(hasTrump) score += 12;
+    // Multi-voice narrative (detected via voice mix) — 3.7x yield premium
+    if(d.named_signer && d.tribal_identity && d.guilt_language) score += 10; // proxy for multi-voice
+    // MMS-length messages (160+ chars) — 2.3x yield over SMS
+    if(d.msg_length >= 160) score += 8;
+    // Voting/election theme — $0.10+ yield
+    const hasElection = /\b(vote|voter|voting|election|ballot|canvass|pledge|midterm)\b/i.test(d._text || '');
+    if(hasElection) score += 8;
+    // Named signer — top performers all have signers
+    if(d.named_signer) score += 10; if(d.lara_trump) score += 5;
+    // Guilt/shame escalation — top creative archetype
+    if(d.guilt_language) score += 10;
+    // Other positive signals
+    if(d.statename_hook) score += 8; if(d.identity_confirm) score += 8;
+    if(d.poll_survey) score += 8; if(d.wrong_number) score += 8;
+    if(d.platform_audit) score += 6; if(d.vance_third_person) score += 6;
+    if(d.membership_product) score += 5; if(d.match_offer) score += 4;
+    if(d.breaking_news) score += 5; if(d.deadline_language) score += 4;
+    if(d.emoji_alert) score += 5; if(d.emoji_announce) score += 3;
+    if(d.link_present) score += 4; if(d.ask_ladder) score += 3;
+    // Question hook — 40% of top 20 use questions
+    if(/\?/.test(d._text || '')) score += 4;
+    // Firstname: real data shows slight negative correlation, but still standard
+    if(d.firstname_merge) score += 3;
+
+    // Penalties — updated from real data
+    if(d.excessive_emoji) score -= 8;
+    if(d.allcaps_headline) score -= 2; // ALL CAPS actually hurts median yield
+    if(d.celebrity_nodrop) score -= 8; // Elon content significantly underperforms
+    if(d.issue_policy) score -= 6;
+    if(d.vance_first_person) score -= 4;
+    if(d.five_plus_signers) score -= 6;
+    if(d.gimmick_hook) score -= 8;
+    if(!d.link_present) score -= 5;
+    if(d.too_short) score -= 4;
+    if(d.vague_cta) score -= 4;
+    // Generic conservative/republican without Trump is worst category
+    if(d.tribal_identity && !hasTrump && !d.named_signer) score -= 5;
+    // Membership without Trump branding fails
+    if(d.membership_product && !hasTrump) score -= 4;
+
+    return Math.max(5, Math.min(100, Math.round(score)));
+}
+
+function predictRNC(d) {
+    // CTR predictions calibrated to real data: overall avg 5.44%, top creatives 8-19%
+    let ctr = 3.5;
+    const hasTrump = /trump/i.test(d._text || '');
+    const hasElection = /\b(vote|voter|voting|election|ballot|canvass|pledge|midterm)\b/i.test(d._text || '');
+    if (hasTrump) ctr += 2.0; if (hasElection) ctr += 2.0;
+    if (d.breaking_news || d.allcaps_headline) ctr += 4.0;
+    if (d.statename_hook) ctr += 3.0; if (d.emoji_alert) ctr += 2.5;
+    if (d.identity_confirm) ctr += 2.5; if (d.named_signer) ctr += 1.5;
+    if (d.poll_survey) ctr += 1.5; if (d.guilt_language) ctr += 1.0;
+    if (d.firstname_merge) ctr += 0.5;
+    if (d.msg_length >= 160) ctr += 0.5; // MMS has slightly higher CTR
+    if (d.excessive_emoji) ctr -= 3.0; if (!d.firstname_merge && !d.statename_hook) ctr -= 1.0;
+
+    // Conv rate calibrated: overall avg 0.146%, top creatives 0.4-0.6%
+    let cr = 0.08;
+    if (d.wrong_number || d.platform_audit) cr += 0.35; if (d.poll_survey) cr += 0.15;
+    if (d.guilt_language) cr += 0.15; if (d.lara_trump) cr += 0.10;
+    if (d.named_signer) cr += 0.08; if (d.identity_confirm) cr += 0.10;
+    if (d.membership_product) cr += 0.08; if (d.match_offer) cr += 0.05;
+    if (hasTrump) cr += 0.08; if (hasElection) cr += 0.08;
+    if (d.msg_length >= 160) cr += 0.05; // MMS converts better
+    if (d.signer_count >= 3) cr += 0.10; if (d.ask_ladder) cr += 0.05;
+    if (d.celebrity_nodrop) cr -= 0.05; if (d.gimmick_hook) cr -= 0.08;
+    if (d.five_plus_signers) cr -= 0.05; if (d.vague_cta) cr -= 0.04;
+
+    // Yield/send calibrated: overall avg $0.031, median $0.002, top $0.10-0.15
+    let ys = 0.002;
+    if (hasTrump) ys += 0.012; // #1 predictor
+    if (d.msg_length >= 160) ys += 0.015; // MMS premium
+    if (d.guilt_language) ys += 0.030; // guilt escalation is top archetype
+    if (d.named_signer) ys += 0.015; if (d.lara_trump) ys += 0.020;
+    if (hasElection) ys += 0.020; // election themes are gold
+    if (d.poll_survey) ys += 0.015; if (d.identity_confirm) ys += 0.015;
+    if (d.wrong_number || d.platform_audit) ys += 0.025;
+    if (d.statename_hook) ys += 0.010; if (d.breaking_news) ys += 0.015;
+    if (d.membership_product && d.deadline_language) ys += 0.015;
+    if (d.match_offer) ys += 0.008; if (d.emoji_alert) ys += 0.008;
+    if (d.signer_count >= 3) ys += 0.010; if (d.ask_ladder) ys += 0.005;
+    if (d.firstname_merge && d.statename_hook) ys += 0.005;
+    if (d.celebrity_nodrop) ys -= 0.010; if (d.excessive_emoji) ys -= 0.010;
+    if (!hasTrump && d.tribal_identity && !d.named_signer) ys -= 0.005; // generic conservative
+
+    return {
+        polls: 0, // Not used for RNC, will be replaced by Volume Tier
+        ys: Math.max(0, ys),
+        ctr: Math.max(1, Math.min(25, ctr)),
+        cr: Math.max(1, Math.min(35, cr))
+    };
+}
+
+function getArchetypeRNC(d) {
+    if (d.wrong_number) return { name:'Wrong Number Hook', emoji:'🔍', color:'var(--purple)', bg:'var(--purple-dim)', desc:'#1 RNC Conv. archetype. Establishes dialogue before the ask.' };
+    if (d.identity_confirm) return { name:'Identity Confirmation', emoji:'🗳️', color:'var(--cyan)', bg:'var(--cyan-dim)', desc:'#1 RNC CTR archetype. Strong tribal call to action.' };
+    if (d.poll_survey) return { name:'Poll / Survey', emoji:'📊', color:'var(--green)', bg:'var(--green-dim)', desc:'High engagement, high conversion hook. Gathers valuable data.' };
+    if (d.guilt_language) return { name:'Guilt Escalation', emoji:'😔', color:'var(--orange)', bg:'var(--orange-dim)', desc:'Leverages social pressure and FOMO. Highly effective for reactivation.' };
+    if (d.signer_count >= 3) return { name:'Social Proof Stack', emoji:'👥', color:'var(--yellow)', bg:'var(--yellow-dim)', desc:'Uses multiple high-profile signers to build authority.' };
+    if (d.membership_product && d.deadline_language) return { name:'Membership Deadline', emoji:'⏰', color:'var(--red)', bg:'var(--red-dim)', desc:'Product-based offer with strong urgency. A consistent top performer.' };
+    if (d.breaking_news) return { name:'Breaking News', emoji:'📰', color:'var(--accent)', bg:'var(--accent-glow)', desc:'High CTR pattern that leverages major events.' };
+    if (/chairman|vance just/i.test(d._text||'')) return { name:'VIP Selection', emoji:'⭐', color:'var(--purple)', bg:'var(--purple-dim)', desc:'Creates a sense of exclusivity and importance.' };
+    if (d.platform_audit) return { name:'Platform Audit', emoji:'🔍', color:'var(--cyan)', bg:'var(--cyan-dim)', desc:'Frames the interaction as an official action, boosting response.' };
+    if (d.named_signer) return { name:'Named Signer', emoji:'✍️', color:'var(--muted)', bg:'rgba(148,163,184,0.1)', desc:'Personalized message from a known figure.' };
+    return { name:'General Appeal', emoji:'📢', color:'var(--muted)', bg:'rgba(148,163,184,0.1)', desc:'No strong RNC archetype detected.' };
+}
+
+function getEmotionsRNC(d) {
+    return [
+        { emoji: '🗳️', label: 'Identity/Tribal', score: Math.min(100, (d.identity_confirm?40:0) + (d.tribal_identity?30:0) + (d.statename_hook?20:0) + (d.platform_audit?15:0)) },
+        { emoji: '😤', label: 'Outrage', score: Math.min(100, (d.breaking_news?25:0) + (d.allcaps_headline?25:0) + (d.guilt_language?20:0) + (/SAD/.test(d._text||'')?20:0)) },
+        { emoji: '😰', label: 'Urgency', score: Math.min(100, (d.deadline_language?50:0) + (d.match_offer?25:0) + (d.emoji_alert?20:0)) },
+        { emoji: '🏛️', label: 'Authority', score: Math.min(100, (d.named_signer?30:0) + (d.signer_count*15) + (d.platform_audit?20:0) + (d.poll_survey?10:0)) },
+        { emoji: '🫣', label: 'Guilt', score: Math.min(100, (d.guilt_language?60:0) + (/unresponsive|final notice/i.test(d._text||'')?40:0)) },
+        { emoji: '🏆', label: 'Exclusivity', score: Math.min(100, (d.membership_product?40:0) + (/chairman|vance just/i.test(d._text||'')?35:0) + (d.wrong_number?10:0)) },
+    ];
+}
+
+function generateInsightsRNC(d) {
+    const insights = [];
+    if (d.statename_hook) insights.push({ tag:'BOOST', type:'tag-boost', text:'Excellent use of [statename] in the opening. This is the strongest personalization hook for RNC, boosting CTR by up to 6%.' });
+    if (d.identity_confirm) insights.push({ tag:'BOOST', type:'tag-boost', text:'Identity confirmation is a top-tier RNC play. It frames the CTA as a civic duty, not just a donation, driving high CTR.' });
+    if (d.wrong_number) insights.push({ tag:'DATA', type:'tag-data', text:'"Wrong number" hook is the highest converting RNC archetype (30%+ Conv). It feels personal and bypasses initial resistance.' });
+    if (d.vance_third_person) insights.push({ tag:'BOOST', type:'tag-boost', text:'JD Vance in the third person ("Vance just decided...") performs well, creating a sense of importance. Good job.' });
+    if (d.vance_first_person) insights.push({ tag:'WARN', type:'tag-warn', text:'JD Vance in the first person ("I\'m JD Vance") has been found to underperform. Switch to a third-person framing for better results.' });
+    if (d.lara_trump) insights.push({ tag:'BOOST', type:'tag-boost', text:'Lara Trump is a very strong signer. Her personal, direct tone consistently drives high conversion rates.' });
+    if (d.poll_survey) insights.push({ tag:'BOOST', type:'tag-boost', text:'Poll/Survey creatives are highly effective for both engagement and conversion. This is a top-3 RNC archetype.' });
+    if (d.guilt_language) insights.push({ tag:'BOOST', type:'tag-boost', text:'Guilt-based language (SAD, unresponsive, FINAL NOTICE) is a powerful, if aggressive, tool that reliably drives action from the RNC file.' });
+    if (d.excessive_emoji) insights.push({ tag:'RISK', type:'tag-risk', text:`Using ${d.emoji_count} unique emoji types can hurt performance. RNC creative performs best with 0-2 targeted emoji (like 🚨 or 📣).` });
+    if (d.membership_product) insights.push({ tag:'DATA', type:'tag-data', text:'Membership product offers, especially when paired with a deadline, are a cornerstone of the RNC program. Consistently high revenue driver.' });
+    if (d.signer_count >= 3) insights.push({ tag:'BOOST', type:'tag-boost', text:'The 3-signer stack (e.g., Newt+Kellyanne+Ronna) is a proven winner, adding significant authority and boosting conversion.' });
+    else if (d.five_plus_signers) insights.push({ tag:'RISK', type:'tag-risk', text:'More than 4 signers can dilute the message and feel impersonal, reducing conversion.' });
+    if (!d.firstname_merge && !d.statename_hook) insights.push({ tag:'WARN', type:'tag-warn', text:'No personalization ([firstname] or [statename]). RNC creative is heavily dependent on personalization to feel direct and urgent.' });
+    if (d.breaking_news) insights.push({ tag:'BOOST', type:'tag-boost', text:'"BREAKING" or all-caps headlines are extremely effective for grabbing attention and driving high CTR.' });
+    if (d.match_offer) insights.push({ tag:'TIP', type:'tag-tip', text:'Match offers are a solid conversion mechanic. Ensure the landing page reinforces the match to maximize impact.' });
+    if (d.issue_policy) insights.push({ tag:'WARN', type:'tag-warn', text:'Leading with policy (immigration, gas prices) without a strong identity hook is less effective. Frame it as a threat to "Republican values" instead.' });
+    if (d.vague_cta) insights.push({ tag:'RISK', type:'tag-risk', text:'Vague CTAs like "Donate Now" are weak. Frame the link as the action itself (e.g., "Confirm Your GOP Voter Status HERE").' });
+    if (!d.link_present) insights.push({ tag:'RISK', type:'tag-risk', text:'No link detected. A link is required for any action.' });
+    if (d.gimmick_hook) insights.push({ tag:'RISK', type:'tag-risk', text:'Gimmicks like PINs or codes tend to underperform and can feel like spam. A direct, personal hook is usually better.' });
+    // NEW: Data-backed insights from 500 creatives analysis
+    if (d.has_trump) insights.push({ tag:'DATA', type:'tag-data', text:'Trump mention detected. Real data: creatives mentioning Trump have 8.4x higher median yield ($0.010 vs $0.001). This is the #1 predictor of success.' });
+    if (!d.has_trump && d.tribal_identity) insights.push({ tag:'WARN', type:'tag-warn', text:'Generic "conservative/Republican" framing without Trump. Real data: this is the worst-performing topic category ($0.007 yield). Add a Trump reference.' });
+    if (d.has_election) insights.push({ tag:'DATA', type:'tag-data', text:'Voting/election theme detected. Real data: election-themed creatives yield $0.087-$0.107/send — 3-4x the average. Top revenue driver.' });
+    if (d.multi_voice) insights.push({ tag:'BOOST', type:'tag-boost', text:'Multi-voice narrative (1st/2nd/3rd person). Real data: "First/Second/Third" voice yields $0.088/send — 3.7x better than second-person only ($0.024).' });
+    if (d.msg_length >= 160) insights.push({ tag:'DATA', type:'tag-data', text:'MMS-length message (160+ chars). Real data: MMS yields $0.056/send vs SMS $0.024/send — a 127% premium. Good choice.' });
+    else if (d.msg_length < 160 && d.msg_length > 0) insights.push({ tag:'TIP', type:'tag-tip', text:'SMS-length message (<160 chars). Real data: SMS yields only $0.024/send vs MMS $0.056. Consider expanding to MMS for 2.3x yield potential.' });
+    if (d.allcaps_headline) insights.push({ tag:'WARN', type:'tag-warn', text:'ALL CAPS headline detected. Surprising finding: ALL CAPS actually correlates with LOWER median yield in real data. Use sparingly.' });
+    if (d.membership_product && !d.has_trump) insights.push({ tag:'WARN', type:'tag-warn', text:'Membership ask without Trump branding. Real data: membership-only topics yield $0.006 — but when paired with Trump, yield jumps to $0.089.' });
+    if (d.celebrity_nodrop) insights.push({ tag:'RISK', type:'tag-risk', text:'Celebrity mention (Elon) without tribal identity framing. Real data: Elon-themed content yields only $0.028 — significantly below Trump content ($0.037+).' });
+    return insights;
+}
+
+
+// ============================================================
+// CORE ENGINE & UI
+// ============================================================
+
+function switchClient() {
+    const select = document.getElementById('client-select');
+    currentClient = select.value;
+
+    const tagline = document.getElementById('tagline');
+    const predictionPill = document.getElementById('prediction-pill');
+    const insightsPill = document.getElementById('insights-pill');
+    const benchmarkHeader = document.getElementById('benchmark-avg-header');
+    const footerText = document.getElementById('footer-text');
+    const benchmarkTableTitle = document.getElementById('benchmark-table-title');
+    const benchmarkColAvg = document.getElementById('benchmark-col-avg');
+    const benchmarkColTop = document.getElementById('benchmark-col-top');
+    const predPollsLabel = document.getElementById('pred-polls-label');
+    const predPollsSub = document.getElementById('pred-polls-sub');
+
+    if (currentClient === 'ncpd') {
+        tagline.textContent = 'Data-driven creative intelligence · Scored on 500 real creatives';
+        predictionPill.textContent = 'NCPD MODEL';
+        insightsPill.textContent = 'FROM 500 CREATIVES';
+        benchmarkHeader.textContent = 'BENCHMARK';
+        footerText.textContent = 'Built by 🦉 Railstote for DonorBureau · SMS Creative Analyzer v3.0 · Scored on 500 NCPD creatives · Feb 2026';
+        benchmarkTableTitle.innerHTML = '<span class="icon">📊</span> Benchmark vs NCPD Data';
+        benchmarkColAvg.textContent = 'NCPD Avg';
+        benchmarkColTop.textContent = 'Top Tier';
+        predPollsLabel.textContent = 'Est. Polls';
+        predPollsSub.textContent = 'send frequency';
+    } else if (currentClient === 'rnc') {
+        tagline.textContent = 'Data-driven creative intelligence · Scored on 500 real RNC creatives & 683 polls';
+        predictionPill.textContent = 'RNC MODEL';
+        insightsPill.textContent = 'FROM 500 CREATIVES';
+        benchmarkHeader.textContent = 'BENCHMARK';
+        footerText.textContent = 'Built by 🦉 Railstote for DonorBureau · SMS Creative Analyzer v3.0 · Scored on 500 RNC creatives · Feb 2026';
+        benchmarkTableTitle.innerHTML = '<span class="icon">📊</span> Benchmark vs RNC Data (500 Creatives)';
+        benchmarkColAvg.textContent = 'RNC Avg';
+        benchmarkColTop.textContent = 'Top Tier';
+        predPollsLabel.textContent = 'Volume Tier';
+        predPollsSub.textContent = 'send potential';
+    }
+
+    loadPresets();
+    resetUI();
+
+    const text = document.getElementById('creative-input').value;
+    if (text.trim()) {
+        analyze();
+    }
+}
+
+function analyze() {
+  const text = document.getElementById('creative-input').value.trim();
+  if (!text) return;
+
+  let analysisResult;
+
+  if (currentClient === 'ncpd') {
+      const d = detectNCPD(text);
+      const score = calculateScoreNCPD(d);
+      const predictions = predictNCPD(d);
+      analysisResult = {
+          d, score, ...predictions,
+          archetype: getArchetypeNCPD(d),
+          emotions: getEmotionsNCPD(d),
+          insights: generateInsightsNCPD(d),
+          similar: findSimilarCreatives(d, NCPD_TOP_CREATIVES),
+          benchmarks: NCPD_BENCHMARKS
+      };
+  } else if (currentClient === 'rnc') {
+      const d = detectRNC(text);
+      d._text = text;
+      const score = calculateScoreRNC(d);
+      const predictions = predictRNC(d);
+      analysisResult = {
+          d, score, ...predictions,
+          archetype: getArchetypeRNC(d),
+          emotions: getEmotionsRNC(d),
+          insights: generateInsightsRNC(d),
+          similar: findSimilarCreatives(d, RNC_TOP_CREATIVES),
+          benchmarks: RNC_BENCHMARKS
+      };
+  }
+
+  renderAnalysis(analysisResult);
+  updateHistory(text, analysisResult.score);
+}
+
+function renderAnalysis(result) {
+  const { d, score, polls, ys, ctr, cr, archetype, emotions, insights, similar, benchmarks } = result;
+
+  // --- Score Ring ---
+  const arc = document.getElementById('score-arc');
+  const circumference = 408;
+  arc.style.strokeDashoffset = circumference - (score / 100) * circumference;
+  arc.style.stroke = score >= 75 ? 'var(--green)' : score >= 55 ? 'var(--yellow)' : score >= 35 ? 'var(--orange)' : 'var(--red)';
+  document.getElementById('score-num').textContent = score;
+  const gradeEl = document.getElementById('score-grade');
+  if (score >= 85) { gradeEl.textContent = '🔥 Elite — Top Performer Pattern'; gradeEl.style.color = 'var(--green)'; }
+  else if (score >= 70) { gradeEl.textContent = '✅ Strong — Send-Ready'; gradeEl.style.color = 'var(--green)'; }
+  else if (score >= 55) { gradeEl.textContent = '⚡ Promising — Needs Polish'; gradeEl.style.color = 'var(--yellow)'; }
+  else if (score >= 35) { gradeEl.textContent = '⚠️ Below Average — Rework'; gradeEl.style.color = 'var(--orange)'; }
+  else { gradeEl.textContent = '❌ Weak — Missing Key Patterns'; gradeEl.style.color = 'var(--red)'; }
+  
+  // --- Archetype ---
+  document.getElementById('archetype-display').innerHTML = `
+    <div class="archetype-badge" style="background:${archetype.bg};color:${archetype.color}">
+      ${archetype.emoji} ${archetype.name}
+    </div>
+    <div style="font-size:11px;color:var(--dim);max-width:280px;margin:0 auto;">${archetype.desc}</div>`;
+
+  // --- Metrics ---
+  let metricData;
+  if (currentClient === 'ncpd') {
+      metricData = [
+          { label:'Wife/Family Voice', score: d.wife_voice ? 10 : d.mother_voice ? 7 : d.family_mention ? 4 : 0 },
+          { label:'Emotional Intensity', score: Math.min(10, (d.begging_pleading?3:0) + (d.prison_mention?2:0) + (d.trial_urgency?2:0) + (d.urgent_language?2:0) + (d.hero_language?1:0)) },
+          { label:'Authority Signal', score: d.authority_figure ? 10 : d.enemy_named ? 4 : 0 },
+          { label:'Story & Specifics', score: Math.min(10, d.specific_details * 2.5 + (d.multi_voice?2:0) + (d.optimal_length?2:0)) },
+          { label:'Personalization', score: Math.min(10, (d.firstname_merge?5:0) + (d.letter_format?3:0) + (d.multi_voice?2:0)) },
+          { label:'Call-to-Action', score: Math.min(10, (d.link_present?4:0) + (d.ask_ladder?3:0) + (d.urgent_language?2:0) + (d.begging_pleading?1:0)) },
+          { label:'ALL CAPS Impact', score: Math.min(10, d.allcaps_count * 3) },
+          { label:'Anti-Patterns', score: Math.max(0, 10 - (d.excessive_emoji?4:0) - (d.too_short?3:0) - (d.generic_ask?3:0)) },
+      ];
+  } else { // RNC Metrics
+      metricData = [
+          { label:'State Personalization', score: d.statename_hook ? 10 : d.firstname_merge ? 5 : 0 },
+          { label:'Identity/Tribal Signal', score: Math.min(10, (d.identity_confirm?5:0) + (d.tribal_identity?3:0) + (d.platform_audit?2:0)) },
+          { label:'Signer Authority', score: Math.min(10, (d.named_signer?4:0) + (d.signer_count*2) + (d.lara_trump?2:0) + (d.vance_third_person?2:0)) },
+          { label:'Conversion Mechanics', score: Math.min(10, (d.wrong_number?5:0) + (d.poll_survey?4:0) + (d.match_offer?3:0) + (d.ask_ladder?2:0)) },
+          { label:'Urgency/Deadline', score: Math.min(10, (d.deadline_language?5:0) + (d.membership_product?3:0) + (d.emoji_alert?2:0)) },
+          { label:'CTA Quality', score: Math.min(10, 10 - (d.vague_cta?5:0) - (!d.link_present?5:0)) },
+          { label:'Guilt/Social Proof', score: Math.min(10, (d.guilt_language?5:0) + (d.social_proof_numbers?3:0) + (d.signer_count>=3?3:0)) },
+          { label:'Anti-Patterns', score: Math.max(0, 10 - (d.excessive_emoji?4:0) - (d.gimmick_hook?3:0) - (d.issue_policy?3:0) - (d.celebrity_nodrop?2:0)) },
+      ];
+  }
+  document.getElementById('metrics').innerHTML = metricData.map(m => {
+    const pct = m.score * 10;
+    const color = pct >= 70 ? 'var(--green)' : pct >= 40 ? 'var(--yellow)' : pct >= 10 ? 'var(--orange)' : 'var(--red)';
+    return `<div class="metric-row fade-in">
+      <div class="metric-label">${m.label}</div>
+      <div class="metric-bar-bg"><div class="metric-bar" style="width:${pct}%;background:${color}"></div></div>
+      <div class="metric-score" style="color:${color}">${m.score.toFixed(1)}</div>
+    </div>`;
+  }).join('');
+  
+  // --- Predictions ---
+  const pollsEl = document.getElementById('pred-polls');
+  if (currentClient === 'ncpd') {
+      pollsEl.textContent = polls;
+      pollsEl.style.color = polls >= 15 ? 'var(--green)' : polls >= 5 ? 'var(--yellow)' : 'var(--orange)';
+  } else {
+      const tier = score >= 85 ? 'Elite' : score >= 70 ? 'High' : score >= 50 ? 'Medium' : 'Low';
+      pollsEl.textContent = tier;
+      pollsEl.style.color = score >= 85 ? 'var(--green)' : score >= 70 ? 'var(--accent2)' : score >= 50 ? 'var(--yellow)' : 'var(--orange)';
+  }
+  
+  const yieldEl = document.getElementById('pred-yield');
+  yieldEl.textContent = '$' + ys.toFixed(3);
+  yieldEl.style.color = ys >= benchmarks.top.avgYS ? 'var(--green)' : ys >= benchmarks.low.avgYS ? 'var(--yellow)' : 'var(--orange)';
+  
+  const ctrEl = document.getElementById('pred-ctr');
+  ctrEl.textContent = ctr.toFixed(1) + '%';
+  ctrEl.style.color = ctr >= benchmarks.top.avgCTR ? 'var(--green)' : ctr >= benchmarks.low.avgCTR ? 'var(--yellow)' : 'var(--orange)';
+  
+  const crEl = document.getElementById('pred-cr');
+  crEl.textContent = cr.toFixed(1) + '%';
+  crEl.style.color = cr >= benchmarks.top.avgCR ? 'var(--green)' : cr >= benchmarks.low.avgCR ? 'var(--yellow)' : 'var(--orange)';
+
+  // --- Emotion Grid ---
+  document.getElementById('emotion-grid').innerHTML = emotions.map(e => {
+    const i = e.score;
+    let bg = 'var(--bg2)'; let border = 'var(--card-border)';
+    if (i > 70) { bg = 'rgba(99,102,241,0.15)'; border = 'rgba(99,102,241,0.3)'; }
+    else if (i > 40) { bg = 'rgba(99,102,241,0.08)'; border = 'rgba(99,102,241,0.15)'; }
+    return `<div class="emotion-cell" style="background:${bg};border-color:${border}">
+      <span class="emoji">${e.emoji}</span>${e.label}
+      <div class="elabel">${i > 0 ? i+'%' : '—'}</div>
+    </div>`;
+  }).join('');
+  
+  // --- Ask Analysis ---
+  const askEl = document.getElementById('ask-analysis');
+  const pillsEl = document.getElementById('ask-pills');
+  if (d.ask_amounts.length > 0) {
+    const sorted = [...new Set(d.ask_amounts)].sort((a,b)=>a-b);
+    let advice = sorted.length >= 3 ? '✅ Good ladder structure.' : '💡 Consider adding a third tier for better conversion.';
+    askEl.innerHTML = `${sorted.length} ask amount${sorted.length>1?'s':''} detected. ${advice}`;
+    pillsEl.innerHTML = sorted.map(n => {
+      const cls = n <= 15 ? 'ask-low' : n <= 50 ? 'ask-mid' : n <= 100 ? 'ask-high' : 'ask-max';
+      return `<div class="ask-pill ${cls}">$${n}</div>`;
+    }).join('');
+  } else {
+    askEl.innerHTML = 'No $ ask amounts found. Adding an ask ladder can significantly boost conversion.';
+    pillsEl.innerHTML = '';
+  }
+  
+  // --- Insights ---
+  const insightsEl = document.getElementById('insights');
+  if (insights.length > 0) {
+      insightsEl.innerHTML = insights.map(i => `
+          <div class="insight fade-in">
+              <span class="tag ${i.type}">${i.tag}</span>
+              <div class="text">${i.text}</div>
+          </div>`).join('');
+  } else {
+      insightsEl.innerHTML = `<div style="color:var(--dim);font-size:12px;padding:20px 0;text-align:center;">No specific insights triggered for this creative.</div>`;
+  }
+  
+  // --- Similar Creatives ---
+  const similarEl = document.getElementById('similar-creatives');
+  if (similar && similar.length > 0) {
+    similarEl.innerHTML = similar.map(c => {
+        let stats = '';
+        if (currentClient === 'ncpd') stats += `<span style="background:var(--purple-dim);color:var(--purple)">${c.polls} polls</span>`;
+        if (c.cr) stats += `<span style="background:var(--green-dim);color:var(--green)">${c.cr.toFixed(2)}% CR</span>`;
+        if (c.ctr) stats += `<span style="background:var(--yellow-dim);color:var(--yellow)">${c.ctr.toFixed(2)}% CTR</span>`;
+        if (c.ys) stats += `<span style="background:var(--cyan-dim);color:var(--cyan)">$${c.ys.toFixed(3)} YS</span>`;
+        
+        return `<div class="similar-item fade-in">
+            <div class="similar-header">
+                <div class="similar-name">${c.id}</div>
+                <div class="similar-stats">${stats}</div>
+            </div>
+            <div class="similar-preview">${c.msg.substring(0,120)}...</div>
+            <div class="similar-match">
+                Match Score
+                <div class="match-bar"><div class="match-fill" style="width:${c.matchScore}%"></div></div>
+                (${c.matchScore}%)
+            </div>
+        </div>`;
+    }).join('');
+  } else {
+    similarEl.innerHTML = `<div style="color:var(--dim);font-size:12px;padding:20px 0;text-align:center;">No similar top performers found for this creative's patterns.</div>`;
+  }
+
+  // --- Benchmarks ---
+  const benchBody = document.getElementById('benchmark-body');
+  const formatDelta = (val, bench, higherIsBetter) => {
+      const delta = val - bench;
+      const pct = bench === 0 ? 0 : (delta / bench) * 100;
+      const color = (higherIsBetter && delta >= 0) || (!higherIsBetter && delta <= 0) ? 'var(--green)' : 'var(--red)';
+      return `<span style="color:${color}">${delta > 0 ? '+' : ''}${pct.toFixed(0)}%</span>`;
+  };
+  const benchData = [
+    { label: 'Score', yours: score, avg: 50, top: 80, better: true },
+    { label: 'Click Rate', yours: ctr, avg: benchmarks.all.avgCTR, top: benchmarks.top.avgCTR, better: true },
+    { label: 'Conv Rate', yours: cr, avg: benchmarks.all.avgCR, top: benchmarks.top.avgCR, better: true },
+    { label: 'Yield/Send', yours: ys, avg: benchmarks.all.avgYS, top: benchmarks.top.avgYS, better: true },
+    { label: 'Length', yours: d.msg_length, avg: benchmarks.all.avgLen, top: benchmarks.top.avgLen, better: false },
+  ];
+  if (currentClient === 'ncpd') {
+    benchData.splice(1, 0, { label: 'Polls', yours: polls, avg: benchmarks.all.avgPolls, top: benchmarks.top.avgPolls, better: true });
+  }
+  benchBody.innerHTML = benchData.map(item => `
+    <tr>
+        <td>${item.label}</td>
+        <td>${item.label === 'Yield/Send' ? '$' : ''}${item.yours.toFixed(item.label.includes('Rate') || item.label.includes('Yield') ? 2 : 0)}${item.label.includes('Rate') ? '%' : ''}</td>
+        <td>${item.label === 'Yield/Send' ? '$' : ''}${item.avg.toFixed(item.label.includes('Rate') || item.label.includes('Yield') ? 2 : 0)}${item.label.includes('Rate') ? '%' : ''}</td>
+        <td>${item.label === 'Yield/Send' ? '$' : ''}${item.top.toFixed(item.label.includes('Rate') || item.label.includes('Yield') ? 2 : 0)}${item.label.includes('Rate') ? '%' : ''}</td>
+        <td>${formatDelta(item.yours, item.avg, item.better)}</td>
+    </tr>`).join('');
+}
+
+
+function findSimilarCreatives(d, creativeSet) {
+    return creativeSet.map(c => {
+        let matchScore = 0;
+        const cLower = c.msg.toLowerCase();
+        
+        // Universal checks
+        if (d.firstname_merge && /\[firstname/.test(c.msg)) matchScore += 5;
+        const lenDiff = Math.abs(d.msg_length - c.msg.length);
+        if (lenDiff < 100) matchScore += 5; else if (lenDiff < 300) matchScore += 2;
+
+        // Client-specific archetype checks
+        if (currentClient === 'ncpd') {
+            if (d.wife_voice && c.archetype === 'wife_plea') matchScore += 30;
+            if (d.authority_figure && c.archetype === 'authority') matchScore += 30;
+            if (d.mother_voice && c.archetype === 'mother') matchScore += 25;
+            if (d.hero_language && c.archetype === 'hero_story') matchScore += 15;
+            if (d.trial_urgency && /trial/.test(cLower)) matchScore += 10;
+            if (d.prison_mention && /prison/.test(cLower)) matchScore += 8;
+            if (d.begging_pleading && /beg/.test(cLower)) matchScore += 8;
+        } else { // RNC
+            if (d.wrong_number && c.archetype === 'wrong_number') matchScore += 35;
+            if (d.identity_confirm && c.archetype === 'identity_confirm') matchScore += 30;
+            if (d.poll_survey && c.archetype === 'poll_survey') matchScore += 25;
+            if (d.guilt_language && c.archetype === 'guilt_escalation') matchScore += 20;
+            if (d.membership_product && c.archetype === 'membership_deadline') matchScore += 20;
+            if (d.named_signer && c.archetype === 'named_signer') matchScore += 15;
+        }
+
+        return { ...c, matchScore: Math.min(100, matchScore) };
+    }).sort((a,b) => b.matchScore - a.matchScore).filter(c => c.matchScore > 10).slice(0, 4);
+}
+
+// ============================================================
+// UTILITY & EVENT LISTENERS
+// ============================================================
+function getCharInfo(text) {
+  const len = text.length;
+  const hasUnicode = /[^\x00-\x7F\u00C0-\u00FF]/.test(text);
+  const encoding = hasUnicode ? 'UCS-2' : 'GSM-7';
+  const segLimit = encoding === 'GSM-7' ? 160 : 70;
+  const multiSegLimit = encoding === 'GSM-7' ? 153 : 67;
+  const segments = len <= segLimit ? 1 : Math.ceil(len / multiSegLimit);
+  return { len, encoding, segments };
+}
+
+function updateCharCount() {
+  const text = document.getElementById('creative-input').value;
+  const info = getCharInfo(text);
+  const el = document.getElementById('char-count');
+  el.textContent = info.len;
+  el.className = 'count ' + (info.len === 0 ? '' : info.len <= 500 ? 'good' : info.len <= 900 ? 'good' : 'warn');
+  document.getElementById('segment-info').textContent = info.segments + ' segment' + (info.segments>1?'s':'');
+  document.getElementById('encoding-info').textContent = info.encoding;
+}
+
+function loadPresets() {
+    const presets = currentClient === 'ncpd' ? NCPD_PRESETS : RNC_PRESETS;
+    const container = document.getElementById('presets-container');
+    container.innerHTML = Object.entries(presets).map(([key, preset]) => 
+        `<div class="preset-btn" onclick="loadPreset('${key}')">${preset.name}</div>`
+    ).join('');
+}
+
+function loadPreset(key) {
+    const presets = currentClient === 'ncpd' ? NCPD_PRESETS : RNC_PRESETS;
+    document.getElementById('creative-input').value = presets[key].text;
+    updateCharCount();
+    analyze();
+}
+
+function setType(t) {
+  msgType = t;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  updateCharCount();
+}
+
+function resetUI() {
+    document.getElementById('score-arc').style.strokeDashoffset = 408;
+    document.getElementById('score-arc').style.stroke = 'var(--card-border)';
+    document.getElementById('score-num').textContent = '—';
+    document.getElementById('score-grade').textContent = 'Enter creative to analyze';
+    document.getElementById('score-grade').style.color = 'var(--dim)';
+    document.getElementById('archetype-display').innerHTML = '';
+    document.getElementById('metrics').innerHTML = '';
+    document.getElementById('pred-polls').textContent = '—';
+    document.getElementById('pred-yield').textContent = '—';
+    document.getElementById('pred-ctr').textContent = '—';
+    document.getElementById('pred-cr').textContent = '—';
+    ['pred-polls', 'pred-yield', 'pred-ctr', 'pred-cr'].forEach(id => document.getElementById(id).style.color = 'var(--dim)');
+    document.getElementById('emotion-grid').innerHTML = '';
+    document.getElementById('ask-analysis').textContent = 'No ask amounts detected';
+    document.getElementById('ask-pills').innerHTML = '';
+    document.getElementById('insights').innerHTML = '<div style="color:var(--dim);font-size:12px;padding:20px 0;text-align:center;">Paste a creative and hit Analyze to get data-backed insights</div>';
+    document.getElementById('similar-creatives').innerHTML = '<div style="color:var(--dim);font-size:12px;padding:20px 0;text-align:center;">Analyze a creative to see similar top performers</div>';
+    document.getElementById('benchmark-body').innerHTML = '<tr><td colspan="5" style="color:var(--dim);text-align:center;padding:16px;">Analyze a creative to see benchmarks</td></tr>';
+}
+
+function clearAll() {
+  document.getElementById('creative-input').value = '';
+  updateCharCount();
+  resetUI();
+}
+
+function updateHistory(text, score) {
+    historyList.unshift({ text, score, client: currentClient });
+    if (historyList.length > 20) historyList.pop();
+    const historyEl = document.getElementById('history-list');
+    historyEl.innerHTML = historyList.map((item, index) => `
+        <div class="history-item" onclick="loadHistory(${index})">
+            <div class="preview">${item.client.toUpperCase()}: ${item.text.substring(0, 60)}...</div>
+            <div class="hscore" style="color:${item.score >= 75 ? 'var(--green)' : item.score >= 55 ? 'var(--yellow)' : 'var(--orange)'}">${item.score}</div>
+        </div>
+    `).join('');
+}
+
+function loadHistory(index) {
+    const item = historyList[index];
+    document.getElementById('client-select').value = item.client;
+    switchClient(); // This will handle UI updates
+    document.getElementById('creative-input').value = item.text;
+    updateCharCount();
+    analyze();
+}
+
+function exportReport() {
+    // This is a placeholder for a more complex report generation
+    alert('Report copied to clipboard (feature coming soon).');
+}
+
+// Initial setup
+document.getElementById('creative-input').addEventListener('input', updateCharCount);
+document.addEventListener('DOMContentLoaded', () => {
+    switchClient(); // Initialize UI for the default client
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace Index — Railstote</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface-hover: #1a1a25;
+            --border: #2a2a3a;
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --blue: #3b82f6;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .meta {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .search-box {
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+            margin-bottom: 2rem;
+        }
+        
+        #search {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        #search:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        
+        #search::placeholder { color: var(--text-muted); }
+        
+        .stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            background: var(--surface);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            min-width: 120px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            padding: 1rem 1.5rem;
+            background: var(--surface-hover);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        
+        .section-header:hover { background: #1f1f2e; }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .section-count {
+            background: var(--border);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .section-content {
+            display: none;
+            padding: 1rem 1.5rem;
+        }
+        
+        .section.open .section-content { display: block; }
+        .section.open .chevron { transform: rotate(180deg); }
+        
+        .chevron {
+            transition: transform 0.2s;
+            color: var(--text-muted);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface-hover); }
+        
+        .file-path {
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--blue);
+        }
+        
+        .purpose { color: var(--text-muted); font-size: 0.9rem; }
+        
+        .tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .tag-html { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .tag-md { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .tag-py { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .tag-json { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        
+        .action-items {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .action-items .section-header { background: transparent; }
+        
+        .status-icon { font-size: 1.2rem; }
+        
+        .hidden { display: none !important; }
+        
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .stats { gap: 0.5rem; }
+            .stat { padding: 0.75rem 1rem; min-width: 100px; }
+            .stat-value { font-size: 1.4rem; }
+            th, td { padding: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🦉 Workspace Index</h1>
+        <div class="meta">
+            Last updated: <span id="lastUpdated">2026-02-08 08:30</span><br>
+            Total files: <span id="totalFiles">393</span>
+        </div>
+    </header>
+    
+    <div class="search-box">
+        <input type="text" id="search" placeholder="Search files, paths, or keywords..." autofocus>
+    </div>
+    
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-value">393</div>
+            <div class="stat-label">Total Files</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">18</div>
+            <div class="stat-label">Skills</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">15+</div>
+            <div class="stat-label">Dashboards</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Action Items</div>
+        </div>
+    </div>
+    
+    <div id="sections">
+        <!-- Action Items -->
+        <div class="section action-items open" data-section="action-items">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">🚨 Action Items</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <thead><tr><th>Item</th><th>Status</th><th>Deadline</th></tr></thead>
+                    <tbody>
+                        <tr><td>INBOUND 2026 proposals</td><td><span class="status-icon">❌</span> Not Submitted</td><td style="color: var(--red); font-weight: 600;">Feb 18</td></tr>
+                        <tr><td>X thread approval</td><td><span class="status-icon">⏸️</span> 48+ hrs in HOLD</td><td>—</td></tr>
+                        <tr><td>Silver crash post</td><td><span class="status-icon">⏸️</span> Nearly ready</td><td>—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Root Files -->
+        <div class="section open" data-section="root">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">📁 Root Files (Workspace Core)</span>
+                <span class="section-count">10</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+                    <tbody>
+                        <tr><td class="file-path">AGENTS.md <span class="tag tag-md">md</span></td><td class="purpose">Playbook, boot sequence, Dory-proof pattern</td></tr>
+                        <tr><td class="file-path">MEMORY.md <span class="tag tag-md">md</span></td><td class="purpose">Long-term curated memory (&lt;10KB)</td></tr>
+                        <tr><td class="file-path">SOUL.md <span class="tag tag-md">md</span></td><td class="purpose">Railstote operating policy, behavior</td></tr>
+                        <tr><td class="file-path">USER.md <span class="tag tag-md">md</span></td><td class="purpose">Justin profile, family, work, preferences</td></tr>
+                        <tr><td class="file-path">TOOLS.md <span class="tag tag-md">md</span></td><td class="purpose">Local environment notes (cameras, SSH, TTS)</td></tr>
+                        <tr><td class="file-path">LESSONS.md <span class="tag tag-md">md</span></td><td class="purpose">Safety rules, never-again patterns</td></tr>
+                        <tr><td class="file-path">HEARTBEAT.md <span class="tag tag-md">md</span></td><td class="purpose">Proactive check routines</td></tr>
+                        <tr><td class="file-path">IDENTITY.md <span class="tag tag-md">md</span></td><td class="purpose">Railstote identity (name, emoji, creature)</td></tr>
+                        <tr><td class="file-path">BOOTSTRAP.md <span class="tag tag-md">md</span></td><td class="purpose">First-run onboarding (can delete)</td></tr>
+                        <tr><td class="file-path">project-dashboard.html <span class="tag tag-html">html</span></td><td class="purpose">Personal dashboard (main hub)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- State -->
+        <div class="section" data-section="state">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">📁 state/ — Active State</span>
+                <span class="section-count">4</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+                    <tbody>
+                        <tr><td class="file-path">state/ACTIVE.md</td><td class="purpose">Current task (exact words)</td></tr>
+                        <tr><td class="file-path">state/DECISIONS.md</td><td class="purpose">Recent choices with timestamps</td></tr>
+                        <tr><td class="file-path">state/HOLD.md</td><td class="purpose">Blocked items awaiting action</td></tr>
+                        <tr><td class="file-path">state/STAGING.md</td><td class="purpose">Drafts awaiting approval</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- DonorBureau -->
+        <div class="section" data-section="db">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">📁 db/ — DonorBureau</span>
+                <span class="section-count">25+</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <h4 style="color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.8rem;">CORE DOCS</h4>
+                <table>
+                    <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+                    <tbody>
+                        <tr><td class="file-path">db/DONORBUREAU-OPERATIONS.md</td><td class="purpose">Business model, cascade, demographics</td></tr>
+                        <tr><td class="file-path">db/CREATIVE-GUIDE.md</td><td class="purpose">SMS/MMS writing guide</td></tr>
+                        <tr><td class="file-path">db/CLIENTS.md</td><td class="purpose">Client list and accounts</td></tr>
+                    </tbody>
+                </table>
+                <h4 style="color: var(--text-muted); margin: 1rem 0 0.5rem; font-size: 0.8rem;">DASHBOARDS</h4>
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">db/dashboards/creative-analyzer-v4.html <span class="tag tag-html">html</span></td><td class="purpose">Forensics analyzer (gold standard)</td></tr>
+                        <tr><td class="file-path">db/dashboards/command-center.html <span class="tag tag-html">html</span></td><td class="purpose">Main command center</td></tr>
+                        <tr><td class="file-path">db/dashboards/war-room.html <span class="tag tag-html">html</span></td><td class="purpose">Campaign war room</td></tr>
+                    </tbody>
+                </table>
+                <h4 style="color: var(--text-muted); margin: 1rem 0 0.5rem; font-size: 0.8rem;">NONPROFIT CLIENTS</h4>
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">db/nonprofit/ncpd/</td><td class="purpose">NCPD — forensics, playbook, Lamond case</td></tr>
+                        <tr><td class="file-path">db/nonprofit/semperk9/</td><td class="purpose">SemperK9 — forensics, Feb creatives</td></tr>
+                        <tr><td class="file-path">db/nonprofit/soldierstrong/</td><td class="purpose">SoldierStrong — three-tier analysis, provenance</td></tr>
+                        <tr><td class="file-path">db/nonprofit/herobox/</td><td class="purpose">HeroBox — content research</td></tr>
+                    </tbody>
+                </table>
+                <h4 style="color: var(--text-muted); margin: 1rem 0 0.5rem; font-size: 0.8rem;">POLITICAL CLIENTS</h4>
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">db/political/rnc/</td><td class="purpose">RNC — 500-creative analysis, Vance shootout</td></tr>
+                        <tr><td class="file-path">db/political/whatley/</td><td class="purpose">Whatley — dual LP spec, survey</td></tr>
+                        <tr><td class="file-path">db/political/slf/</td><td class="purpose">SLF — source document</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- TLH -->
+        <div class="section" data-section="tlh">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">📁 tlh/ — True Legacy Homes</span>
+                <span class="section-count">30+</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <h4 style="color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.8rem;">CORE DOCS</h4>
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">tlh/README.md</td><td class="purpose">TLH overview + operational understanding</td></tr>
+                        <tr><td class="file-path">tlh/PLAYBOOK.md</td><td class="purpose">Operations playbook</td></tr>
+                        <tr><td class="file-path">tlh/CADENCE-PROPOSAL.md</td><td class="purpose">Outreach cadence</td></tr>
+                        <tr><td class="file-path">tlh/OC-COMPETITIVE-INTELLIGENCE.md</td><td class="purpose">Orange County strategy</td></tr>
+                    </tbody>
+                </table>
+                <h4 style="color: var(--text-muted); margin: 1rem 0 0.5rem; font-size: 0.8rem;">AI MARKETING TEAM</h4>
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">tlh/marketing-team/AI-MARKETING-TEAM-ARCHITECTURE.md</td><td class="purpose">10-agent architecture</td></tr>
+                        <tr><td class="file-path">tlh/marketing-team/TLH-DEEP-RESEARCH-2026.md</td><td class="purpose">Deep research report</td></tr>
+                        <tr><td class="file-path">tlh/marketing-team/TLH-STRATEGIC-BRIEF-2026.md</td><td class="purpose">Strategic brief</td></tr>
+                    </tbody>
+                </table>
+                <h4 style="color: var(--text-muted); margin: 1rem 0 0.5rem; font-size: 0.8rem;">SALESFORCE</h4>
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">tlh/salesforce-audit/AUDIT-REPORT.md</td><td class="purpose">Salesforce audit (183 flows, 43 triggers)</td></tr>
+                        <tr><td class="file-path">tlh/salesforce/LEAD-FLOW-MAP.md</td><td class="purpose">Lead flow diagram</td></tr>
+                    </tbody>
+                </table>
+                <h4 style="color: var(--text-muted); margin: 1rem 0 0.5rem; font-size: 0.8rem;">DASHBOARDS</h4>
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">tlh/exec-dashboard.html <span class="tag tag-html">html</span></td><td class="purpose">Wednesday exec meetings</td></tr>
+                        <tr><td class="file-path">tlh/reverse-funnel.html <span class="tag tag-html">html</span></td><td class="purpose">3-market funnel calculator</td></tr>
+                        <tr><td class="file-path">tlh/estate-sale-intelligence-dashboard.html <span class="tag tag-html">html</span></td><td class="purpose">Estate sale intel</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Skills -->
+        <div class="section" data-section="skills">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">📁 skills/ — Agent Skills</span>
+                <span class="section-count">18</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <thead><tr><th>Skill</th><th>Purpose</th></tr></thead>
+                    <tbody>
+                        <tr><td class="file-path">skills/creative-forensics/</td><td class="purpose">Yield analysis, 10 Laws</td></tr>
+                        <tr><td class="file-path">skills/creative-shootout/</td><td class="purpose">Multi-model SMS/MMS shootout</td></tr>
+                        <tr><td class="file-path">skills/donorbureau-dashboard/</td><td class="purpose">Browser automation for DB</td></tr>
+                        <tr><td class="file-path">skills/dory-memory/</td><td class="purpose">Memory system (Dory-proof)</td></tr>
+                        <tr><td class="file-path">skills/gedcom-explorer/</td><td class="purpose">Family tree from GEDCOM</td></tr>
+                        <tr><td class="file-path">skills/marketing-psychology/</td><td class="purpose">Behavioral science models</td></tr>
+                        <tr><td class="file-path">skills/model-thinker/</td><td class="purpose">Scott Page many-model lens</td></tr>
+                        <tr><td class="file-path">skills/wyld-stallyns/</td><td class="purpose">Legend council (14 advisors)</td></tr>
+                        <tr><td class="file-path">skills/yt-content-engine/</td><td class="purpose">YouTube → full content pipeline</td></tr>
+                        <tr><td class="file-path">skills/copywriting/</td><td class="purpose">Conversion copy framework</td></tr>
+                        <tr><td class="file-path">skills/page-cro/</td><td class="purpose">Landing page optimization</td></tr>
+                        <tr><td class="file-path">skills/paid-ads/</td><td class="purpose">PPC strategy</td></tr>
+                        <tr><td class="file-path">skills/ab-test-setup/</td><td class="purpose">A/B testing design</td></tr>
+                        <tr><td class="file-path">skills/email-sequence/</td><td class="purpose">Drip campaign design</td></tr>
+                        <tr><td class="file-path">skills/token-usage/</td><td class="purpose">API usage tracking</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- justinhart.biz -->
+        <div class="section" data-section="website">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">📁 justinhart.biz-repo/ — GitHub Pages</span>
+                <span class="section-count">20+</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+                    <tbody>
+                        <tr><td class="file-path">index.html</td><td class="purpose">Homepage</td></tr>
+                        <tr><td class="file-path">dory/index.html</td><td class="purpose">Dory article landing page</td></tr>
+                        <tr><td class="file-path">projects/index.html</td><td class="purpose">Project demos dashboard</td></tr>
+                        <tr><td class="file-path">tlh/marketing-dashboard/</td><td class="purpose">TLH AI Marketing dashboard</td></tr>
+                        <tr><td class="file-path">tlh/strategic-brief/</td><td class="purpose">TLH Strategic Brief</td></tr>
+                        <tr><td class="file-path">tlh/ai-marketing-team/</td><td class="purpose">AI Marketing Team page</td></tr>
+                        <tr><td class="file-path">tlh/ai-marketing-compare/</td><td class="purpose">3-model comparison</td></tr>
+                        <tr><td class="file-path">tlh/salesforce-optimization/</td><td class="purpose">SF optimization plan</td></tr>
+                        <tr><td class="file-path">tlh/salesforce-mls-spec/</td><td class="purpose">MLS AI agent spec</td></tr>
+                        <tr><td class="file-path">staging/</td><td class="purpose">Substack workflow staging</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Personal -->
+        <div class="section" data-section="personal">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">📁 personal/ — Personal Brand</span>
+                <span class="section-count">8+</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">personal/ai-operator-launch-kit/INBOUND-2026-SUBMISSIONS.md</td><td class="purpose">INBOUND proposals (Feb 18 deadline!)</td></tr>
+                        <tr><td class="file-path">personal/brand-strategy/MASTER-PLAN.md</td><td class="purpose">Brand strategy master plan</td></tr>
+                        <tr><td class="file-path">personal/brand-strategy/HARTIFICIAL-INTELLIGENCE-PLAN.md</td><td class="purpose">Hartificial Intelligence concept</td></tr>
+                        <tr><td class="file-path">personal/working-genius-analysis.md</td><td class="purpose">Working Genius analysis</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Blogs -->
+        <div class="section" data-section="blogs">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">📁 blogs/ & rg/ — Content</span>
+                <span class="section-count">15+</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">blogs/ai-operator-article/draft-v2.md</td><td class="purpose">AI Operator article (final draft)</td></tr>
+                        <tr><td class="file-path">blogs/ai-operator-article/LAUNCH-KIT.md</td><td class="purpose">Launch checklist</td></tr>
+                        <tr><td class="file-path">rg/RATIONAL-GROUND-REVAMP.md</td><td class="purpose">Rational Ground revamp plan</td></tr>
+                        <tr><td class="file-path">rg/screwtape-style-guide.md</td><td class="purpose">Screwtape style guide</td></tr>
+                        <tr><td class="file-path">drafts/silver-crash-blog-draft.md</td><td class="purpose">Silver crash post (nearly ready)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Memory -->
+        <div class="section" data-section="memory">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">📁 memory/ — Session Logs</span>
+                <span class="section-count">10+</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">memory/WORKSPACE-INDEX.md</td><td class="purpose">This index (source)</td></tr>
+                        <tr><td class="file-path">memory/recent-work.md</td><td class="purpose">Last 48 hours summary</td></tr>
+                        <tr><td class="file-path">memory/2026-02-08.md</td><td class="purpose">Today's session log</td></tr>
+                        <tr><td class="file-path">memory/2026-02-07.md</td><td class="purpose">Yesterday's log</td></tr>
+                        <tr><td class="file-path">memory/archive/</td><td class="purpose">Older logs, archived memory</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Other -->
+        <div class="section" data-section="other">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title">📁 Other Directories</span>
+                <span class="section-count">15+</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <tbody>
+                        <tr><td class="file-path">research/</td><td class="purpose">AI research, ARK report, market analysis</td></tr>
+                        <tr><td class="file-path">tools/</td><td class="purpose">Standalone HTML tools</td></tr>
+                        <tr><td class="file-path">gfl/i-stand-all-amazed/</td><td class="purpose">37-scene video production</td></tr>
+                        <tr><td class="file-path">family/</td><td class="purpose">Birthdays, journal, family laughs</td></tr>
+                        <tr><td class="file-path">genealogy/</td><td class="purpose">Family tree explorer</td></tr>
+                        <tr><td class="file-path">kaden/</td><td class="purpose">Gaming internship plan</td></tr>
+                        <tr><td class="file-path">dory-project/</td><td class="purpose">Dory documentation, diagrams</td></tr>
+                        <tr><td class="file-path">helloai/</td><td class="purpose">Hello AI Substack drafts</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div id="noResults" class="no-results hidden">
+        No files match your search.
+    </div>
+    
+    <script>
+        function toggleSection(header) {
+            header.parentElement.classList.toggle('open');
+        }
+        
+        const search = document.getElementById('search');
+        const sections = document.querySelectorAll('.section');
+        const noResults = document.getElementById('noResults');
+        
+        search.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            let anyVisible = false;
+            
+            if (!query) {
+                sections.forEach(s => {
+                    s.classList.remove('hidden');
+                    s.querySelectorAll('tr').forEach(r => r.classList.remove('hidden'));
+                });
+                noResults.classList.add('hidden');
+                return;
+            }
+            
+            sections.forEach(section => {
+                const rows = section.querySelectorAll('tbody tr');
+                let sectionVisible = false;
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(query)) {
+                        row.classList.remove('hidden');
+                        sectionVisible = true;
+                    } else {
+                        row.classList.add('hidden');
+                    }
+                });
+                
+                if (sectionVisible) {
+                    section.classList.remove('hidden');
+                    section.classList.add('open');
+                    anyVisible = true;
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+            
+            noResults.classList.toggle('hidden', anyVisible);
+        });
+        
+        // Keyboard shortcut: / to focus search
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement !== search) {
+                e.preventDefault();
+                search.focus();
+            }
+            if (e.key === 'Escape') {
+                search.value = '';
+                search.dispatchEvent(new Event('input'));
+                search.blur();
+            }
+        });
+    </script>
+</body>
+</html>

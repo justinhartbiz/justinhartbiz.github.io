@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Token Usage</title>
+<style>
+:root {
+  --bg: #1a1a2e;
+  --card: #16213e;
+  --border: #0f3460;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --green: #4ade80;
+  --yellow: #fbbf24;
+  --red: #f87171;
+  --blue: #60a5fa;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 16px;
+  min-width: 320px;
+}
+
+.widget {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f3460 100%);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-icon { font-size: 20px; }
+.header-title { font-weight: 600; font-size: 14px; }
+.header-refresh {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.header-refresh:hover { background: var(--border); color: var(--text); }
+
+.provider {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.provider:last-child { border-bottom: none; }
+
+.provider-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.provider-icon { font-size: 16px; }
+.provider-name { font-weight: 600; font-size: 13px; }
+.provider-status {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.provider-status.ok { background: rgba(74, 222, 128, 0.2); color: var(--green); }
+.provider-status.warn { background: rgba(251, 191, 36, 0.2); color: var(--yellow); }
+.provider-status.error { background: rgba(248, 113, 113, 0.2); color: var(--red); }
+.provider-status.link { background: rgba(96, 165, 250, 0.2); color: var(--blue); }
+
+.usage-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 12px;
+}
+
+.model-name { color: var(--text-dim); }
+.token-count { font-family: monospace; color: var(--text); }
+.cost { color: var(--green); font-weight: 500; }
+
+.usage-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.usage-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.usage-bar-fill.low { background: var(--green); }
+.usage-bar-fill.medium { background: var(--yellow); }
+.usage-bar-fill.high { background: var(--red); }
+
+.link-row {
+  font-size: 12px;
+  color: var(--blue);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.link-row:hover { text-decoration: underline; }
+
+.footer {
+  padding: 8px 16px;
+  background: rgba(0,0,0,0.2);
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+</head>
+<body>
+
+<div class="widget">
+  <div class="header">
+    <span class="header-icon">🔢</span>
+    <span class="header-title">Token Usage</span>
+    <button class="header-refresh" onclick="refresh()">↻ Refresh</button>
+  </div>
+
+  <div id="content">
+    <!-- OpenAI -->
+    <div class="provider">
+      <div class="provider-header">
+        <span class="provider-icon">🟢</span>
+        <span class="provider-name">OpenAI</span>
+        <span class="provider-status ok">$2.31 / 7d</span>
+      </div>
+      <div class="usage-row">
+        <span class="model-name">gpt-4o</span>
+        <span class="token-count">142.8K tokens</span>
+      </div>
+      <div class="usage-row">
+        <span class="model-name">gpt-4o-mini</span>
+        <span class="token-count">58.3K tokens</span>
+      </div>
+    </div>
+
+    <!-- Gemini -->
+    <div class="provider">
+      <div class="provider-header">
+        <span class="provider-icon">🔵</span>
+        <span class="provider-name">Gemini</span>
+        <span class="provider-status ok">OK</span>
+      </div>
+      <div class="usage-row">
+        <span class="model-name">Rate limit</span>
+        <span class="token-count">12 / 15 RPM</span>
+      </div>
+      <div class="usage-bar">
+        <div class="usage-bar-fill medium" style="width: 80%;"></div>
+      </div>
+    </div>
+
+    <!-- Claude -->
+    <div class="provider">
+      <div class="provider-header">
+        <span class="provider-icon">🟠</span>
+        <span class="provider-name">Claude (Max)</span>
+        <span class="provider-status link">↗ View</span>
+      </div>
+      <a href="https://claude.ai/settings/usage" target="_blank" class="link-row">
+        → claude.ai/settings/usage
+      </a>
+    </div>
+  </div>
+
+  <div class="footer">
+    Last updated: <span id="timestamp">just now</span>
+  </div>
+</div>
+
+<script>
+// This would be populated by the gateway/backend
+const mockData = {
+  openai: {
+    available: true,
+    cost7d: 2.31,
+    models: [
+      { name: 'gpt-4o', tokens: 142847 },
+      { name: 'gpt-4o-mini', tokens: 58291 }
+    ]
+  },
+  gemini: {
+    available: true,
+    status: 'ok',
+    rpmUsed: 12,
+    rpmLimit: 15
+  },
+  claude: {
+    type: 'oauth',
+    link: 'https://claude.ai/settings/usage'
+  }
+};
+
+function formatTokens(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toString();
+}
+
+function refresh() {
+  document.getElementById('timestamp').textContent = 'refreshing...';
+  // Would call backend API here
+  setTimeout(() => {
+    document.getElementById('timestamp').textContent = 'just now';
+  }, 500);
+}
+
+// Update timestamp
+function updateTimestamp() {
+  const now = new Date();
+  document.getElementById('timestamp').textContent = now.toLocaleTimeString();
+}
+updateTimestamp();
+</script>
+
+</body>
+</html>

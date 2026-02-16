@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Portfolio Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    :root {
+      --bg-dark: #121212;
+      --card-bg: #1e1e1e;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --green: #4caf50;
+      --red: #f44336;
+      --yellow: #ffc107;
+      --blue: #2196f3;
+      --purple: #9c27b0;
+      --accent: #3f51b5;
+      --card-border: #2d2d2d;
+      --chart-grid: #2d2d2d;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      padding: 20px;
+    }
+    
+    .dashboard {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    
+    .title h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .last-updated {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .portfolio-summary {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .portfolio-value {
+      font-size: 36px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    
+    .portfolio-stats {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .stat {
+      flex: 1;
+      padding: 10px 15px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+    
+    .stat-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .cards-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .card-name {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .price-change {
+      font-size: 14px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    
+    .positive {
+      background-color: rgba(76, 175, 80, 0.1);
+      color: var(--green);
+    }
+    
+    .negative {
+      background-color: rgba(244, 67, 54, 0.1);
+      color: var(--red);
+    }
+    
+    .neutral {
+      background-color: rgba(158, 158, 158, 0.1);
+      color: var(--text-secondary);
+    }
+    
+    .card-body {
+      margin-bottom: 15px;
+    }
+    
+    .price {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .holdings {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    
+    .holdings-label, .value-label {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    .holdings-value, .value-value {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .value {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .cost-basis {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+    
+    .cost-basis-label {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    .cost-basis-value {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .card-footer {
+      border-top: 1px solid var(--card-border);
+      padding-top: 15px;
+    }
+    
+    .thesis {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: var(--text-secondary);
+    }
+    
+    .thesis-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .alert-thresholds {
+      margin-top: 15px;
+    }
+    
+    .threshold {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+    
+    .threshold i {
+      margin-right: 8px;
+    }
+    
+    .green {
+      color: var(--green);
+    }
+    
+    .yellow {
+      color: var(--yellow);
+    }
+    
+    .red {
+      color: var(--red);
+    }
+    
+    .recommendations {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--card-border);
+    }
+    
+    .recommendations h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    
+    .recommendation {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      background-color: rgba(255, 255, 255, 0.03);
+    }
+    
+    .recommendation-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: 15px;
+    }
+    
+    .recommendation-header i {
+      margin-right: 8px;
+    }
+    
+    .recommendation-body {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .market-sentiment {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid var(--card-border);
+    }
+    
+    .market-sentiment h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    
+    .sentiment-indicator {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .sentiment-indicator i {
+      margin-right: 8px;
+    }
+    
+    .sentiment-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 15px;
+    }
+    
+    .market-key-prices {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    
+    .market-price {
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+    }
+    
+    .market-price-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+    
+    .market-price-value {
+      font-size: 16px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <header>
+      <div class="title">
+        <h1>Crypto Portfolio Dashboard</h1>
+      </div>
+      <div class="last-updated">
+        Last updated: Feb 14, 2026 22:58 PST
+      </div>
+    </header>
+    
+    <section class="portfolio-summary">
+      <div class="portfolio-value">$722.18</div>
+      <div class="portfolio-stats">
+        <div class="stat">
+          <div class="stat-label">Main Assets</div>
+          <div class="stat-value">SOL, TAO</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Cash Position</div>
+          <div class="stat-value">$32.69</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Market Sentiment</div>
+          <div class="stat-value red">Extreme Fear</div>
+        </div>
+      </div>
+    </section>
+    
+    <div class="cards-container">
+      <!-- SOL Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon" style="background-color: #14F195;">S</div>
+            <div class="card-name">SOL</div>
+          </div>
+          <div class="price-change positive">+5.6%</div>
+        </div>
+        <div class="card-body">
+          <div class="price">$89.58</div>
+          <div class="holdings">
+            <span class="holdings-label">Holdings</span>
+            <span class="holdings-value">3.29 SOL</span>
+          </div>
+          <div class="value">
+            <span class="value-label">Value</span>
+            <span class="value-value">$294.72</span>
+          </div>
+          <div class="cost-basis">
+            <span class="cost-basis-label">Cost Basis</span>
+            <span class="cost-basis-value">~$80 (+12% gain)</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="thesis">
+            <span class="thesis-label">Thesis:</span>
+            <span class="thesis-value">HOLD / ACCUMULATE on dips</span>
+          </div>
+          <div class="alert-thresholds">
+            <div class="threshold">
+              <i class="fas fa-circle green"></i>
+              <span>Buy more: &lt; $82 (near cost basis)</span>
+            </div>
+            <div class="threshold">
+              <i class="fas fa-circle yellow"></i>
+              <span>Watch: $85-$95 (current range)</span>
+            </div>
+            <div class="threshold">
+              <i class="fas fa-circle red"></i>
+              <span>Take profit: &gt; $130 (take 20%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- TAO Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon" style="background-color: #9945FF;">T</div>
+            <div class="card-name">TAO</div>
+          </div>
+          <div class="price-change negative">-1.4%</div>
+        </div>
+        <div class="card-body">
+          <div class="price">$190.84</div>
+          <div class="holdings">
+            <span class="holdings-label">Holdings</span>
+            <span class="holdings-value">0.44 TAO</span>
+          </div>
+          <div class="value">
+            <span class="value-label">Value</span>
+            <span class="value-value">$84.62</span>
+          </div>
+          <div class="cost-basis">
+            <span class="cost-basis-label">Cost Basis</span>
+            <span class="cost-basis-value">~$170 (+12% gain)</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="thesis">
+            <span class="thesis-label">Thesis:</span>
+            <span class="thesis-value">HOLD</span>
+          </div>
+          <div class="alert-thresholds">
+            <div class="threshold">
+              <i class="fas fa-circle green"></i>
+              <span>Buy more: &lt; $160</span>
+            </div>
+            <div class="threshold">
+              <i class="fas fa-circle yellow"></i>
+              <span>Watch: $180-$210 (consolidation zone)</span>
+            </div>
+            <div class="threshold">
+              <i class="fas fa-circle red"></i>
+              <span>Take partial: &gt; $300 (take 25%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- LINK Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon" style="background-color: #2A5ADA;">L</div>
+            <div class="card-name">LINK</div>
+          </div>
+          <div class="price-change positive">+3.7%</div>
+        </div>
+        <div class="card-body">
+          <div class="price">$9.14</div>
+          <div class="holdings">
+            <span class="holdings-label">Holdings</span>
+            <span class="holdings-value">8.37 LINK</span>
+          </div>
+          <div class="value">
+            <span class="value-label">Value</span>
+            <span class="value-value">$76.49</span>
+          </div>
+          <div class="cost-basis">
+            <span class="cost-basis-label">Cost Basis</span>
+            <span class="cost-basis-value">N/A</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="thesis">
+            <span class="thesis-label">Thesis:</span>
+            <span class="thesis-value">HOLD - Oracle play</span>
+          </div>
+          <div class="alert-thresholds">
+            <div class="threshold">
+              <i class="fas fa-info-circle blue"></i>
+              <span>Hold unless thesis changes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ETH Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon" style="background-color: #627EEA;">E</div>
+            <div class="card-name">ETH</div>
+          </div>
+          <div class="price-change positive">+1.6%</div>
+        </div>
+        <div class="card-body">
+          <div class="price">$2,085.00</div>
+          <div class="holdings">
+            <span class="holdings-label">Holdings</span>
+            <span class="holdings-value">0.025 ETH</span>
+          </div>
+          <div class="value">
+            <span class="value-label">Value</span>
+            <span class="value-value">$52.01</span>
+          </div>
+          <div class="cost-basis">
+            <span class="cost-basis-label">Cost Basis</span>
+            <span class="cost-basis-value">N/A</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="thesis">
+            <span class="thesis-label">Thesis:</span>
+            <span class="thesis-value">HOLD - Tiny position, underperforming</span>
+          </div>
+          <div class="alert-thresholds">
+            <div class="threshold">
+              <i class="fas fa-info-circle blue"></i>
+              <span>Hold what you have, not worth adding</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- BTC Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon" style="background-color: #F7931A;">B</div>
+            <div class="card-name">BTC</div>
+          </div>
+          <div class="price-change neutral">N/A</div>
+        </div>
+        <div class="card-body">
+          <div class="price">$70,365.00</div>
+          <div class="holdings">
+            <span class="holdings-label">Holdings</span>
+            <span class="holdings-value">0.00 BTC</span>
+          </div>
+          <div class="value">
+            <span class="value-label">Value</span>
+            <span class="value-value">$0.00</span>
+          </div>
+          <div class="cost-basis">
+            <span class="cost-basis-label">Market Context</span>
+            <span class="cost-basis-value">Consolidating</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="thesis">
+            <span class="thesis-label">Status:</span>
+            <span class="thesis-value">Market Indicator</span>
+          </div>
+          <div class="alert-thresholds">
+            <div class="threshold">
+              <i class="fas fa-exclamation-circle yellow"></i>
+              <span>Support at $60K, resistance at $71K</span>
+            </div>
+            <div class="threshold">
+              <i class="fas fa-exclamation-circle red"></i>
+              <span>Watch $60K support (critical)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- AI Basket Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon" style="background-color: #9C27B0;">AI</div>
+            <div class="card-name">AI Basket</div>
+          </div>
+          <div class="price-change neutral">—</div>
+        </div>
+        <div class="card-body">
+          <div class="price">Combined Assets</div>
+          <div class="holdings">
+            <span class="holdings-label">Holdings</span>
+            <span class="holdings-value">FET, AKT, AIOZ, RENDER</span>
+          </div>
+          <div class="value">
+            <span class="value-label">Total Value</span>
+            <span class="value-value">~$142.55</span>
+          </div>
+          <div class="cost-basis">
+            <span class="cost-basis-label">Category</span>
+            <span class="cost-basis-value">AI/Compute Sector</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="thesis">
+            <span class="thesis-label">Thesis:</span>
+            <span class="thesis-value">HOLD as basket</span>
+          </div>
+          <div class="alert-thresholds">
+            <div class="threshold">
+              <i class="fas fa-info-circle blue"></i>
+              <span>Hold as sector bet alongside TAO</span>
+            </div>
+            <div class="threshold">
+              <i class="fas fa-info-circle blue"></i>
+              <span>Don't overthink individual positions</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <section class="recommendations">
+      <h2>Recommended Actions</h2>
+      <div class="recommendation">
+        <div class="recommendation-header">
+          <i class="fas fa-hand-paper yellow"></i>
+          No trades tonight
+        </div>
+        <div class="recommendation-body">
+          Market is in extreme fear — don't sell into panic, but don't FOMO buy either.
+        </div>
+      </div>
+      <div class="recommendation">
+        <div class="recommendation-header">
+          <i class="fas fa-shopping-cart green"></i>
+          Set limit buys
+        </div>
+        <div class="recommendation-body">
+          - SOL at $82 ($50 order)<br>
+          - TAO at $160 ($25 order)
+        </div>
+      </div>
+      <div class="recommendation">
+        <div class="recommendation-header">
+          <i class="fas fa-eye blue"></i>
+          Watch BTC $60K support
+        </div>
+        <div class="recommendation-body">
+          If BTC breaks below $60K, everything goes lower. That's when you'd want dry powder.
+        </div>
+      </div>
+      <div class="recommendation">
+        <div class="recommendation-header">
+          <i class="fas fa-money-bill-wave blue"></i>
+          Keep $32.69 USDC as dry powder
+        </div>
+        <div class="recommendation-body">
+          Don't deploy it yet. Wait for a clear dip or BTC stabilization above $72K.
+        </div>
+      </div>
+      <div class="recommendation">
+        <div class="recommendation-header">
+          <i class="fas fa-trash-alt gray"></i>
+          Ignore small positions
+        </div>
+        <div class="recommendation-body">
+          XTZ, XLM are dust. Not worth managing.
+        </div>
+      </div>
+    </section>
+    
+    <section class="market-sentiment">
+      <h2>Market Context</h2>
+      <div class="sentiment-indicator red">
+        <i class="fas fa-thermometer-empty"></i>
+        Sentiment: Extreme Fear
+      </div>
+      <div class="sentiment-description">
+        BTC dropped from ~$90K in late Jan to ~$70K now. Options skew is defensive (25-delta skew at 20%, calls only 48% dominance). Memecoins down 34% in a month. This is capitulation-level fear — historically a buying zone, but no clear catalyst for reversal yet.
+      </div>
+      <div class="market-key-prices">
+        <div class="market-price">
+          <div class="market-price-label">BTC Price</div>
+          <div class="market-price-value">$70,365</div>
+        </div>
+        <div class="market-price">
+          <div class="market-price-label">ETH Price</div>
+          <div class="market-price-value">$2,085</div>
+        </div>
+        <div class="market-price">
+          <div class="market-price-label">SOL Price</div>
+          <div class="market-price-value">$89.58</div>
+        </div>
+        <div class="market-price">
+          <div class="market-price-label">TAO Price</div>
+          <div class="market-price-value">$190.84</div>
+        </div>
+      </div>
+    </section>
+    
+  </div>
+  
+  <script>
+    // You could add live price updates and interactivity here
+    // This would require API calls or WebSocket connections
+    
+    // Example of how to add dynamic updates in the future
+    /*
+    async function updatePrices() {
+      // Fetch latest prices from crypto API
+      const response = await fetch('https://api.example.com/crypto/prices');
+      const data = await response.json();
+      
+      // Update price displays
+      document.getElementById('btc-price').textContent = '$' + data.BTC.toLocaleString();
+      document.getElementById('eth-price').textContent = '$' + data.ETH.toLocaleString();
+      // etc.
+    }
+    
+    // Update every 60 seconds
+    setInterval(updatePrices, 60000);
+    */
+  </script>
+</body>
+</html>

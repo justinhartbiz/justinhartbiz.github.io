@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLF Creative Shootout Review — 2026-02-10</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #58a6ff; margin-bottom: 8px; font-size: 1.8rem; }
+        .subtitle { color: #8b949e; margin-bottom: 20px; font-size: 0.95rem; }
+        
+        .selected-panel {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+        .selected-panel h3 { color: #3fb950; margin-bottom: 12px; font-size: 1rem; }
+        .selected-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
+        .selected-tag {
+            background: #238636;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .selected-tag .remove { cursor: pointer; opacity: 0.7; font-weight: bold; }
+        .selected-tag .remove:hover { opacity: 1; }
+        .empty-state { color: #8b949e; font-style: italic; }
+        .copy-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #58a6ff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+        .copy-btn:hover { background: #30363d; }
+        .copy-btn.copied { background: #238636; color: #fff; border-color: #238636; }
+        
+        .stats-bar { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .stat-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 12px 20px;
+            flex: 1;
+            min-width: 140px;
+        }
+        .stat-card .label { color: #8b949e; font-size: 0.75rem; text-transform: uppercase; }
+        .stat-card .value { color: #58a6ff; font-size: 1.4rem; font-weight: 600; }
+        
+        .creative-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .creative-card:hover { border-color: #58a6ff; }
+        .creative-card.selected { border-color: #238636; box-shadow: 0 0 0 1px #238636; }
+        .card-header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            gap: 16px;
+            border-bottom: 1px solid #30363d;
+            cursor: pointer;
+        }
+        .card-header:hover { background: #21262d; }
+        .checkbox-wrapper { display: flex; align-items: center; }
+        .checkbox-wrapper input { width: 20px; height: 20px; cursor: pointer; accent-color: #238636; }
+        .card-title { flex: 1; }
+        .card-title h3 { color: #f0f6fc; font-size: 1.1rem; margin-bottom: 4px; }
+        .card-title .meta { color: #8b949e; font-size: 0.85rem; }
+        .card-title .meta span { margin-right: 12px; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .badge.sms { background: #1f6feb; color: #fff; }
+        .badge.mms { background: #8957e5; color: #fff; }
+        
+        .score-display { text-align: center; min-width: 70px; }
+        .score-value { font-size: 1.5rem; font-weight: bold; }
+        .score-value.high { color: #3fb950; }
+        .score-value.medium { color: #d29922; }
+        .score-value.low { color: #f85149; }
+        .score-label { font-size: 0.7rem; color: #8b949e; text-transform: uppercase; }
+        
+        .card-body { padding: 16px; display: none; }
+        .creative-text {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'SF Mono', Consolas, monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            margin-bottom: 16px;
+        }
+        .rationale {
+            background: #21262d;
+            border-left: 3px solid #58a6ff;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+        .rationale strong { color: #58a6ff; }
+        
+        .score-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
+        .score-item { background: #21262d; padding: 8px 12px; border-radius: 6px; text-align: center; }
+        .score-item .dim { font-size: 0.7rem; color: #8b949e; }
+        .score-item .val { font-size: 1.1rem; font-weight: 600; color: #f0f6fc; }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 32px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #30363d;
+        }
+        .section-header h2 { color: #f0f6fc; font-size: 1.2rem; }
+        .section-header .count { background: #30363d; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; }
+        
+        .model-section { margin-top: 48px; padding-top: 24px; border-top: 2px solid #58a6ff; }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #30363d;
+            text-align: center;
+            color: #8b949e;
+            font-size: 0.85rem;
+        }
+        .footer a { color: #58a6ff; text-decoration: none; }
+        
+        @media (max-width: 768px) {
+            .stats-bar { flex-direction: column; }
+            .card-header { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 SLF Creative Shootout Review</h1>
+        <p class="subtitle">Brandon Gill Model + Multi-Model Comparison | 2026-02-10 | 18 Creatives Total</p>
+        
+        <div class="selected-panel">
+            <h3>✅ Selected for Send (<span id="selected-count">0</span>)</h3>
+            <div class="selected-list" id="selected-list">
+                <span class="empty-state">Check creatives below to add them here</span>
+            </div>
+            <button class="copy-btn" id="copy-btn" onclick="copySelected()">📋 Copy Selected IDs</button>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="label">Brandon Gill Set</div>
+                <div class="value">6</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Multi-Model</div>
+                <div class="value">12</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Top Score</div>
+                <div class="value">34.2 🟢</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Panel Pick</div>
+                <div class="value">M-MMS1</div>
+            </div>
+        </div>
+        
+        <!-- BRANDON GILL SECTION -->
+        <div class="section-header">
+            <h2>📊 Brandon Gill Model — Group A (Existing LP)</h2>
+            <span class="count">3 creatives</span>
+        </div>
+        
+        <div class="creative-card" data-id="A1">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>A1: Accountability Hook</h3>
+                    <div class="meta"><span>324 chars</span><span>Binary Poll</span></div>
+                </div>
+                <span class="badge mms">MMS</span>
+                <div class="score-display"><div class="score-value medium">31.4</div><div class="score-label">Panel</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">[firstname|Friend], they stole $9 BILLION.
+
+Fake daycares. Ghost children. Tim Walz ignored it for YEARS.
+
+Trump's DOJ is finally exposing it all — but Chuck Schumer wants to BLOCK the investigation.
+
+Should we hold Democrats accountable for the Minnesota fraud scandal?
+
+YES → [link]
+NO → [link]</div>
+                <div class="score-breakdown">
+                    <div class="score-item"><div class="dim">Patriot</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Celeb</div><div class="val">4</div></div>
+                    <div class="score-item"><div class="dim">Urgency</div><div class="val">7</div></div>
+                    <div class="score-item"><div class="dim">Grat</div><div class="val">3</div></div>
+                    <div class="score-item"><div class="dim">Story</div><div class="val">4</div></div>
+                    <div class="score-item"><div class="dim">Impact</div><div class="val">7</div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creative-card" data-id="A2">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>A2: Secret Message</h3>
+                    <div class="meta"><span>182 chars</span><span>Confidential + Timer</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <div class="score-display"><div class="score-value low">28.1</div><div class="score-label">Panel</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">The Senate Leadership Fund has sent you a CONFIDENTIAL message about the $9 BILLION fraud scandal.
+
+Review before it expires → [link]
+
+🔴 10 minutes to respond</div>
+            </div>
+        </div>
+        
+        <div class="creative-card" data-id="A3">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>A3: Social Proof</h3>
+                    <div class="meta"><span>339 chars</span><span>Fake Emails + Petition</span></div>
+                </div>
+                <span class="badge mms">MMS</span>
+                <div class="score-display"><div class="score-value medium">30.0</div><div class="score-label">Panel</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">🚨 BREAKING: Minnesota fraud total could exceed $9 BILLION.
+
+Here's what patriots are saying:
+
+📧 kyle__@gmail.com: HOLD WALZ ACCOUNTABLE
+📧 linda__@yahoo.com: PROSECUTE THE FRAUD
+📧 james__@gmail.com: SUPPORT TRUMP'S DOJ
+
+Your voice is missing.
+
+Add your name to the fraud accountability petition → [link]</div>
+            </div>
+        </div>
+        
+        <div class="section-header">
+            <h2>📊 Brandon Gill Model — Group B (NEW LP)</h2>
+            <span class="count">3 creatives</span>
+        </div>
+        
+        <div class="creative-card" data-id="B1">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>B1: Scorched Earth Hook ⭐</h3>
+                    <div class="meta"><span>270 chars</span><span>Apocalyptic + Irreversibility</span></div>
+                </div>
+                <span class="badge mms">MMS</span>
+                <div class="score-display"><div class="score-value high">33.5</div><div class="score-label">Panel</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">[firstname|Friend], this is it.
+
+Trump's going scorched earth on the Democrats. $9 BILLION in fraud exposed. Schumer's panicking. The fake news can't cover it up anymore.
+
+The 2026 elections will NEVER be the same.
+
+Are you with us? → [link]</div>
+                <div class="rationale"><strong>🏆 Brandon Gill Top Pick:</strong> Direct model of Gill's best LP. Apocalyptic framing + binary choice.</div>
+            </div>
+        </div>
+        
+        <div class="creative-card" data-id="B2">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>B2: Dem Panic Quote</h3>
+                    <div class="meta"><span>280 chars</span><span>Schadenfreude + Binary</span></div>
+                </div>
+                <span class="badge mms">MMS</span>
+                <div class="score-display"><div class="score-value medium">30.2</div><div class="score-label">Panel</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">Well, well, well... look what we have here.
+
+🧐 Democrats are turning on each other:
+
+🗣️ "This is worse than 2016... Our candidates are bleeding."
+
+Trump is SURGING. Schumer is PANICKING.
+
+Take the 2026 Senate Poll → [link]
+
+🔴 Time is up. Are you in or out? 🔴</div>
+            </div>
+        </div>
+        
+        <div class="creative-card" data-id="B3">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>B3: Crisis Alert ⭐</h3>
+                    <div class="meta"><span>305 chars</span><span>Specific Threat + Localization</span></div>
+                </div>
+                <span class="badge mms">MMS</span>
+                <div class="score-display"><div class="score-value high">32.2</div><div class="score-label">Panel</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">🚨 Chuck Schumer only needs 4 seats.
+
+Georgia. Michigan. Iowa. He's coming for ALL of them.
+
+If Democrats take the Senate, they'll:
+❌ Kill Trump's agenda
+❌ Reverse your tax cuts
+❌ Protect the $9B fraud
+
+We need 1500 more responses in [zipcode|your area].
+
+YOUR SECURE LINK → [link]</div>
+            </div>
+        </div>
+        
+        <!-- MULTI-MODEL SECTION -->
+        <div class="model-section">
+            <div class="section-header">
+                <h2>🤖 Multi-Model Shootout</h2>
+                <span class="count">12 creatives</span>
+            </div>
+            
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <div class="label" style="color: #a371f7;">Claude Opus</div>
+                    <div class="value">4</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label" style="color: #3fb950;">GPT-4o</div>
+                    <div class="value">4</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label" style="color: #f78166;">Gemini</div>
+                    <div class="value">4</div>
+                </div>
+            </div>
+            
+            <!-- CLAUDE -->
+            <div class="section-header"><h2 style="color: #a371f7;">Claude Opus 4.6</h2></div>
+            
+            <div class="creative-card" data-id="C-MMS1">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>C-MMS1: Social Proof / Survey</h3>
+                        <div class="meta"><span>318 chars</span></div>
+                    </div>
+                    <span class="badge mms">MMS</span>
+                    <div class="score-display"><div class="score-value medium">31.0</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[firstname|Friend], we need 1500 more responses from [zipcode|your area] to finish our Walz Fraud Accountability Survey. $9 BILLION stolen under his watch in Minnesota — and Democrats want to memory-hole it before 2026. Your answer matters: Should Walz be held accountable? Go here before midnight: [link]</div>
+                </div>
+            </div>
+            
+            <div class="creative-card" data-id="C-MMS2">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>C-MMS2: Curiosity / Guilt</h3>
+                        <div class="meta"><span>323 chars</span></div>
+                    </div>
+                    <span class="badge mms">MMS</span>
+                    <div class="score-display"><div class="score-value medium">31.4</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[ALERT] [firstname|Friend] — I couldn't believe my eyes when I saw your name was MISSING from our Walz fraud response list. $9B in fraud happened on his watch and we're building the case for accountability in 2026. You're making a huge mistake ignoring this. Add your name NOW before it's too late: [link]</div>
+                </div>
+            </div>
+            
+            <div class="creative-card" data-id="C-SMS1">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>C-SMS1: Binary Poll</h3>
+                        <div class="meta"><span>131 chars</span></div>
+                    </div>
+                    <span class="badge sms">SMS</span>
+                    <div class="score-display"><div class="score-value low">27.9</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">$9B fraud under Walz. Should he be held accountable? YES or NO? Vote now — results go to Senate GOP leaders this week: [link]</div>
+                </div>
+            </div>
+            
+            <div class="creative-card" data-id="C-SMS2">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>C-SMS2: Notification / Apocalyptic</h3>
+                        <div class="meta"><span>128 chars</span></div>
+                    </div>
+                    <span class="badge sms">SMS</span>
+                    <div class="score-display"><div class="score-value low">29.5</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[ERROR] Your Walz Fraud Survey is INCOMPLETE. $9B stolen. 2026 will never be the same if we stay silent. Finish now: [link]</div>
+                </div>
+            </div>
+            
+            <!-- GPT-4o -->
+            <div class="section-header"><h2 style="color: #3fb950;">GPT-4o</h2></div>
+            
+            <div class="creative-card" data-id="G-MMS1">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>G-MMS1: Alert / Social Proof ⭐</h3>
+                        <div class="meta"><span>297 chars</span></div>
+                    </div>
+                    <span class="badge mms">MMS</span>
+                    <div class="score-display"><div class="score-value high">33.0</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[FRAUD ALERT] [firstname|Friend], we need 1,500 more responses from [zipcode|your area] by midnight. Tim Walz let $9 BILLION in fraud happen on his watch—and now he's one heartbeat from the presidency. Should he be held accountable? Take the official survey: [link]</div>
+                    <div class="rationale"><strong>🏆 PANEL #2:</strong> "one heartbeat from the presidency" = stakes escalation. Deadline urgency.</div>
+                </div>
+            </div>
+            
+            <div class="creative-card" data-id="G-MMS2">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>G-MMS2: Curiosity / Guilt</h3>
+                        <div class="meta"><span>268 chars</span></div>
+                    </div>
+                    <span class="badge mms">MMS</span>
+                    <div class="score-display"><div class="score-value medium">32.0</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[firstname|Friend], I couldn't believe my eyes when I saw the numbers. $9 billion stolen. Exposed. And Tim Walz did NOTHING to stop it. You're making a huge mistake if you ignore this—your voice matters in 2026. Tell us where you stand: [link]</div>
+                </div>
+            </div>
+            
+            <div class="creative-card" data-id="G-SMS1">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>G-SMS1: Binary Poll</h3>
+                        <div class="meta"><span>112 chars</span></div>
+                    </div>
+                    <span class="badge sms">SMS</span>
+                    <div class="score-display"><div class="score-value low">27.1</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">WALZ FRAUD POLL: Should Tim Walz face accountability for the $9B MN scandal? Reply YES or NO, or vote here: [link]</div>
+                </div>
+            </div>
+            
+            <div class="creative-card" data-id="G-SMS2">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>G-SMS2: Apocalyptic</h3>
+                        <div class="meta"><span>128 chars</span></div>
+                    </div>
+                    <span class="badge sms">SMS</span>
+                    <div class="score-display"><div class="score-value medium">30.3</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[ALERT] $9B fraud. Zero accountability. If Walz gets away with this, election integrity will never be the same. Take action: [link]</div>
+                </div>
+            </div>
+            
+            <!-- GEMINI -->
+            <div class="section-header"><h2 style="color: #f78166;">Gemini 2.5</h2></div>
+            
+            <div class="creative-card" data-id="M-MMS1">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>M-MMS1: Alert / Social Proof ⭐⭐</h3>
+                        <div class="meta"><span>298 chars</span></div>
+                    </div>
+                    <span class="badge mms">MMS</span>
+                    <div class="score-display"><div class="score-value high">34.2</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[ALERT] [firstname|Friend], $9 BILLION stolen from Minnesota families under Tim Walz's watch—the largest COVID fraud in U.S. history. We need 1500 more responses from [zipcode|your area] to complete our Walz Accountability Survey. Should he face investigation? YES or NO: [link]</div>
+                    <div class="rationale"><strong>🏆 PANEL #1 — TOP PICK:</strong> "largest COVID fraud in U.S. history" = strong claim. Alert + social proof combo. Clean YES/NO close.</div>
+                </div>
+            </div>
+            
+            <div class="creative-card" data-id="M-MMS2">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>M-MMS2: Guilt / Apocalyptic ⭐</h3>
+                        <div class="meta"><span>289 chars</span></div>
+                    </div>
+                    <span class="badge mms">MMS</span>
+                    <div class="score-display"><div class="score-value high">33.0</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[firstname|Friend], you're making a huge mistake ignoring this. $9 BILLION in fraud happened under Walz—Minnesota will never be the same. The 2026 Senate races are our last chance to hold anyone accountable, and your survey response could tip the scales. Don't stay silent: [link]</div>
+                    <div class="rationale"><strong>🏆 PANEL #3:</strong> Heavy guilt driver. "your survey response could tip the scales" = personal impact.</div>
+                </div>
+            </div>
+            
+            <div class="creative-card" data-id="M-SMS1">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>M-SMS1: Binary Poll</h3>
+                        <div class="meta"><span>72 chars</span></div>
+                    </div>
+                    <span class="badge sms">SMS</span>
+                    <div class="score-display"><div class="score-value low">25.4</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">$9B FRAUD under Walz. Should he be investigated? YES/NO—vote now: [link]</div>
+                </div>
+            </div>
+            
+            <div class="creative-card" data-id="M-SMS2">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                    <div class="card-title">
+                        <h3>M-SMS2: Curiosity Gap</h3>
+                        <div class="meta"><span>84 chars</span></div>
+                    </div>
+                    <span class="badge sms">SMS</span>
+                    <div class="score-display"><div class="score-value low">26.5</div><div class="score-label">Panel</div></div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">I couldn't believe my eyes—$9 BILLION vanished under Walz. See what they hid: [link]</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Generated 2026-02-10 • Powered by Railstote 🦉 • <a href="SLF-MULTIMODEL-2026-02-10.md">Multi-Model Data</a>
+        </div>
+    </div>
+    
+    <script>
+        const creatives = {
+            'A1': 'Accountability Hook', 'A2': 'Secret Message', 'A3': 'Social Proof',
+            'B1': 'Scorched Earth', 'B2': 'Dem Panic', 'B3': 'Crisis Alert',
+            'C-MMS1': 'Claude: Social Proof', 'C-MMS2': 'Claude: Curiosity', 'C-SMS1': 'Claude: Poll', 'C-SMS2': 'Claude: ERROR',
+            'G-MMS1': 'GPT: Alert', 'G-MMS2': 'GPT: Curiosity', 'G-SMS1': 'GPT: Poll', 'G-SMS2': 'GPT: Apocalyptic',
+            'M-MMS1': 'Gemini: Alert ⭐', 'M-MMS2': 'Gemini: Guilt', 'M-SMS1': 'Gemini: Poll', 'M-SMS2': 'Gemini: Curiosity'
+        };
+        
+        function updateSelected() {
+            const selectedList = document.getElementById('selected-list');
+            const selectedCount = document.getElementById('selected-count');
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const selected = [];
+            
+            checkboxes.forEach(cb => {
+                const card = cb.closest('.creative-card');
+                if (card) {
+                    const id = card.dataset.id;
+                    if (cb.checked) {
+                        selected.push(id);
+                        card.classList.add('selected');
+                    } else {
+                        card.classList.remove('selected');
+                    }
+                }
+            });
+            
+            selectedCount.textContent = selected.length;
+            
+            if (selected.length === 0) {
+                selectedList.innerHTML = '<span class="empty-state">Check creatives below to add them here</span>';
+            } else {
+                selectedList.innerHTML = selected.map(id => `
+                    <span class="selected-tag">
+                        <strong>${id}</strong>: ${creatives[id] || id}
+                        <span class="remove" onclick="uncheckCreative('${id}')">&times;</span>
+                    </span>
+                `).join('');
+            }
+        }
+        
+        function uncheckCreative(id) {
+            const card = document.querySelector(`[data-id="${id}"]`);
+            if (card) {
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = false;
+                    updateSelected();
+                }
+            }
+        }
+        
+        function toggleCard(header) {
+            const body = header.nextElementSibling;
+            if (body && body.classList.contains('card-body')) {
+                body.style.display = body.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+        
+        function copySelected() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const ids = [];
+            checkboxes.forEach(cb => {
+                const card = cb.closest('.creative-card');
+                if (card) ids.push(card.dataset.id);
+            });
+            
+            if (ids.length === 0) { alert('No creatives selected'); return; }
+            
+            navigator.clipboard.writeText(ids.join(', ')).then(() => {
+                const btn = document.getElementById('copy-btn');
+                btn.textContent = '✅ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy Selected IDs';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

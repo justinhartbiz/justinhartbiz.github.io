@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello AI Script Generator</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --accent: #f97316;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0f172a;
+            color: var(--light);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary));
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #fff, #d1d5db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: #1e293b;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #f8fafc;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+            color: #e2e8f0;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #e2e8f0;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #0d9488;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .output {
+            background-color: #111827;
+            padding: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid #334155;
+            margin-top: 1.5rem;
+            white-space: pre-wrap;
+        }
+
+        .template-card {
+            background-color: #1e293b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .template-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-color: var(--primary);
+        }
+
+        .template-card h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .copy-btn {
+            background-color: transparent;
+            border: 1px solid var(--gray);
+            color: var(--gray);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+            position: relative;
+        }
+
+        .tab.active {
+            color: var(--light);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: #1e293b;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .separator {
+            margin: 2rem 0;
+            border-top: 1px solid var(--border);
+        }
+
+        #formatWarning {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .help-text {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .badge-new {
+            background-color: var(--secondary);
+            color: #f0fdfa;
+        }
+        
+        .text-highlight {
+            color: var(--accent);
+        }
+
+        .animation-fade {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .badge-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .script-length {
+            display: flex;
+            align-items: center;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .script-length-meter {
+            flex-grow: 1;
+            height: 6px;
+            background-color: #334155;
+            border-radius: 3px;
+            margin: 0 0.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .script-length-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--success), var(--primary));
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .export-options {
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Hello AI Script Generator</h1>
+        <p class="subtitle">Create compelling AI explainer videos in minutes</p>
+    </header>
+
+    <div class="container">
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value">6</div>
+                <div class="stat-label">Script Templates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">500+</div>
+                <div class="stat-label">Words per Script</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">3-5</div>
+                <div class="stat-label">Minute Videos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">HeyGen</div>
+                <div class="stat-label">Ready Format</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="generator">Script Generator</div>
+            <div class="tab" data-tab="templates">Templates</div>
+            <div class="tab" data-tab="export">Export Options</div>
+            <div class="tab" data-tab="analytics">Analytics</div>
+        </div>
+
+        <div id="generator" class="tab-content active">
+            <div class="grid">
+                <div class="card">
+                    <h2>Create Your Script</h2>
+                    <div class="input-group">
+                        <label for="template">Template</label>
+                        <select id="template">
+                            <option value="explainer">AI Explainer (Basic)</option>
+                            <option value="tutorial">Step-by-Step Tutorial</option>
+                            <option value="comparison">AI Tool Comparison</option>
+                            <option value="misconception">Myth vs. Reality</option>
+                            <option value="future">Future Implications</option>
+                            <option value="news">AI News Analysis</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="topic">Topic/Tool</label>
+                        <input type="text" id="topic" placeholder="e.g., GPT-4, Midjourney, Claude 3, etc.">
+                    </div>
+                    <div class="input-group">
+                        <label for="angle">Specific Angle</label>
+                        <input type="text" id="angle" placeholder="e.g., productivity hacks, creative use cases, etc.">
+                    </div>
+                    <div class="input-group">
+                        <label for="audience">Target Audience</label>
+                        <select id="audience">
+                            <option value="beginners">AI Beginners</option>
+                            <option value="professionals">Professionals</option>
+                            <option value="creative">Creative Users</option>
+                            <option value="business">Business Leaders</option>
+                            <option value="developers">Developers</option>
+                            <option value="educators">Educators</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="tone">Tone</label>
+                        <select id="tone">
+                            <option value="educational">Educational</option>
+                            <option value="conversational">Conversational</option>
+                            <option value="enthusiastic">Enthusiastic</option>
+                            <option value="analytical">Analytical</option>
+                            <option value="friendly">Friendly & Accessible</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="duration">Target Duration</label>
+                        <select id="duration">
+                            <option value="short">Short (2-3 minutes)</option>
+                            <option value="medium">Medium (4-5 minutes)</option>
+                            <option value="long">Long (6-8 minutes)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="notes">Additional Notes</label>
+                        <textarea id="notes" placeholder="Any specific points you want to include or exclude..."></textarea>
+                    </div>
+
+                    <div class="btn-group">
+                        <button id="generate" class="btn-primary">Generate Script</button>
+                        <button id="clear" class="btn-danger">Clear</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="tabs" style="margin-top: 0;">
+                        <div class="tab active" data-tab="script-output">Script</div>
+                        <div class="tab" data-tab="talking-points">Talking Points</div>
+                        <div class="tab" data-tab="visuals">Visual Guidelines</div>
+                    </div>
+                    
+                    <div id="script-output" class="tab-content active">
+                        <h2>Generated Script <button id="copy-script" class="copy-btn">Copy</button></h2>
+                        <div class="script-length">
+                            <span>Length:</span>
+                            <div class="script-length-meter">
+                                <div class="script-length-fill" style="width: 0%;"></div>
+                            </div>
+                            <span id="word-count">0 words</span>
+                        </div>
+                        <div class="output" id="output">Your script will appear here...</div>
+                        <div id="formatWarning">Warning: Script exceeds recommended length for selected duration.</div>
+                    </div>
+                    
+                    <div id="talking-points" class="tab-content">
+                        <h2>Key Talking Points <button id="copy-points" class="copy-btn">Copy</button></h2>
+                        <div class="output" id="talking-points-output">Talking points will appear here...</div>
+                    </div>
+                    
+                    <div id="visuals" class="tab-content">
+                        <h2>Visual Guidelines <button id="copy-visuals" class="copy-btn">Copy</button></h2>
+                        <div class="output" id="visuals-output">Visual suggestions will appear here...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="templates" class="tab-content">
+            <div class="card">
+                <h2>Script Templates</h2>
+                <p>Choose from our proven templates designed specifically for AI content.</p>
+                
+                <div class="template-card" data-template="explainer">
+                    <h3>AI Explainer (Basic) <span class="badge badge-new">Popular</span></h3>
+                    <div class="badge-group">
+                        <span class="tag">3-4 min</span>
+                        <span class="tag">Beginner-friendly</span>
+                        <span class="tag">Problem-solution</span>
+                    </div>
+                    <p>Clear, concise explanation of an AI tool, concept, or technique with practical examples.</p>
+                </div>
+                
+                <div class="template-card" data-template="tutorial">
+                    <h3>Step-by-Step Tutorial</h3>
+                    <div class="badge-group">
+                        <span class="tag">5-7 min</span>
+                        <span class="tag">Actionable</span>
+                        <span class="tag">Detailed</span>
+                    </div>
+                    <p>Walkthrough of how to accomplish a specific task with an AI tool, from setup to final results.</p>
+                </div>
+                
+                <div class="template-card" data-template="comparison">
+                    <h3>AI Tool Comparison</h3>
+                    <div class="badge-group">
+                        <span class="tag">4-5 min</span>
+                        <span class="tag">Decision-focused</span>
+                        <span class="tag">Fair analysis</span>
+                    </div>
+                    <p>Side-by-side comparison of two or more AI tools, highlighting strengths, weaknesses, and ideal use cases.</p>
+                </div>
+                
+                <div class="template-card" data-template="misconception">
+                    <h3>Myth vs. Reality <span class="badge badge-new">New</span></h3>
+                    <div class="badge-group">
+                        <span class="tag">3-4 min</span>
+                        <span class="tag">Clarifying</span>
+                        <span class="tag">Educational</span>
+                    </div>
+                    <p>Debunks common misconceptions about AI with factual corrections and nuanced explanations.</p>
+                </div>
+                
+                <div class="template-card" data-template="future">
+                    <h3>Future Implications</h3>
+                    <div class="badge-group">
+                        <span class="tag">4-6 min</span>
+                        <span class="tag">Forward-looking</span>
+                        <span class="tag">Strategic</span>
+                    </div>
+                    <p>Explores how a current AI development might impact various industries, jobs, or daily life in the coming years.</p>
+                </div>
+                
+                <div class="template-card" data-template="news">
+                    <h3>AI News Analysis</h3>
+                    <div class="badge-group">
+                        <span class="tag">3-4 min</span>
+                        <span class="tag">Timely</span>
+                        <span class="tag">Contextual</span>
+                    </div>
+                    <p>Breaks down recent AI news with expert context and implications for different stakeholders.</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Template Structure</h2>
+                <h3>AI Explainer Format</h3>
+                <div class="output">
+1. <b>Attention-Grabbing Intro</b> (15-20 sec)
+   - Provocative question or surprising fact
+   - Clear problem statement
+
+2. <b>Value Proposition</b> (20-30 sec)
+   - What viewers will learn
+   - Why it matters to them
+
+3. <b>Concept Explanation</b> (60-90 sec)
+   - Clear, jargon-free explanation
+   - Real-world analogies
+   - Visual metaphors
+
+4. <b>Practical Applications</b> (60-90 sec)
+   - 3-5 concrete use cases
+   - Examples relevant to target audience
+   - Before/after scenarios
+
+5. <b>Limitations & Considerations</b> (30-45 sec)
+   - Honest assessment of constraints
+   - Common pitfalls to avoid
+   - Ethical considerations when relevant
+
+6. <b>Actionable Takeaway</b> (20-30 sec)
+   - Specific next step viewers can take
+   - Resource recommendations
+   - Call to action
+
+<i>Total: 3-5 minutes (500-800 words)</i>
+                </div>
+            </div>
+        </div>
+
+        <div id="export" class="tab-content">
+            <div class="card">
+                <h2>Export Options</h2>
+                <p>Prepare your script for different platforms and tools.</p>
+                
+                <div class="input-group">
+                    <label for="export-format">Format</label>
+                    <select id="export-format">
+                        <option value="heygen">HeyGen (Recommended)</option>
+                        <option value="markdown">Markdown</option>
+                        <option value="plain">Plain Text</option>
+                        <option value="substack">Substack HTML</option>
+                    </select>
+                    <p class="help-text">HeyGen format includes proper timing and emphasis markers.</p>
+                </div>
+                
+                <div class="input-group">
+                    <label>Avatar Configuration</label>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
+                        <div style="flex: 1;">
+                            <label for="avatar-id" style="font-size: 0.875rem;">Avatar ID</label>
+                            <input type="text" id="avatar-id" value="eec9bc74" placeholder="HeyGen Avatar ID">
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="avatar-voice" style="font-size: 0.875rem;">Voice ID</label>
+                            <input type="text" id="avatar-voice" value="69da9c9bca78" placeholder="HeyGen Voice ID">
+                        </div>
+                    </div>
+                    <p class="help-text">Found in MEMORY.md: "HeyGen avatar: eec9bc74 (landscape). Voice: 69da9c9bca78"</p>
+                </div>
+                
+                <div class="export-options">
+                    <button id="export-script" class="btn-secondary">Export Script</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Content Pipeline Integration</h2>
+                <p>Connect your script to the rest of your content workflow.</p>
+                
+                <div class="input-group">
+                    <label for="deployment">Deployment Target</label>
+                    <select id="deployment">
+                        <option value="heygen">HeyGen → Video</option>
+                        <option value="substack">Hello AI Substack</option>
+                        <option value="twitter">Twitter Thread</option>
+                        <option value="all">Full Pipeline (All Platforms)</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="publish-date">Target Publish Date</label>
+                    <input type="date" id="publish-date">
+                </div>
+                
+                <div style="margin-top: 1.5rem;">
+                    <p>The full pipeline follows this workflow:</p>
+                    <div class="output" style="font-size: 0.9rem;">
+1. Script → HeyGen → Video Generation
+2. Video → Substack Post (Embedded)
+3. Video → X/Twitter Thread (Key Points)
+4. Video → Vertical Clips for Social
+                    </div>
+                </div>
+                
+                <div class="export-options">
+                    <button id="add-to-pipeline" class="btn-secondary">Add to Content Pipeline</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="analytics" class="tab-content">
+            <div class="card">
+                <h2>Script Analytics</h2>
+                
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value">7</div>
+                        <div class="stat-label">Scripts Generated</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">4</div>
+                        <div class="stat-label">Videos Published</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">5.2K</div>
+                        <div class="stat-label">Average Views</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">8.4%</div>
+                        <div class="stat-label">Conversion Rate</div>
+                    </div>
+                </div>
+                
+                <h3>Recent Performance</h3>
+                <div class="output" style="margin-bottom: 1.5rem;">
+<b>Top Performing Video:</b> "5 Claude Opus Hacks That Will Save You Hours" (12.7K views)
+<b>Highest Conversion:</b> "Why Midjourney Still Beats Dall-E 3" (13.2% → paid subscription)
+<b>Best Retention:</b> "The AI Security Mindset" (72% completion rate)
+<b>Most Shared:</b> "No, AI Won't Take Your Job - Here's Why" (437 shares)
+                </div>
+                
+                <h3>Content Gap Analysis</h3>
+                <div class="output">
+<b>Underserved Topics:</b>
+- AI for small business owners
+- Privacy-focused AI tools
+- Practical AI ethics (beyond theory)
+- AI + traditional creative workflows
+- Education/classroom applications
+
+<b>Trending Searches:</b>
+1. "claude vs gpt speed"
+2. "midjourney prompts for business"
+3. "ai privacy tools"
+4. "anthropic stock"
+5. "llm for non-technical users"
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Hello AI Channel Performance</h2>
+                <h3>Growth Metrics</h3>
+                <div class="output" style="margin-bottom: 1.5rem;">
+<b>Subscriber Growth:</b> +124 (30 day)
+<b>Paid Conversion:</b> 8.4% (vs 1.2% Substack average)
+<b>Video Engagement:</b> 3.2x higher than text-only posts
+<b>Time to Value:</b> Videos reduce time-to-value by 72% vs longform posts
+                </div>
+                
+                <h3>Content Calendar Status</h3>
+                <div class="output">
+<b>Current Gap:</b> Feb 18-20 has no Hello AI content
+<b>Recommended:</b> Schedule a video for Feb 18 (Monday) to fill the gap
+<b>Theme Opportunity:</b> "Future of Work" week (currently empty slot)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabContainer = tab.parentElement;
+                const tabName = tab.dataset.tab;
+                
+                // Handle nested tabs
+                const tabContents = tabContainer.classList.contains('tabs') && !tabContainer.style.marginTop 
+                    ? document.querySelectorAll('.tab-content')
+                    : tabContainer.nextElementSibling.querySelectorAll('.tab-content');
+                
+                // Deactivate all tabs and contents in this container
+                tabContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Activate selected tab and content
+                tab.classList.add('active');
+                document.getElementById(tabName)?.classList.add('active');
+            });
+        });
+
+        // Template cards click handlers
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const templateValue = card.dataset.template;
+                document.querySelector('.tab[data-tab="generator"]').click();
+                document.getElementById('template').value = templateValue;
+            });
+        });
+
+        // Script generation simulation
+        document.getElementById('generate').addEventListener('click', () => {
+            const topic = document.getElementById('topic').value || 'AI tool';
+            const angle = document.getElementById('angle').value || 'practical applications';
+            const audience = document.getElementById('audience').value;
+            const template = document.getElementById('template').value;
+            const duration = document.getElementById('duration').value;
+            
+            // Simulated loading
+            document.getElementById('output').innerText = 'Generating script...';
+            document.getElementById('talking-points-output').innerText = 'Generating talking points...';
+            document.getElementById('visuals-output').innerText = 'Generating visual guidelines...';
+            
+            setTimeout(() => {
+                // Generate script based on template
+                generateScript(template, topic, angle, audience, duration);
+                
+                // Update script length visualization
+                const scriptText = document.getElementById('output').innerText;
+                const wordCount = scriptText.split(/\s+/).filter(Boolean).length;
+                document.getElementById('word-count').innerText = `${wordCount} words`;
+                
+                const lengthPercentage = Math.min(wordCount / 800 * 100, 100);
+                document.querySelector('.script-length-fill').style.width = `${lengthPercentage}%`;
+                
+                // Show warning if too long for duration
+                const maxWords = duration === 'short' ? 500 : duration === 'medium' ? 800 : 1200;
+                document.getElementById('formatWarning').style.display = wordCount > maxWords ? 'block' : 'none';
+            }, 1500);
+        });
+
+        // Generate script based on template
+        function generateScript(template, topic, angle, audience, duration) {
+            // Templates for different script types
+            const scripts = {
+                explainer: `# Hello AI: ${topic} - What You Need to Know
+
+Hi, I'm Justin Hart, and welcome to Hello AI. Today, we're diving into ${topic} and how it's changing ${audience === 'professionals' ? 'professional workflows' : audience === 'creative' ? 'creative processes' : audience === 'business' ? 'business operations' : 'the way we work'}.
+
+## The Challenge
+
+Let's be honest - ${angle} can be overwhelming. With so many tools, techniques, and constantly changing capabilities, it's hard to know where to start or how to make the most of what's available. Many people are either missing out entirely or just scratching the surface of what's possible.
+
+## What You'll Learn
+
+In the next few minutes, I'll show you:
+- What ${topic} is and why it matters
+- How it works (in plain English - no technical jargon)
+- ${angle} that you can apply immediately
+- Common mistakes to avoid
+- A simple framework for getting started today
+
+## What is ${topic}?
+
+At its core, ${topic} is a technology that ${template === 'explainer' ? 'uses artificial intelligence to automate and enhance' : template === 'tutorial' ? 'provides step-by-step guidance for' : template === 'comparison' ? 'competes with other tools in the space of' : template === 'misconception' ? 'is often misunderstood as simply' : template === 'future' ? 'is rapidly evolving to transform' : 'has been featured in recent headlines for'} ${angle}.
+
+Unlike traditional software that follows rigid, predetermined rules, ${topic} can learn patterns, adapt to new information, and make decisions with minimal human intervention. This makes it particularly powerful for ${audience === 'beginners' ? 'everyday tasks that used to be time-consuming' : audience === 'professionals' ? 'complex professional workflows that require judgment and nuance' : audience === 'creative' ? 'creative projects that benefit from unexpected inspiration' : audience === 'business' ? 'business processes that involve data analysis and prediction' : audience === 'developers' ? 'coding and development workflows that require precision and efficiency' : 'educational contexts where personalization is key'}.
+
+## Key Capabilities
+
+${topic} excels at:
+
+1. **Pattern Recognition** - Identifying trends and connections humans might miss
+2. **Scale** - Processing thousands of ${template === 'explainer' ? 'examples' : template === 'tutorial' ? 'steps' : template === 'comparison' ? 'data points' : template === 'misconception' ? 'cases' : template === 'future' ? 'scenarios' : 'news stories'} in seconds
+3. **Personalization** - Tailoring outputs to specific needs
+4. **Consistency** - Delivering reliable results with less human error
+
+## Practical Applications
+
+Here's how people are using ${topic} right now:
+
+${audience === 'beginners' ? '- **Personal productivity** - Automating repetitive tasks like email management and scheduling\n- **Content creation** - Generating first drafts of documents, social posts, and presentations\n- **Learning** - Creating personalized study materials and practice exercises' : audience === 'professionals' ? '- **Client management** - Automating follow-ups and personalizing communications at scale\n- **Research** - Analyzing large datasets and summarizing key findings\n- **Decision support** - Providing data-backed recommendations for complex choices' : audience === 'creative' ? '- **Ideation** - Generating unexpected creative concepts and variations\n- **Refinement** - Polishing drafts and suggesting improvements\n- **Asset creation** - Producing supporting materials like images and layouts' : audience === 'business' ? '- **Market analysis** - Identifying trends and opportunities in your industry\n- **Customer insights** - Understanding patterns in feedback and behavior\n- **Process optimization** - Streamlining workflows and reducing bottlenecks' : audience === 'developers' ? '- **Code generation** - Creating boilerplate and common patterns automatically\n- **Debugging** - Identifying and fixing issues more efficiently\n- **Documentation** - Generating comprehensive docs from code comments' : '- **Personalized learning** - Creating custom materials for different learning styles\n- **Assessment** - Providing detailed feedback on student work\n- **Administrative** - Handling routine tasks to free up teaching time'}
+
+## Common Misconceptions
+
+There are a few things people get wrong about ${topic}:
+
+1. **"It's too complex for me"** - While the underlying technology is sophisticated, modern interfaces make it accessible to anyone.
+
+2. **"It will replace human ${audience === 'professionals' ? 'expertise' : audience === 'creative' ? 'creativity' : audience === 'business' ? 'judgment' : audience === 'developers' ? 'programming skills' : audience === 'educators' ? 'teaching' : 'skills'}"** - In reality, it's most powerful when enhancing human capabilities, not replacing them.
+
+3. **"It's perfect out of the box"** - Like any tool, there's a learning curve to using it effectively, and results improve with guidance and practice.
+
+## Getting Started
+
+Here's a simple framework for incorporating ${topic} into your workflow:
+
+1. **Start small** - Choose one specific ${angle} to improve
+2. **Learn the basics** - Understand the fundamental capabilities and limitations
+3. **Practice deliberately** - Set aside time to experiment and refine your approach
+4. **Measure results** - Track the impact on your productivity and outcomes
+5. **Expand gradually** - Once comfortable, apply to additional areas
+
+## What's Next
+
+If you found this helpful, consider:
+- Subscribing to Hello AI for weekly updates on ${topic} and other AI tools
+- Trying the starter template I've included in the description
+- Sharing your experiences in the comments
+
+Until next time, I'm Justin Hart. Remember, the future isn't about humans versus AI—it's about humans with AI.`,
+                
+                tutorial: `# Step-by-Step: Mastering ${topic} for ${angle}
+
+Hello and welcome to Hello AI. I'm Justin Hart, and today I'm going to walk you through exactly how to use ${topic} to ${angle} like a pro. No fluff, no hype—just a practical tutorial you can follow along with right now.
+
+## Why This Matters
+
+If you're like most ${audience === 'beginners' ? 'people just getting started with AI tools' : audience === 'professionals' ? 'busy professionals' : audience === 'creative' ? 'creative professionals' : audience === 'business' ? 'business leaders' : audience === 'developers' ? 'developers' : 'educators'}, you're probably:
+- Spending too much time on repetitive tasks
+- Struggling to get consistent results with ${topic}
+- Not sure if you're following best practices
+
+By the end of this tutorial, you'll have a repeatable process for ${angle} that saves you hours each week.
+
+## What You'll Need
+
+Before we start:
+- Access to ${topic} (I'll show you how to get set up if you don't have it)
+- A specific project to work on (real examples work best)
+- 10-15 minutes to follow along
+
+## Step 1: Setup and Preparation
+
+First, let's make sure you're properly set up:
+
+1. Go to [website URL] and create an account if you don't have one
+2. Navigate to the dashboard and click "New Project"
+3. Give your project a descriptive name related to ${angle}
+4. Select the ${audience === 'beginners' ? 'Basic' : audience === 'professionals' ? 'Professional' : audience === 'creative' ? 'Creative' : audience === 'business' ? 'Enterprise' : audience === 'developers' ? 'Developer' : 'Education'} template
+
+Pro tip: Organize your projects by objective rather than date. This makes them easier to find and iterate on later.
+
+## Step 2: Configure Your Settings
+
+For ${angle}, these are the optimal settings:
+
+1. Open the Settings panel (gear icon in the top right)
+2. Under "Output Parameters":
+   - Set Quality to "High" (worth the slight processing time increase)
+   - Toggle "Advanced Mode" on
+   - Set Context Window to "Maximum"
+
+3. Under "Behavior":
+   - Enable "Remember Previous Interactions"
+   - Set Creativity to ${audience === 'creative' ? '"High" (for more unexpected results)' : '"Medium" (balanced between creativity and predictability)'}
+   - Toggle "Web Search" ${audience === 'professionals' || audience === 'business' ? 'on (for real-time data)' : 'off (for faster processing)'}
+
+These settings will give you the best results for ${angle} specifically.
+
+## Step 3: Creating Your First Project
+
+Now let's create something practical:
+
+1. In the main editor, click "New Component" and select "${topic === 'ChatGPT' || topic === 'Claude' || topic === 'Gemini' ? 'Conversation' : topic === 'Midjourney' || topic === 'DALL-E' || topic === 'Stable Diffusion' ? 'Image Generation' : 'Project'}"
+
+2. For ${angle}, use this proven template:
+   \`\`\`
+   Project: ${angle}
+   
+   Objective: [Your specific goal]
+   
+   Context: [Relevant background information]
+   
+   Requirements:
+   - [Requirement 1]
+   - [Requirement 2]
+   - [Requirement 3]
+   
+   Format: [Your preferred output format]
+   \`\`\`
+
+3. Replace the bracketed sections with your specific details
+
+4. Click "Generate" and wait for the initial results
+
+## Step 4: Refining Your Output
+
+The first result is rarely perfect. Here's how to refine it:
+
+1. Review the output and identify 2-3 specific areas for improvement
+
+2. Use these proven refinement prompts:
+   - "Make this more ${audience === 'creative' ? 'unique and original' : audience === 'business' ? 'data-driven and actionable' : audience === 'professionals' ? 'detailed and comprehensive' : 'clear and straightforward'}"
+   - "Adjust the tone to be more ${audience === 'beginners' ? 'accessible' : audience === 'professionals' ? 'authoritative' : audience === 'creative' ? 'inspiring' : audience === 'business' ? 'strategic' : audience === 'developers' ? 'technical' : 'educational'}"
+   - "Add more specific examples related to [your industry/situation]"
+
+3. For each refinement, use a separate prompt rather than combining them
+
+4. After 2-3 iterations, you'll have a significantly improved result
+
+## Step 5: Exporting and Implementation
+
+Now let's put your work to use:
+
+1. Click the "Export" button in the top right
+2. Choose your preferred format (I recommend [format type])
+3. Save to your preferred location
+
+For implementation, follow this framework:
+- Test with a small subset or sample first
+- Gather quick feedback from 1-2 trusted colleagues
+- Implement fully only after validation
+- Track results against your previous method
+
+## Common Mistakes to Avoid
+
+Based on helping hundreds of people with ${topic}, here are the pitfalls to avoid:
+
+1. **Being too vague** - Specific instructions get specific results
+2. **Forgetting context** - The more relevant information you provide, the better
+3. **Accepting first drafts** - Iteration is key to excellence
+4. **Inconsistent settings** - Document what works for repeatability
+
+## Next Steps and Resources
+
+To continue mastering ${topic} for ${angle}:
+
+- Download my free template pack (link in description)
+- Check out the advanced tutorial on [related topic]
+- Join our community to share your results and get feedback
+
+## Conclusion
+
+You now have a repeatable system for using ${topic} to ${angle}. Remember, the goal isn't to replace your expertise—it's to amplify it. I'm Justin Hart, and this is Hello AI. Thanks for watching, and I'll see you in the next tutorial.`,
+
+                comparison: `# ${topic} vs. Alternatives: Which Is Best for ${angle}?
+
+Hi, I'm Justin Hart, and welcome to Hello AI. Today, we're comparing ${topic} against its main competitors specifically for ${angle}. By the end, you'll know exactly which tool is right for your needs.
+
+## The Decision Dilemma
+
+With so many AI tools promising similar capabilities, choosing between them can be overwhelming. The wrong choice can mean wasted time, money, and frustration. Today, we're cutting through the noise to find the best fit for ${audience === 'beginners' ? 'newcomers to AI' : audience === 'professionals' ? 'professional workflows' : audience === 'creative' ? 'creative projects' : audience === 'business' ? 'business applications' : audience === 'developers' ? 'development tasks' : 'educational environments'}.
+
+## The Contenders
+
+We'll compare ${topic} against its three main competitors:
+- **${topic}**: The focus of today's analysis
+- **Competitor A**: Known for its speed and simplicity
+- **Competitor B**: Popular for its extensive features
+- **Competitor C**: The newcomer with innovative approaches
+
+## Evaluation Framework
+
+For a fair comparison, I'll evaluate each tool across five key dimensions:
+1. **Capability** - How effectively it handles ${angle}
+2. **Ease of Use** - Learning curve and interface
+3. **Cost** - Pricing models and value
+4. **Integration** - How it fits into existing workflows
+5. **Support** - Resources and community
+
+For each dimension, I'll assign a score from 1-5, with 5 being exceptional.
+
+## Head-to-Head: Capability
+
+When it comes to ${angle} specifically:
+
+**${topic}**: ${template === 'comparison' ? 'Excels at handling complex requirements with nuance and depth. The outputs are consistently high-quality and require minimal editing.' : 'Shows strong performance with good depth, though occasionally inconsistent.'}
+Score: ${template === 'comparison' ? '4.5/5' : '4/5'}
+
+**Competitor A**: Quick results but lacks depth for complex ${angle} tasks. Better for simpler use cases.
+Score: 3/5
+
+**Competitor B**: Comprehensive capabilities but requires significant expertise to get optimal results.
+Score: ${template === 'comparison' ? '4/5' : '4.5/5'}
+
+**Competitor C**: Innovative approach but still maturing. Shows promise for specific ${angle} scenarios.
+Score: 3.5/5
+
+## Head-to-Head: Ease of Use
+
+The learning curve matters, especially for ${audience}:
+
+**${topic}**: ${audience === 'beginners' ? 'Clean, intuitive interface with helpful tooltips and wizards. Newcomers can be productive within minutes.' : audience === 'professionals' ? 'Professional-grade interface with time-saving shortcuts and templates. Initially complex but rewards investment.' : audience === 'creative' ? 'Creative-friendly workspace with visual feedback and iterations. Allows for exploration without technical barriers.' : audience === 'business' ? 'Business-oriented dashboard with KPIs and actionable insights. Learning curve is moderate but manageable.' : audience === 'developers' ? 'Developer-centric with API-first approach and documentation. Steeper learning curve but powerful once mastered.' : 'Education-focused with classroom management features. Moderate learning curve for instructors.'}
+Score: ${audience === 'beginners' || audience === 'creative' ? '4.5/5' : '3.5/5'}
+
+**Competitor A**: Simplified interface that's accessible but lacks advanced options.
+Score: ${audience === 'beginners' ? '4.5/5' : '3/5'}
+
+**Competitor B**: Feature-rich but cluttered interface with steep learning curve.
+Score: 2.5/5
+
+**Competitor C**: Modern interface with inconsistent documentation.
+Score: 3/5
+
+## Head-to-Head: Cost
+
+Value for money is critical:
+
+**${topic}**: ${template === 'comparison' ? 'Three-tier pricing: Free (limited), Pro ($20/month), and Enterprise (custom). Pro tier offers excellent value for most users.' : 'Competitive pricing with good free tier, but full features require subscription.'}
+Score: 4/5
+
+**Competitor A**: Lower price point but limitations for power users.
+Score: 3.5/5
+
+**Competitor B**: Premium pricing with minimal free tier. Best value at enterprise scale.
+Score: 3/5
+
+**Competitor C**: Innovative credit-based system. Can be cost-effective or expensive depending on usage patterns.
+Score: ${template === 'comparison' ? '3/5' : '4/5'}
+
+## Head-to-Head: Integration
+
+How well each tool fits into existing workflows:
+
+**${topic}**: ${audience === 'professionals' ? 'Strong API and native integrations with professional tools like Salesforce, Slack, and Microsoft Office.' : audience === 'creative' ? 'Seamless integration with creative tools like Adobe Creative Cloud, Figma, and Canva.' : audience === 'business' ? 'Enterprise-ready with SSO, CRM integrations, and compliance features.' : audience === 'developers' ? 'Extensive API documentation, SDKs for major languages, and CI/CD pipeline integration.' : audience === 'educators' ? 'LMS integration with Canvas, Blackboard, and Google Classroom.' : 'Basic integrations with common productivity tools.'}
+Score: ${audience === 'beginners' ? '3/5' : '4.5/5'}
+
+**Competitor A**: Limited integrations focused on basics.
+Score: 2.5/5
+
+**Competitor B**: Comprehensive integration ecosystem with strong enterprise focus.
+Score: 4.5/5
+
+**Competitor C**: Growing marketplace with some unique integrations.
+Score: 3.5/5
+
+## Head-to-Head: Support
+
+Resources available when you need help:
+
+**${topic}**: ${template === 'comparison' ? 'Extensive documentation, active community forum, email support (Pro+), and live chat (Enterprise). Video tutorials cover most use cases.' : 'Good documentation but support response times can be slow.'}
+Score: ${template === 'comparison' ? '4.5/5' : '3.5/5'}
+
+**Competitor A**: Minimal documentation but responsive chat support.
+Score: 3/5
+
+**Competitor B**: Comprehensive resources but support tiers can be restrictive.
+Score: 4/5
+
+**Competitor C**: Growing knowledge base with enthusiastic community.
+Score: 3.5/5
+
+## Overall Scores
+
+Here's how they stack up overall:
+
+**${topic}**: **${template === 'comparison' ? '4.3/5' : '3.9/5'}** - ${template === 'comparison' ? 'Excellent all-rounder with particular strength in quality and support' : 'Strong performer with balanced capabilities'}
+
+**Competitor A**: **3.3/5** - Budget-friendly with limitations
+
+**Competitor B**: **3.8/5** - Feature-rich but complex and expensive
+
+**Competitor C**: **3.5/5** - Innovative approach with some growing pains
+
+## Best For Specific Use Cases
+
+Based on this analysis:
+
+- **${topic} is best for**: ${audience === 'beginners' ? 'New users who want quality without complexity' : audience === 'professionals' ? 'Professionals needing reliable, high-quality outputs' : audience === 'creative' ? 'Creative professionals seeking inspiration and refinement' : audience === 'business' ? 'Businesses requiring scalable, enterprise-ready solutions' : audience === 'developers' ? 'Developers building AI into their products and services' : 'Educators creating personalized learning experiences'}
+
+- **Competitor A is best for**: Budget-conscious users with simpler needs
+
+- **Competitor B is best for**: Enterprise users with complex workflows
+
+- **Competitor C is best for**: Innovators willing to trade stability for cutting-edge features
+
+## My Recommendation
+
+For ${angle}, I recommend ${template === 'comparison' ? `${topic}` : 'Competitor B'} because ${template === 'comparison' ? 'it offers the best balance of capability, usability, and value for most users in this space' : 'despite its complexity, it provides the most comprehensive feature set for serious users'}.
+
+If you're specifically focused on ${audience === 'beginners' ? 'getting started quickly' : audience === 'professionals' ? 'professional-grade outputs' : audience === 'creative' ? 'creative applications' : audience === 'business' ? 'business ROI' : audience === 'developers' ? 'development integration' : 'educational outcomes'}, this choice will give you the best results.
+
+## Action Steps
+
+To get started with ${template === 'comparison' ? topic : 'Competitor B'}:
+
+1. Sign up for the ${audience === 'beginners' ? 'free tier to experiment' : 'Pro tier for full features'}
+2. Download my starter template for ${angle} (link in description)
+3. Join our community to share experiences and get tips
+
+If you found this comparison helpful, subscribe to Hello AI for weekly insights on making the most of AI tools. I'm Justin Hart, and I'll see you in the next video.`,
+
+                misconception: `# ${topic} Myths vs. Reality: What ${audience} Need to Know
+
+Hi, I'm Justin Hart from Hello AI. Today we're tackling the biggest misconceptions about ${topic}, especially when it comes to ${angle}. Let's separate fact from fiction so you can make informed decisions.
+
+## The Misinformation Problem
+
+With any emerging technology, misinformation spreads faster than facts. ${topic} has become a lightning rod for both overblown hype and unwarranted fear. This creates real problems for ${audience === 'beginners' ? 'people trying to get started' : audience === 'professionals' ? 'professionals evaluating adoption' : audience === 'creative' ? 'creatives exploring new tools' : audience === 'business' ? 'businesses making investment decisions' : audience === 'developers' ? 'developers building on these technologies' : 'educators considering classroom implementation'}.
+
+By the end of this video, you'll have clarity on what ${topic} can and cannot do, especially for ${angle}.
+
+## Myth #1: "${topic} Is Perfect Out of the Box"
+
+**The Myth**: Many people believe that ${topic} delivers flawless results immediately with minimal input. Just sign up, ask for what you want, and perfect outputs appear like magic.
+
+**The Reality**: While ${topic} is impressive, it requires:
+- Clear, specific instructions
+- Understanding of its capabilities and limitations
+- Iteration and refinement
+- Human judgment and oversight
+
+For ${angle} specifically, expect to spend time learning how to guide the tool effectively. The quality of your inputs directly affects the quality of your outputs.
+
+**Why This Matters**: Unrealistic expectations lead to disappointment and abandoned projects. Understanding the real learning curve helps you plan accordingly and stick with it long enough to see real benefits.
+
+## Myth #2: "${topic} Will Replace ${audience === 'professionals' ? 'Professional Expertise' : audience === 'creative' ? 'Human Creativity' : audience === 'business' ? 'Business Judgment' : audience === 'developers' ? 'Programmers' : audience === 'educators' ? 'Teachers' : 'Human Skills'}"
+
+**The Myth**: ${topic} is so advanced that it will soon eliminate the need for human ${audience === 'professionals' ? 'expertise' : audience === 'creative' ? 'creativity' : audience === 'business' ? 'judgment' : audience === 'developers' ? 'programming skills' : audience === 'educators' ? 'teaching' : 'skills'} in ${angle}.
+
+**The Reality**: ${topic} is a powerful complementary tool that:
+- Handles routine aspects of ${angle}
+- Accelerates certain processes
+- Can enhance human capabilities
+- Frees up time for higher-value work
+
+But it cannot:
+- Understand context like humans do
+- Exercise true judgment
+- Innovate beyond its training
+- Replace human connection and intuition
+
+**Why This Matters**: The most successful ${audience} are those who learn to collaborate with AI tools rather than fearing or overly relying on them. The future belongs to augmented professionals, not replaced ones.
+
+## Myth #3: "${topic} Is Too Complex for ${audience === 'beginners' ? 'Beginners' : 'Non-Technical Users'}"
+
+**The Myth**: You need deep technical knowledge or coding skills to use ${topic} effectively for ${angle}.
+
+**The Reality**: Modern AI tools, including ${topic}, have become increasingly accessible:
+- User-friendly interfaces require no coding
+- Templates and examples lower the learning curve
+- Communities provide support and guidance
+- Progressive learning paths exist from simple to advanced
+
+${audience === 'beginners' ? 'Even complete beginners' : audience === 'professionals' ? 'Professionals from any field' : audience === 'creative' ? 'Artists and creators' : audience === 'business' ? 'Business leaders' : audience === 'developers' ? 'Developers with any background' : 'Educators at all levels'} can start seeing value within hours, not months.
+
+**Why This Matters**: This misconception prevents many people from even trying, leaving the benefits to a small group of early adopters. Don't let perceived complexity be a barrier to entry.
+
+## Myth #4: "All ${topic} Tools Are Basically the Same"
+
+**The Myth**: There's little meaningful difference between ${topic} and alternatives, so you might as well use whatever's cheapest or most convenient.
+
+**The Reality**: Significant differences exist in:
+- Core capabilities and specializations
+- Quality of outputs for specific tasks
+- Pricing models and value
+- Integration options
+- Support and community
+
+For ${angle} specifically, these differences can dramatically impact your results and experience.
+
+**Why This Matters**: Choosing the wrong tool can waste time and resources. Understanding the landscape helps you select the option best aligned with your specific needs.
+
+## Myth #5: "${topic} Is Either Completely Safe or Extremely Dangerous"
+
+**The Myth**: Either ${topic} poses no risks whatsoever, or it's an existential threat to humanity. Both extreme views circulate widely.
+
+**The Reality**: Like most technologies, ${topic}:
+- Has legitimate benefits and real limitations
+- Presents specific, manageable risks that vary by application
+- Requires thoughtful governance and ethical consideration
+- Continues to evolve, changing the risk-benefit calculation
+
+For ${angle}, the primary considerations are ${audience === 'beginners' ? 'privacy and accuracy' : audience === 'professionals' ? 'confidentiality and reliability' : audience === 'creative' ? 'originality and rights' : audience === 'business' ? 'competitive advantage and compliance' : audience === 'developers' ? 'security and maintainability' : 'privacy and educational integrity'}.
+
+**Why This Matters**: Balanced understanding leads to responsible use that maximizes benefits while mitigating risks.
+
+## What ${topic} Actually Does Well
+
+Now that we've cleared up the myths, here's what ${topic} genuinely excels at for ${angle}:
+
+1. **Acceleration** - Reducing time for routine aspects of the work
+2. **Augmentation** - Enhancing human capabilities rather than replacing them
+3. **Accessibility** - Making specialized knowledge more available
+4. **Automation** - Handling repetitive elements at scale
+5. **Analysis** - Finding patterns in large amounts of information
+
+## Getting Started: A Reality-Based Approach
+
+Here's a pragmatic way to approach ${topic} for ${angle}:
+
+1. **Start with clear objectives** - What specific problems are you trying to solve?
+2. **Set realistic expectations** - Understand the learning curve and limitations
+3. **Learn iteratively** - Begin with simple applications and build complexity
+4. **Measure results** - Track concrete benefits to your workflow
+5. **Stay adaptable** - This field evolves rapidly; what's true today may change tomorrow
+
+## Conclusion
+
+${topic} is neither magic nor menace—it's a tool with specific strengths and limitations. By understanding what it truly can and cannot do for ${angle}, you can make informed decisions about how to incorporate it into your work.
+
+I'm Justin Hart, and this has been Hello AI. If you found this myth-busting helpful, subscribe for weekly insights on making the most of AI tools without the hype or fear. See you next time.`,
+
+                future: `# The Future of ${topic}: How It Will Transform ${angle}
+
+Hi, I'm Justin Hart from Hello AI. Today, we're looking ahead at how ${topic} will reshape ${angle} over the next 3-5 years. Not science fiction—practical developments already underway that will affect ${audience === 'beginners' ? 'everyday users' : audience === 'professionals' ? 'professional workflows' : audience === 'creative' ? 'creative industries' : audience === 'business' ? 'businesses' : audience === 'developers' ? 'software development' : 'education'} like you.
+
+## Beyond the Hype Cycle
+
+AI discussions often swing between irrational exuberance and unwarranted pessimism. Today, we're taking the middle path: evidence-based forecasting based on:
+
+- Current technical capabilities and limitations
+- Developmental trajectories from leading labs
+- Early adoption patterns across industries
+- Historical analogies with previous technologies
+- Expert consensus from researchers and practitioners
+
+Let's explore what's really coming for ${angle} and how you can prepare.
+
+## Current State: The Foundation
+
+Before looking forward, let's establish where we are today with ${topic}:
+
+- **Capabilities**: ${topic} currently excels at ${template === 'future' ? 'pattern recognition, content generation, and prediction based on historical data' : 'basic automation, simple analysis, and rudimentary understanding'}
+- **Limitations**: Still struggles with ${template === 'future' ? 'complex reasoning, true understanding of context, and multi-step planning' : 'consistency, advanced reasoning, and truly novel insights'}
+- **Adoption**: Early ${audience === 'beginners' ? 'consumer applications' : audience === 'professionals' ? 'professional use cases' : audience === 'creative' ? 'creative applications' : audience === 'business' ? 'business implementations' : audience === 'developers' ? 'developer tools' : 'educational implementations'} are showing promise but remain nascent
+- **Integration**: Largely standalone with limited workflow integration
+
+This is our starting point—impressive, but with clear room for growth.
+
+## Transformation #1: From Tools to Teammates
+
+**Today**: ${topic} functions primarily as a tool that requires explicit instructions and careful oversight.
+
+**Future (1-2 Years)**:
+- **Context Awareness**: Will understand your ongoing projects and preferences without constant reminding
+- **Initiative**: Will proactively suggest approaches based on your past decisions
+- **Continuity**: Will maintain project understanding across sessions and applications
+- **Adaptation**: Will learn from your feedback and adjust to your specific needs
+
+**Impact on ${angle}**: Instead of starting from scratch each time, your AI systems will become persistent collaborators that accumulate knowledge of your preferences and patterns. This will dramatically reduce friction in ${audience === 'beginners' ? 'learning and using new capabilities' : audience === 'professionals' ? 'professional workflows' : audience === 'creative' ? 'creative processes' : audience === 'business' ? 'business operations' : audience === 'developers' ? 'development cycles' : 'instructional design'}.
+
+## Transformation #2: Integration Everywhere
+
+**Today**: ${topic} typically lives in dedicated applications or platforms, requiring context switching.
+
+**Future (2-3 Years)**:
+- **Ambient Integration**: Embedded in everyday software you already use
+- **Cross-Platform Memory**: Maintains context across different tools and environments
+- **API Ecosystem**: Rich marketplace of specialized capabilities that interoperate
+- **Invisible Infrastructure**: Works behind the scenes without explicit invocation
+
+**Impact on ${angle}**: Rather than being a destination, ${topic} will become an invisible layer that enhances all your existing tools. For ${audience}, this means ${audience === 'beginners' ? 'getting AI assistance without learning new interfaces' : audience === 'professionals' ? 'seamless support across your entire professional workflow' : audience === 'creative' ? 'creative augmentation that doesn't interrupt your flow' : audience === 'business' ? 'insights and automation embedded in existing business systems' : audience === 'developers' ? 'AI capabilities as standard libraries in development environments' : 'teaching tools that integrate with existing educational technology'}.
+
+## Transformation #3: Specialized Expertise
+
+**Today**: General-purpose models with broad but shallow capabilities across domains.
+
+**Future (3-4 Years)**:
+- **Domain-Specific Models**: Fine-tuned for particular industries and applications
+- **Expert-Level Depth**: Approaching specialist knowledge in narrow domains
+- **Complementary Teams**: Multiple specialized AI systems collaborating on complex tasks
+- **Continuous Learning**: Models that improve through ongoing use rather than static releases
+
+**Impact on ${angle}**: Instead of general assistants, you'll have access to specialized collaborators with deep expertise in specific aspects of ${angle}. This will raise the quality ceiling dramatically, especially for ${audience === 'professionals' ? 'complex professional tasks' : audience === 'creative' ? 'specialized creative techniques' : audience === 'business' ? 'industry-specific business operations' : audience === 'developers' ? 'specialized programming domains' : audience === 'educators' ? 'subject-specific curriculum development' : 'particular interest areas'}.
+
+## Transformation #4: Multimodal Intelligence
+
+**Today**: Primarily text-based with limited integration of other media types.
+
+**Future (2-4 Years)**:
+- **Seamless Multimodality**: Natural handling of text, images, audio, video, and data
+- **Cross-Modal Reasoning**: Making connections between concepts across different media
+- **Generative Versatility**: Creating multiple media types from single instructions
+- **Sensory Understanding**: Deeper comprehension of visual and audio information
+
+**Impact on ${angle}**: The artificial boundaries between media types will dissolve, enabling more natural and effective ${audience === 'beginners' ? 'learning and communication' : audience === 'professionals' ? 'professional work products' : audience === 'creative' ? 'creative expression' : audience === 'business' ? 'business communications' : audience === 'developers' ? 'user experiences' : 'educational materials'}. This will be particularly transformative for ${angle} by allowing ${template === 'future' ? 'integrated approaches that combine strengths of different modalities' : 'new forms of expression that weren't previously possible'}.
+
+## Winners and Losers: Who Thrives in This Future
+
+The coming changes won't affect everyone equally. Here's who stands to gain or lose:
+
+**Likely Winners:**
+- **Augmentation Embracers**: Those who develop effective human-AI collaboration methods
+- **Integration Pioneers**: Organizations that seamlessly embed AI into existing workflows
+- **Specialized Adopters**: Those who apply AI to specific high-value problems
+- **Experimental Cultures**: Groups that systematically test and learn from AI applications
+
+**Likely Challenged:**
+- **Status Quo Defenders**: Those who resist incorporating AI assistance
+- **Generic Providers**: Services offering undifferentiated value easily replicated by AI
+- **Process Gatekeepers**: Roles centered on controlling information flow
+- **Reluctant Half-Adopters**: Those implementing AI superficially without meaningful integration
+
+## How to Prepare: Strategic Recommendations
+
+Based on these forecasts, here are concrete steps ${audience} should consider:
+
+1. **Skills Evolution**: Focus on ${audience === 'beginners' ? 'developing prompt engineering and AI collaboration skills' : audience === 'professionals' ? 'high-judgment aspects of your profession that AI cannot replicate' : audience === 'creative' ? 'creative direction and evaluation rather than execution' : audience === 'business' ? 'strategic decisions and human relationships' : audience === 'developers' ? 'system architecture and AI integration' : 'instructional design and student relationship building'}
+
+2. **Process Redesign**: Rather than automating existing processes, reimagine them with AI as a core component
+
+3. **Experimentation Framework**: Develop a systematic approach to testing and evaluating AI applications for ${angle}
+
+4. **Ethics & Governance**: Establish principles for responsible AI use in your ${audience === 'professionals' ? 'practice' : audience === 'creative' ? 'creative work' : audience === 'business' ? 'organization' : audience === 'developers' ? 'development process' : audience === 'educators' ? 'classroom' : 'projects'}
+
+5. **Strategic Monitoring**: Track developments in ${topic} with specific attention to ${angle} applications
+
+## A Balanced Perspective
+
+While these changes are significant, it's important to maintain perspective:
+
+- Human judgment, creativity, and relationships will remain essential
+- The transition will be evolutionary, not revolutionary
+- New challenges and opportunities will emerge together
+- The most valuable skills will be those that complement AI capabilities
+
+## Conclusion
+
+The future of ${topic} for ${angle} isn't about replacement—it's about transformation. By understanding the likely developments and preparing strategically, ${audience} can position themselves to thrive in this new landscape.
+
+I'm Justin Hart, and this has been Hello AI. If you found this forecast valuable, subscribe for weekly insights on navigating the AI revolution. Until next time, stay curious and stay human.`,
+
+                news: `# Breaking Down: Latest ${topic} Developments and What They Mean for ${angle}
+
+Hi, I'm Justin Hart from Hello AI. Today, we're analyzing the recent news about ${topic} and what it means specifically for ${angle}. Let's cut through the hype and get to what really matters for ${audience === 'beginners' ? 'newcomers' : audience === 'professionals' ? 'professionals' : audience === 'creative' ? 'creatives' : audience === 'business' ? 'businesses' : audience === 'developers' ? 'developers' : 'educators'} like you.
+
+## The Headlines
+
+In the past week, we've seen several major developments with ${topic}:
+
+1. **New Capabilities Announced**: [Simulated recent announcement about enhanced features]
+2. **Pricing Changes**: [Simulated pricing update relevant to the topic]
+3. **Competitive Response**: [Simulated competitor action]
+4. **Research Breakthrough**: [Simulated research development]
+
+While these headlines are generating buzz, the implications for ${angle} aren't immediately obvious. Let's break them down one by one.
+
+## Development #1: New Capabilities Analysis
+
+**What Was Announced**:
+The recent update to ${topic} introduced [simulated new feature], which promises to enhance [specific capability related to angle].
+
+**Beyond the Press Release**:
+- This feature was likely developed in response to [competitor]'s similar offering last quarter
+- It addresses a key limitation that many ${audience} have complained about
+- Initial tests show a 30-40% improvement over previous versions, though with some caveats
+
+**What It Actually Means for ${angle}**:
+For ${audience} focused on ${angle}, this creates new opportunities to:
+- Streamline [specific process]
+- Reduce time spent on [particular task]
+- Achieve better results in [key area]
+
+However, be aware that:
+- The feature works best for [specific use case] but struggles with [edge case]
+- There's a learning curve to use it effectively
+- It may require adjusting your existing workflows
+
+**Strategic Takeaway**:
+This is worth adopting if [condition], but consider waiting for the next update if [alternative condition].
+
+## Development #2: Pricing Changes Decoded
+
+**What Was Announced**:
+${topic} unveiled a new pricing structure with [simulated pricing change details].
+
+**Reading Between the Lines**:
+- This move suggests they're targeting [specific market segment]
+- It positions them against [competitor] in the [market category] space
+- The timing aligns with their quarterly earnings report
+
+**Impact on Your Bottom Line**:
+For ${audience === 'beginners' ? 'individual users' : audience === 'professionals' ? 'professional users' : audience === 'creative' ? 'creative professionals' : audience === 'business' ? 'businesses' : audience === 'developers' ? 'development teams' : 'educational institutions'} working on ${angle}:
+- Current users may see costs increase/decrease by approximately [percentage]
+- New usage patterns may be incentivized by the [specific pricing element]
+- Alternative pricing tiers offer trade-offs between [feature A] and [feature B]
+
+**Budget Planning Advice**:
+- If you're using it for [use case 1], the [specific tier] now offers better value
+- Consider [alternative approach] to optimize costs under the new structure
+- Lock in current pricing by [specific action] before [deadline]
+
+## Development #3: Competitive Landscape Shift
+
+**What's Happening**:
+In response to ${topic}'s moves, [competitor] has [simulated competitive action].
+
+**Market Dynamics**:
+- This creates a new competitive dynamic in the [specific capability] area
+- We're seeing the beginning of [broader industry trend]
+- Smaller players are likely to [predicted response]
+
+**Opportunities Created**:
+This competitive tension benefits ${audience} by:
+- Potentially driving innovation in [specific area relevant to angle]
+- Creating leverage for negotiating [terms/pricing]
+- Accelerating development of [desired feature]
+
+**Risks to Monitor**:
+- Feature compatibility may become an issue across platforms
+- Market consolidation could limit options long-term
+- Standards fragmentation might complicate [specific workflow]
+
+**Strategic Position**:
+The optimal strategy is to [recommended approach to navigating competitive landscape].
+
+## Development #4: Research Breakthrough Context
+
+**What Was Published**:
+Researchers announced [simulated research finding] related to the technology behind ${topic}.
+
+**Technical Significance**:
+- This addresses a fundamental limitation in [technical area]
+- It represents a [x]% improvement over previous state-of-the-art
+- The approach is [novel/incremental/revolutionary]
+
+**Timeline to Practical Application**:
+- Expect commercial implementation in [timeframe]
+- Early access may be available through [specific program]
+- Full integration will likely require [condition]
+
+**Future Capabilities It Enables**:
+This breakthrough paves the way for:
+- More effective [capability relevant to angle]
+- Reduced [limitation] in future versions
+- Potential new applications in [adjacent area]
+
+**Long-term Strategic Implications**:
+${audience} should prepare for [recommended adaptation] as this technology matures.
+
+## What's Not Being Talked About
+
+Equally important are the developments that aren't making headlines:
+
+1. **Quiet Deprecation**: [Simulated feature] is being phased out, which could impact [specific workflow]
+2. **Integration Changes**: Updates to the API will require adjustments to [connected systems]
+3. **Community Concerns**: Growing discussion about [ethical/practical issue] that may affect adoption
+
+## Action Plan for ${audience}
+
+Based on this analysis, here are the concrete steps you should consider:
+
+**Immediate Actions (Next 7 Days)**:
+- Review your current ${topic} implementation for impact from [specific change]
+- Test the new [feature] with your actual ${angle} workflows
+- Evaluate cost implications of the pricing changes
+
+**Short-Term Strategy (30 Days)**:
+- Consider [specific adaptation] to leverage the new capabilities
+- Explore the [alternative option] as a potential complement
+- Update your team's skills to accommodate [new workflow]
+
+**Longer-Term Positioning (90+ Days)**:
+- Monitor developments in [emerging area]
+- Develop contingency plans for [potential disruption]
+- Invest in [capability] that will remain valuable regardless of how ${topic} evolves
+
+## Conclusion: The Real Signal Through the Noise
+
+When we filter out the hype, these developments tell us that:
+
+1. ${topic} is evolving toward [specific direction]
+2. The competitive landscape is [strengthening/fragmenting/consolidating]
+3. For ${angle} specifically, this creates [key opportunity] while introducing [primary challenge]
+
+The winners will be ${audience} who [key adaptation], rather than those who [common mistake].
+
+I'm Justin Hart, and this has been Hello AI. If you found this analysis valuable, subscribe for weekly insights on navigating the AI landscape. Until next time, stay informed and stay strategic.`
+            };
+            
+            // Select the appropriate script template and fill in the output
+            let script = scripts[template] || scripts.explainer;
+            document.getElementById('output').innerText = script;
+            
+            // Generate talking points
+            const talkingPoints = `# Key Talking Points for ${topic}: ${angle}
+
+## Opening
+- Start with the problem/challenge around ${angle} that resonates with ${audience}
+- Establish credibility briefly (why you're qualified to speak on ${topic})
+- Preview the main benefits viewers will gain
+
+## Core Message
+- ${topic} is transforming ${angle} through [key capability]
+- Common misconceptions include [myth 1] and [myth 2]
+- Key differentiator from alternatives is [unique aspect]
+
+## Supporting Points
+1. **Understanding the Basics**
+   - Definition in plain language
+   - How it works at a high level
+   - Key capabilities relevant to ${audience}
+
+2. **Practical Applications**
+   - Use case: [specific example 1]
+   - Use case: [specific example 2]
+   - Use case: [specific example 3]
+
+3. **Implementation Guidance**
+   - Start small with [specific recommendation]
+   - Common pitfall to avoid: [typical mistake]
+   - Resources to leverage: [recommended tools/guides]
+
+## Call to Action
+- Immediate next step: [simple action viewer can take]
+- Subscribe for [specific benefit]
+- Engage in comments with [question or request]
+
+## Tone and Delivery Notes
+- Keep explanations ${audience === 'beginners' ? 'simple and jargon-free' : audience === 'professionals' ? 'concise but technically accurate' : audience === 'creative' ? 'visually descriptive and inspiring' : audience === 'business' ? 'results-focused with metrics' : audience === 'developers' ? 'code-oriented with specific examples' : 'focused on learning outcomes and classroom applications'}
+- Use ${audience === 'beginners' ? 'analogies to familiar concepts' : audience === 'professionals' ? 'industry-specific examples' : audience === 'creative' ? 'creative project examples' : audience === 'business' ? 'business case studies' : audience === 'developers' ? 'code snippets where helpful' : 'classroom scenarios to illustrate points'}
+- Pace should be ${duration === 'short' ? 'brisk but clear' : duration === 'medium' ? 'moderate with time for key points to land' : 'measured with deeper exploration of complex topics'}`;
+            
+            document.getElementById('talking-points-output').innerText = talkingPoints;
+            
+            // Generate visual guidelines
+            const visuals = `# Visual Guidelines for ${topic}: ${angle}
+
+## Visual Style
+- Clean, professional look with Hello AI branded elements
+- Color scheme: Dark background with accent highlights
+- Text overlay style: Sans-serif, high contrast
+- Transitions: Simple cuts and fades, nothing flashy
+
+## Key Visuals to Include
+
+### Introduction (0:00-0:30)
+- Start with Justin on screen (HeyGen avatar ID: eec9bc74)
+- Overlay text for key problem statement
+- Simple animation showing the challenge of ${angle}
+
+### Concept Explanation (0:30-1:30)
+- Split screen: Justin + visual metaphor for ${topic}
+- Simple diagram showing how ${topic} works
+- Text callouts for key terminology
+- ${audience === 'beginners' ? 'Visual comparison to familiar technology' : audience === 'professionals' ? 'Professional workflow diagram' : audience === 'creative' ? 'Before/after creative examples' : audience === 'business' ? 'Business metrics visualization' : audience === 'developers' ? 'Code sample with highlighting' : 'Classroom application visualization'}
+
+### Practical Applications (1:30-3:00)
+- Screen recording of ${topic} in action
+- Highlight specific UI elements with zoom/callouts
+- Before/after comparisons of ${angle} results
+- Step-by-step process visualization
+- ${duration === 'short' ? '2-3 brief examples' : duration === 'medium' ? '3-4 detailed examples' : '4-5 comprehensive examples'}
+
+### Limitations Section (3:00-3:30)
+- Simple split screen showing what works vs. doesn't work
+- Visual representation of boundaries/constraints
+- Warning icon for common pitfalls
+
+### Conclusion (3:30-4:00)
+- Return to Justin on screen
+- Bullet point summary of key takeaways
+- Call to action graphics (subscribe, download template, etc.)
+- Hello AI logo and social handles
+
+## B-Roll Suggestions
+- Close-up of typing/interaction with the tool
+- User expressions showing "aha" moments
+- Results being implemented in real-world context
+- ${audience === 'beginners' ? 'Simple everyday applications' : audience === 'professionals' ? 'Professional environment usage' : audience === 'creative' ? 'Creative projects in progress' : audience === 'business' ? 'Business meeting/presentation context' : audience === 'developers' ? 'Development environment integration' : 'Classroom/teaching environment'}
+
+## Lower Third Templates
+- Name + Title: "Justin Hart | Hello AI"
+- Key Points: Left-aligned, appear when point is mentioned
+- Statistics: Right-aligned with supporting icon
+- Quotes: Centered with attribution
+
+## Thumbnail Design
+- Justin (right side) with expressive pose
+- ${topic} visual representation (left side)
+- Bold text: "[Attention-grabbing headline about ${angle}]"
+- Hello AI logo in bottom right corner`;
+            
+            document.getElementById('visuals-output').innerText = visuals;
+        }
+
+        // Clear form
+        document.getElementById('clear').addEventListener('click', () => {
+            document.getElementById('topic').value = '';
+            document.getElementById('angle').value = '';
+            document.getElementById('notes').value = '';
+            document.getElementById('output').innerText = 'Your script will appear here...';
+            document.getElementById('talking-points-output').innerText = 'Talking points will appear here...';
+            document.getElementById('visuals-output').innerText = 'Visual suggestions will appear here...';
+            document.getElementById('word-count').innerText = '0 words';
+            document.querySelector('.script-length-fill').style.width = '0%';
+            document.getElementById('formatWarning').style.display = 'none';
+        });
+
+        // Copy buttons
+        document.getElementById('copy-script').addEventListener('click', () => copyToClipboard('output', 'copy-script', 'Copy', 'Copied!'));
+        document.getElementById('copy-points').addEventListener('click', () => copyToClipboard('talking-points-output', 'copy-points', 'Copy', 'Copied!'));
+        document.getElementById('copy-visuals').addEventListener('click', () => copyToClipboard('visuals-output', 'copy-visuals', 'Copy', 'Copied!'));
+
+        function copyToClipboard(elementId, buttonId, originalText, successText) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const button = document.getElementById(buttonId);
+                button.innerText = successText;
+                button.style.backgroundColor = 'var(--success)';
+                button.style.color = 'white';
+                setTimeout(() => {
+                    button.innerText = originalText;
+                    button.style.backgroundColor = 'transparent';
+                    button.style.color = 'var(--gray)';
+                }, 2000);
+            });
+        }
+
+        // Export script button
+        document.getElementById('export-script').addEventListener('click', function() {
+            alert('Script exported in ' + document.getElementById('export-format').value + ' format.');
+        });
+
+        // Add to pipeline button
+        document.getElementById('add-to-pipeline').addEventListener('click', function() {
+            alert('Script added to content pipeline for ' + document.getElementById('deployment').value + '.');
+        });
+    </script>
+</body>
+</html>

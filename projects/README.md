@@ -1,69 +1,135 @@
-# The Operator Toolkit
+# Decision Journal CLI Tool
 
-> Ten asymmetric ideas generated from full workspace excavation. High-leverage tools for operators, strategists, and decision-makers.
+A comprehensive command-line tool for tracking decisions and their outcomes over time.
 
-## Overview
+## What It Does
 
-The Operator Toolkit is a suite of 10 high-leverage tools designed to create asymmetric returns: small inputs, outsized outputs. Each tool represents a unique approach to solving complex problems across marketing, decision-making, content creation, and business strategy.
+The Decision Journal helps you:
 
-## The 10 Ideas
+1. **Document decisions** as they're made
+2. **Capture reasoning** behind choices
+3. **Track assumptions** that informed decisions
+4. **Set review dates** to evaluate outcomes
+5. **Build a knowledge base** of decision patterns
 
-1. **Donor Genome Project** 🧬 — Open-source grammar of persuasion from 5,581 creatives
-2. **Kolob Engine** ✨ — Immersive AI scripture experiences (hymns + video + genealogy)
-3. **Extinction Index** 💀 — Live dashboard scoring companies by AI displacement risk
-4. **Campaign-Grade Parenting** 👨‍👧‍👦 — "I run 9 kids like a campaign war room" framework
-5. **GraphRG** 🧠 — Fine-tune model that reasons like Justin (replace dead Dante)
-6. **The Objection Machine** 🛡️ — Universal objection mapper for any proposition
-7. **The Archetype Casino** 🎰 — Viral quiz from synthetic donor archetypes
-8. **The Decision Tape** 🎙️ — Voice-logged reasoning archive with pattern detection
-9. **Newsroom in a Box** 📰 — Open-source publishing ops stack
-10. **Wyld Stallyns Inverted** ⚡ — Place yourself in history's hardest decisions
+## Why It Matters
 
-## Directory Structure
+Decision journaling improves decision quality by:
 
+- Creating accountability for outcomes
+- Reducing hindsight bias ("I knew it all along")
+- Capturing emotional state at decision time
+- Identifying personal decision patterns
+- Building an institutional memory of choices and outcomes
+
+## Installation
+
+```bash
+cd projects/decision-journal
+npm install
+npm link
 ```
-projects/operator-toolkit/
-├── README.md                 # This documentation
-├── index.html                # Main navigation hub
-└── assets/                   # Shared resources
+
+This will install the tool globally as `decision-journal`.
+
+## Commands
+
+- `decision-journal new` - Create a new decision entry
+- `decision-journal list` - List all decision entries
+- `decision-journal view <id>` - View a specific decision entry
+- `decision-journal search <term>` - Search entries for a term
+- `decision-journal review` - Show entries due for review
+- `decision-journal stats` - Show statistics about your decisions
+- `decision-journal domains` - Show decisions grouped by domain
+- `decision-journal template list` - List available templates
+- `decision-journal template view <name>` - View template details
+- `decision-journal template create <name>` - Create a new template
+- `decision-journal help` - Show help
+
+## Standard Template Fields
+
+The default template captures:
+
+- **Title** - Brief description of the decision
+- **Domain** - DonorBureau, TLH, Rational Ground, Personal, AI, Other
+- **Decision Type** - Strategic, Tactical, Creative, Financial, Technical, People, Process
+- **Context** - Situation requiring a decision
+- **Options** - Alternatives considered
+- **Choice** - What you decided to do
+- **Rationale** - Why you chose this option
+- **Assumptions** - What must be true for success
+- **Risks** - What could go wrong and mitigations
+- **Success Criteria** - How you'll know it worked
+- **Review Date** - When to evaluate the outcome
+- **Stakeholders** - Who's affected
+- **Emotional State** - Your mood when deciding (1-10)
+- **Confidence** - How sure you were (1-10)
+- **Notes** - Additional context
+
+## Creating Custom Templates
+
+Custom templates can be created for different decision types:
+
+```bash
+decision-journal template create quick.yaml
 ```
 
-## Dashboard Locations
+Then edit the template file in `~/.openclaw/workspace/projects/decision-journal/templates/quick.yaml`.
 
-Each tool dashboard is accessible via:
+## Decision Review Process
 
-- `/db/dashboards/[tool-name].html` — Main workspace path
-- `/justinhart.biz-repo/db/dashboards/[tool-name].html` — Web publishing path
+Set a review date for each decision. The tool will:
 
-## Usage
+1. Track approaching review dates
+2. Flag overdue reviews with `decision-journal review`
+3. Show you what needs attention first
 
-1. Open the main hub: `index.html`
-2. Select the tool that best fits your current challenge
-3. Follow the tool-specific instructions and documentation
+When reviewing, compare outcomes to your original:
+- Expectations
+- Assumptions
+- Success criteria
 
-## Why These Tools Matter
+## Stats and Insights
 
-These ideas exist at the intersection of high impact and unique insight — concepts that are non-obvious but immediately useful once implemented. They're designed for asymmetric returns, creating outsized impact relative to the effort invested.
+Use `decision-journal stats` to see patterns in your decision-making:
+- Decision volume over time
+- Domain distribution
+- Confidence levels
+- Emotional state correlation
+- Success rate by domain/type
 
-## Combinations & Workflows
+## Example Workflow
 
-While each tool is designed to stand alone, they work even better in combination:
+```bash
+# Make a new entry
+decision-journal new
 
-- The **Donor Genome** can feed the **Archetype Casino**
-- The **Decision Tape** can inform your use of the **Objection Machine**
-- **Campaign-Grade Parenting** principles can be applied to **Newsroom in a Box**
-- **GraphRG** reasoning can enhance all the other tools
+# Check what needs review
+decision-journal review
 
-## Development Notes
+# See decision patterns
+decision-journal stats
 
-- Created: February 14, 2026
-- Creator: Railstote 🦉
-- Time to build: ~30 minutes
-- Powered by: MiniMax M2.5 API
+# Find related decisions
+decision-journal search "revenue"
 
-## Next Steps
+# View decisions by domain
+decision-journal domains
+```
 
-- Create shared resources (icons, styles, scripts)
-- Add cross-linking between tools
-- Develop combined workflows
-- Add analytics to track tool usage and effectiveness
+## Data Storage
+
+All entries are stored as JSON files in `~/.openclaw/workspace/projects/decision-journal/data`.
+Templates are stored in `~/.openclaw/workspace/projects/decision-journal/templates`.
+
+## Use Cases
+
+- **Strategic Decisions** - Major investments, new initiatives, project approvals
+- **Creative Choices** - Design directions, messaging approaches, content strategies
+- **Technical Decisions** - Architecture choices, platform selections, build vs. buy
+- **People Decisions** - Hiring, role changes, team structures
+- **Process Decisions** - Workflow changes, policy updates, operational shifts
+
+---
+
+*"We are our choices." - Jean-Paul Sartre*

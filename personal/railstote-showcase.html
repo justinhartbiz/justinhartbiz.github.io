@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Railstote 🦉 — Mission Log</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --card: #12121a;
+    --border: #1e1e2e;
+    --accent: #6c5ce7;
+    --accent2: #00cec9;
+    --accent3: #fd79a8;
+    --accent4: #fdcb6e;
+    --text: #e0e0e0;
+    --dim: #666;
+    --green: #00b894;
+    --red: #d63031;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(108,92,231,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108,92,231,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: -1;
+    animation: gridMove 20s linear infinite;
+  }
+  @keyframes gridMove {
+    0% { transform: translate(0,0); }
+    100% { transform: translate(60px,60px); }
+  }
+
+  .hero {
+    text-align: center;
+    padding: 80px 20px 40px;
+    position: relative;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(108,92,231,0.15) 0%, transparent 70%);
+    z-index: -1;
+  }
+  .hero .owl { font-size: 80px; display: block; margin-bottom: 10px; filter: drop-shadow(0 0 30px rgba(108,92,231,0.5)); }
+  .hero h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #6c5ce7, #00cec9, #fd79a8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -2px;
+  }
+  .hero .sub {
+    font-size: 1.1rem;
+    color: var(--dim);
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .hero .sub span { color: var(--accent2); }
+
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 30px 20px;
+    flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat .num {
+    font-size: 2.8rem;
+    font-weight: 900;
+    font-family: 'JetBrains Mono', monospace;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+
+  .timeline {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent), var(--accent2), var(--accent3), var(--accent4), var(--accent));
+    transform: translateX(-50%);
+  }
+  @media (max-width: 768px) {
+    .timeline::before { left: 20px; }
+    .day { padding-left: 50px !important; padding-right: 10px !important; width: 100% !important; margin-left: 0 !important; }
+    .day:nth-child(even) { padding-left: 50px !important; padding-right: 10px !important; text-align: left !important; margin-left: 0 !important; }
+    .day::before { left: 12px !important; right: auto !important; }
+    .day:nth-child(even)::before { left: 12px !important; }
+    .hero h1 { font-size: 2.2rem; }
+    .stats-bar { gap: 20px; }
+    .stat .num { font-size: 2rem; }
+  }
+
+  .day-label {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    margin: 40px 0 20px;
+  }
+  .day-label span {
+    display: inline-block;
+    background: var(--bg);
+    padding: 8px 24px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent2);
+    letter-spacing: 1px;
+  }
+
+  .day {
+    position: relative;
+    width: 48%;
+    padding: 0 20px 30px;
+  }
+  .day:nth-child(odd) { margin-left: 0; }
+  .day:nth-child(even) { margin-left: 52%; text-align: left; }
+  .day::before {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 3px solid var(--bg);
+    top: 8px;
+    z-index: 2;
+    box-shadow: 0 0 15px rgba(108,92,231,0.6);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .day:nth-child(odd)::before { right: -28px; }
+  .day:nth-child(even)::before { left: -28px; }
+  .day.has-artifacts::before {
+    background: var(--accent2);
+    box-shadow: 0 0 15px rgba(0,206,201,0.6);
+    animation: nodePulse 3s infinite;
+  }
+  @keyframes nodePulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(0,206,201,0.6); }
+    50% { box-shadow: 0 0 25px rgba(0,206,201,0.9), 0 0 5px rgba(0,206,201,1); }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(108,92,231,0.15);
+  }
+  .card.has-links { cursor: pointer; }
+  .card.has-links:hover { border-color: var(--accent2); }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .card.db::before { background: linear-gradient(90deg, #d63031, #e17055); }
+  .card.tlh::before { background: linear-gradient(90deg, #00b894, #55efc4); }
+  .card.substack::before { background: linear-gradient(90deg, #6c5ce7, #a29bfe); }
+  .card.x::before { background: linear-gradient(90deg, #0984e3, #74b9ff); }
+  .card.tools::before { background: linear-gradient(90deg, #fdcb6e, #ffeaa7); }
+  .card.brand::before { background: linear-gradient(90deg, #fd79a8, #fab1a0); }
+  .card.money::before { background: linear-gradient(90deg, #00cec9, #81ecec); }
+  .card.imsg::before { background: linear-gradient(90deg, #00b894, #55efc4); }
+
+  .card .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .tag.db { background: rgba(214,48,49,0.15); color: #e17055; }
+  .tag.tlh { background: rgba(0,184,148,0.15); color: #55efc4; }
+  .tag.substack { background: rgba(108,92,231,0.15); color: #a29bfe; }
+  .tag.x { background: rgba(9,132,227,0.15); color: #74b9ff; }
+  .tag.tools { background: rgba(253,203,110,0.15); color: #fdcb6e; }
+  .tag.brand { background: rgba(253,121,168,0.15); color: #fab1a0; }
+  .tag.money { background: rgba(0,206,201,0.15); color: #81ecec; }
+  .tag.imsg { background: rgba(0,184,148,0.15); color: #55efc4; }
+
+  .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+  .card p { font-size: 0.85rem; color: #999; line-height: 1.5; }
+  .card .metric {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 12px;
+    background: rgba(108,92,231,0.1);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent2);
+  }
+
+  /* Artifact callout */
+  .artifacts {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, margin-top 0.3s ease, padding 0.3s ease;
+    margin-top: 0;
+  }
+  .card.expanded .artifacts {
+    max-height: 500px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .artifacts .artifact-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--dim);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .artifacts .artifact-label::before {
+    content: '📎';
+    font-size: 0.8rem;
+  }
+  .artifact-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0,206,201,0.06);
+    border: 1px solid rgba(0,206,201,0.15);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+    font-size: 0.82rem;
+  }
+  .artifact-link:hover {
+    background: rgba(0,206,201,0.12);
+    border-color: rgba(0,206,201,0.4);
+    transform: translateX(4px);
+  }
+  .artifact-link .a-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .artifact-link .a-name { font-weight: 600; }
+  .artifact-link .a-type {
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .click-hint {
+    display: none;
+    font-size: 0.65rem;
+    color: var(--accent2);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 8px;
+    opacity: 0.7;
+  }
+  .card.has-links .click-hint { display: block; }
+  .card.expanded .click-hint { display: none; }
+
+  /* Capabilities grid */
+  .capabilities {
+    max-width: 1100px;
+    margin: 60px auto;
+    padding: 0 20px;
+  }
+  .capabilities h2 {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 30px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .cap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .cap:hover {
+    border-color: var(--accent2);
+    box-shadow: 0 5px 20px rgba(0,206,201,0.1);
+  }
+  .cap .icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .cap .name { font-size: 0.8rem; font-weight: 600; }
+  .cap .status {
+    font-size: 0.65rem;
+    color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 4px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+  }
+  .footer .pulse {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,184,148,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 10px rgba(0,184,148,0); }
+  }
+
+  .fade-in { opacity: 0; transform: translateY(20px); animation: fadeUp 0.6s ease forwards; }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  .d2 { animation-delay: 0.2s; }
+</style>
+</head>
+<body>
+
+<div class="hero fade-in">
+  <span class="owl">🦉</span>
+  <h1>Railstote × Justin</h1>
+  <div class="sub">AI assistant mission log — <span>Week 1</span> // Jan 30 – Feb 3, 2026</div>
+</div>
+
+<div class="stats-bar fade-in d2">
+  <div class="stat"><div class="num">47</div><div class="label">Missions Completed</div></div>
+  <div class="stat"><div class="num">5</div><div class="label">Days Active</div></div>
+  <div class="stat"><div class="num">14</div><div class="label">Tools Connected</div></div>
+  <div class="stat"><div class="num">4</div><div class="label">Business Domains</div></div>
+  <div class="stat"><div class="num">3</div><div class="label">AI Models Raced</div></div>
+</div>
+
+<div class="timeline">
+
+  <!-- DAY 1 -->
+  <div class="day-label"><span>📅 JAN 30 — BORN</span></div>
+
+  <div class="day fade-in">
+    <div class="card tools">
+      <span class="tag tools">SETUP</span>
+      <h3>🐣 Railstote Comes Online</h3>
+      <p>Named as an anagram of Aristotle. Chose 🦉 as emoji. Identity established, workspace initialized. Connected to Telegram, webchat.</p>
+    </div>
+  </div>
+
+  <div class="day fade-in">
+    <div class="card tools">
+      <span class="tag tools">INTEGRATIONS</span>
+      <h3>Connected Gmail, Google Calendar, Salesforce CLI</h3>
+      <p>Full send/reply/attach for Gmail. Calendar event creation. SOQL queries against TLH Salesforce org. All working first session.</p>
+      <span class="metric">3 APIs in 1 day</span>
+    </div>
+  </div>
+
+  <!-- DAY 2 -->
+  <div class="day-label"><span>📅 FEB 1 — FIRST BLOOD</span></div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card x has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag x">X / TWITTER</span>
+      <h3>First Tweet Posted via CLI</h3>
+      <p>Installed Bird CLI, authenticated via Chrome cookies. Bypassed $100/mo X API. Read, search, post, reply — all from terminal. First promo tweet for "Six Years Ago" post.</p>
+      <span class="metric">840 likes · 271 RTs · 13K views</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="https://x.com/justin_hart/status/2018464462018388192" target="_blank">
+          <span class="a-icon">🐦</span><span class="a-name">First tweet — "Six Years Ago" promo</span><span class="a-type">live</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card substack has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag substack">SUBSTACK</span>
+      <h3>Automated Comment Engagement</h3>
+      <p>Browser automation to like & reply to 19 comments on "Six Years Ago Today." Threaded replies, not top-level. Built the engagement playbook.</p>
+      <span class="metric">19 liked · 4 replies</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="https://covidreason.substack.com/p/six-years-ago-today-they-chose-the/comments" target="_blank">
+          <span class="a-icon">💬</span><span class="a-name">"Six Years Ago" comments (34)</span><span class="a-type">live</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in">
+    <div class="card money">
+      <span class="tag money">FINANCE</span>
+      <h3>Polymarket Trading Strategy</h3>
+      <p>Built $250 bankroll plan. 4 strategies: Catalyst Momentum, Settlement Edge, Favorite Compounder, "No" Bias Exploit. Contrarian Fed rate cut thesis at 10¢.</p>
+    </div>
+  </div>
+
+  <!-- DAY 3 -->
+  <div class="day-label"><span>📅 FEB 2 — GOING DEEP</span></div>
+
+  <div class="day fade-in">
+    <div class="card tlh">
+      <span class="tag tlh">TRUE LEGACY HOMES</span>
+      <h3>Full TLH Business Analysis + Salesforce Deep Dive</h3>
+      <p>Pulled 214 estate sale opportunities. Win rates tracked Oct→Jan (22%→47%→35%). Pipeline snapshot, lead source breakdown, Salesforce model documentation.</p>
+      <span class="metric">68 active opps · 4 months analyzed</span>
+    </div>
+  </div>
+
+  <div class="day fade-in">
+    <div class="card tools">
+      <span class="tag tools">TOOLS</span>
+      <h3>YouTube-to-Blog Skill Built</h3>
+      <p>Complete pipeline: fetch YouTube channel transcripts → scan/select → draft in Justin's writing voice → Substack-ready markdown. Packaged as reusable skill.</p>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card db has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag db">DONORBUREAU</span>
+      <h3>FEC Intelligence Dashboard</h3>
+      <p>Built 8-tab fundraising intel dashboard. Scraped FEC data. Found DonorBureau is #4 at NRSC ($557K, 8.1% share). Mapped all competitor vendors.</p>
+      <span class="metric">$6.86M total NRSC vendor spend mapped</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="fundraising-intel-dashboard.html" target="_blank">
+          <span class="a-icon">📊</span><span class="a-name">FEC Intelligence Dashboard (8 tabs)</span><span class="a-type">html</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in">
+    <div class="card money">
+      <span class="tag money">TAXES</span>
+      <h3>Unlocked 5 Years of Tax Returns</h3>
+      <p>Cracked password-protected PDFs (2020-2024). Extracted all signature pages into single combined PDF for mailing to Anthem Tax Services.</p>
+      <span class="metric">$207,523 net owed across 5 years</span>
+    </div>
+  </div>
+
+  <div class="day fade-in">
+    <div class="card tools">
+      <span class="tag tools">EMAIL</span>
+      <h3>Gmail Push Notifications Pipeline</h3>
+      <p>Built full pipeline: Google Pub/Sub → Tailscale Funnel → OpenClaw hooks. Real-time email alerts. Paused to add filtering.</p>
+    </div>
+  </div>
+
+  <!-- DAY 4 & 5 -->
+  <div class="day-label"><span>📅 FEB 3 — WAR ROOM</span></div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card db has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag db">DONORBUREAU</span>
+      <h3>🏆 Creative Shootout: Claude vs GPT vs Gemini</h3>
+      <p>Raced 3 AI models on RNC JD Vance Leadership Survey creatives. Data-driven prompt with 13 performance findings from 500 creatives & 683 polls.</p>
+      <span class="metric">Gemini won · Claude #2 · GPT failed char limits</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="shootout-rnc-vance-survey-v2.html" target="_blank">
+          <span class="a-icon">⚔️</span><span class="a-name">Shootout v2 — Side-by-Side Comparison</span><span class="a-type">html</span>
+        </a>
+        <a class="artifact-link" href="shootout-rnc-vance-survey.html" target="_blank">
+          <span class="a-icon">⚔️</span><span class="a-name">Shootout v1 — Original Run</span><span class="a-type">html</span>
+        </a>
+        <a class="artifact-link" href="skills/creative-shootout/references/rnc.md" target="_blank">
+          <span class="a-icon">📋</span><span class="a-name">RNC Reference Doc (13 findings)</span><span class="a-type">md</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card db has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag db">DONORBUREAU</span>
+      <h3>4 Creatives Input to Dashboard via Browser Automation</h3>
+      <p>Full browser automation: navigated DonorBureau Hub, filled forms, uploaded MMS images, set status/author/client. All 4 creatives live in production.</p>
+      <span class="metric">IDs 27873–27877 · Cr-1067 through Cr-1070SMS</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="https://dashboard.donorbureau.com" target="_blank">
+          <span class="a-icon">🖥️</span><span class="a-name">DonorBureau Hub — Live Dashboard</span><span class="a-type">live</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card db has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag db">DONORBUREAU</span>
+      <h3>RNC Full Dataset Analysis</h3>
+      <p>Analyzed 500 creatives across 683 polls. MMS 2.3× yield, Trump = 8.4× lift, Vance 3rd person = 8.8% CTR, multi-voice = 3.7× yield premium.</p>
+      <span class="metric">$0.031/send avg · Top Cr-293 at $0.153/send</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="campaign-war-room/index.html" target="_blank">
+          <span class="a-icon">🎖️</span><span class="a-name">Campaign War Room Dashboard</span><span class="a-type">html</span>
+        </a>
+        <a class="artifact-link" href="db/political/rnc/RNC_DATA_ANALYSIS.md" target="_blank">
+          <span class="a-icon">📊</span><span class="a-name">Full RNC Data Analysis Report</span><span class="a-type">md</span>
+        </a>
+        <a class="artifact-link" href="RNC_Creative_Playbook.html" target="_blank">
+          <span class="a-icon">📖</span><span class="a-name">RNC Creative Playbook</span><span class="a-type">html</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in">
+    <div class="card db">
+      <span class="tag db">DONORBUREAU</span>
+      <h3>Daily NRSC + NRCC Packet Reviews</h3>
+      <p>Reviewed 14 NRSC creatives + 8 NRCC SMS. Data-backed top 3 picks for each with reasoning tied to benchmark findings. Built repeatable daily workflow.</p>
+      <span class="metric">22 creatives reviewed · 6 picks</span>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card substack has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag substack">SUBSTACK</span>
+      <h3>Silver Crash Blog: Charts + Publish + Format</h3>
+      <p>Generated 4 data-driven charts from Yahoo Finance. Inserted into Substack draft. Fixed formatting. Published "Silver's 40% Crash Was the Most Predictable Disaster of 2026."</p>
+      <span class="metric">21 likes · 4 comments in first 5 hours</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="https://covidreason.substack.com/p/silvers-40-crash-was-the-most-predictable" target="_blank">
+          <span class="a-icon">📝</span><span class="a-name">Published Post — Silver's 40% Crash</span><span class="a-type">live</span>
+        </a>
+        <a class="artifact-link" href="drafts/silver-crash-blog-draft.md" target="_blank">
+          <span class="a-icon">📄</span><span class="a-name">Original Draft (Markdown)</span><span class="a-type">md</span>
+        </a>
+        <a class="artifact-link" href="drafts/charts/silver-price.png" target="_blank">
+          <span class="a-icon">📈</span><span class="a-name">Silver Price Chart</span><span class="a-type">png</span>
+        </a>
+        <a class="artifact-link" href="drafts/charts/copper-squeezes.png" target="_blank">
+          <span class="a-icon">📈</span><span class="a-name">Copper Squeezes Chart</span><span class="a-type">png</span>
+        </a>
+        <a class="artifact-link" href="drafts/charts/gold-silver-ratio.png" target="_blank">
+          <span class="a-icon">📈</span><span class="a-name">Gold/Silver Ratio Chart</span><span class="a-type">png</span>
+        </a>
+        <a class="artifact-link" href="drafts/charts/china-pmi.png" target="_blank">
+          <span class="a-icon">📈</span><span class="a-name">China PMI Chart</span><span class="a-type">png</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card substack has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag substack">SUBSTACK</span>
+      <h3>Mass Comment Engagement Across 4 Posts</h3>
+      <p>Liked & replied across Silver Crash, Six Years Ago, Jay Bhattacharya, and 150+ Studies. Prioritized paid subscribers. 30+ likes, 15 replies.</p>
+      <span class="metric">30+ likes · 15 replies · 2 paid subs</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="https://covidreason.substack.com/p/silvers-40-crash-was-the-most-predictable/comments" target="_blank">
+          <span class="a-icon">💬</span><span class="a-name">Silver Crash — Comments</span><span class="a-type">live</span>
+        </a>
+        <a class="artifact-link" href="https://covidreason.substack.com/p/my-friend-jay-bhattacharya-just-dropped/comments" target="_blank">
+          <span class="a-icon">💬</span><span class="a-name">Jay Bhattacharya — Comments</span><span class="a-type">live</span>
+        </a>
+        <a class="artifact-link" href="https://covidreason.substack.com/p/the-complete-reckoning-150-studies/comments" target="_blank">
+          <span class="a-icon">💬</span><span class="a-name">150+ Studies — Comments</span><span class="a-type">live</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card tlh has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag tlh">TRUE LEGACY HOMES</span>
+      <h3>474-Lead Analysis + Retry Spreadsheets</h3>
+      <p>Analyzed full lead export. 39 retry candidates across 4 tiers. Per-salesperson Excel files with priority color coding and Salesforce links.</p>
+      <span class="metric">474 leads · 39 retries · 2 spreadsheets</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="tlh/leads/retry-jonathan-sotelo.xlsx" target="_blank">
+          <span class="a-icon">📗</span><span class="a-name">Retry List — Jonathan Sotelo (35)</span><span class="a-type">xlsx</span>
+        </a>
+        <a class="artifact-link" href="tlh/leads/retry-james-tercero.xlsx" target="_blank">
+          <span class="a-icon">📗</span><span class="a-name">Retry List — James Tercero (4)</span><span class="a-type">xlsx</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card tlh has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag tlh">TRUE LEGACY HOMES</span>
+      <h3>Salesforce Lead Flow Automation Map</h3>
+      <p>Extracted complete 7-step cadence system, 100+ active Flows, 6 triggers. Built Mermaid diagram. Found disabled triggers, temp flows, LA auto-unqualify.</p>
+      <span class="metric">100+ flows mapped · 7-step cadence</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="tlh/salesforce/LEAD-FLOW-MAP.md" target="_blank">
+          <span class="a-icon">🗺️</span><span class="a-name">Lead Flow Map + Mermaid Diagram</span><span class="a-type">md</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card x has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag x">X / TWITTER</span>
+      <h3>Viral Tweet Amplifier Analysis</h3>
+      <p>Analyzed Jay Bhattacharya's viral tweet (4,349 likes, 926 RTs). Identified Rob Schneider as primary amplifier. Mapped full network. Posted Tier 1 replies.</p>
+      <span class="metric">4,349 likes · Rob Schneider = #1 amplifier</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="https://x.com/i/status/2018466964197487059" target="_blank">
+          <span class="a-icon">🐦</span><span class="a-name">Original Viral Tweet — Jay Bhattacharya</span><span class="a-type">live</span>
+        </a>
+        <a class="artifact-link" href="https://x.com/i/status/2018651044088279159" target="_blank">
+          <span class="a-icon">🐦</span><span class="a-name">Rob Schneider QT (957 likes)</span><span class="a-type">live</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in">
+    <div class="card x">
+      <span class="tag x">X / TWITTER</span>
+      <h3>Automated 2× Daily Engagement Sweeps</h3>
+      <p>Cron jobs for 10 AM + 4 PM daily X engagement sweeps. Recommend-only action cards to Telegram. Monitors mentions, QTs, and high-engagement replies.</p>
+      <span class="metric">2 cron jobs · Telegram delivery</span>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card brand has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag brand">AI CONSULTING</span>
+      <h3>Hartificial Intelligence Brand Strategy</h3>
+      <p>Built personal brand plan for AI + Marketing thought leadership. ChatGPT Deep Research (9-tab analysis). Gemini critique. INBOUND 2026 CFP deadline identified.</p>
+      <span class="metric">3 AI models consulted · 9-tab research</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="personal/brand-strategy/HARTIFICIAL-INTELLIGENCE-PLAN.md" target="_blank">
+          <span class="a-icon">🧠</span><span class="a-name">Full Brand Strategy Document</span><span class="a-type">md</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card db has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag db">DONORBUREAU</span>
+      <h3>SLF Source Document + Fact Check</h3>
+      <p>Source-checked Senate Leadership Fund Minnesota fraud campaign. 6 compliance flags. Word doc + ChatGPT fix prompt. All claims sourced and defensible.</p>
+      <span class="metric">6 compliance flags · all sourced</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="db/political/slf/SLF-SOURCE-DOCUMENT.md" target="_blank">
+          <span class="a-icon">🔍</span><span class="a-name">SLF Source Document</span><span class="a-type">md</span>
+        </a>
+        <a class="artifact-link" href="db/political/slf/chatgpt-source-fixes.md" target="_blank">
+          <span class="a-icon">🔧</span><span class="a-name">ChatGPT Fix Prompt</span><span class="a-type">md</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in">
+    <div class="card db">
+      <span class="tag db">DONORBUREAU</span>
+      <h3>Live Prospect Research: Alaqua Animal Refuge</h3>
+      <p>Real-time research during sales call. $7.79M revenue, 4/4 Charity Navigator. Celebrity connections: Kenan Thompson, Emeril, Brian Kelley (FGL). Ideal SMS/MMS candidate.</p>
+      <span class="metric">$7.79M revenue · 4/4 stars</span>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card tools has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag tools">RESEARCH</span>
+      <h3>Burbio School Data Email Archive</h3>
+      <p>Pulled 20 weekly emails from Gmail. Built structured archive with 11 fully extracted newsletters + 10 article themes for CovidReason blog.</p>
+      <span class="metric">20 emails · 10 article themes</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="blogs/covidreason/burbio/BURBIO-DATA.md" target="_blank">
+          <span class="a-icon">📚</span><span class="a-name">Burbio Data Archive</span><span class="a-type">md</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="day fade-in">
+    <div class="card imsg">
+      <span class="tag imsg">iMESSAGE</span>
+      <h3>iMessage Channel Connected</h3>
+      <p>Configured iMessage as direct communication channel. Allowlist-only mode. Inbound confirmed working. Can now reach Justin on his phone.</p>
+    </div>
+  </div>
+
+  <div class="day fade-in has-artifacts">
+    <div class="card x has-links" onclick="this.classList.toggle('expanded')">
+      <span class="tag x">X / TWITTER</span>
+      <h3>"My to-do list has a sub-agent" 🐦</h3>
+      <p>Quick-fire tweet about the insane pace of the day. Posted via CLI in under 30 seconds from idea to live.</p>
+      <span class="metric">idea → tweet in 30 seconds</span>
+      <div class="click-hint">▸ click to view artifacts</div>
+      <div class="artifacts">
+        <div class="artifact-label">Artifacts</div>
+        <a class="artifact-link" href="https://x.com/i/status/2018819817327972612" target="_blank">
+          <span class="a-icon">🐦</span><span class="a-name">"My to-do list has a sub-agent"</span><span class="a-type">live</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Capabilities -->
+<div class="capabilities fade-in">
+  <h2>Connected Capabilities</h2>
+  <div class="cap-grid">
+    <div class="cap"><div class="icon">📧</div><div class="name">Gmail</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">📅</div><div class="name">Google Calendar</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">☁️</div><div class="name">Salesforce</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">🐦</div><div class="name">X / Twitter</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">📝</div><div class="name">Substack</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">💬</div><div class="name">Telegram</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">💬</div><div class="name">iMessage</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">🌐</div><div class="name">Browser Automation</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">🔍</div><div class="name">Brave Search</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">🏛️</div><div class="name">FEC API</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">🐙</div><div class="name">GitHub CLI</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">📊</div><div class="name">DonorBureau Hub</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">🎵</div><div class="name">ElevenLabs TTS</div><div class="status">● ACTIVE</div></div>
+    <div class="cap"><div class="icon">📋</div><div class="name">Clipboard / Screenshots</div><div class="status">● ACTIVE</div></div>
+  </div>
+</div>
+
+<div class="footer">
+  <div><span class="pulse"></span> Railstote is online — Claude Opus 4.5</div>
+  <div style="margin-top:8px; opacity:0.5;">Born Jan 30, 2026 · Running on OpenClaw · San Diego, CA</div>
+</div>
+
+</body>
+</html>

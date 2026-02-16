@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB SMS Strategy Dashboard V4 | Research-Backed Playbook</title>
+    <style>
+        :root {
+            --bg-dark: #0a0f1a;
+            --bg-card: #141b2d;
+            --bg-card-hover: #1e2a45;
+            --accent-green: #00d68f;
+            --accent-red: #ff3d71;
+            --accent-blue: #0095ff;
+            --accent-purple: #a855f7;
+            --accent-orange: #ff9500;
+            --accent-gold: #fbbf24;
+            --accent-cyan: #00e0ff;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #1e2a45;
+            --gradient-primary: linear-gradient(135deg, #00d68f, #0095ff);
+            --gradient-hot: linear-gradient(135deg, #ff9500, #ff3d71);
+            --gradient-cool: linear-gradient(135deg, #0095ff, #a855f7);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .dashboard { max-width: 1800px; margin: 0 auto; padding: 1.5rem; }
+        
+        header {
+            text-align: center;
+            padding: 2rem 0 2.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .version-pill {
+            display: inline-block;
+            background: var(--gradient-hot);
+            color: white;
+            padding: 0.35rem 1rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-left: 0.75rem;
+            vertical-align: middle;
+        }
+        
+        .subtitle { color: var(--text-secondary); font-size: 1.15rem; margin-top: 0.5rem; }
+        
+        /* Navigation */
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            padding: 0.5rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+        }
+        
+        .nav-btn {
+            padding: 0.75rem 1.25rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .nav-btn:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        .nav-btn.active { background: var(--accent-blue); color: white; }
+        
+        /* Sections */
+        .section { display: none; animation: fadeIn 0.3s ease; }
+        .section.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        /* Hero Stats */
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        
+        .hero-stat {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .hero-stat:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stat-source {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .data-table th {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        
+        .data-table tr:hover td {
+            background: var(--bg-card-hover);
+        }
+        
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .tag-green { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
+        .tag-red { background: rgba(255, 61, 113, 0.15); color: var(--accent-red); }
+        .tag-blue { background: rgba(0, 149, 255, 0.15); color: var(--accent-blue); }
+        .tag-orange { background: rgba(255, 149, 0, 0.15); color: var(--accent-orange); }
+        .tag-purple { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+        
+        /* Grid Layouts */
+        .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+        .three-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        
+        /* Code Blocks */
+        .code-block {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+            font-family: 'Fira Code', 'SF Mono', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .code-block .label {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+        
+        .code-block .string { color: var(--accent-green); }
+        .code-block .comment { color: var(--text-muted); font-style: italic; }
+        
+        /* Progress Bars */
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Do/Avoid Lists */
+        .rule-list { list-style: none; }
+        
+        .rule-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .rule-list li:last-child { border-bottom: none; }
+        
+        .rule-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        
+        .rule-icon.do { background: rgba(0, 214, 143, 0.2); color: var(--accent-green); }
+        .rule-icon.avoid { background: rgba(255, 61, 113, 0.2); color: var(--accent-red); }
+        .rule-icon.test { background: rgba(255, 149, 0, 0.2); color: var(--accent-orange); }
+        
+        .rule-content { flex: 1; }
+        .rule-title { font-weight: 600; margin-bottom: 0.25rem; }
+        .rule-source { font-size: 0.75rem; color: var(--text-muted); }
+        
+        /* Experiment Cards */
+        .experiment-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+            transition: border-color 0.2s;
+        }
+        
+        .experiment-card:hover { border-color: var(--accent-purple); }
+        
+        .experiment-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--gradient-cool);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        
+        .experiment-title { font-weight: 600; margin-bottom: 0.5rem; }
+        .experiment-hypothesis { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
+        .experiment-metric { font-size: 0.8rem; color: var(--accent-cyan); }
+        
+        /* Template Section */
+        .template-box {
+            background: linear-gradient(135deg, rgba(0, 214, 143, 0.05), rgba(0, 149, 255, 0.05));
+            border: 1px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .template-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent-green);
+            margin-bottom: 0.75rem;
+        }
+        
+        .template-text {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+        
+        .template-text .var {
+            background: rgba(0, 149, 255, 0.2);
+            color: var(--accent-cyan);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        /* Flow Diagram */
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .flow-step {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+            position: relative;
+        }
+        
+        .flow-step::after {
+            content: '↓';
+            position: absolute;
+            bottom: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-muted);
+            font-size: 1.25rem;
+        }
+        
+        .flow-step:last-child::after { display: none; }
+        
+        .flow-step-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Compliance Checklist */
+        .checklist { list-style: none; }
+        
+        .checklist li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .check-box {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--accent-green);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-green);
+            font-size: 0.75rem;
+        }
+        
+        /* Highlight Box */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(255, 61, 113, 0.1), rgba(255, 149, 0, 0.1));
+            border-left: 4px solid var(--accent-red);
+            padding: 1.25rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+        
+        .highlight-title {
+            color: var(--accent-red);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .hero-stats { grid-template-columns: repeat(2, 1fr); }
+            .two-col, .three-col { grid-template-columns: 1fr; }
+            .nav-btn { padding: 0.5rem 0.75rem; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>DB SMS Strategy Dashboard <span class="version-pill">V4 FINAL</span></h1>
+            <p class="subtitle">Research-Backed Playbook for Text Message Fundraising — February 2026</p>
+        </header>
+        
+        <nav class="nav-container">
+            <button class="nav-btn active" data-section="overview">📊 Overview</button>
+            <button class="nav-btn" data-section="findings">🔬 Key Findings</button>
+            <button class="nav-btn" data-section="creative">✍️ Creative</button>
+            <button class="nav-btn" data-section="templates">📝 Templates</button>
+            <button class="nav-btn" data-section="landing">🖥️ Landing Pages</button>
+            <button class="nav-btn" data-section="experiments">🧪 Experiments</button>
+            <button class="nav-btn" data-section="rules">✅ Do/Avoid</button>
+            <button class="nav-btn" data-section="compliance">🔒 Compliance</button>
+        </nav>
+        
+        <!-- OVERVIEW SECTION -->
+        <section id="overview" class="section active">
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="stat-value" style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">+41%</div>
+                    <div class="stat-label">MMS vs SMS Conversion</div>
+                    <div class="stat-source">MissionWired/Tatango 2024</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value" style="color: var(--accent-cyan);">8-9pm</div>
+                    <div class="stat-label">Peak Send Time</div>
+                    <div class="stat-source">37% higher conversion</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value" style="color: var(--accent-green);">+39%</div>
+                    <div class="stat-label">Named Match Lift</div>
+                    <div class="stat-source">Karlan & List / ideas42</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value" style="color: var(--accent-red);">-50%</div>
+                    <div class="stat-label">Out-Group Framing</div>
+                    <div class="stat-source">Linos et al. 2021 RCT</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value" style="color: var(--accent-orange);">70.3%</div>
+                    <div class="stat-label">Retention w/ Impact Receipts</div>
+                    <div class="stat-source">Chell et al. 2018 RCT</div>
+                </div>
+            </div>
+            
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: var(--gradient-primary);">⚡</div>
+                        <h3 class="card-title">The 5 Non-Negotiable Rules</h3>
+                    </div>
+                    <ul class="rule-list">
+                        <li>
+                            <span class="rule-icon do">1</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Timing > Frequency</div>
+                                <div class="rule-source">Message proximity to deadline matters more than repetition</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">2</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Named Matches = 39% Lift</div>
+                                <div class="rule-source">Credible, named matching donors dramatically outperform generic</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">3</span>
+                            <div class="rule-content">
+                                <div class="rule-title">"Thank You in Advance" = Death</div>
+                                <div class="rule-source">Triggers psychological reactance — BAN this phrase</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">4</span>
+                            <div class="rule-content">
+                                <div class="rule-title">8-9pm = Peak Conversion</div>
+                                <div class="rule-source">Evening sends convert 37% better than daytime</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">5</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Compliance is Existential</div>
+                                <div class="rule-source">Unregistered 10DLC traffic is now hard-blocked</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: var(--gradient-hot);">📈</div>
+                        <h3 class="card-title">Channel Benchmarks</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>SMS</th>
+                                <th>MMS</th>
+                                <th>Δ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Conversion Rate</td>
+                                <td>0.073%</td>
+                                <td>0.103%</td>
+                                <td><span class="tag tag-green">+41%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Click-Through Rate</td>
+                                <td>1.56%</td>
+                                <td>0.97%</td>
+                                <td><span class="tag tag-blue">SMS +61%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Opt-Out Rate</td>
+                                <td>0.37%</td>
+                                <td>0.63%</td>
+                                <td><span class="tag tag-red">MMS +70%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Avg Gift</td>
+                                <td>$36.47</td>
+                                <td>$38.43</td>
+                                <td><span class="tag tag-green">+5%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+                        Source: MissionWired/Tatango 2024 (200M texts, $5.4M raised)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="highlight-box">
+                <div class="highlight-title">⚠️ The Saturation Problem</div>
+                <p><strong>15+ billion</strong> political texts were sent in 2022 (158% increase over 2020). The average American received ~50 political texts. 60% of fundraisers admitted using fake match offers. Donors are trained to ignore apocalyptic urgency. <strong>Differentiate through authenticity, restraint, and trust.</strong></p>
+            </div>
+        </section>
+        
+        <!-- KEY FINDINGS SECTION -->
+        <section id="findings" class="section">
+            <h2 style="margin-bottom: 1.5rem;">Research-Backed Findings (RCT Evidence)</h2>
+            
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(0, 214, 143, 0.2); color: var(--accent-green);">🎯</div>
+                        <h3 class="card-title">"Now or Never" Effect</h3>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        "Extending a donation deadline from 1 week to 1 month did NOT increase participation. Almost all gifts came immediately after the ask."
+                    </p>
+                    <div class="tag tag-green">Damgaard & Gravert 2017 (RCT)</div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-dark); border-radius: 8px;">
+                        <strong style="color: var(--accent-cyan);">DB Application:</strong><br>
+                        Create urgency through content, not timeline. Assume a <strong>one-minute window</strong> to convert. Follow up within hours, not days.
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(0, 214, 143, 0.2); color: var(--accent-green);">💰</div>
+                        <h3 class="card-title">Named Match = 39% Lift</h3>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        "Telling donors their gift would be matched by the Gates Foundation increased donation likelihood by 39% and gift size by 44% vs anonymous match."
+                    </p>
+                    <div class="tag tag-green">Karlan & List via ideas42 2023</div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-dark); border-radius: 8px;">
+                        <strong style="color: var(--accent-cyan);">DB Application:</strong><br>
+                        Always name the matcher. <em>"A generous board member will match"</em> > <em>"Your gift will be doubled"</em>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(255, 61, 113, 0.2); color: var(--accent-red);">🚫</div>
+                        <h3 class="card-title">"Thank You in Advance" Backfires</h3>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        "Anticipatory gratitude phrases trigger psychological reactance and DECREASE donations."
+                    </p>
+                    <div class="tag tag-red">Bruttel et al. 2025 (RCT)</div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-dark); border-radius: 8px;">
+                        <strong style="color: var(--accent-cyan);">DB Application:</strong><br>
+                        <strong>BAN</strong> this phrase from all scripts. Audit templates. Thank AFTER the gift.
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(255, 61, 113, 0.2); color: var(--accent-red);">⚠️</div>
+                        <h3 class="card-title">Out-Group Framing Halves Donations</h3>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        "An explicit out-group appeal halved the donation rate vs a generic ask. In-group appeals showed no significant increase over generic."
+                    </p>
+                    <div class="tag tag-green">Linos et al. 2021 (APSR RCT)</div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-dark); border-radius: 8px;">
+                        <strong style="color: var(--accent-cyan);">DB Application:</strong><br>
+                        Use broad, universal narratives in cold SMS. Avoid divisive identity framing.
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(0, 214, 143, 0.2); color: var(--accent-green);">💚</div>
+                        <h3 class="card-title">Impact Receipts = 70.3% Retention</h3>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        "SMS detailing exactly where a donation was used increased 12-month retention to 70.3% (vs 62.6% control)."
+                    </p>
+                    <div class="tag tag-green">Chell et al. 2018 (RCT)</div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-dark); border-radius: 8px;">
+                        <strong style="color: var(--accent-cyan);">DB Application:</strong><br>
+                        Send "impact receipt" 30 days post-donation: <em>"Your $25 fed a family in Dallas"</em>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(168, 85, 247, 0.2); color: var(--accent-purple);">📖</div>
+                        <h3 class="card-title">"How" Beats "Why"</h3>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        "For immediate compliance, instructional 'How to help' messaging significantly outperforms abstract 'Why we need help' messaging."
+                    </p>
+                    <div class="tag tag-green">Buttenheim et al. 2024 (RCT)</div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-dark); border-radius: 8px;">
+                        <strong style="color: var(--accent-cyan);">DB Application:</strong><br>
+                        Focus deadline copy on <em>how to donate</em> rather than <em>why we need you</em>.
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- CREATIVE SECTION -->
+        <section id="creative" class="section">
+            <h2 style="margin-bottom: 1.5rem;">DB Creative Insights</h2>
+            
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(0, 214, 143, 0.2); color: var(--accent-green);">🔥</div>
+                        <h3 class="card-title">Power Phrases</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Phrase</th>
+                                <th>Yield Index</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>"dead serious"</td>
+                                <td><span class="tag tag-green">YI 24.94</span></td>
+                            </tr>
+                            <tr>
+                                <td>"complete this now"</td>
+                                <td><span class="tag tag-green">YI 24.88</span></td>
+                            </tr>
+                            <tr>
+                                <td>"reclaim your place"</td>
+                                <td><span class="tag tag-green">YI 23.47</span></td>
+                            </tr>
+                            <tr>
+                                <td>"secret message"</td>
+                                <td><span class="tag tag-blue">YI 14.42</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(255, 61, 113, 0.2); color: var(--accent-red);">☠️</div>
+                        <h3 class="card-title">Poison Phrases</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Phrase</th>
+                                <th>Yield Index</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>"with trump"</td>
+                                <td><span class="tag tag-red">YI -16.72</span></td>
+                            </tr>
+                            <tr>
+                                <td>"to stand with"</td>
+                                <td><span class="tag tag-red">YI -10.18</span></td>
+                            </tr>
+                            <tr>
+                                <td>"we should"</td>
+                                <td><span class="tag tag-red">YI -8.64</span></td>
+                            </tr>
+                            <tr>
+                                <td>"thank you in advance"</td>
+                                <td><span class="tag tag-red">BANNED</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: var(--gradient-cool);">🎭</div>
+                    <h3 class="card-title">Voice Analysis by Client</h3>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Best Voice</th>
+                            <th>Evidence</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>NCPD</strong></td>
+                            <td>Wife/Spouse/Victim stories</td>
+                            <td>72% of top-tier creatives</td>
+                            <td><span class="tag tag-green">Top Performer</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>SoldierStrong</strong></td>
+                            <td>Dana Perino 1st person</td>
+                            <td>Celebrity voice</td>
+                            <td><span class="tag tag-green">7x yield</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>SemperK9</strong></td>
+                            <td>Event anchors + Named dogs</td>
+                            <td>Specific date references</td>
+                            <td><span class="tag tag-green">$0.657/send</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>HeroBox</strong></td>
+                            <td>Deadline urgency</td>
+                            <td>! marks work here</td>
+                            <td><span class="tag tag-blue">Urgency-driven</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: rgba(255, 149, 0, 0.2); color: var(--accent-orange);">📐</div>
+                    <h3 class="card-title">Creative Formula</h3>
+                </div>
+                <div class="flow-container">
+                    <div class="flow-step">
+                        <div class="flow-step-label">Hook (0-50 chars)</div>
+                        Personal voice (spouse, celebrity, founder)<br>
+                        <em style="color: var(--accent-green);">"Hi, this is Sarah, Jake's wife..."</em>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-step-label">Story (50-200 chars)</div>
+                        Single named beneficiary with specific detail<br>
+                        <em style="color: var(--accent-green);">"On December 14, we'll lay wreaths beside fallen heroes..."</em>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-step-label">Bridge + Ask</div>
+                        Connect emotion to action<br>
+                        <em style="color: var(--accent-green);">"Your $25 isn't just a donation—it's a promise we'll never forget."</em>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-step-label">CTA</div>
+                        Single link, immediate action<br>
+                        <em style="color: var(--accent-cyan);">>> [link]</em>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- TEMPLATES SECTION -->
+        <section id="templates" class="section">
+            <h2 style="margin-bottom: 1.5rem;">Ready-to-Use Templates</h2>
+            
+            <div class="template-box">
+                <div class="template-label">🆕 Acquisition (P2P)</div>
+                <div class="template-text">
+                    Hi <span class="var">[Name]</span>, I'm <span class="var">[Vol]</span> with <span class="var">[Org]</span>. Do you care more about <span class="var">[Issue A]</span> or <span class="var">[Issue B]</span>? Reply A or B.
+                    <br><br>
+                    <em style="color: var(--text-muted);">[AFTER REPLY]</em><br>
+                    Thanks! Here's how you can help right now: <span class="var">[Link]</span>
+                </div>
+            </div>
+            
+            <div class="template-box">
+                <div class="template-label">⏰ Active Donor (Deadline Ask)</div>
+                <div class="template-text">
+                    <span class="var">[Org]</span> Alert: <span class="var">[Name]</span>, our match expires at midnight. We need $5k to fully fund the shelter. Here's how to help right now: <span class="var">[Link]</span>
+                </div>
+            </div>
+            
+            <div class="template-box">
+                <div class="template-label">💚 Stewardship (No Ask)</div>
+                <div class="template-text">
+                    Thanks to you, <span class="var">[Project]</span> is complete! Watch this 10-sec video from the field: <span class="var">[Link]</span>. Thank you!
+                </div>
+            </div>
+            
+            <div class="template-box">
+                <div class="template-label">🔄 Reactivation (Loss-Framed)</div>
+                <div class="template-text">
+                    <span class="var">[Name]</span>, we haven't heard from you. If we miss this goal, <span class="var">[Program]</span> gets cut. Claim your 3X match here: <span class="var">[Link]</span>
+                </div>
+            </div>
+            
+            <div class="template-box" style="border-color: var(--accent-gold);">
+                <div class="template-label" style="color: var(--accent-gold);">⭐ Wife/Spouse Voice (Top Performer)</div>
+                <div class="template-text">
+                    Hi, this is Sarah, Jake's wife. On December 14, we'll lay wreaths beside fallen heroes. Your $25 isn't just a donation—it's a promise we'll never forget. >> <span class="var">[Link]</span>
+                </div>
+            </div>
+            
+            <div class="template-box">
+                <div class="template-label">📊 Impact Receipt (30 Days Post-Gift)</div>
+                <div class="template-text">
+                    <span class="var">[Name]</span>, your $<span class="var">[Amount]</span> gift reached <span class="var">[City]</span> last week. Here's the family you helped: <span class="var">[Photo Link]</span>. You made this possible. 💙
+                </div>
+            </div>
+            
+            <div class="highlight-box" style="border-color: var(--accent-cyan); background: linear-gradient(135deg, rgba(0, 149, 255, 0.1), rgba(0, 224, 255, 0.1));">
+                <div class="highlight-title" style="color: var(--accent-cyan);">💡 Template Tips</div>
+                <ul style="margin-left: 1.5rem; color: var(--text-secondary);">
+                    <li>Keep initial texts between <strong>160-300 characters</strong></li>
+                    <li>End with a <strong>question</strong> when possible (increases reply rates)</li>
+                    <li>Include the <strong>link on its own line</strong> with >> or "Tap here:"</li>
+                    <li>Reference <strong>specific past gift amounts</strong> when available</li>
+                    <li>Never use ALL CAPS for urgency</li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- LANDING PAGES SECTION -->
+        <section id="landing" class="section">
+            <h2 style="margin-bottom: 1.5rem;">Landing Page Optimization</h2>
+            
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="stat-value" style="color: var(--accent-blue);">11%</div>
+                    <div class="stat-label">Desktop Form CVR</div>
+                    <div class="stat-source">M+R Benchmarks 2025</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value" style="color: var(--accent-orange);">8%</div>
+                    <div class="stat-label">Mobile Form CVR</div>
+                    <div class="stat-source">M+R Benchmarks 2025</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value" style="color: var(--accent-red);">-7%</div>
+                    <div class="stat-label">Per Second Delay</div>
+                    <div class="stat-source">Conversion loss per second</div>
+                </div>
+            </div>
+            
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: var(--gradient-primary);">🔗</div>
+                        <h3 class="card-title">SMS → LP Continuity</h3>
+                    </div>
+                    <div class="code-block">
+                        <span class="label">TEXT:</span><br>
+                        <span class="string">"Hi [Name], your $25 can feed a veteran family this week. Tap to help: [link]"</span><br><br>
+                        <span class="comment">↓</span><br><br>
+                        <span class="label">LP HERO:</span> Same veteran family image<br>
+                        <span class="label">LP HEADLINE:</span> <span class="string">"Feed a Veteran Family This Week"</span><br>
+                        <span class="label">LP DEFAULT:</span> $25 (pre-selected)<br>
+                        <span class="label">LP BUTTON:</span> <span class="string">"Give $25 Now"</span> (Apple Pay enabled)
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(0, 214, 143, 0.2); color: var(--accent-green);">✓</div>
+                        <h3 class="card-title">Critical Optimization Rules</h3>
+                    </div>
+                    <ul class="checklist">
+                        <li>
+                            <span class="check-box">✓</span>
+                            <span><strong>Visual Continuity</strong> — LP hero MUST match MMS image</span>
+                        </li>
+                        <li>
+                            <span class="check-box">✓</span>
+                            <span><strong>Pre-fill Forms</strong> — URL parameters for name, past amount</span>
+                        </li>
+                        <li>
+                            <span class="check-box">✓</span>
+                            <span><strong>Digital Wallets First</strong> — Apple Pay/Google Pay default</span>
+                        </li>
+                        <li>
+                            <span class="check-box">✓</span>
+                            <span><strong>Load Time &lt;2 seconds</strong> — Every second = 7% lost</span>
+                        </li>
+                        <li>
+                            <span class="check-box">✓</span>
+                            <span><strong>Single CTA</strong> — One clear action, no distractions</span>
+                        </li>
+                        <li>
+                            <span class="check-box">✓</span>
+                            <span><strong>Progress Indicator</strong> — "Almost done!" for multi-step</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: rgba(168, 85, 247, 0.2); color: var(--accent-purple);">📱</div>
+                    <h3 class="card-title">Mobile-First Design Principles</h3>
+                </div>
+                <div class="three-col">
+                    <div style="padding: 1rem; background: var(--bg-dark); border-radius: 8px;">
+                        <strong style="color: var(--accent-green);">✓ DO</strong><br>
+                        <ul style="margin-left: 1rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                            <li>Thumb-friendly buttons (min 48px)</li>
+                            <li>Amount buttons > text input</li>
+                            <li>Auto-detect card type</li>
+                            <li>Show security badges</li>
+                            <li>Add progress steps</li>
+                        </ul>
+                    </div>
+                    <div style="padding: 1rem; background: var(--bg-dark); border-radius: 8px;">
+                        <strong style="color: var(--accent-red);">✗ AVOID</strong><br>
+                        <ul style="margin-left: 1rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                            <li>Requiring account creation</li>
+                            <li>Multiple form fields visible</li>
+                            <li>Tiny tap targets</li>
+                            <li>Pop-ups on mobile</li>
+                            <li>Heavy images (&gt;500KB)</li>
+                        </ul>
+                    </div>
+                    <div style="padding: 1rem; background: var(--bg-dark); border-radius: 8px;">
+                        <strong style="color: var(--accent-orange);">🧪 TEST</strong><br>
+                        <ul style="margin-left: 1rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                            <li>Pre-filled amount from SMS</li>
+                            <li>Apple Pay only vs full form</li>
+                            <li>Video header vs static</li>
+                            <li>1-step vs 2-step checkout</li>
+                            <li>Social proof banner</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- EXPERIMENTS SECTION -->
+        <section id="experiments" class="section">
+            <h2 style="margin-bottom: 1.5rem;">16 Experiments Roadmap</h2>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <span class="tag tag-purple" style="margin-right: 0.5rem;">Q1: Foundation</span>
+                <span class="tag tag-blue" style="margin-right: 0.5rem;">Q2: Optimization</span>
+                <span class="tag tag-green" style="margin-right: 0.5rem;">Q3: Scale</span>
+                <span class="tag tag-orange">Q4: Year-End</span>
+            </div>
+            
+            <div class="three-col">
+                <div class="experiment-card">
+                    <div class="experiment-number">1</div>
+                    <div class="experiment-title">Two-Step Consent</div>
+                    <div class="experiment-hypothesis">Reply before link reduces carrier filtering</div>
+                    <div class="experiment-metric">📊 Gross Revenue</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">2</div>
+                    <div class="experiment-title">Cultivation Sequence</div>
+                    <div class="experiment-hypothesis">Impact MMS before ask increases CVR</div>
+                    <div class="experiment-metric">📊 Conversion Rate</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">3</div>
+                    <div class="experiment-title">Specific Amount Reference</div>
+                    <div class="experiment-hypothesis">Past gift amount > generic ask</div>
+                    <div class="experiment-metric">📊 Avg Gift</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">4</div>
+                    <div class="experiment-title">Omnichannel Primer</div>
+                    <div class="experiment-hypothesis">Text heads-up boosts email CVR</div>
+                    <div class="experiment-metric">📊 Email CVR</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">5</div>
+                    <div class="experiment-title">Warm Glow Protection</div>
+                    <div class="experiment-hypothesis">Pure impact > sweepstakes on ideological donors</div>
+                    <div class="experiment-metric">📊 90-day LTV</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">6</div>
+                    <div class="experiment-title">Selfie vs Graphic</div>
+                    <div class="experiment-hypothesis">Lo-fi selfie > produced graphic</div>
+                    <div class="experiment-metric">📊 CTR</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">7</div>
+                    <div class="experiment-title">Send Time Test</div>
+                    <div class="experiment-hypothesis">Testing 8-9pm peak finding</div>
+                    <div class="experiment-metric">📊 CTR</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">8</div>
+                    <div class="experiment-title">Pre-filled Cart</div>
+                    <div class="experiment-hypothesis">URL parameters increase completion</div>
+                    <div class="experiment-metric">📊 Completion Rate</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">9</div>
+                    <div class="experiment-title">SMS Upgrades</div>
+                    <div class="experiment-hypothesis">SMS upgrade link > email</div>
+                    <div class="experiment-metric">📊 % Upgraded</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">10</div>
+                    <div class="experiment-title">Re-permissioning</div>
+                    <div class="experiment-hypothesis">"Reply YES to stay" protects deliverability</div>
+                    <div class="experiment-metric">📊 Filter Rate</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">11</div>
+                    <div class="experiment-title">Local Geo-Targeting</div>
+                    <div class="experiment-hypothesis">City-specific > national proof</div>
+                    <div class="experiment-metric">📊 CVR</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">12</div>
+                    <div class="experiment-title">Audio Voice Memo</div>
+                    <div class="experiment-hypothesis">Audio builds deeper trust</div>
+                    <div class="experiment-metric">📊 Reply Rate</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">13</div>
+                    <div class="experiment-title">Spam Trigger Evasion</div>
+                    <div class="experiment-hypothesis">Remove ALL CAPS → lower STOP rate</div>
+                    <div class="experiment-metric">📊 Opt-Out Rate</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">14</div>
+                    <div class="experiment-title">Survey-to-Donate</div>
+                    <div class="experiment-hypothesis">1-question poll > direct link</div>
+                    <div class="experiment-metric">📊 Net Revenue</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">15</div>
+                    <div class="experiment-title">Question-End Engagement</div>
+                    <div class="experiment-hypothesis">Question marks increase replies</div>
+                    <div class="experiment-metric">📊 Reply Rate</div>
+                </div>
+                
+                <div class="experiment-card">
+                    <div class="experiment-number">16</div>
+                    <div class="experiment-title">Loss vs Gain Framing</div>
+                    <div class="experiment-hypothesis">Loss wins in final 24h</div>
+                    <div class="experiment-metric">📊 Total Raised</div>
+                </div>
+            </div>
+            
+            <div class="highlight-box" style="margin-top: 1.5rem;">
+                <div class="highlight-title">⛔ Stopping Rules (All Experiments)</div>
+                <ul style="margin-left: 1.5rem;">
+                    <li>Halt if Variant B response drops <strong>&lt;2%</strong></li>
+                    <li>Halt if STOP rate exceeds <strong>1.5%</strong></li>
+                    <li>Minimum <strong>N=5,000</strong> per variant for statistical significance</li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- DO/AVOID SECTION -->
+        <section id="rules" class="section">
+            <h2 style="margin-bottom: 1.5rem;">Do / Avoid / Test</h2>
+            
+            <div class="three-col">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(0, 214, 143, 0.2); color: var(--accent-green);">✓</div>
+                        <h3 class="card-title">DO (High Confidence)</h3>
+                    </div>
+                    <ul class="rule-list">
+                        <li>
+                            <span class="rule-icon do">✓</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Send 8-9pm</div>
+                                <div class="rule-source">MissionWired 2024</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">✓</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Use "How to help" not "Why"</div>
+                                <div class="rule-source">Buttenheim et al. 2024</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">✓</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Name the matching donor</div>
+                                <div class="rule-source">ideas42 2023</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">✓</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Send impact receipts</div>
+                                <div class="rule-source">Chell et al. 2018</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">✓</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Use wife/spouse voice</div>
+                                <div class="rule-source">DonorBureau 2026</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">✓</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Anchor to specific dates</div>
+                                <div class="rule-source">DonorBureau 2026</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">✓</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Send vCards in welcome series</div>
+                                <div class="rule-source">L2 Data 2025</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">✓</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Cultivation text before ask</div>
+                                <div class="rule-source">Tatango 2025</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">✓</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Register 10DLC properly</div>
+                                <div class="rule-source">CallHub/Twilio 2025</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon do">✓</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Use broad, universal narratives</div>
+                                <div class="rule-source">Linos et al. 2021</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(255, 61, 113, 0.2); color: var(--accent-red);">✗</div>
+                        <h3 class="card-title">AVOID (High Confidence)</h3>
+                    </div>
+                    <ul class="rule-list">
+                        <li>
+                            <span class="rule-icon avoid">✗</span>
+                            <div class="rule-content">
+                                <div class="rule-title">"Thank you in advance"</div>
+                                <div class="rule-source">Bruttel et al. 2025</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">✗</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Out-group framing</div>
+                                <div class="rule-source">Linos et al. 2021</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">✗</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Sweepstakes on ideological donors</div>
+                                <div class="rule-source">Bénabou & Henkel 2024</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">✗</span>
+                            <div class="rule-content">
+                                <div class="rule-title">ALL CAPS urgency</div>
+                                <div class="rule-source">Industry best practice</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">✗</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Organizational voice</div>
+                                <div class="rule-source">DonorBureau 2026</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">✗</span>
+                            <div class="rule-content">
+                                <div class="rule-title">"Picture this:" fiction</div>
+                                <div class="rule-source">DonorBureau 2026</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">✗</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Fake matches</div>
+                                <div class="rule-source">CCI 2022 (60% admit this)</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">✗</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Mixing consent types</div>
+                                <div class="rule-source">CallHub/Twilio 2025</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">✗</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Generic bit.ly shorteners</div>
+                                <div class="rule-source">Carrier filtering</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon avoid">✗</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Distant deadlines</div>
+                                <div class="rule-source">Damgaard & Gravert 2017</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(255, 149, 0, 0.2); color: var(--accent-orange);">🧪</div>
+                        <h3 class="card-title">TEST NEXT (Medium Confidence)</h3>
+                    </div>
+                    <ul class="rule-list">
+                        <li>
+                            <span class="rule-icon test">?</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Collective matching</div>
+                                <div class="rule-source">"10 more unlocks $5k"</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon test">?</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Voice memos in MMS</div>
+                                <div class="rule-source">Audio from staff/beneficiary</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon test">?</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Opt-down option</div>
+                                <div class="rule-source">"Text LESS" for reduced frequency</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon test">?</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Survey-first then ask</div>
+                                <div class="rule-source">Engagement before solicitation</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon test">?</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Pre-filled forms via URL</div>
+                                <div class="rule-source">Dynamic URL parameters</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rule-icon test">?</span>
+                            <div class="rule-content">
+                                <div class="rule-title">Local geo-targeting</div>
+                                <div class="rule-source">City-specific social proof</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- COMPLIANCE SECTION -->
+        <section id="compliance" class="section">
+            <h2 style="margin-bottom: 1.5rem;">Compliance Requirements (2025-2026)</h2>
+            
+            <div class="highlight-box" style="border-color: var(--accent-red);">
+                <div class="highlight-title">⚠️ Critical: 10DLC Hard-Block Active</div>
+                <p>As of <strong>February 2025</strong>, unregistered 10DLC traffic is <strong>hard-blocked</strong> by US carriers. Registration is no longer optional.</p>
+            </div>
+            
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(255, 61, 113, 0.2); color: var(--accent-red);">🔐</div>
+                        <h3 class="card-title">10DLC Non-Negotiables</h3>
+                    </div>
+                    <ul class="checklist">
+                        <li>
+                            <span class="check-box">☐</span>
+                            <span><strong>Brand registered with TCR</strong> (EIN verified)</span>
+                        </li>
+                        <li>
+                            <span class="check-box">☐</span>
+                            <span><strong>Campaign use case registered</strong></span>
+                        </li>
+                        <li>
+                            <span class="check-box">☐</span>
+                            <span><strong>Sample messages submitted</strong></span>
+                        </li>
+                        <li>
+                            <span class="check-box">☐</span>
+                            <span><strong>Opt-in flow documented</strong></span>
+                        </li>
+                        <li>
+                            <span class="check-box">☐</span>
+                            <span><strong>Reseller ID included</strong> (NEW 2025)</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(255, 149, 0, 0.2); color: var(--accent-orange);">📋</div>
+                        <h3 class="card-title">Consent Rules</h3>
+                    </div>
+                    <div class="highlight-box" style="border-color: var(--accent-orange); background: rgba(255, 149, 0, 0.05); margin: 0 0 1rem 0;">
+                        <strong style="color: var(--accent-orange);">⚠️ NEVER MIX CONSENT TYPES</strong><br>
+                        <span style="color: var(--text-secondary);">Mismatched consent is the leading TCPA violation</span>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Consent Type</th>
+                                <th>Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="tag tag-blue">Informational</span></td>
+                                <td>Updates, receipts, confirmations</td>
+                            </tr>
+                            <tr>
+                                <td><span class="tag tag-orange">Promotional</span></td>
+                                <td>Fundraising asks, campaign appeals</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">Separate opt-in paths required for each type.</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: rgba(0, 149, 255, 0.2); color: var(--accent-blue);">📱</div>
+                    <h3 class="card-title">iOS 26 "Silent Inbox" Mitigation</h3>
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Apple now routes messages from <strong>unsaved numbers to a silent folder</strong>. This can reduce visibility by up to 50%.
+                </p>
+                <div style="padding: 1rem; background: var(--bg-dark); border-radius: 8px;">
+                    <strong style="color: var(--accent-cyan);">Solution:</strong><br>
+                    Send <strong>vCard "save to contacts"</strong> campaigns in your welcome series. This secures "known sender" status.
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: rgba(0, 214, 143, 0.2); color: var(--accent-green);">📝</div>
+                    <h3 class="card-title">Required Opt-Out Keywords</h3>
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    These keywords must be honored <strong>immediately</strong>:
+                </p>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <span class="tag tag-green">STOP</span>
+                    <span class="tag tag-green">UNSUBSCRIBE</span>
+                    <span class="tag tag-green">CANCEL</span>
+                    <span class="tag tag-green">END</span>
+                    <span class="tag tag-green">QUIT</span>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <p><strong>DB SMS Strategy Dashboard V4</strong> — Final Research Synthesis</p>
+            <p>Sources: 28 primary sources (8 peer-reviewed RCTs, 9 industry reports, DonorBureau internal data)</p>
+            <p style="margin-top: 0.5rem;">Last Updated: February 13, 2026</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Tab Navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active from all buttons and sections
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                
+                // Add active to clicked button and corresponding section
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.section).classList.add('active');
+            });
+        });
+        
+        // Animate stats on scroll
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.hero-stat, .card, .experiment-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

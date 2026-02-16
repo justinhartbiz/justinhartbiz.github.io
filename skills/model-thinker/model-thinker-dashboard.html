@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Thinker Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 30px;
+        }
+        h1 { color: #58a6ff; font-size: 2.5rem; margin-bottom: 10px; }
+        .subtitle { color: #8b949e; font-size: 1.2rem; }
+        .quote {
+            margin-top: 20px;
+            padding: 15px 25px;
+            background: #161b22;
+            border-left: 4px solid #f0883e;
+            font-style: italic;
+            color: #f0883e;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #c9d1d9;
+        }
+        .tab:hover { background: #30363d; }
+        .tab.active { background: #238636; border-color: #238636; color: white; }
+        
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Category Grid */
+        .category-section {
+            margin-bottom: 40px;
+        }
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #30363d;
+        }
+        .category-icon { font-size: 1.5rem; }
+        .category-title { font-size: 1.3rem; color: #58a6ff; }
+        .category-desc { color: #8b949e; font-size: 0.9rem; }
+        
+        /* Model Cards */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .model-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .model-card:hover {
+            border-color: #58a6ff;
+            transform: translateY(-2px);
+        }
+        .model-name {
+            font-size: 1.2rem;
+            color: #f0883e;
+            margin-bottom: 8px;
+        }
+        .model-desc {
+            color: #8b949e;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .model-questions {
+            background: #0d1117;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        .model-questions strong { color: #58a6ff; }
+        .model-questions ul { margin-left: 18px; margin-top: 5px; }
+        .model-questions li { margin-bottom: 3px; }
+        
+        /* Insight Template */
+        .insight-template {
+            margin-top: 12px;
+            padding: 10px;
+            background: #1c2128;
+            border-left: 3px solid #238636;
+            font-size: 0.85rem;
+            color: #7ee787;
+        }
+        
+        /* Use Cases Section */
+        .use-cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .use-case {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .use-case-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .use-case-icon { font-size: 2rem; }
+        .use-case-title { font-size: 1.1rem; color: #58a6ff; }
+        .use-case-scenario { color: #c9d1d9; margin-bottom: 15px; }
+        .use-case-models {
+            background: #0d1117;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        .use-case-models h4 { color: #f0883e; margin-bottom: 8px; font-size: 0.9rem; }
+        .model-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #21262d;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin: 3px;
+            color: #c9d1d9;
+        }
+        .use-case-insight {
+            margin-top: 12px;
+            padding: 10px;
+            background: #1c2128;
+            border-left: 3px solid #a371f7;
+            font-size: 0.85rem;
+            color: #d2a8ff;
+        }
+        
+        /* How to Use Section */
+        .how-to-use {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 30px;
+        }
+        .how-to-use h2 {
+            color: #58a6ff;
+            margin-bottom: 20px;
+        }
+        .step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .step-num {
+            width: 40px;
+            height: 40px;
+            background: #238636;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .step-content h3 { color: #f0883e; margin-bottom: 5px; }
+        .step-content p { color: #8b949e; }
+        
+        /* REDCAPE */
+        .redcape {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .redcape-item {
+            background: #0d1117;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .redcape-letter {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f0883e;
+        }
+        .redcape-word { color: #58a6ff; font-weight: bold; }
+        .redcape-desc { font-size: 0.8rem; color: #8b949e; }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #8b949e;
+            border-top: 1px solid #30363d;
+        }
+        
+        /* Expanded Model Detail */
+        .model-detail-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        .model-detail-modal.active { display: flex; justify-content: center; align-items: flex-start; }
+        .model-detail {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 700px;
+            width: 100%;
+        }
+        .model-detail h2 { color: #f0883e; margin-bottom: 15px; }
+        .model-detail-section { margin-bottom: 20px; }
+        .model-detail-section h3 { color: #58a6ff; font-size: 1rem; margin-bottom: 8px; }
+        .close-btn {
+            float: right;
+            background: #21262d;
+            border: none;
+            color: #c9d1d9;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .close-btn:hover { background: #30363d; }
+        
+        /* Justin's Quick Reference */
+        .quick-ref {
+            background: linear-gradient(135deg, #1a1f35 0%, #161b22 100%);
+            border: 2px solid #a371f7;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .quick-ref h3 { color: #a371f7; margin-bottom: 15px; }
+        .quick-ref table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .quick-ref th, .quick-ref td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }
+        .quick-ref th { color: #58a6ff; }
+        .quick-ref td:first-child { color: #f0883e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧠 Model Thinker Dashboard</h1>
+            <p class="subtitle">20 Mental Models from Scott Page's "The Model Thinker"</p>
+            <div class="quote">
+                "All models are wrong, but ensembles of wrong models can be RIGHT."<br>
+                — Condorcet Jury Theorem
+            </div>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="overview">📊 Overview</div>
+            <div class="tab" data-tab="models">🔍 All Models</div>
+            <div class="tab" data-tab="usecases">💡 Your Use Cases</div>
+            <div class="tab" data-tab="howto">🎯 How to Use</div>
+        </div>
+        
+        <!-- OVERVIEW TAB -->
+        <div class="tab-content active" id="overview">
+            <div class="quick-ref">
+                <h3>⚡ Justin's Quick Reference: DonorBureau & TLH Applications</h3>
+                <table>
+                    <tr><th>Your Question</th><th>Model to Apply</th><th>What to Look For</th></tr>
+                    <tr><td>Why do some creatives 10x?</td><td>Power Law</td><td>Top 10% driving 60%+ = home run game</td></tr>
+                    <tr><td>How do winning hooks spread?</td><td>Diffusion</td><td>Pattern reuse, R₀ > 1 = viral spread</td></tr>
+                    <tr><td>Optimal A/B test strategy?</td><td>Multi-Armed Bandit</td><td>Explore/exploit ratio, UCB allocation</td></tr>
+                    <tr><td>Donor lifecycle states?</td><td>Markov Chain</td><td>Transition probabilities between states</td></tr>
+                    <tr><td>Best ask string?</td><td>Signaling</td><td>What amounts communicate to donors</td></tr>
+                    <tr><td>Why do donors lapse?</td><td>Threshold/Tipping</td><td>Fatigue accumulation until they tip</td></tr>
+                    <tr><td>TLH geographic patterns?</td><td>Spatial Models</td><td>County clustering, underserved areas</td></tr>
+                    <tr><td>Competitor strategy?</td><td>Game Theory</td><td>Nash equilibrium, best response</td></tr>
+                    <tr><td>Are we stuck on local peak?</td><td>Rugged Landscape</td><td>Incremental vs radical innovation</td></tr>
+                    <tr><td>Resource allocation?</td><td>Colonel Blotto</td><td>Which battles to concede vs win</td></tr>
+                </table>
+            </div>
+            
+            <h2 style="color: #58a6ff; margin-bottom: 20px;">📊 Models by Category</h2>
+            
+            <!-- Distribution -->
+            <div class="category-section">
+                <div class="category-header">
+                    <span class="category-icon">📈</span>
+                    <span class="category-title">Distribution Models</span>
+                    <span class="category-desc">— How outcomes are distributed across a population</span>
+                </div>
+                <div class="models-grid">
+                    <div class="model-card" onclick="showDetail('power_law')">
+                        <div class="model-name">Power Law Distribution</div>
+                        <div class="model-desc">Few winners dominate; long tail of small performers. 80/20 rule on steroids.</div>
+                        <div class="insight-template">💡 "If top X% drives Y% of results, you're in a 'home run' game, not an 'average improvement' game."</div>
+                    </div>
+                    <div class="model-card" onclick="showDetail('normal')">
+                        <div class="model-name">Normal Distribution</div>
+                        <div class="model-desc">Bell curve — most items cluster around average, few extremes.</div>
+                        <div class="insight-template">💡 "If normally distributed, improving the average matters more than chasing outliers."</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Network -->
+            <div class="category-section">
+                <div class="category-header">
+                    <span class="category-icon">🕸️</span>
+                    <span class="category-title">Network Models</span>
+                    <span class="category-desc">— How connections affect dynamics</span>
+                </div>
+                <div class="models-grid">
+                    <div class="model-card">
+                        <div class="model-name">Diffusion & Contagion</div>
+                        <div class="model-desc">How information, behaviors, or patterns spread through connected networks.</div>
+                        <div class="insight-template">💡 "If R > 1, the pattern will spread exponentially until saturation."</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Network Centrality</div>
+                        <div class="model-desc">Identifying key nodes — who/what is most connected or influential.</div>
+                        <div class="insight-template">💡 "Node X has disproportionate influence due to position Y."</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dynamic -->
+            <div class="category-section">
+                <div class="category-header">
+                    <span class="category-icon">🔄</span>
+                    <span class="category-title">Dynamic Models</span>
+                    <span class="category-desc">— How systems change over time</span>
+                </div>
+                <div class="models-grid">
+                    <div class="model-card">
+                        <div class="model-name">Markov Chains</div>
+                        <div class="model-desc">State transitions where future depends only on current state.</div>
+                        <div class="insight-template">💡 "Given current state X, there's P% probability of moving to state Y."</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Tipping Points</div>
+                        <div class="model-desc">Small changes accumulate until a threshold triggers dramatic change.</div>
+                        <div class="insight-template">💡 "System is stable until threshold T is crossed, then rapid phase change."</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Path Dependence</div>
+                        <div class="model-desc">History matters; early choices constrain future options (lock-in).</div>
+                        <div class="insight-template">💡 "Current state exists because of historical choice, not because it's optimal."</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Strategic -->
+            <div class="category-section">
+                <div class="category-header">
+                    <span class="category-icon">🎮</span>
+                    <span class="category-title">Strategic Models</span>
+                    <span class="category-desc">— How interactions between agents play out</span>
+                </div>
+                <div class="models-grid">
+                    <div class="model-card">
+                        <div class="model-name">Game Theory</div>
+                        <div class="model-desc">Strategic interaction where outcomes depend on others' choices.</div>
+                        <div class="insight-template">💡 "Given opponent strategy X, our best response is Y."</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Signaling</div>
+                        <div class="model-desc">Actions communicate information; costly signals are credible.</div>
+                        <div class="insight-template">💡 "A $X ask signals donor capacity/commitment level Y."</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Colonel Blotto</div>
+                        <div class="model-desc">Resource allocation across multiple battlefields; can't win everywhere.</div>
+                        <div class="insight-template">💡 "Optimal strategy concentrates resources on X fronts, concedes Y."</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Learning -->
+            <div class="category-section">
+                <div class="category-header">
+                    <span class="category-icon">🧠</span>
+                    <span class="category-title">Learning Models</span>
+                    <span class="category-desc">— How agents adapt and improve</span>
+                </div>
+                <div class="models-grid">
+                    <div class="model-card">
+                        <div class="model-name">Multi-Armed Bandit</div>
+                        <div class="model-desc">Balancing exploration (trying new things) vs exploitation (using what works).</div>
+                        <div class="insight-template">💡 "Optimal strategy balances exploring unknowns vs exploiting known winners."</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Rugged Landscapes</div>
+                        <div class="model-desc">Multiple local peaks; incremental optimization may miss global optimum.</div>
+                        <div class="insight-template">💡 "We're on peak X but peak Y may be higher — need big jumps to find it."</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- USE CASES TAB -->
+        <div class="tab-content" id="usecases">
+            <h2 style="color: #58a6ff; margin-bottom: 20px;">💡 Your Real-World Use Cases</h2>
+            
+            <div class="use-cases">
+                <div class="use-case">
+                    <div class="use-case-header">
+                        <span class="use-case-icon">📱</span>
+                        <div class="use-case-title">DonorBureau Creative Analysis</div>
+                    </div>
+                    <div class="use-case-scenario">
+                        You have 500 RNC creatives. Top 10% drive 60% of revenue. How do you optimize?
+                    </div>
+                    <div class="use-case-models">
+                        <h4>Apply These Models:</h4>
+                        <span class="model-tag">Power Law</span>
+                        <span class="model-tag">Multi-Armed Bandit</span>
+                        <span class="model-tag">Rugged Landscape</span>
+                        <span class="model-tag">Diffusion</span>
+                    </div>
+                    <div class="use-case-insight">
+                        <strong>Ensemble Insight:</strong> You're in a "home run" game, not an "optimization" game. Increase creative volume (more lottery tickets), study outliers intensely, and deliberately propagate winning hooks to new creative. Don't over-optimize — hunt for new peaks.
+                    </div>
+                </div>
+                
+                <div class="use-case">
+                    <div class="use-case-header">
+                        <span class="use-case-icon">🏠</span>
+                        <div class="use-case-title">TLH Orange County Expansion</div>
+                    </div>
+                    <div class="use-case-scenario">
+                        SD is working (25% win rate). OC is struggling (8%). Where do you focus?
+                    </div>
+                    <div class="use-case-models">
+                        <h4>Apply These Models:</h4>
+                        <span class="model-tag">Spatial/Geographic</span>
+                        <span class="model-tag">Colonel Blotto</span>
+                        <span class="model-tag">Game Theory</span>
+                        <span class="model-tag">Path Dependence</span>
+                    </div>
+                    <div class="use-case-insight">
+                        <strong>Ensemble Insight:</strong> South OC (San Clemente, Dana Point) is underserved — concentrate there. Don't spread thin across all OC. Kill PMAX in OC (competitors dominating), pivot to Search. Your DR 29 is a moat — exploit it with SEO content.
+                    </div>
+                </div>
+                
+                <div class="use-case">
+                    <div class="use-case-header">
+                        <span class="use-case-icon">📧</span>
+                        <div class="use-case-title">Donor Retention Analysis</div>
+                    </div>
+                    <div class="use-case-scenario">
+                        Why do donors lapse after 3-4 asks? How do you prevent churn?
+                    </div>
+                    <div class="use-case-models">
+                        <h4>Apply These Models:</h4>
+                        <span class="model-tag">Markov Chain</span>
+                        <span class="model-tag">Threshold/Tipping</span>
+                        <span class="model-tag">Signaling</span>
+                        <span class="model-tag">Learning</span>
+                    </div>
+                    <div class="use-case-insight">
+                        <strong>Ensemble Insight:</strong> Model donor states (Active → Cooling → Lapsed → Recovered). Identify the "fatigue threshold" — how many asks before tipping? Vary ask amounts (signaling) and message types to reset the fatigue counter. Build in "rest periods" to avoid triggering the threshold.
+                    </div>
+                </div>
+                
+                <div class="use-case">
+                    <div class="use-case-header">
+                        <span class="use-case-icon">⚔️</span>
+                        <div class="use-case-title">Competitive Fundraising Strategy</div>
+                    </div>
+                    <div class="use-case-scenario">
+                        TMA Direct is crushing you at NRSC (37% vs your 8%). What's your move?
+                    </div>
+                    <div class="use-case-models">
+                        <h4>Apply These Models:</h4>
+                        <span class="model-tag">Game Theory</span>
+                        <span class="model-tag">Colonel Blotto</span>
+                        <span class="model-tag">Network Centrality</span>
+                    </div>
+                    <div class="use-case-insight">
+                        <strong>Ensemble Insight:</strong> Don't fight head-on where they dominate. Find the "structural hole" — are there underserved committee types? Concentrate resources on 2-3 clients where you can dominate rather than spreading across all. What's your asymmetric advantage (e.g., MMS when they're SMS-focused)?
+                    </div>
+                </div>
+                
+                <div class="use-case">
+                    <div class="use-case-header">
+                        <span class="use-case-icon">🤖</span>
+                        <div class="use-case-title">AI Consulting Pricing</div>
+                    </div>
+                    <div class="use-case-scenario">
+                        How do you price "The AI Operator" tiers? $1,500 / $3,000 / $5,000?
+                    </div>
+                    <div class="use-case-models">
+                        <h4>Apply These Models:</h4>
+                        <span class="model-tag">Signaling</span>
+                        <span class="model-tag">Game Theory</span>
+                        <span class="model-tag">Nonlinear (S-curve)</span>
+                    </div>
+                    <div class="use-case-insight">
+                        <strong>Ensemble Insight:</strong> Price is a signal — too low = "not real AI" / too high = "enterprise only". $3K/mo is the Goldilocks zone for mid-market. Structure tiers as separating equilibrium: Starter for "AI curious", Operator for "I want results", War Room for "be my fractional CMO".
+                    </div>
+                </div>
+                
+                <div class="use-case">
+                    <div class="use-case-header">
+                        <span class="use-case-icon">📝</span>
+                        <div class="use-case-title">Content Strategy (Substack)</div>
+                    </div>
+                    <div class="use-case-scenario">
+                        22K subs, down from $70K to $21K ARR. How do you reignite growth?
+                    </div>
+                    <div class="use-case-models">
+                        <h4>Apply These Models:</h4>
+                        <span class="model-tag">Diffusion</span>
+                        <span class="model-tag">Tipping Point</span>
+                        <span class="model-tag">Path Dependence</span>
+                        <span class="model-tag">Random Walk</span>
+                    </div>
+                    <div class="use-case-insight">
+                        <strong>Ensemble Insight:</strong> You're path-dependent on COVID content — audience may not follow to AI. Launch "Hello AI" as fresh diffusion seed. Need a new R₀ > 1 moment (viral piece). Don't assume RG decline is random — analyze if there's a tipping point you crossed (e.g., topic fatigue).
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- HOW TO USE TAB -->
+        <div class="tab-content" id="howto">
+            <div class="how-to-use">
+                <h2>🎯 How to Use Model Thinker</h2>
+                
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h3>Classify Your Problem</h3>
+                        <p>Is this about Prediction, Explanation, Design, Decision, or Strategy?</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h3>Pick 3-5 Relevant Models</h3>
+                        <p>Ask: "What model might apply here?" Use the Quick Reference table for common scenarios. More models = more perspectives.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h3>Apply Each Model's Key Question</h3>
+                        <p>Each model has a "key question" it helps answer. Run your data through that lens. What do you see?</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <h3>Synthesize the Ensemble</h3>
+                        <p><strong>Where do models agree?</strong> = High confidence insight<br>
+                        <strong>Where do they disagree?</strong> = Interesting tension or tradeoff to explore<br>
+                        <strong>What's the composite action?</strong> = Your recommendation</p>
+                    </div>
+                </div>
+                
+                <h3 style="color: #58a6ff; margin: 30px 0 15px;">The REDCAPE Framework</h3>
+                <p style="color: #8b949e; margin-bottom: 15px;">Every model can serve 7 purposes:</p>
+                
+                <div class="redcape">
+                    <div class="redcape-item">
+                        <div class="redcape-letter">R</div>
+                        <div class="redcape-word">Reason</div>
+                        <div class="redcape-desc">Deduce logical implications</div>
+                    </div>
+                    <div class="redcape-item">
+                        <div class="redcape-letter">E</div>
+                        <div class="redcape-word">Explain</div>
+                        <div class="redcape-desc">Why did this happen?</div>
+                    </div>
+                    <div class="redcape-item">
+                        <div class="redcape-letter">D</div>
+                        <div class="redcape-word">Design</div>
+                        <div class="redcape-desc">How to build it?</div>
+                    </div>
+                    <div class="redcape-item">
+                        <div class="redcape-letter">C</div>
+                        <div class="redcape-word">Communicate</div>
+                        <div class="redcape-desc">Convey understanding</div>
+                    </div>
+                    <div class="redcape-item">
+                        <div class="redcape-letter">A</div>
+                        <div class="redcape-word">Act</div>
+                        <div class="redcape-desc">Guide decisions</div>
+                    </div>
+                    <div class="redcape-item">
+                        <div class="redcape-letter">P</div>
+                        <div class="redcape-word">Predict</div>
+                        <div class="redcape-desc">Forecast outcomes</div>
+                    </div>
+                    <div class="redcape-item">
+                        <div class="redcape-letter">E</div>
+                        <div class="redcape-word">Explore</div>
+                        <div class="redcape-desc">Investigate hypotheticals</div>
+                    </div>
+                </div>
+                
+                <h3 style="color: #58a6ff; margin: 30px 0 15px;">🗣️ Trigger Phrases for Railstote</h3>
+                <p style="color: #8b949e;">Say any of these to invoke many-model analysis:</p>
+                <ul style="margin: 10px 0 0 20px; color: #c9d1d9;">
+                    <li>"Apply model thinker lens to this"</li>
+                    <li>"What models could explain this?"</li>
+                    <li>"Give me different perspectives"</li>
+                    <li>"What am I missing in this analysis?"</li>
+                    <li>"Run this through multiple models"</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- ALL MODELS TAB -->
+        <div class="tab-content" id="models">
+            <h2 style="color: #58a6ff; margin-bottom: 20px;">🔍 All 20 Models</h2>
+            <p style="color: #8b949e; margin-bottom: 20px;">Click any model for full details.</p>
+            
+            <div class="models-grid" id="all-models-grid">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+        
+        <footer>
+            Based on "The Model Thinker" by Scott E. Page (2018)<br>
+            <span style="color: #58a6ff;">Powered by Railstote 🦉</span>
+        </footer>
+    </div>
+    
+    <!-- Model Detail Modal -->
+    <div class="model-detail-modal" id="modal">
+        <div class="model-detail" id="modal-content">
+            <!-- Populated by JavaScript -->
+        </div>
+    </div>
+    
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+        
+        // Model data
+        const models = [
+            { id: 'power_law', name: 'Power Law Distribution', cat: '📈 Distribution', desc: 'Few winners dominate; long tail of small performers.', insight: 'If top X% drives Y% of results, you\'re in a "home run" game.' },
+            { id: 'normal', name: 'Normal Distribution', cat: '📈 Distribution', desc: 'Bell curve — most items cluster around average.', insight: 'If normally distributed, improve the average rather than chasing outliers.' },
+            { id: 'diffusion', name: 'Diffusion & Contagion', cat: '🕸️ Network', desc: 'How patterns spread through networks.', insight: 'If R > 1, pattern spreads exponentially until saturation.' },
+            { id: 'centrality', name: 'Network Centrality', cat: '🕸️ Network', desc: 'Identifying key nodes — who is most influential.', insight: 'Node X has disproportionate influence due to position.' },
+            { id: 'markov', name: 'Markov Chains', cat: '🔄 Dynamic', desc: 'State transitions based on current state only.', insight: 'Given state X, P% probability of moving to state Y.' },
+            { id: 'tipping', name: 'Tipping Points', cat: '🔄 Dynamic', desc: 'Small changes until threshold triggers big change.', insight: 'Stable until threshold T, then rapid phase change.' },
+            { id: 'path', name: 'Path Dependence', cat: '🔄 Dynamic', desc: 'History matters; early choices create lock-in.', insight: 'Current state exists due to history, not optimality.' },
+            { id: 'random_walk', name: 'Random Walk', cat: '🔄 Dynamic', desc: 'Future = current + random step. Unpredictable.', insight: 'Movement may be noise, not signal.' },
+            { id: 'lyapunov', name: 'Lyapunov Stability', cat: '🔄 Dynamic', desc: 'Does system converge or diverge?', insight: 'System converges under conditions Y.' },
+            { id: 'game', name: 'Game Theory', cat: '🎮 Strategic', desc: 'Outcomes depend on others\' choices.', insight: 'Given opponent X, best response is Y.' },
+            { id: 'signaling', name: 'Signaling', cat: '🎮 Strategic', desc: 'Actions communicate; costly signals are credible.', insight: '$X ask signals donor capacity level Y.' },
+            { id: 'blotto', name: 'Colonel Blotto', cat: '🎮 Strategic', desc: 'Resource allocation across battlefields.', insight: 'Concentrate on X fronts, concede Y.' },
+            { id: 'collective', name: 'Collective Action', cat: '🎮 Strategic', desc: 'Individual vs group incentives (free rider).', insight: 'Individual wants X, group optimum requires Y.' },
+            { id: 'bandit', name: 'Multi-Armed Bandit', cat: '🧠 Learning', desc: 'Explore new options vs exploit known winners.', insight: 'Balance exploring unknowns vs exploiting winners.' },
+            { id: 'rugged', name: 'Rugged Landscapes', cat: '🧠 Learning', desc: 'Multiple peaks; incremental may miss global optimum.', insight: 'On peak X but peak Y may be higher.' },
+            { id: 'learning', name: 'Learning Models', cat: '🧠 Learning', desc: 'How agents adapt based on feedback.', insight: 'Agent updates beliefs by X% based on signal Y.' },
+            { id: 'linear', name: 'Linear Models', cat: '📐 Structural', desc: 'Proportional relationships.', insight: 'Each unit X produces B units change in Y.' },
+            { id: 'nonlinear', name: 'Nonlinear Models', cat: '📐 Structural', desc: 'Diminishing returns, S-curves.', insight: 'Returns diminish after point X.' },
+            { id: 'spatial', name: 'Spatial Models', cat: '📐 Structural', desc: 'Location and proximity matter.', insight: 'Outcomes cluster; distance predicts Y.' },
+            { id: 'entropy', name: 'Entropy & Information', cat: '📐 Structural', desc: 'Measuring uncertainty and diversity.', insight: 'Variable X provides Y bits of information.' }
+        ];
+        
+        // Populate all models grid
+        const grid = document.getElementById('all-models-grid');
+        models.forEach(m => {
+            grid.innerHTML += `
+                <div class="model-card">
+                    <div style="color: #8b949e; font-size: 0.8rem; margin-bottom: 5px;">${m.cat}</div>
+                    <div class="model-name">${m.name}</div>
+                    <div class="model-desc">${m.desc}</div>
+                    <div class="insight-template">💡 "${m.insight}"</div>
+                </div>
+            `;
+        });
+        
+        // Modal (simplified for now)
+        function showDetail(id) {
+            const m = models.find(x => x.id === id);
+            if (!m) return;
+            document.getElementById('modal-content').innerHTML = `
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+                <h2>${m.name}</h2>
+                <p>${m.desc}</p>
+                <div class="insight-template" style="margin-top: 20px;">💡 ${m.insight}</div>
+            `;
+            document.getElementById('modal').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+        
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
+        });
+    </script>
+</body>
+</html>

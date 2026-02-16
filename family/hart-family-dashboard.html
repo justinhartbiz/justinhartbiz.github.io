@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Hart Family | Dashboard</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --card-hover: #334155;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.2);
+            --gold: #fbbf24;
+            --green: #22c55e;
+            --purple: #a855f7;
+            --pink: #ec4899;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--gold), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .family-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .person-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .person-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--purple));
+        }
+        
+        .person-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            border-color: var(--accent);
+        }
+        
+        .person-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .person-emoji {
+            font-size: 2.5rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+        }
+        
+        .person-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .person-age {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+        
+        .person-details {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .birthday-countdown {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(251, 191, 36, 0.1);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .birthday-soon {
+            background: rgba(34, 197, 94, 0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .countdown-days {
+            font-weight: bold;
+            color: var(--gold);
+        }
+        
+        .milestone-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--purple);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        
+        .timeline-section {
+            margin-top: 3rem;
+        }
+        
+        .timeline-section h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--accent);
+        }
+        
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--accent);
+        }
+        
+        .timeline-item {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .timeline-content {
+            background: var(--card);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .timeline-date {
+            color: var(--gold);
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .quote-section {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .quote {
+            font-size: 1.5rem;
+            font-style: italic;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+        
+        .quote-author {
+            color: var(--text-muted);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+        }
+        
+        .next-birthday-banner {
+            background: linear-gradient(135deg, var(--green), #059669);
+            padding: 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+            to { box-shadow: 0 0 40px rgba(34, 197, 94, 0.5); }
+        }
+        
+        .next-birthday-banner h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.8rem; }
+            .family-grid { grid-template-columns: 1fr; }
+            .timeline::before { left: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏠 The Hart Family</h1>
+            <p class="subtitle">Justin & Jenny + Nine Amazing Kids</p>
+        </header>
+        
+        <div id="next-birthday"></div>
+        
+        <div class="stats-grid" id="stats"></div>
+        
+        <div class="family-grid" id="family"></div>
+        
+        <div class="timeline-section">
+            <h2>📅 Upcoming Milestones</h2>
+            <div class="timeline" id="milestones"></div>
+        </div>
+        
+        <div class="quote-section">
+            <p class="quote">"Having nine kids and multiple jobs means every minute matters. That's why I build systems."</p>
+            <p class="quote-author">— Justin Hart</p>
+        </div>
+        
+        <footer>
+            <p>Built with ❤️ by Railstote 🦉 | Last updated: <span id="last-updated"></span></p>
+        </footer>
+    </div>
+    
+    <script>
+        // Family data (ages as of Feb 10, 2026)
+        const today = new Date('2026-02-10');
+        
+        const family = [
+            {
+                name: "Kestra",
+                emoji: "👩‍👧‍👦",
+                birthDate: new Date("1996-05-15"), // ~30
+                details: "Married, 4 kids, lives in Utah",
+                type: "daughter",
+                notes: "First grandkids!"
+            },
+            {
+                name: "McKaeln",
+                emoji: "👨‍🎓",
+                birthDate: new Date("1998-03-22"), // ~28
+                details: "Living in Orange County",
+                type: "son"
+            },
+            {
+                name: "Kaden",
+                emoji: "🎮",
+                birthDate: new Date("2003-07-08"), // ~23
+                details: "Works at Best Buy, aspiring gaming industry",
+                type: "son"
+            },
+            {
+                name: "Hannah",
+                emoji: "👩",
+                birthDate: new Date("2003-09-12"), // ~23
+                details: "Stepdaughter",
+                type: "stepdaughter"
+            },
+            {
+                name: "Gia",
+                emoji: "🚗",
+                birthDate: new Date("2008-04-20"), // ~18
+                details: "Senior at Torrey Pines HS, has a car",
+                type: "stepdaughter",
+                aka: "Cordedia/Dia"
+            },
+            {
+                name: "Arya",
+                emoji: "📚",
+                birthDate: new Date("2018-01-25"), // ~8
+                details: "Elementary school",
+                type: "daughter"
+            },
+            {
+                name: "Trinity",
+                emoji: "🌟",
+                birthDate: new Date("2019-06-10"), // ~7
+                details: "Elementary school",
+                type: "daughter"
+            },
+            {
+                name: "Harley",
+                emoji: "🎨",
+                birthDate: new Date("2022-02-14"), // ~4
+                details: "Preschool, Jenny takes her in the morning",
+                type: "daughter"
+            },
+            {
+                name: "Ellis",
+                emoji: "👶",
+                birthDate: new Date("2024-03-18"), // ~2
+                details: "The youngest! Aka Ella",
+                type: "daughter",
+                aka: "Ella"
+            }
+        ];
+        
+        // Calculate age
+        function calculateAge(birthDate) {
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+        
+        // Calculate days until birthday
+        function daysUntilBirthday(birthDate) {
+            const thisYear = today.getFullYear();
+            let nextBirthday = new Date(thisYear, birthDate.getMonth(), birthDate.getDate());
+            
+            if (nextBirthday < today) {
+                nextBirthday = new Date(thisYear + 1, birthDate.getMonth(), birthDate.getDate());
+            }
+            
+            const diffTime = nextBirthday - today;
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+        
+        // Get next birthday person
+        function getNextBirthday() {
+            return family.reduce((closest, person) => {
+                const days = daysUntilBirthday(person.birthDate);
+                if (!closest || days < daysUntilBirthday(closest.birthDate)) {
+                    return person;
+                }
+                return closest;
+            }, null);
+        }
+        
+        // Render stats
+        function renderStats() {
+            const totalKids = 9;
+            const totalGrandkids = 4;
+            const totalAge = family.reduce((sum, p) => sum + calculateAge(p.birthDate), 0);
+            const avgAge = (totalAge / family.length).toFixed(1);
+            const adultsAtHome = family.filter(p => calculateAge(p.birthDate) >= 18 && p.type !== "daughter" || p.name === "Gia").length;
+            const yearsToAllAdults = 18 - calculateAge(family.find(p => p.name === "Ellis").birthDate);
+            
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${totalKids}</div>
+                    <div class="stat-label">Kids</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalGrandkids}</div>
+                    <div class="stat-label">Grandkids (via Kestra)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${avgAge}</div>
+                    <div class="stat-label">Average Age</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${yearsToAllAdults}</div>
+                    <div class="stat-label">Years Until All Adults</div>
+                </div>
+            `;
+        }
+        
+        // Render next birthday banner
+        function renderNextBirthday() {
+            const next = getNextBirthday();
+            const days = daysUntilBirthday(next.birthDate);
+            const turningAge = calculateAge(next.birthDate) + 1;
+            const birthdayDate = new Date(today.getFullYear(), next.birthDate.getMonth(), next.birthDate.getDate());
+            if (birthdayDate < today) {
+                birthdayDate.setFullYear(today.getFullYear() + 1);
+            }
+            const dateStr = birthdayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            
+            document.getElementById('next-birthday').innerHTML = `
+                <div class="next-birthday-banner">
+                    <h3>🎂 Next Birthday: ${next.name}!</h3>
+                    <p><strong>${days} days</strong> until ${next.name} turns <strong>${turningAge}</strong> (${dateStr})</p>
+                </div>
+            `;
+        }
+        
+        // Render family cards
+        function renderFamily() {
+            const sortedFamily = [...family].sort((a, b) => calculateAge(b.birthDate) - calculateAge(a.birthDate));
+            
+            const html = sortedFamily.map(person => {
+                const age = calculateAge(person.birthDate);
+                const days = daysUntilBirthday(person.birthDate);
+                const isBirthdaySoon = days <= 30;
+                const turningAge = age + 1;
+                
+                let milestone = '';
+                if (turningAge === 18) milestone = '🎓 Turning 18!';
+                else if (turningAge === 21) milestone = '🍾 Turning 21!';
+                else if (turningAge === 16) milestone = '🚗 Sweet 16!';
+                else if (turningAge === 5) milestone = '🏫 Starting school!';
+                else if (turningAge === 1) milestone = '🎈 First birthday!';
+                
+                return `
+                    <div class="person-card">
+                        <div class="person-header">
+                            <div class="person-emoji">${person.emoji}</div>
+                            <div>
+                                <div class="person-name">${person.name}${person.aka ? ` <span style="color: var(--text-muted); font-size: 0.8rem;">(${person.aka})</span>` : ''}</div>
+                                <div class="person-age">${age} years old</div>
+                            </div>
+                        </div>
+                        <div class="person-details">${person.details}</div>
+                        <div class="birthday-countdown ${isBirthdaySoon ? 'birthday-soon' : ''}">
+                            🎂 <span class="countdown-days">${days} days</span> until birthday (turning ${turningAge})
+                        </div>
+                        ${milestone ? `<span class="milestone-badge">${milestone}</span>` : ''}
+                        ${person.notes ? `<div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">💭 ${person.notes}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('family').innerHTML = html;
+        }
+        
+        // Render milestones
+        function renderMilestones() {
+            const milestones = [];
+            
+            family.forEach(person => {
+                const age = calculateAge(person.birthDate);
+                const turningAge = age + 1;
+                
+                // Next birthday
+                const bday = new Date(today.getFullYear(), person.birthDate.getMonth(), person.birthDate.getDate());
+                if (bday < today) bday.setFullYear(today.getFullYear() + 1);
+                
+                if (daysUntilBirthday(person.birthDate) <= 180) {
+                    milestones.push({
+                        date: bday,
+                        text: `${person.name} turns ${turningAge}`,
+                        type: 'birthday'
+                    });
+                }
+                
+                // Key milestones
+                const milestoneAges = [5, 10, 13, 16, 18, 21, 30];
+                milestoneAges.forEach(m => {
+                    if (age < m) {
+                        const yearsUntil = m - age;
+                        const milestoneDate = new Date(today.getFullYear() + yearsUntil, person.birthDate.getMonth(), person.birthDate.getDate());
+                        if (yearsUntil <= 3) {
+                            let label = '';
+                            if (m === 5) label = ' (school age!)';
+                            if (m === 13) label = ' (teenager!)';
+                            if (m === 16) label = ' (sweet 16!)';
+                            if (m === 18) label = ' (adult!)';
+                            if (m === 21) label = ' (21!)';
+                            
+                            milestones.push({
+                                date: milestoneDate,
+                                text: `${person.name} turns ${m}${label}`,
+                                type: 'milestone'
+                            });
+                        }
+                    }
+                });
+            });
+            
+            // Sort by date
+            milestones.sort((a, b) => a.date - b.date);
+            
+            // Take first 8
+            const html = milestones.slice(0, 8).map(m => `
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-date">${m.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                        <div>${m.text}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('milestones').innerHTML = html;
+        }
+        
+        // Initialize
+        renderStats();
+        renderNextBirthday();
+        renderFamily();
+        renderMilestones();
+        document.getElementById('last-updated').textContent = today.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            month: 'long', 
+            day: 'numeric', 
+            year: 'numeric' 
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dory Knowledge Graph Explorer</title>
+  <style>
+    :root {
+      --bg-color: #0d1117;
+      --text-color: #e6edf3;
+      --primary-color: #58a6ff;
+      --secondary-color: #238636;
+      --accent-color: #f778ba;
+      --header-bg: #161b22;
+      --card-bg: #21262d;
+      --border-color: #30363d;
+      --hover-color: #388bfd26;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.5;
+      padding-bottom: 2rem;
+    }
+    
+    header {
+      background-color: var(--header-bg);
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 2rem;
+    }
+    
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    h1 span {
+      margin-left: 0.5rem;
+    }
+    
+    h2 {
+      font-size: 1.25rem;
+      margin: 1.5rem 0 0.5rem;
+      color: var(--primary-color);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+    }
+    
+    .stat-title {
+      font-size: 0.875rem;
+      color: var(--text-color);
+      opacity: 0.8;
+    }
+    
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+    
+    .stat-value.entities {
+      color: var(--primary-color);
+    }
+    
+    .stat-value.relationships {
+      color: var(--secondary-color);
+    }
+    
+    .stat-value.types {
+      color: var(--accent-color);
+    }
+    
+    .tab-container {
+      margin-bottom: 2rem;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+    }
+    
+    .tab {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .tab.active {
+      border-bottom: 2px solid var(--primary-color);
+      font-weight: 600;
+    }
+    
+    .tab:hover:not(.active) {
+      background-color: var(--hover-color);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .search-container {
+      margin-bottom: 1rem;
+    }
+    
+    .search-box {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+    
+    button {
+      background-color: var(--primary-color);
+      color: var(--text-color);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    
+    button:hover {
+      opacity: 0.9;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+    
+    th {
+      text-align: left;
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 600;
+    }
+    
+    td {
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: top;
+    }
+    
+    .entity-row:hover, .relationship-row:hover {
+      background-color: var(--hover-color);
+    }
+    
+    .entity-type, .relationship-type {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+    
+    .entity-type.Person {
+      background-color: #0d7377;
+      color: white;
+    }
+    
+    .entity-type.Project {
+      background-color: #592e83;
+      color: white;
+    }
+    
+    .entity-type.Tool {
+      background-color: #7b2cbf;
+      color: white;
+    }
+    
+    .entity-type.Concept {
+      background-color: #f44336;
+      color: white;
+    }
+    
+    .entity-type.Decision {
+      background-color: #ff9800;
+      color: black;
+    }
+    
+    .entity-type.Location {
+      background-color: #2196f3;
+      color: white;
+    }
+    
+    .entity-type.Date-Event {
+      background-color: #4caf50;
+      color: white;
+    }
+    
+    .relationship-type {
+      background-color: var(--secondary-color);
+    }
+    
+    .source-list {
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+    
+    .query-container {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .query-input {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    
+    .query-result {
+      white-space: pre-wrap;
+      background-color: var(--bg-color);
+      padding: 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      margin-top: 1rem;
+      display: none;
+    }
+    
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    
+    .info-message {
+      padding: 1rem;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--primary-color);
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    #graph-visualization {
+      width: 100%;
+      height: 600px;
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>🧠 <span>Dory Knowledge Graph Explorer</span></h1>
+      <p>Navigate the connections in your memory system</p>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-title">Entities</div>
+        <div class="stat-value entities" id="entity-count">...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Relationships</div>
+        <div class="stat-value relationships" id="relationship-count">...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Entity Types</div>
+        <div class="stat-value types" id="entity-types">...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Last Updated</div>
+        <div class="stat-value" id="last-updated">...</div>
+      </div>
+    </div>
+    
+    <div class="actions">
+      <button id="refresh-graph">Rebuild Graph</button>
+      <div>
+        <button id="export-json">Export JSON</button>
+        <button id="open-cli">Open CLI</button>
+      </div>
+    </div>
+    
+    <div class="tab-container">
+      <div class="tabs">
+        <div class="tab active" data-tab="query">Query</div>
+        <div class="tab" data-tab="visualization">Visualization</div>
+        <div class="tab" data-tab="entities">Entities</div>
+        <div class="tab" data-tab="relationships">Relationships</div>
+      </div>
+      
+      <div class="tab-content active" data-tab="query">
+        <div class="query-container">
+          <h2>Natural Language Query</h2>
+          <p>Ask questions about your knowledge graph:</p>
+          <textarea class="query-input" id="query-input" rows="3" placeholder="Examples:
+- Who works on the TLH project?
+- What tools does Justin use?
+- How is Justin connected to Mailchimp?
+- What decisions were made this week?"></textarea>
+          <button id="run-query">Run Query <span class="loader hidden"></span></button>
+          <div class="query-result" id="query-result"></div>
+        </div>
+        
+        <div class="query-container">
+          <h2>Entity Lookup</h2>
+          <div class="search-container">
+            <input type="text" class="search-box" id="entity-search" placeholder="Entity name (e.g., 'Justin Hart', 'TLH')">
+            <button id="lookup-entity">Lookup <span class="loader hidden"></span></button>
+          </div>
+          <div class="query-result" id="entity-result"></div>
+        </div>
+        
+        <div class="query-container">
+          <h2>Find Path</h2>
+          <div class="search-container" style="display: flex; gap: 0.5rem;">
+            <input type="text" class="search-box" id="source-entity" placeholder="Source entity (e.g., 'Justin')">
+            <input type="text" class="search-box" id="target-entity" placeholder="Target entity (e.g., 'Mailchimp')">
+            <button id="find-path">Find Path <span class="loader hidden"></span></button>
+          </div>
+          <div class="query-result" id="path-result"></div>
+        </div>
+      </div>
+      
+      <div class="tab-content" data-tab="visualization">
+        <h2>Graph Visualization</h2>
+        <p class="info-message">Visualizing connections between entities in your knowledge graph.</p>
+        <div id="graph-visualization"></div>
+      </div>
+      
+      <div class="tab-content" data-tab="entities">
+        <div class="search-container">
+          <input type="text" class="search-box" id="entity-filter" placeholder="Filter entities...">
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Properties</th>
+              <th>Sources</th>
+            </tr>
+          </thead>
+          <tbody id="entity-table">
+            <tr>
+              <td colspan="4" class="info-message">Loading entities...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="tab-content" data-tab="relationships">
+        <div class="search-container">
+          <input type="text" class="search-box" id="relationship-filter" placeholder="Filter relationships...">
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Source</th>
+              <th>Target</th>
+              <th>Properties</th>
+            </tr>
+          </thead>
+          <tbody id="relationship-table">
+            <tr>
+              <td colspan="4" class="info-message">Loading relationships...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Global variables
+    let graph = null;
+    let meta = null;
+    
+    // DOM elements
+    const entityCount = document.getElementById('entity-count');
+    const relationshipCount = document.getElementById('relationship-count');
+    const entityTypes = document.getElementById('entity-types');
+    const lastUpdated = document.getElementById('last-updated');
+    const entityTable = document.getElementById('entity-table');
+    const relationshipTable = document.getElementById('relationship-table');
+    const entityFilter = document.getElementById('entity-filter');
+    const relationshipFilter = document.getElementById('relationship-filter');
+    const queryInput = document.getElementById('query-input');
+    const queryResult = document.getElementById('query-result');
+    const runQueryBtn = document.getElementById('run-query');
+    const entitySearch = document.getElementById('entity-search');
+    const entityResult = document.getElementById('entity-result');
+    const lookupEntityBtn = document.getElementById('lookup-entity');
+    const sourceEntity = document.getElementById('source-entity');
+    const targetEntity = document.getElementById('target-entity');
+    const pathResult = document.getElementById('path-result');
+    const findPathBtn = document.getElementById('find-path');
+    const refreshGraphBtn = document.getElementById('refresh-graph');
+    const exportJsonBtn = document.getElementById('export-json');
+    const openCliBtn = document.getElementById('open-cli');
+    
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Show corresponding tab content
+        tabContents.forEach(content => {
+          if (content.dataset.tab === tabName) {
+            content.classList.add('active');
+          } else {
+            content.classList.remove('active');
+          }
+        });
+      });
+    });
+    
+    // Load graph data
+    async function loadGraph() {
+      try {
+        // For demo/development, check if graph.json exists
+        const response = await fetch('/skills/dory-memory/graph.json');
+        
+        if (response.ok) {
+          graph = await response.json();
+          
+          // Also load meta
+          try {
+            const metaResponse = await fetch('/skills/dory-memory/graph-meta.json');
+            if (metaResponse.ok) {
+              meta = await metaResponse.json();
+            }
+          } catch (error) {
+            console.error('Error loading meta:', error);
+          }
+          
+          updateUI();
+        } else {
+          showNoGraphMessage();
+        }
+      } catch (error) {
+        console.error('Error loading graph:', error);
+        showNoGraphMessage();
+      }
+    }
+    
+    // Show message when no graph exists
+    function showNoGraphMessage() {
+      entityTable.innerHTML = `
+        <tr>
+          <td colspan="4" class="info-message">
+            No graph found. You need to build the graph first:
+            <pre>cd skills/dory-memory && node kg-cli.js build</pre>
+          </td>
+        </tr>
+      `;
+      
+      relationshipTable.innerHTML = entityTable.innerHTML;
+      
+      // Update stats
+      entityCount.textContent = '0';
+      relationshipCount.textContent = '0';
+      entityTypes.textContent = '0';
+      lastUpdated.textContent = 'Never';
+    }
+    
+    // Update UI with graph data
+    function updateUI() {
+      if (!graph) return;
+      
+      // Update stats
+      entityCount.textContent = graph.entities.length.toString();
+      relationshipCount.textContent = graph.relationships.length.toString();
+      
+      const uniqueTypes = new Set(graph.entities.map(e => e.type));
+      entityTypes.textContent = uniqueTypes.size.toString();
+      
+      if (meta && meta.lastBuild) {
+        const buildDate = new Date(meta.lastBuild);
+        lastUpdated.textContent = buildDate.toLocaleString();
+      } else if (graph.metadata && graph.metadata.buildTime) {
+        const buildDate = new Date(graph.metadata.buildTime);
+        lastUpdated.textContent = buildDate.toLocaleString();
+      } else {
+        lastUpdated.textContent = 'Unknown';
+      }
+      
+      // Populate entity table
+      populateEntityTable();
+      
+      // Populate relationship table
+      populateRelationshipTable();
+    }
+    
+    // Populate entity table
+    function populateEntityTable(filter = '') {
+      if (!graph || !graph.entities) return;
+      
+      const lowerFilter = filter.toLowerCase();
+      const filteredEntities = filter 
+        ? graph.entities.filter(e => 
+            e.name.toLowerCase().includes(lowerFilter) || 
+            (e.aliases && e.aliases.some(a => a.toLowerCase().includes(lowerFilter))) ||
+            e.type.toLowerCase().includes(lowerFilter))
+        : graph.entities;
+      
+      if (filteredEntities.length === 0) {
+        entityTable.innerHTML = `
+          <tr>
+            <td colspan="4" class="info-message">No entities found matching "${filter}"</td>
+          </tr>
+        `;
+        return;
+      }
+      
+      let html = '';
+      
+      for (const entity of filteredEntities) {
+        const properties = entity.properties 
+          ? Object.entries(entity.properties)
+              .map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`)
+              .join('')
+          : '';
+        
+        const aliases = entity.aliases && entity.aliases.length > 0 
+          ? `<div><strong>Aliases:</strong> ${entity.aliases.join(', ')}</div>` 
+          : '';
+        
+        const sources = entity.sources 
+          ? `<div class="source-list">${entity.sources.join('<br>')}</div>` 
+          : '';
+        
+        html += `
+          <tr class="entity-row" data-id="${entity.id}">
+            <td>${entity.name}</td>
+            <td><span class="entity-type ${entity.type}">${entity.type}</span></td>
+            <td>${aliases}${properties}</td>
+            <td>${sources}</td>
+          </tr>
+        `;
+      }
+      
+      entityTable.innerHTML = html;
+      
+      // Add click handler to show entity details
+      document.querySelectorAll('.entity-row').forEach(row => {
+        row.addEventListener('click', () => {
+          // Switch to query tab
+          tabs.forEach(t => t.classList.remove('active'));
+          tabContents.forEach(content => content.classList.remove('active'));
+          
+          document.querySelector('.tab[data-tab="query"]').classList.add('active');
+          document.querySelector('.tab-content[data-tab="query"]').classList.add('active');
+          
+          // Fill entity search and trigger lookup
+          entitySearch.value = row.querySelector('td').textContent;
+          lookupEntity();
+        });
+      });
+    }
+    
+    // Populate relationship table
+    function populateRelationshipTable(filter = '') {
+      if (!graph || !graph.relationships) return;
+      
+      const lowerFilter = filter.toLowerCase();
+      const filteredRelationships = filter 
+        ? graph.relationships.filter(r => 
+            r.type.toLowerCase().includes(lowerFilter) ||
+            r.source.toLowerCase().includes(lowerFilter) ||
+            r.target.toLowerCase().includes(lowerFilter))
+        : graph.relationships;
+      
+      if (filteredRelationships.length === 0) {
+        relationshipTable.innerHTML = `
+          <tr>
+            <td colspan="4" class="info-message">No relationships found matching "${filter}"</td>
+          </tr>
+        `;
+        return;
+      }
+      
+      let html = '';
+      
+      for (const rel of filteredRelationships) {
+        const properties = rel.properties 
+          ? Object.entries(rel.properties)
+              .map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`)
+              .join('')
+          : '';
+        
+        const sources = rel.sources 
+          ? `<div class="source-list">${rel.sources.join('<br>')}</div>` 
+          : '';
+        
+        html += `
+          <tr class="relationship-row">
+            <td><span class="relationship-type">${rel.type}</span></td>
+            <td>${rel.source}</td>
+            <td>${rel.target}</td>
+            <td>${properties}${sources}</td>
+          </tr>
+        `;
+      }
+      
+      relationshipTable.innerHTML = html;
+    }
+    
+    // Entity filter handler
+    entityFilter.addEventListener('input', () => {
+      populateEntityTable(entityFilter.value);
+    });
+    
+    // Relationship filter handler
+    relationshipFilter.addEventListener('input', () => {
+      populateRelationshipTable(relationshipFilter.value);
+    });
+    
+    // Run natural language query
+    async function runQuery() {
+      const query = queryInput.value.trim();
+      if (!query) return;
+      
+      // Show loading indicator
+      const loader = runQueryBtn.querySelector('.loader');
+      loader.classList.remove('hidden');
+      queryResult.style.display = 'none';
+      
+      try {
+        // In a real implementation, this would call the kg_query function
+        // For this demo, we'll simulate it
+        const response = await fetch(`/api/kg/query?q=${encodeURIComponent(query)}`);
+        
+        if (response.ok) {
+          const result = await response.text();
+          queryResult.textContent = result;
+        } else {
+          queryResult.textContent = `Error: ${response.statusText}`;
+        }
+      } catch (error) {
+        console.error('Error running query:', error);
+        queryResult.textContent = `Error: ${error.message}`;
+      } finally {
+        // Hide loading indicator
+        loader.classList.add('hidden');
+        queryResult.style.display = 'block';
+      }
+    }
+    
+    // Lookup entity
+    async function lookupEntity() {
+      const entity = entitySearch.value.trim();
+      if (!entity) return;
+      
+      // Show loading indicator
+      const loader = lookupEntityBtn.querySelector('.loader');
+      loader.classList.remove('hidden');
+      entityResult.style.display = 'none';
+      
+      try {
+        // In a real implementation, this would call the kg_entity function
+        // For this demo, we'll simulate it using the loaded graph
+        const entityObj = graph.entities.find(e => 
+          e.name.toLowerCase() === entity.toLowerCase() ||
+          (e.aliases && e.aliases.some(a => a.toLowerCase() === entity.toLowerCase()))
+        );
+        
+        if (entityObj) {
+          // Find relationships
+          const relationships = graph.relationships.filter(r => 
+            r.source === entityObj.name || r.target === entityObj.name
+          );
+          
+          let result = `# ${entityObj.name} (${entityObj.type})\n\n`;
+          
+          if (entityObj.aliases && entityObj.aliases.length > 0) {
+            result += `**Also known as:** ${entityObj.aliases.join(', ')}\n\n`;
+          }
+          
+          if (entityObj.properties && Object.keys(entityObj.properties).length > 0) {
+            result += `**Properties:**\n`;
+            for (const [key, value] of Object.entries(entityObj.properties)) {
+              result += `- ${key}: ${value}\n`;
+            }
+            result += '\n';
+          }
+          
+          if (relationships.length > 0) {
+            result += `**Relationships:**\n`;
+            
+            // Group by relationship type
+            const byType = {};
+            for (const rel of relationships) {
+              byType[rel.type] = byType[rel.type] || [];
+              byType[rel.type].push(rel);
+            }
+            
+            for (const [type, rels] of Object.entries(byType)) {
+              result += `- **${type}:**\n`;
+              for (const rel of rels) {
+                const isSource = rel.source === entityObj.name;
+                const other = isSource ? rel.target : rel.source;
+                const direction = isSource ? '→' : '←';
+                
+                result += `  - ${direction} ${other}\n`;
+              }
+            }
+          }
+          
+          if (entityObj.sources && entityObj.sources.length > 0) {
+            result += `\n**Sources:** ${entityObj.sources.join(', ')}\n`;
+          }
+          
+          entityResult.textContent = result;
+        } else {
+          entityResult.textContent = `Entity not found: ${entity}`;
+        }
+      } catch (error) {
+        console.error('Error looking up entity:', error);
+        entityResult.textContent = `Error: ${error.message}`;
+      } finally {
+        // Hide loading indicator
+        loader.classList.add('hidden');
+        entityResult.style.display = 'block';
+      }
+    }
+    
+    // Find path between entities
+    async function findPath() {
+      const source = sourceEntity.value.trim();
+      const target = targetEntity.value.trim();
+      
+      if (!source || !target) return;
+      
+      // Show loading indicator
+      const loader = findPathBtn.querySelector('.loader');
+      loader.classList.remove('hidden');
+      pathResult.style.display = 'none';
+      
+      try {
+        // In a real implementation, this would call the kg_path function
+        // For this demo, we'll just show a message
+        pathResult.textContent = `Path finding is implemented in the backend. Run this from the CLI:
+        
+node skills/dory-memory/kg-cli.js path "${source}" "${target}"`;
+      } catch (error) {
+        console.error('Error finding path:', error);
+        pathResult.textContent = `Error: ${error.message}`;
+      } finally {
+        // Hide loading indicator
+        loader.classList.add('hidden');
+        pathResult.style.display = 'block';
+      }
+    }
+    
+    // Rebuild graph
+    async function rebuildGraph() {
+      if (!confirm('This will rebuild the entire knowledge graph. It may take a few minutes and use Claude API calls. Continue?')) {
+        return;
+      }
+      
+      alert('In a real implementation, this would call the kg_rebuild function. For this demo, use the CLI:' +
+        '\n\nnode skills/dory-memory/kg-cli.js build');
+    }
+    
+    // Export graph as JSON
+    function exportJson() {
+      if (!graph) {
+        alert('No graph loaded');
+        return;
+      }
+      
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(graph, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "graph.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    }
+    
+    // Open CLI
+    function openCli() {
+      alert('To use the Knowledge Graph CLI, open a terminal and run:' +
+        '\n\ncd skills/dory-memory' +
+        '\nnode kg-cli.js help');
+    }
+    
+    // Event listeners
+    runQueryBtn.addEventListener('click', runQuery);
+    lookupEntityBtn.addEventListener('click', lookupEntity);
+    findPathBtn.addEventListener('click', findPath);
+    refreshGraphBtn.addEventListener('click', rebuildGraph);
+    exportJsonBtn.addEventListener('click', exportJson);
+    openCliBtn.addEventListener('click', openCli);
+    
+    // Handle Enter key in inputs
+    queryInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) {
+        runQuery();
+      }
+    });
+    
+    entitySearch.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        lookupEntity();
+      }
+    });
+    
+    sourceEntity.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && targetEntity.value.trim()) {
+        findPath();
+      }
+    });
+    
+    targetEntity.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && sourceEntity.value.trim()) {
+        findPath();
+      }
+    });
+    
+    // Initialize
+    loadGraph();
+  </script>
+</body>
+</html>

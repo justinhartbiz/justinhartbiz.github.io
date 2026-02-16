@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLH Orange County - Performance Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-gauge@0.3.0/dist/chartjs-gauge.min.js"></script>
+    <style>
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #1e1e1e;
+            --card-bg: #252525;
+            --text-primary: #e0e0e0;
+            --text-secondary: #aaaaaa;
+            --accent-color: #ff6700;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --success-color: #28a745;
+            --info-color: #0d6efd;
+        }
+        
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard-header {
+            background-color: var(--secondary-bg);
+            border-bottom: 1px solid #333;
+            padding: 20px 0;
+        }
+        
+        .dashboard-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            padding: 20px;
+            height: 100%;
+        }
+        
+        .dashboard-card h3 {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .negative {
+            color: var(--danger-color);
+        }
+        
+        .positive {
+            color: var(--success-color);
+        }
+        
+        .warning {
+            color: var(--warning-color);
+        }
+        
+        .info {
+            color: var(--info-color);
+        }
+        
+        .table-dark {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+        }
+        
+        .table-dark thead th {
+            background-color: #333;
+            border-color: #444;
+        }
+        
+        .table-dark td, .table-dark th {
+            border-color: #444;
+        }
+        
+        .progress {
+            height: 10px;
+            margin-top: 5px;
+            background-color: #333;
+        }
+        
+        .progress-bar {
+            background-color: var(--accent-color);
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        
+        .checklist-item:hover {
+            background-color: #333;
+        }
+        
+        .checklist-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+            line-height: 1.5;
+        }
+        
+        .funnel-step {
+            position: relative;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #333;
+            text-align: center;
+        }
+        
+        .funnel-step:after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #333;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        
+        .funnel-step:last-child:after {
+            display: none;
+        }
+        
+        .funnel-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .funnel-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .accent-text {
+            color: var(--accent-color);
+        }
+        
+        .gauge-container {
+            position: relative;
+            height: 200px;
+        }
+        
+        .gauge-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+        
+        .hero-metric-card {
+            text-align: center;
+            border-radius: 8px;
+            padding: 20px 15px;
+            background-color: #333;
+            transition: transform 0.3s;
+        }
+        
+        .hero-metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .hero-metric-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .hero-metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .hero-metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><span class="accent-text">TLH</span> Orange County</h1>
+                <div class="text-secondary">February 14, 2026</div>
+            </div>
+            <p class="mb-0 text-secondary">Deep Dive Performance Analysis</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <!-- Hero with Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-12 mb-3">
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-chart-line me-2"></i>Performance Overview</h3>
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="hero-metric-card negative">
+                                <div class="hero-metric-icon">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <div class="hero-metric-value">7.9%</div>
+                                <div class="hero-metric-label">Win Rate (3 wins / 38 closed opps)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="hero-metric-card warning">
+                                <div class="hero-metric-icon">
+                                    <i class="fas fa-ad"></i>
+                                </div>
+                                <div class="hero-metric-value">$21K/mo</div>
+                                <div class="hero-metric-label">Google Ads Spend</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="hero-metric-card danger">
+                                <div class="hero-metric-icon">
+                                    <i class="fas fa-fire-alt"></i>
+                                </div>
+                                <div class="hero-metric-value">$6.5K/mo</div>
+                                <div class="hero-metric-label">Identified Ad Burn</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="hero-metric-card negative">
+                                <div class="hero-metric-icon">
+                                    <i class="fas fa-city"></i>
+                                </div>
+                                <div class="hero-metric-value">14</div>
+                                <div class="hero-metric-label">Dead City Campaigns</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="hero-metric-card negative">
+                                <div class="hero-metric-icon">
+                                    <i class="fas fa-user-clock"></i>
+                                </div>
+                                <div class="hero-metric-value">73</div>
+                                <div class="hero-metric-label">Unworked Leads</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="hero-metric-card negative">
+                                <div class="hero-metric-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="hero-metric-value">4x</div>
+                                <div class="hero-metric-label">PMAX CPA Degradation ($20 → $84)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Win Rate Gauge & Campaign Performance -->
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-percent me-2"></i>Win Rate Analysis</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="gauge-container">
+                                <canvas id="winRateGauge"></canvas>
+                                <div class="gauge-label">7.9%</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-dark table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Win Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>CallRail</td>
+                                        <td class="positive">12%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>MLS</td>
+                                        <td class="negative">0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Agent Relationship</td>
+                                        <td class="negative">0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Wholesale</td>
+                                        <td class="negative">0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Website</td>
+                                        <td class="negative">0%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="mt-3">
+                                <span class="badge bg-success">3</span> Wins
+                                <span class="badge bg-danger ms-2">35</span> Losses
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 mb-4">
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-chart-bar me-2"></i>Campaign Performance</h3>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Campaign</th>
+                                    <th>Spend</th>
+                                    <th>Conv</th>
+                                    <th>CPA</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>PMAX - OC - Estate Sales</td>
+                                    <td>$3,365</td>
+                                    <td>40</td>
+                                    <td class="warning">$84</td>
+                                    <td><span class="badge bg-warning">Degrading</span></td>
+                                </tr>
+                                <tr>
+                                    <td>OC - Huntington Beach</td>
+                                    <td>$632</td>
+                                    <td>15.6</td>
+                                    <td class="positive">$41</td>
+                                    <td><span class="badge bg-success">Working</span></td>
+                                </tr>
+                                <tr>
+                                    <td>OC - Anaheim</td>
+                                    <td>$612</td>
+                                    <td>14</td>
+                                    <td class="positive">$44</td>
+                                    <td><span class="badge bg-success">Working</span></td>
+                                </tr>
+                                <tr>
+                                    <td>OC - Lake Forest</td>
+                                    <td>$599</td>
+                                    <td>9</td>
+                                    <td class="info">$67</td>
+                                    <td><span class="badge bg-success">Working</span></td>
+                                </tr>
+                                <tr>
+                                    <td>OC - San Clemente</td>
+                                    <td class="negative">$612</td>
+                                    <td>0</td>
+                                    <td class="negative">∞</td>
+                                    <td><span class="badge bg-danger">Dead</span></td>
+                                </tr>
+                                <tr>
+                                    <td>13 Other City Campaigns</td>
+                                    <td class="negative">$5,888</td>
+                                    <td>0</td>
+                                    <td class="negative">∞</td>
+                                    <td><span class="badge bg-danger">Dead</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-2 text-end">
+                        <span class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>$6.5K/mo burn identified</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lead Funnel & Quick Fixes -->
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-filter me-2"></i>Lead Funnel</h3>
+                    <div class="funnel-container">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="funnel-step">
+                                    <div class="funnel-number">173</div>
+                                    <div class="funnel-label">Total Opportunities (90d)</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="funnel-step negative">
+                                    <div class="funnel-number">73</div>
+                                    <div class="funnel-label">Claimed Leads (Unworked)</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="funnel-step">
+                                    <div class="funnel-number">19</div>
+                                    <div class="funnel-label">Cold Pursuit</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="funnel-step">
+                                    <div class="funnel-number">16</div>
+                                    <div class="funnel-label">Meeting #1 Set</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="funnel-step">
+                                    <div class="funnel-number">12</div>
+                                    <div class="funnel-label">In Pursuit</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="funnel-step">
+                                    <div class="funnel-number">3</div>
+                                    <div class="funnel-label">Won Deals (90d)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <span class="badge bg-info me-2">CallRail</span> Only source with wins (12% win rate)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 mb-4">
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-tasks me-2"></i>Quick Fixes Checklist</h3>
+                    <div class="checklist-container">
+                        <div class="checklist-item negative">
+                            <div class="checklist-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <div class="checklist-content">
+                                <strong>Blitz 73 Unworked Claimed Leads</strong>
+                                <div class="text-secondary">Assign to Jonathan or James immediately</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item negative">
+                            <div class="checklist-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <div class="checklist-content">
+                                <strong>Pause 14 Dead City Campaigns</strong>
+                                <div class="text-secondary">Save $6,500/mo immediately</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item warning">
+                            <div class="checklist-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="checklist-content">
+                                <strong>Refresh PMAX Creative Assets</strong>
+                                <div class="text-secondary">CPA degraded 4x ($20 → $84)</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item warning">
+                            <div class="checklist-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="checklist-content">
+                                <strong>Reallocate Budget to Working Campaigns</strong>
+                                <div class="text-secondary">HB, Anaheim, Lake Forest, Newport Beach</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item info">
+                            <div class="checklist-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="checklist-content">
+                                <strong>Audit MLS/Agent Relationship Source Quality</strong>
+                                <div class="text-secondary">91 opps with 0 wins</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item info">
+                            <div class="checklist-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="checklist-content">
+                                <strong>Consolidate to 3 OC Zones</strong>
+                                <div class="text-secondary">Replace city fragmentation with North/Central/South</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PMAX Degradation Chart -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-chart-line me-2"></i>PMAX Performance Degradation</h3>
+                    <canvas id="pmaxChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center mt-5 mb-4">
+            <p class="text-secondary">TLH Orange County Deep Diagnosis Dashboard | <small>Last updated: February 14, 2026</small></p>
+        </footer>
+    </div>
+    
+    <script>
+        // Win Rate Gauge
+        const gaugeChartCtx = document.getElementById('winRateGauge').getContext('2d');
+        const winRateGauge = new Chart(gaugeChartCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [7.9, 92.1],
+                    backgroundColor: [
+                        '#dc3545',
+                        '#333333'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                cutout: '70%',
+                circumference: 180,
+                rotation: 270,
+                plugins: {
+                    tooltip: {
+                        enabled: false
+                    },
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        // PMAX Degradation Chart
+        const pmaxChartCtx = document.getElementById('pmaxChart').getContext('2d');
+        const pmaxChart = new Chart(pmaxChartCtx, {
+            type: 'line',
+            data: {
+                labels: ['Sep 2025', 'Oct 2025', 'Nov 2025', 'Dec 2025', 'Jan 2026'],
+                datasets: [{
+                    label: 'All Conversions',
+                    data: [24, 244, 296, 145, 40],
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }, {
+                    label: 'CPA ($)',
+                    data: [24, 17, 20, 13, 84],
+                    borderColor: '#dc3545',
+                    backgroundColor: 'transparent',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            color: '#333'
+                        },
+                        ticks: {
+                            color: '#aaa'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Conversions',
+                            color: '#aaa'
+                        }
+                    },
+                    y1: {
+                        position: 'right',
+                        grid: {
+                            color: '#333'
+                        },
+                        ticks: {
+                            color: '#aaa'
+                        },
+                        title: {
+                            display: true,
+                            text: 'CPA ($)',
+                            color: '#aaa'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#333'
+                        },
+                        ticks: {
+                            color: '#aaa'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#aaa'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.datasetIndex === 1) {
+                                    label += '$' + context.raw;
+                                } else {
+                                    label += context.raw;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NRSC P2P Daily Review — 2026-02-10</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #f85149; margin-bottom: 8px; font-size: 1.8rem; }
+        .subtitle { color: #8b949e; margin-bottom: 20px; font-size: 0.95rem; }
+        
+        .selected-panel {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+        .selected-panel h3 { color: #3fb950; margin-bottom: 12px; font-size: 1rem; }
+        .selected-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
+        .selected-tag {
+            background: #238636;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .selected-tag .remove { cursor: pointer; opacity: 0.7; font-weight: bold; }
+        .selected-tag .remove:hover { opacity: 1; }
+        .empty-state { color: #8b949e; font-style: italic; }
+        .copy-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #58a6ff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+        .copy-btn:hover { background: #30363d; }
+        .copy-btn.copied { background: #238636; color: #fff; border-color: #238636; }
+        
+        .stats-bar { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .stat-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 12px 20px;
+            flex: 1;
+            min-width: 120px;
+        }
+        .stat-card .label { color: #8b949e; font-size: 0.75rem; text-transform: uppercase; }
+        .stat-card .value { color: #58a6ff; font-size: 1.4rem; font-weight: 600; }
+        .stat-card .value.red { color: #f85149; }
+        .stat-card .value.green { color: #3fb950; }
+        .stat-card .value.yellow { color: #d29922; }
+        
+        .creative-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .creative-card:hover { border-color: #58a6ff; }
+        .creative-card.selected { border-color: #238636; box-shadow: 0 0 0 1px #238636; }
+        .creative-card.top-pick { border-color: #3fb950; border-width: 2px; }
+        .creative-card.skip { opacity: 0.6; }
+        .card-header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            gap: 16px;
+            border-bottom: 1px solid #30363d;
+            cursor: pointer;
+        }
+        .card-header:hover { background: #21262d; }
+        .checkbox-wrapper { display: flex; align-items: center; }
+        .checkbox-wrapper input { width: 20px; height: 20px; cursor: pointer; accent-color: #238636; }
+        .card-title { flex: 1; }
+        .card-title h3 { color: #f0f6fc; font-size: 1.1rem; margin-bottom: 4px; }
+        .card-title .meta { color: #8b949e; font-size: 0.85rem; }
+        .card-title .meta span { margin-right: 12px; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-right: 8px; }
+        .badge.sms { background: #1f6feb; color: #fff; }
+        .badge.mms { background: #8957e5; color: #fff; }
+        .badge.top { background: #238636; color: #fff; }
+        .badge.new { background: #d29922; color: #000; }
+        .badge.skip { background: #f85149; color: #fff; }
+        
+        .score-display { text-align: center; min-width: 70px; }
+        .score-value { font-size: 1.5rem; font-weight: bold; }
+        .score-value.high { color: #3fb950; }
+        .score-value.medium { color: #d29922; }
+        .score-value.low { color: #f85149; }
+        .score-label { font-size: 0.7rem; color: #8b949e; text-transform: uppercase; }
+        
+        .card-body { padding: 16px; display: none; }
+        .creative-text {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'SF Mono', Consolas, monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            margin-bottom: 16px;
+        }
+        .rationale {
+            background: #21262d;
+            border-left: 3px solid #58a6ff;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+        .rationale strong { color: #58a6ff; }
+        .rationale.warning { border-color: #d29922; }
+        .rationale.danger { border-color: #f85149; }
+        
+        .score-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; }
+        .score-item { background: #21262d; padding: 8px 12px; border-radius: 6px; text-align: center; }
+        .score-item .dim { font-size: 0.7rem; color: #8b949e; }
+        .score-item .val { font-size: 1.1rem; font-weight: 600; color: #f0f6fc; }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 32px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #30363d;
+        }
+        .section-header h2 { color: #f0f6fc; font-size: 1.2rem; }
+        .section-header .count { background: #30363d; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #30363d;
+            text-align: center;
+            color: #8b949e;
+            font-size: 0.85rem;
+        }
+        .footer a { color: #58a6ff; text-decoration: none; }
+        
+        .insight-box {
+            background: #1c2128;
+            border: 1px solid #d29922;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .insight-box h4 { color: #d29922; margin-bottom: 8px; }
+        .insight-box ul { padding-left: 20px; }
+        .insight-box li { margin-bottom: 4px; }
+        
+        @media (max-width: 768px) {
+            .stats-bar { flex-direction: column; }
+            .card-header { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 NRSC P2P Daily Review</h1>
+        <p class="subtitle">VENDOR_20260210_P2P.docx | 14 Creatives | Tuesday Send Day</p>
+        
+        <div class="selected-panel">
+            <h3>✅ Selected for Send (<span id="selected-count">0</span>)</h3>
+            <div class="selected-list" id="selected-list">
+                <span class="empty-state">Check creatives below to add them here</span>
+            </div>
+            <button class="copy-btn" id="copy-btn" onclick="copySelected()">📋 Copy Selected IDs</button>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="label">Total</div>
+                <div class="value">14</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Top Tier</div>
+                <div class="value green">5</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Middle</div>
+                <div class="value yellow">7</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Skip</div>
+                <div class="value red">2</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Best Score</div>
+                <div class="value green">8.6</div>
+            </div>
+        </div>
+        
+        <div class="insight-box">
+            <h4>⚡ Key Insights</h4>
+            <ul>
+                <li><strong>Tuesday = optimal send day</strong> — All TOP creatives today</li>
+                <li><strong>Katie Britt underperforms</strong> — 6 of 14 creatives, all 5.4-7.2. Untested signer.</li>
+                <li><strong>Guilt patterns underweighted</strong> — Only 2/14 use guilt drivers (forensics shows 3.8x lift)</li>
+                <li><strong>Census Alert (#9) is the sleeper</strong> — Notification framing has 11x enrichment potential</li>
+            </ul>
+        </div>
+        
+        <!-- TOP TIER -->
+        <div class="section-header">
+            <h2 style="color: #3fb950;">🏆 TOP TIER — Send Priority</h2>
+            <span class="count">5 creatives</span>
+        </div>
+        
+        <div class="creative-card top-pick" data-id="SMS9">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>SMS #9: [CENSUS ALERT] ⭐⭐</h3>
+                    <div class="meta"><span>NRSC</span><span>Notification + Guilt</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <span class="badge top">TOP 0%</span>
+                <div class="score-display"><div class="score-value high">8.6</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">[CENSUS ALERT] You recently left question #2 BLANK (RE: citizenship) Please VERIFY your Trump-Voter Census: [link]</div>
+                <div class="rationale"><strong>🏆 #1 PICK:</strong> Notification framing (11x enrichment) + incomplete task guilt + specificity ("question #2 BLANK"). P5 Guilt archetype responds strongly. Tuesday = best send day.</div>
+                <div class="score-breakdown">
+                    <div class="score-item"><div class="dim">Hook</div><div class="val">9</div></div>
+                    <div class="score-item"><div class="dim">Clarity</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Emotion</div><div class="val">9</div></div>
+                    <div class="score-item"><div class="dim">LP Match</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Donor Fit</div><div class="val">9</div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creative-card top-pick" data-id="SMS10">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>SMS #10: Ted Cruz "couldn't believe my eyes" ⭐</h3>
+                    <div class="meta"><span>Ted Cruz</span><span>Curiosity Gap</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <span class="badge top">TOP 5%</span>
+                <div class="score-display"><div class="score-value high">8.2</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">Ted Cruz: There's not much that surprises me… But I couldn't believe my eyes when I saw this report. See for yourself: [link]</div>
+                <div class="rationale"><strong>🏆 #2 PICK:</strong> Stacks personal intro + curiosity gap. Cruz = proven performer (YI 2.19, $103K). Confidential memo framing. P1 MAGA + P3 Anti-Establishment engage.</div>
+                <div class="score-breakdown">
+                    <div class="score-item"><div class="dim">Hook</div><div class="val">9</div></div>
+                    <div class="score-item"><div class="dim">Clarity</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Emotion</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">LP Match</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Donor Fit</div><div class="val">8</div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creative-card top-pick" data-id="SMS8">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>SMS #8: John Thune "this text is different" ⭐</h3>
+                    <div class="meta"><span>John Thune</span><span>Meta-Awareness</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <span class="badge top">TOP 1%</span>
+                <div class="score-display"><div class="score-value high">8.2</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">John Thune: I promise you, this text is different. No fundraising pitch. I just need you to answer a question >> [link]</div>
+                <div class="rationale"><strong>🏆 #3 PICK:</strong> Meta-awareness breaks donor fatigue. "No fundraising pitch" = P4 Fatigue (80% accuracy) responds. Clean ask.</div>
+                <div class="score-breakdown">
+                    <div class="score-item"><div class="dim">Hook</div><div class="val">9</div></div>
+                    <div class="score-item"><div class="dim">Clarity</div><div class="val">9</div></div>
+                    <div class="score-item"><div class="dim">Emotion</div><div class="val">7</div></div>
+                    <div class="score-item"><div class="dim">LP Match</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Donor Fit</div><div class="val">8</div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creative-card top-pick" data-id="SMS14">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>SMS #14: "You're making a huge mistake"</h3>
+                    <div class="meta"><span>NRSC</span><span>Heavy Guilt</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <span class="badge top">TOP 0%</span>
+                <div class="score-display"><div class="score-value high">8.2</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">You're making a huge mistake continuing to ignore us like this. We're asking one last time. Verify your voter profile ASAP. >> {{link}}</div>
+                <div class="rationale"><strong>Alternate #3:</strong> Heavy guilt driver. Forensics shows guilt/shame = YI 5.38 (3.8x avg). "One last time" adds deadline urgency. Best for reactivation/lapsed segments.</div>
+                <div class="score-breakdown">
+                    <div class="score-item"><div class="dim">Hook</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Clarity</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Emotion</div><div class="val">9</div></div>
+                    <div class="score-item"><div class="dim">LP Match</div><div class="val">7</div></div>
+                    <div class="score-item"><div class="dim">Donor Fit</div><div class="val">9</div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creative-card top-pick" data-id="MMS12">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>MMS #12: Don Jr. "wasn't ready to say"</h3>
+                    <div class="meta"><span>Donald Trump Jr.</span><span>Proven Pattern</span></div>
+                </div>
+                <span class="badge mms">MMS</span>
+                <span class="badge top">TOP 0%</span>
+                <div class="score-display"><div class="score-value medium">7.8</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">I wasn't ready to say this until now, [firstname|Friend]. This is Donald Trump Jr. Completing our survey is crucial >> [link] We need 1500 more responses to finalize our data in [zipcode|your area]. Confirm your Republican Voting Status >> [link]</div>
+                <div class="rationale"><strong>Volume Play:</strong> Nearly identical to Cr-1243 ($877K, 342 polls). Curiosity gap + name reveal + geo-personalization. PROVEN pattern. Use for send volume, not yield optimization.</div>
+                <div class="score-breakdown">
+                    <div class="score-item"><div class="dim">Hook</div><div class="val">9</div></div>
+                    <div class="score-item"><div class="dim">Clarity</div><div class="val">7</div></div>
+                    <div class="score-item"><div class="dim">Emotion</div><div class="val">7</div></div>
+                    <div class="score-item"><div class="dim">LP Match</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Donor Fit</div><div class="val">8</div></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MIDDLE TIER -->
+        <div class="section-header">
+            <h2 style="color: #d29922;">⚡ MIDDLE TIER — Acceptable</h2>
+            <span class="count">7 creatives</span>
+        </div>
+        
+        <div class="creative-card" data-id="SMS13">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>SMS #13: "ERROR: REGISTRATION FAILURE!"</h3>
+                    <div class="meta"><span>NRSC</span><span>System Notification</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <span class="badge top">TOP 0%</span>
+                <div class="score-display"><div class="score-value medium">7.6</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">ERROR: REGISTRATION FAILURE! Your Updated Membership Registration has failed to process. Complete your registration HERE: {{link}}</div>
+                <div class="rationale warning">System notification pattern works but less personal than Census Alert. Good for variety rotation.</div>
+                <div class="score-breakdown">
+                    <div class="score-item"><div class="dim">Hook</div><div class="val">9</div></div>
+                    <div class="score-item"><div class="dim">Clarity</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Emotion</div><div class="val">7</div></div>
+                    <div class="score-item"><div class="dim">LP Match</div><div class="val">7</div></div>
+                    <div class="score-item"><div class="dim">Donor Fit</div><div class="val">7</div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creative-card" data-id="SMS4">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>SMS #4: Katie Britt "secure memo"</h3>
+                    <div class="meta"><span>Katie Britt</span><span>Insider Framing</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <span class="badge new">NEW 4%</span>
+                <div class="score-display"><div class="score-value medium">7.2</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">((FIRST_NAME)), can you read this secure memo? LINK It's about 3 must-win races. -Katie Britt</div>
+                <div class="rationale warning">Insider framing with YI 14.42 potential. But Katie Britt is untested signer for this list — test on acquisition only.</div>
+                <div class="score-breakdown">
+                    <div class="score-item"><div class="dim">Hook</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Clarity</div><div class="val">8</div></div>
+                    <div class="score-item"><div class="dim">Emotion</div><div class="val">6</div></div>
+                    <div class="score-item"><div class="dim">LP Match</div><div class="val">7</div></div>
+                    <div class="score-item"><div class="dim">Donor Fit</div><div class="val">7</div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creative-card" data-id="SMS11">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>SMS #11: "Leaving profile incomplete"</h3>
+                    <div class="meta"><span>NRSC</span><span>Guilt Lite</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <span class="badge top">TOP 0%</span>
+                <div class="score-display"><div class="score-value medium">7.0</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">Leaving your Voter Profile incomplete is a mistake that could cost us the Majority, {{first_name__c}}... Please Verify ASAP: {{link}}</div>
+                <div class="rationale warning">Generic version of guilt. Use if #9 or #14 are fatigued.</div>
+            </div>
+        </div>
+        
+        <div class="creative-card" data-id="MMS5">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>MMS #5: Katie Britt numbers</h3>
+                    <div class="meta"><span>Katie Britt</span><span>Substance Heavy</span></div>
+                </div>
+                <span class="badge mms">MMS</span>
+                <span class="badge new">NEW 4%</span>
+                <div class="score-display"><div class="score-value medium">6.6</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">((FIRST_NAME)), it's Katie Britt. I'm reaching out about the Senate races in Georgia, Ohio, and North Carolina. The latest $$ numbers have me concerned... [detailed fundraising comparisons]</div>
+                <div class="rationale warning">P2 Policy Wonk appreciates substance/numbers. But P4 Fatigue deletes long texts. P5 needs guilt.</div>
+            </div>
+        </div>
+        
+        <div class="creative-card" data-id="MMS7">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>MMS #7: Katie Britt gratitude</h3>
+                    <div class="meta"><span>Katie Britt</span><span>Soft Ask</span></div>
+                </div>
+                <span class="badge mms">MMS</span>
+                <span class="badge new">NEW 4%</span>
+                <div class="score-display"><div class="score-value medium">6.2</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">((FIRST_NAME)), It's Katie Britt. I'm reviewing the latest on must-win Senate races... You have always been there for us, so I hope you'll take a few minutes...</div>
+                <div class="rationale warning">Too soft. Gratitude underperforms guilt. "You have always been there" lacks urgency.</div>
+            </div>
+        </div>
+        
+        <div class="creative-card" data-id="MMS6">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>MMS #6: Katie Britt "one-time chance"</h3>
+                    <div class="meta"><span>Katie Britt</span><span>Scarcity</span></div>
+                </div>
+                <span class="badge mms">MMS</span>
+                <span class="badge new">NEW 4%</span>
+                <div class="score-display"><div class="score-value medium">6.0</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">((FIRST_NAME)), I'm concerned about what's happening in Georgia, Ohio, and North Carolina... I'm giving you a one-time chance to help us get back in the fight in all three races >> We need your swift response.</div>
+                <div class="rationale warning">"One-time chance" = overused scarcity. P4 Fatigue skeptical — they've seen it before.</div>
+            </div>
+        </div>
+        
+        <div class="creative-card" data-id="SMS3">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>SMS #3: "nearly zero" stakes</h3>
+                    <div class="meta"><span>Katie Britt</span><span>Fear Appeal</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <span class="badge new">NEW 4%</span>
+                <div class="score-display"><div class="score-value medium">6.0</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">If we come up short in these races, our chances of keeping the Senate are nearly zero: LINK -Katie Britt</div>
+                <div class="rationale warning">Fear appeal too abstract. Needs personalization ("your absence" would be stronger).</div>
+            </div>
+        </div>
+        
+        <!-- SKIP TIER -->
+        <div class="section-header">
+            <h2 style="color: #f85149;">⛔ SKIP — Revise Before Send</h2>
+            <span class="count">2 creatives</span>
+        </div>
+        
+        <div class="creative-card skip" data-id="SMS2">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>SMS #2: "has me concerned"</h3>
+                    <div class="meta"><span>Katie Britt</span><span>Passive Opener</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <span class="badge skip">SKIP</span>
+                <div class="score-display"><div class="score-value low">5.8</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">The latest from 3 must-win races has me concerned. Read my update: LINK -Katie Britt</div>
+                <div class="rationale danger"><strong>Problem:</strong> Passive opener, no hook pattern.<br><strong>Fix:</strong> "*Alert* Katie Britt: I'm sounding the alarm on 3 races → [link]"</div>
+            </div>
+        </div>
+        
+        <div class="creative-card skip" data-id="SMS1">
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="checkbox-wrapper"><input type="checkbox" onchange="updateSelected()" onclick="event.stopPropagation()"></div>
+                <div class="card-title">
+                    <h3>SMS #1: "I need you to read"</h3>
+                    <div class="meta"><span>Katie Britt</span><span>Generic</span></div>
+                </div>
+                <span class="badge sms">SMS</span>
+                <span class="badge skip">SKIP</span>
+                <div class="score-display"><div class="score-value low">5.4</div><div class="score-label">Score</div></div>
+            </div>
+            <div class="card-body">
+                <div class="creative-text">I need you to read the latest on these 3 races: LINK -Katie Britt</div>
+                <div class="rationale danger"><strong>Problem:</strong> Generic, no emotional driver.<br><strong>Fix:</strong> "Katie Britt here. I've been watching these 3 races, and I need to tell you something: [link]" (add curiosity gap)</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Generated 2026-02-10 • Powered by Railstote 🦉 • <a href="SCORING-2026-02-10.md">Full Scoring Data</a>
+        </div>
+    </div>
+    
+    <script>
+        const creatives = {
+            'SMS9': 'Census Alert ⭐',
+            'SMS10': 'Ted Cruz Curiosity',
+            'SMS8': 'Thune Meta',
+            'SMS14': 'Huge Mistake Guilt',
+            'MMS12': 'Don Jr. Pattern',
+            'SMS13': 'Error Notification',
+            'SMS4': 'Katie Secure Memo',
+            'SMS11': 'Profile Incomplete',
+            'MMS5': 'Katie Numbers',
+            'MMS7': 'Katie Gratitude',
+            'MMS6': 'Katie One-Time',
+            'SMS3': 'Katie Stakes',
+            'SMS2': 'Katie Concerned',
+            'SMS1': 'Katie Generic'
+        };
+        
+        function updateSelected() {
+            const selectedList = document.getElementById('selected-list');
+            const selectedCount = document.getElementById('selected-count');
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const selected = [];
+            
+            checkboxes.forEach(cb => {
+                const card = cb.closest('.creative-card');
+                if (card) {
+                    const id = card.dataset.id;
+                    if (cb.checked) {
+                        selected.push(id);
+                        card.classList.add('selected');
+                    } else {
+                        card.classList.remove('selected');
+                    }
+                }
+            });
+            
+            selectedCount.textContent = selected.length;
+            
+            if (selected.length === 0) {
+                selectedList.innerHTML = '<span class="empty-state">Check creatives below to add them here</span>';
+            } else {
+                selectedList.innerHTML = selected.map(id => `
+                    <span class="selected-tag">
+                        <strong>${id}</strong>: ${creatives[id] || id}
+                        <span class="remove" onclick="uncheckCreative('${id}')">&times;</span>
+                    </span>
+                `).join('');
+            }
+        }
+        
+        function uncheckCreative(id) {
+            const card = document.querySelector(`[data-id="${id}"]`);
+            if (card) {
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = false;
+                    updateSelected();
+                }
+            }
+        }
+        
+        function toggleCard(header) {
+            const body = header.nextElementSibling;
+            if (body && body.classList.contains('card-body')) {
+                body.style.display = body.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+        
+        function copySelected() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const ids = [];
+            checkboxes.forEach(cb => {
+                const card = cb.closest('.creative-card');
+                if (card) ids.push(card.dataset.id);
+            });
+            
+            if (ids.length === 0) { alert('No creatives selected'); return; }
+            
+            navigator.clipboard.writeText(ids.join(', ')).then(() => {
+                const btn = document.getElementById('copy-btn');
+                btn.textContent = '✅ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy Selected IDs';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

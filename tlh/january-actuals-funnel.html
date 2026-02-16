@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLH — January 2026 Actuals</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 24px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.6rem;
+    color: #f8fafc;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+  .subtitle2 {
+    text-align: center;
+    color: #475569;
+    font-size: 0.72rem;
+    margin-bottom: 24px;
+  }
+
+  /* Funnels container */
+  .funnels {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) { .funnels { grid-template-columns: 1fr; max-width: 400px; } }
+
+  .funnel-col {
+    background: #1e293b;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    padding: 20px;
+    position: relative;
+  }
+
+  .funnel-header {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .funnel-city {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .funnel-city-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .sd .funnel-city-tag { background: #1d4ed8; color: #dbeafe; }
+  .oc .funnel-city-tag { background: #b45309; color: #fef3c7; }
+  .la .funnel-city-tag { background: #7c3aed; color: #ede9fe; }
+
+  /* Conversion rates between layers */
+  .conv-rates {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 4px;
+    margin-bottom: 14px;
+    padding: 10px 8px;
+    background: #0f172a;
+    border-radius: 8px;
+    border: 1px solid #334155;
+  }
+  .conv-rate {
+    text-align: center;
+  }
+  .conv-rate-label {
+    font-size: 0.6rem;
+    color: #64748b;
+    line-height: 1.2;
+    margin-bottom: 3px;
+  }
+  .conv-rate-value {
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .rate-good { color: #4ade80; }
+  .rate-ok { color: #fbbf24; }
+  .rate-bad { color: #f87171; }
+
+  /* Funnel SVG + layers */
+  .funnel-visual {
+    position: relative;
+    width: 100%;
+    height: 340px;
+  }
+
+  /* Funnel layer overlays */
+  .funnel-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .layer-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #f8fafc;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    line-height: 1.1;
+  }
+  .layer-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .layer-rate {
+    font-size: 0.65rem;
+    opacity: 0.7;
+    margin-top: 1px;
+  }
+
+  /* Colors per layer */
+  .layer-wins .layer-number { color: #4ade80; }
+  .layer-wins .layer-label { color: #86efac; }
+  .layer-meetings .layer-number { color: #60a5fa; }
+  .layer-meetings .layer-label { color: #93c5fd; }
+  .layer-filtered .layer-number { color: #fbbf24; }
+  .layer-filtered .layer-label { color: #fcd34d; }
+  .layer-leads .layer-number { color: #f87171; }
+  .layer-leads .layer-label { color: #fca5a5; }
+
+  /* Totals bar */
+  .totals-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    max-width: 1200px;
+    margin: 24px auto 0;
+  }
+  .total-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .total-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .total-number {
+    font-size: 1.6rem;
+    font-weight: 800;
+  }
+  .total-sub {
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  .total-wins .total-number { color: #4ade80; }
+  .total-meetings .total-number { color: #60a5fa; }
+  .total-filtered .total-number { color: #fbbf24; }
+  .total-leads .total-number { color: #f87171; }
+
+  /* Insights */
+  .insights {
+    max-width: 1200px;
+    margin: 20px auto 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 900px) { .insights { grid-template-columns: 1fr; } }
+  .insight-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .insight-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .insight-title.green { color: #4ade80; }
+  .insight-title.red { color: #f87171; }
+  .insight-title.yellow { color: #fbbf24; }
+  .insight-title.blue { color: #60a5fa; }
+  .insight-body {
+    font-size: 0.82rem;
+    color: #cbd5e1;
+    line-height: 1.5;
+  }
+  .insight-stat {
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #475569;
+    font-size: 0.7rem;
+    line-height: 1.6;
+  }
+
+  /* Out-of-area bar */
+  .ooa-bar {
+    max-width: 1200px;
+    margin: 16px auto 0;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .ooa-label {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+  .ooa-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .ooa-num {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #64748b;
+  }
+  .ooa-desc {
+    font-size: 0.65rem;
+    color: #475569;
+  }
+  .ooa-arrow {
+    color: #334155;
+    font-size: 1.2rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>🏠 True Legacy Homes — January 2026 Actuals</h1>
+<div class="subtitle">Full-funnel performance by market · Salesforce data</div>
+<div class="subtitle2">Lead attribution: city name match + area code fallback · 95% of CallRail leads, 100% of Website leads</div>
+
+<!-- Three Funnels -->
+<div class="funnels" id="funnels"></div>
+
+<!-- Out-of-Area / IE bar -->
+<div class="ooa-bar">
+  <div class="ooa-label">⚠️ Out-of-Area + IE</div>
+  <div class="ooa-stat">
+    <div class="ooa-num">154</div>
+    <div class="ooa-desc">RAW LEADS</div>
+  </div>
+  <div class="ooa-arrow">→</div>
+  <div class="ooa-stat">
+    <div class="ooa-num">24</div>
+    <div class="ooa-desc">FILTERED</div>
+  </div>
+  <div class="ooa-arrow">→</div>
+  <div class="ooa-stat">
+    <div class="ooa-num">2</div>
+    <div class="ooa-desc">OPPS (IE)</div>
+  </div>
+  <div class="ooa-arrow">→</div>
+  <div class="ooa-stat">
+    <div class="ooa-num">0</div>
+    <div class="ooa-desc">WINS</div>
+  </div>
+  <div style="flex:1"></div>
+  <div style="font-size:0.72rem; color:#64748b; max-width:350px; line-height:1.4;">
+    138 leads from out-of-state area codes (NY, FL, AZ, etc.) + 16 Inland Empire. 
+    <strong style="color:#f87171;">37% of all raw leads</strong> produce zero opps. Ad targeting opportunity.
+  </div>
+</div>
+
+<!-- Combined Totals -->
+<div class="totals-bar">
+  <div class="total-card total-wins">
+    <div class="total-label">Total Wins</div>
+    <div class="total-number">9</div>
+    <div class="total-sub">2.2% raw→win</div>
+  </div>
+  <div class="total-card total-meetings">
+    <div class="total-label">Total Opportunities</div>
+    <div class="total-number">59</div>
+    <div class="total-sub">15.3% win rate</div>
+  </div>
+  <div class="total-card total-filtered">
+    <div class="total-label">Filtered Leads</div>
+    <div class="total-number">123</div>
+    <div class="total-sub">29.5% of raw</div>
+  </div>
+  <div class="total-card total-leads">
+    <div class="total-label">Raw Leads</div>
+    <div class="total-number">417</div>
+    <div class="total-sub">395 CallRail · 22 Website</div>
+  </div>
+</div>
+
+<!-- Insights -->
+<div class="insights">
+  <div class="insight-card">
+    <div class="insight-title green">✅ San Diego Carries the Business</div>
+    <div class="insight-body">
+      <span class="insight-stat">78% of all wins</span> come from SD. 
+      Best filter rate (45%), best opp conversion (71%), and the only market with consistent closings. 
+      SD is subsidizing expansion markets.
+    </div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-title red">🚨 OC: Zero Wins from 8 Opportunities</div>
+    <div class="insight-body">
+      <span class="insight-stat">0% win rate</span> in January despite 45 raw leads and 8 qualified opps. 
+      Confirms the OC problem from prior analysis (8% historical win rate, $10K+ cost/win). 
+      Opp quality or sales process issue?
+    </div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-title yellow">⚡ 37% of Raw Leads Are Wasted</div>
+    <div class="insight-body">
+      <span class="insight-stat">154 leads</span> from out-of-area or Inland Empire produced 
+      <span class="insight-stat">zero wins</span>. These are mostly out-of-state area codes hitting CallRail 
+      from paid ads. Tightening geo-targeting could save significant ad spend.
+    </div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-title blue">📊 LA: Volume Without Velocity</div>
+    <div class="insight-body">
+      <span class="insight-stat">103 raw leads → 2 wins</span> (1.9% conversion). 
+      LA has strong raw volume but the weakest filter rate (29%) and only 40% lead→opp. 
+      The 2 wins prove the market works — needs better qualification process.
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  True Legacy Homes · January 2026 Executive Review<br>
+  Lead market attribution: city field match (53%) + phone area code (10%) · 37% unattributable (out-of-area)<br>
+  Source: Salesforce · RecordType: Estate Sale (Opps) / Property (Leads)
+</div>
+
+<script>
+const markets = [
+  {
+    id: 'sd', name: 'San Diego', tag: 'PRIMARY MARKET', tagClass: 'sd',
+    raw: 115, filtered: 52, opps: 37, wins: 7
+  },
+  {
+    id: 'oc', name: 'Orange County', tag: 'EXPANSION', tagClass: 'oc',
+    raw: 45, filtered: 17, opps: 8, wins: 0
+  },
+  {
+    id: 'la', name: 'Los Angeles', tag: 'EXPANSION', tagClass: 'la',
+    raw: 103, filtered: 30, opps: 12, wins: 2
+  }
+];
+
+const colors = {
+  wins:    { fill: 'rgba(34,197,94,0.35)',  stroke: '#22c55e' },
+  opps:    { fill: 'rgba(59,130,246,0.30)', stroke: '#3b82f6' },
+  filtered:{ fill: 'rgba(251,191,36,0.25)', stroke: '#f59e0b' },
+  leads:   { fill: 'rgba(248,113,113,0.25)',stroke: '#ef4444' }
+};
+
+function rateClass(pct, thresholds) {
+  if (pct >= thresholds[0]) return 'rate-good';
+  if (pct >= thresholds[1]) return 'rate-ok';
+  return 'rate-bad';
+}
+
+function buildFunnels() {
+  const container = document.getElementById('funnels');
+  container.innerHTML = '';
+
+  markets.forEach(m => {
+    const rRawFilt = m.raw > 0 ? (m.filtered / m.raw * 100) : 0;
+    const rFiltOpp = m.filtered > 0 ? (m.opps / m.filtered * 100) : 0;
+    const rOppWin  = m.opps > 0 ? (m.wins / m.opps * 100) : 0;
+
+    const col = document.createElement('div');
+    col.className = `funnel-col ${m.tagClass}`;
+    col.innerHTML = `
+      <div class="funnel-header">
+        <div class="funnel-city">${m.name}</div>
+        <div class="funnel-city-tag">${m.tag}</div>
+      </div>
+      <div class="conv-rates">
+        <div class="conv-rate">
+          <div class="conv-rate-label">Opp→Win</div>
+          <div class="conv-rate-value ${rateClass(rOppWin, [20, 10])}">${rOppWin.toFixed(1)}%</div>
+        </div>
+        <div class="conv-rate">
+          <div class="conv-rate-label">Filt→Opp</div>
+          <div class="conv-rate-value ${rateClass(rFiltOpp, [50, 30])}">${rFiltOpp.toFixed(1)}%</div>
+        </div>
+        <div class="conv-rate">
+          <div class="conv-rate-label">Raw→Filt</div>
+          <div class="conv-rate-value ${rateClass(rRawFilt, [40, 25])}">${rRawFilt.toFixed(1)}%</div>
+        </div>
+      </div>
+      <div class="funnel-visual" id="funnel-${m.id}"></div>
+    `;
+    container.appendChild(col);
+  });
+
+  markets.forEach(m => drawFunnel(m));
+}
+
+function drawFunnel(m) {
+  const containerId = `funnel-${m.id}`;
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const W = container.offsetWidth;
+  const H = 340;
+  const pad = 12;
+  const layerH = (H - pad * 2) / 4;
+  const maxW = W - 24;
+  const minW = maxW * 0.22;
+
+  const maxVal = m.raw || 1;
+  const getW = (val) => minW + (maxW - minW) * (val / maxVal);
+
+  const layers = [
+    { key: 'wins',     val: m.wins,     label: 'WINS',             cls: 'layer-wins' },
+    { key: 'opps',     val: m.opps,     label: 'OPPORTUNITIES',    cls: 'layer-meetings' },
+    { key: 'filtered', val: m.filtered, label: 'FILTERED LEADS',   cls: 'layer-filtered' },
+    { key: 'leads',    val: m.raw,      label: 'RAW LEADS',        cls: 'layer-leads' }
+  ];
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  layers.forEach((layer, i) => {
+    const y = pad + i * layerH;
+    const nextLayer = layers[i + 1];
+    const topW = getW(layer.val);
+    const botW = nextLayer ? getW(nextLayer.val) : topW * 1.05;
+    const cx = W / 2;
+
+    const x1 = cx - topW / 2;
+    const x2 = cx + topW / 2;
+    const x3 = cx + botW / 2;
+    const x4 = cx - botW / 2;
+
+    const gap = 2;
+    svg += `<polygon 
+      points="${x1},${y + gap} ${x2},${y + gap} ${x3},${y + layerH - gap} ${x4},${y + layerH - gap}" 
+      fill="${colors[layer.key].fill}" 
+      stroke="${colors[layer.key].stroke}" 
+      stroke-width="1.5"
+    />`;
+  });
+
+  svg += `</svg>`;
+  container.innerHTML = svg;
+
+  const rRawFilt = m.raw > 0 ? (m.filtered / m.raw * 100).toFixed(0) : 0;
+  const rFiltOpp = m.filtered > 0 ? (m.opps / m.filtered * 100).toFixed(0) : 0;
+  const rOppWin  = m.opps > 0 ? (m.wins / m.opps * 100).toFixed(0) : 0;
+  const rates = [
+    '',
+    `↑ ${rOppWin}% win rate`,
+    `↑ ${rFiltOpp}% qualified`,
+    `↑ ${rRawFilt}% filter rate`
+  ];
+
+  layers.forEach((layer, i) => {
+    const y = pad + i * layerH;
+    const div = document.createElement('div');
+    div.className = `funnel-layer ${layer.cls}`;
+    div.style.top = y + 'px';
+    div.style.height = layerH + 'px';
+
+    div.innerHTML = `
+      <div class="layer-number">${layer.val.toLocaleString()}</div>
+      <div class="layer-label">${layer.label}</div>
+      ${rates[i] ? `<div class="layer-rate">${rates[i]}</div>` : ''}
+    `;
+    container.appendChild(div);
+  });
+}
+
+buildFunnels();
+window.addEventListener('resize', buildFunnels);
+</script>
+
+</body>
+</html>

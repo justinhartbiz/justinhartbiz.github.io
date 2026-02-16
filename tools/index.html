@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧪 AI Fundraising Creative Lab — by Justin Hart</title>
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #131829; --card: #1a2035;
+    --accent: #6366f1; --accent2: #8b5cf6; --green: #22c55e; --gold: #f59e0b;
+    --red: #ef4444; --text: #e2e8f0; --muted: #94a3b8; --border: #2a3050;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  
+  .header { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%); padding: 2rem; text-align: center; border-bottom: 2px solid var(--accent); position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 30% 50%, rgba(99,102,241,0.1) 0%, transparent 50%); animation: pulse 8s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+  .header h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #c7d2fe, #a78bfa, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; position: relative; }
+  .header p { color: var(--muted); margin-top: 0.5rem; font-size: 1rem; position: relative; }
+  .header .badge { display: inline-block; background: var(--accent); color: white; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; margin-top: 0.5rem; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tab { padding: 0.6rem 1.2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--muted); transition: all 0.2s; }
+  .tab:hover { border-color: var(--accent); color: var(--text); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+  .card h3 { font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text); }
+  .card h3 .emoji { font-size: 1.3rem; margin-right: 0.5rem; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  select, input, textarea { width: 100%; padding: 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.9rem; font-family: inherit; }
+  select:focus, input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+  textarea { min-height: 80px; resize: vertical; }
+
+  .btn { padding: 0.7rem 1.5rem; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
+  .btn-gold { background: linear-gradient(135deg, var(--gold), #d97706); color: #1a1a1a; }
+  .btn-green { background: var(--green); color: white; }
+  .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+
+  .output-card { background: linear-gradient(135deg, #1a2035, #1e1b4b); border: 1px solid var(--accent); }
+  .creative-output { background: var(--surface); border-radius: 8px; padding: 1rem; margin: 0.75rem 0; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; white-space: pre-wrap; border-left: 3px solid var(--accent); }
+  .creative-output .merge { color: var(--gold); font-weight: 700; }
+
+  .stat-row { display: flex; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; }
+  .stat { background: var(--surface); padding: 0.75rem 1rem; border-radius: 8px; text-align: center; flex: 1; min-width: 100px; }
+  .stat .value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+  .stat .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; margin-top: 0.2rem; }
+
+  .rule-card { background: var(--surface); border-radius: 8px; padding: 1rem; border-left: 3px solid var(--green); }
+  .rule-card.warning { border-left-color: var(--gold); }
+  .rule-card.danger { border-left-color: var(--red); }
+  .rule-card h4 { font-size: 0.9rem; margin-bottom: 0.3rem; }
+  .rule-card p { font-size: 0.8rem; color: var(--muted); }
+
+  .char-counter { font-size: 0.75rem; text-align: right; margin-top: 0.25rem; }
+  .char-counter.ok { color: var(--green); }
+  .char-counter.warn { color: var(--gold); }
+  .char-counter.over { color: var(--red); }
+
+  .score-bar { height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+  .score-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+
+  .tag { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin: 0.15rem; }
+  .tag-green { background: rgba(34,197,94,0.15); color: var(--green); }
+  .tag-gold { background: rgba(245,158,11,0.15); color: var(--gold); }
+  .tag-purple { background: rgba(139,92,246,0.15); color: var(--accent2); }
+  .tag-red { background: rgba(239,68,68,0.15); color: var(--red); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th { text-align: left; padding: 0.6rem; background: var(--surface); color: var(--muted); font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  td { padding: 0.6rem; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(99,102,241,0.05); }
+
+  .copy-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .slider-group { display: flex; align-items: center; gap: 0.75rem; }
+  .slider-group input[type="range"] { flex: 1; }
+  .slider-val { font-weight: 700; color: var(--accent); min-width: 2rem; text-align: center; }
+
+  .formula-viz { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; padding: 1rem; background: var(--surface); border-radius: 8px; margin: 1rem 0; }
+  .formula-block { padding: 0.5rem 0.8rem; border-radius: 6px; font-weight: 700; font-size: 0.85rem; text-align: center; }
+  .formula-op { color: var(--muted); font-size: 1.2rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🧪 AI Fundraising Creative Lab</h1>
+  <p>Encode Winning Rules → Generate Creatives → Score & Ship</p>
+  <div class="badge">Built by Railstote 🦉 for Justin Hart</div>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('generator')">⚡ Creative Generator</div>
+    <div class="tab" onclick="showTab('rules')">📏 Rules Engine</div>
+    <div class="tab" onclick="showTab('scorer')">🎯 Creative Scorer</div>
+    <div class="tab" onclick="showTab('ab')">🔬 A/B Lab</div>
+    <div class="tab" onclick="showTab('pricing')">💰 Productize This</div>
+  </div>
+
+  <!-- TAB 1: GENERATOR -->
+  <div id="generator" class="panel active">
+    <div class="grid-2">
+      <div class="card">
+        <h3><span class="emoji">🎛️</span>Campaign Parameters</h3>
+        <div style="margin-bottom:0.75rem">
+          <label>Client Profile</label>
+          <select id="clientProfile" onchange="loadProfile()">
+            <option value="">— Select or customize —</option>
+            <option value="semperk9">SemperK9 (Service Dogs for Veterans)</option>
+            <option value="soldierstrong">SoldierStrong (Veteran Exoskeletons)</option>
+            <option value="ncpd">NCPD (Law Enforcement)</option>
+            <option value="herobox">HeroBox (Military Care Packages)</option>
+            <option value="political">Political (Generic GOP)</option>
+            <option value="custom">Custom Client</option>
+          </select>
+        </div>
+        <div style="margin-bottom:0.75rem">
+          <label>Organization Name</label>
+          <input id="orgName" placeholder="e.g., SemperK9 Assistance Dogs">
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Channel</label>
+            <select id="channel">
+              <option value="mms">MMS (Image + Text)</option>
+              <option value="sms">SMS (Text Only)</option>
+            </select>
+          </div>
+          <div>
+            <label>Ask Amount</label>
+            <select id="askAmount">
+              <option value="25">$25</option>
+              <option value="35">$35</option>
+              <option value="50">$50</option>
+              <option value="100">$100</option>
+              <option value="any">Any Amount</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:0.75rem">
+          <label>Tone / Voice</label>
+          <select id="tone">
+            <option value="urgency">🔥 Urgency — "Right now, today"</option>
+            <option value="wife">👩 Wife/Family Voice — Personal, warm</option>
+            <option value="celebrity">⭐ Celebrity/Authority Voice</option>
+            <option value="animal">🐕 Animal/Beneficiary POV</option>
+            <option value="gratitude">🙏 Gratitude — "Because of you"</option>
+            <option value="anger">😡 Righteous Anger — "Enough is enough"</option>
+          </select>
+        </div>
+        <div style="margin-top:0.75rem">
+          <label>Anchor Event (optional)</label>
+          <input id="anchor" placeholder="e.g., Valentine's Day, Wreaths Across America">
+        </div>
+        <div style="margin-top:0.75rem">
+          <label>Key Names / Details</label>
+          <input id="details" placeholder="e.g., Dog: Indy, Veteran: Chris Baity">
+        </div>
+        <div style="margin-top:1rem">
+          <label>How Many Variations?</label>
+          <div class="slider-group">
+            <input type="range" id="variations" min="1" max="10" value="3" oninput="document.getElementById('varVal').textContent=this.value">
+            <span class="slider-val" id="varVal">3</span>
+          </div>
+        </div>
+        <div style="margin-top:1.25rem">
+          <button class="btn btn-primary" onclick="generateCreatives()" style="width:100%">⚡ Generate Creatives</button>
+        </div>
+      </div>
+
+      <div class="card output-card" id="outputCard">
+        <h3><span class="emoji">📝</span>Generated Creatives</h3>
+        <div id="output" style="color:var(--muted);font-style:italic;">Configure parameters and hit Generate to see creatives here...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: RULES ENGINE -->
+  <div id="rules" class="panel">
+    <div class="card">
+      <h3><span class="emoji">🏆</span>Proven Fundraising Rules — From $10M+ in Tested Sends</h3>
+      <p style="color:var(--muted);margin-bottom:1rem;">These rules are distilled from creative forensics across SemperK9, SoldierStrong, NCPD, and more.</p>
+    </div>
+    <div class="grid-3">
+      <div class="rule-card">
+        <h4>📏 Character Sweet Spot</h4>
+        <p><strong>250–500 chars</strong> for MMS. Shorter for SMS. SemperK9's top performers avg 320+ chars. Under 200 leaves money on the table.</p>
+      </div>
+      <div class="rule-card">
+        <h4>👩 Wife Voice = Gold</h4>
+        <p>NCPD: <strong>72% of top-tier creatives</strong> use wife/family voice. "My husband risks his life..." outperforms institutional copy 3:1.</p>
+      </div>
+      <div class="rule-card">
+        <h4>🖼️ MMS > SMS (4.2x)</h4>
+        <p>SemperK9: MMS yields <strong>4.2x more per send</strong> than SMS. Always lead with MMS; SMS is the follow-up or budget play.</p>
+      </div>
+      <div class="rule-card warning">
+        <h4>📅 Thursday/Friday Best</h4>
+        <p>NCPD data: Thu/Fri sends outperform Mon-Wed by <strong>23%</strong>. Weekend okay for urgency plays. Avoid Tuesday.</p>
+      </div>
+      <div class="rule-card">
+        <h4>⭐ Celebrity Intro = Multiplier</h4>
+        <p>SoldierStrong: Dana Perino 1st-person copy delivered <strong>7x yield</strong>. Any recognizable authority voice amplifies.</p>
+      </div>
+      <div class="rule-card">
+        <h4>🎄 Event Anchoring</h4>
+        <p>SemperK9 Wreaths Across America: <strong>$0.657/send</strong> — highest single campaign yield. Tie creative to real-world events.</p>
+      </div>
+      <div class="rule-card warning">
+        <h4>🔥 Urgency (90% Rule)</h4>
+        <p>NCPD: <strong>90% of top creatives</strong> include time pressure. Deadlines, matching gifts, "before midnight" — always include urgency.</p>
+      </div>
+      <div class="rule-card">
+        <h4>🐕 Named Beneficiaries</h4>
+        <p>SemperK9: Named dogs (Indy, Nelli, Yuma) with photos outperform generic "a service dog" by <strong>2.8x</strong>.</p>
+      </div>
+      <div class="rule-card danger">
+        <h4>⚠️ $25 Default Ask</h4>
+        <p>Higher asks ($50+) reduce conversion. <strong>$25 is the sweet spot</strong> for cold/warm lists. Reserve $50+ for D10/proven donors.</p>
+      </div>
+      <div class="rule-card">
+        <h4>🔄 Multi-Voice Rotation</h4>
+        <p>SoldierStrong: Rotating between 3+ voices prevents fatigue. Same voice 3x in a row = <strong>40% yield drop</strong>.</p>
+      </div>
+      <div class="rule-card">
+        <h4>📱 Merge Field Magic</h4>
+        <p>Personalization ({first_name}) in opener lifts CTR <strong>18%</strong>. But NEVER in the ask — feels transactional.</p>
+      </div>
+      <div class="rule-card warning">
+        <h4>💡 Chris Baity Intro</h4>
+        <p>SemperK9: Founder intro ("I'm Chris Baity, Marine veteran...") establishes credibility. Works for ALL orgs — founder-first framing.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: SCORER -->
+  <div id="scorer" class="panel">
+    <div class="grid-2">
+      <div class="card">
+        <h3><span class="emoji">📝</span>Paste Your Creative</h3>
+        <textarea id="scoreInput" rows="8" placeholder="Paste an SMS/MMS creative here to score it against the rules engine..." oninput="updateCharCount()"></textarea>
+        <div class="char-counter ok" id="charCount">0 characters</div>
+        <div style="margin-top:0.75rem" class="grid-2">
+          <div>
+            <label>Channel</label>
+            <select id="scoreChannel">
+              <option value="mms">MMS</option>
+              <option value="sms">SMS</option>
+            </select>
+          </div>
+          <div>
+            <label>Client Type</label>
+            <select id="scoreClient">
+              <option value="veteran">Veteran/Military</option>
+              <option value="lawenforcement">Law Enforcement</option>
+              <option value="political">Political</option>
+              <option value="other">Other Nonprofit</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-gold" onclick="scoreCreative()" style="width:100%;margin-top:1rem">🎯 Score This Creative</button>
+      </div>
+      <div class="card" id="scoreOutput">
+        <h3><span class="emoji">📊</span>Creative Score</h3>
+        <div style="color:var(--muted);font-style:italic;">Paste a creative and click Score to see analysis...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: A/B LAB -->
+  <div id="ab" class="panel">
+    <div class="card">
+      <h3><span class="emoji">🔬</span>A/B Test Designer</h3>
+      <p style="color:var(--muted);margin-bottom:1rem;">Design controlled experiments. Change ONE variable at a time.</p>
+      <div class="grid-2">
+        <div>
+          <label>Variable to Test</label>
+          <select id="abVariable" onchange="updateABPreview()">
+            <option value="voice">Voice (wife vs. celebrity vs. org)</option>
+            <option value="urgency">Urgency Level (deadline vs. scarcity vs. none)</option>
+            <option value="length">Length (short <200 vs. medium vs. long 400+)</option>
+            <option value="ask">Ask Amount ($25 vs. $35 vs. $50)</option>
+            <option value="opener">Opener (name vs. question vs. shock stat)</option>
+            <option value="channel">Channel (MMS vs. SMS)</option>
+          </select>
+        </div>
+        <div>
+          <label>Test Size (per variant)</label>
+          <select id="abSize">
+            <option value="1000">1,000 sends</option>
+            <option value="5000">5,000 sends</option>
+            <option value="10000">10,000 sends</option>
+            <option value="25000">25,000 sends</option>
+          </select>
+        </div>
+      </div>
+      <div id="abPreview" style="margin-top:1rem;"></div>
+    </div>
+    
+    <div class="card">
+      <h3><span class="emoji">📈</span>Test Results Calculator</h3>
+      <div class="grid-3">
+        <div>
+          <label>Variant A — Yield/Send</label>
+          <input type="text" id="yieldA" placeholder="e.g., 0.045" value="0.045">
+        </div>
+        <div>
+          <label>Variant B — Yield/Send</label>
+          <input type="text" id="yieldB" placeholder="e.g., 0.062" value="0.062">
+        </div>
+        <div>
+          <label>Full Send Size</label>
+          <input type="text" id="fullSend" placeholder="e.g., 100000" value="100000">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="calcAB()" style="margin-top:1rem">Calculate Winner Impact</button>
+      <div id="abResult" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+
+  <!-- TAB 5: PRICING / PRODUCTIZE -->
+  <div id="pricing" class="panel">
+    <div class="card" style="border:2px solid var(--gold);">
+      <h3 style="color:var(--gold);">💰 The Money Play: "AI Creative Lab" as a Productized Service</h3>
+      <p style="color:var(--muted);margin-top:0.5rem;">Justin, this tool you're looking at? It's a <strong>demo of what you'd sell.</strong></p>
+    </div>
+
+    <div class="card">
+      <h3><span class="emoji">🎯</span>The Offer: AI-Powered Fundraising Creative Service</h3>
+      <div class="formula-viz">
+        <div class="formula-block" style="background:rgba(99,102,241,0.2);color:var(--accent);">Your DR Expertise<br><small>15+ years</small></div>
+        <span class="formula-op">+</span>
+        <div class="formula-block" style="background:rgba(139,92,246,0.2);color:var(--accent2);">AI Agent Stack<br><small>Railstote + Claude</small></div>
+        <span class="formula-op">+</span>
+        <div class="formula-block" style="background:rgba(34,197,94,0.2);color:var(--green);">Proven Rules Engine<br><small>$10M+ tested</small></div>
+        <span class="formula-op">=</span>
+        <div class="formula-block" style="background:rgba(245,158,11,0.2);color:var(--gold);">$15K-$25K/mo<br><small>per client</small></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3><span class="emoji">📋</span>Three Pricing Tiers</h3>
+        <table>
+          <tr style="background:var(--surface);">
+            <th>Tier</th><th>What They Get</th><th>Price/mo</th>
+          </tr>
+          <tr>
+            <td><span class="tag tag-green">Starter</span></td>
+            <td>10 creatives/mo, scoring, rules playbook</td>
+            <td><strong>$2,500</strong></td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-purple">Growth</span></td>
+            <td>40 creatives/mo, A/B design, monthly forensics report</td>
+            <td><strong>$7,500</strong></td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-gold">Enterprise</span></td>
+            <td>Unlimited, custom rules engine, weekly strategy call, dedicated agent</td>
+            <td><strong>$15,000–$25,000</strong></td>
+          </tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3><span class="emoji">📊</span>Revenue Model</h3>
+        <div class="stat-row">
+          <div class="stat"><div class="value">$90K</div><div class="label">3 Starter Clients</div></div>
+          <div class="stat"><div class="value">$180K</div><div class="label">+ 2 Growth</div></div>
+          <div class="stat"><div class="value">$450K+</div><div class="label">+ 1 Enterprise</div></div>
+        </div>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:0.5rem;"><strong>Your cost:</strong> ~$200/mo Claude Max + ~2 hrs/week oversight per client. AI does the generation; you do the strategy and QA. That's <strong>90%+ margins.</strong></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="emoji">🗓️</span>Start This Week — Action Plan</h3>
+      <table>
+        <tr><th>Day</th><th>Action</th><th>Output</th></tr>
+        <tr>
+          <td><strong>Mon</strong></td>
+          <td>Package this dashboard + your forensics reports as a "sample audit"</td>
+          <td>Sales deck / landing page</td>
+        </tr>
+        <tr>
+          <td><strong>Tue</strong></td>
+          <td>Identify 10 political/nonprofit orgs spending $50K+/mo on SMS fundraising</td>
+          <td>Prospect list (FEC data, WinRed/ActBlue public reports)</td>
+        </tr>
+        <tr>
+          <td><strong>Wed</strong></td>
+          <td>Write 3 cold emails: "I cut creative production time 80% — here's how"</td>
+          <td>Email templates with case study data</td>
+        </tr>
+        <tr>
+          <td><strong>Thu</strong></td>
+          <td>Post INBOUND 2026 talk on this exact topic (deadline Feb 18!)</td>
+          <td>Conference exposure → inbound leads</td>
+        </tr>
+        <tr>
+          <td><strong>Fri</strong></td>
+          <td>Substack article: "I Built an AI That Writes Better Fundraising Copy Than My Team"</td>
+          <td>22K subscribers → warm leads</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="emoji">🏪</span>Market Size — Why This Works Now</h3>
+      <div class="grid-3">
+        <div class="stat"><div class="value">$14B</div><div class="label">US Political Fundraising (2024 cycle)</div></div>
+        <div class="stat"><div class="value">$500B+</div><div class="label">US Charitable Giving</div></div>
+        <div class="stat"><div class="value">82%</div><div class="label">Nonprofits planning AI adoption</div></div>
+      </div>
+      <p style="color:var(--muted);font-size:0.85rem;margin-top:1rem;">The orgs sending millions of SMS/MMS messages per month are <em>still writing creative manually.</em> You've already proven AI-assisted creative matches or beats human-only output. Package that proof. Sell the system, not the labor.</p>
+    </div>
+
+    <div class="card" style="border:2px solid var(--green);">
+      <h3 style="color:var(--green);">✅ Why YOU Specifically Can Do This</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.75rem;">
+        <div>
+          <strong>Unfair Advantages:</strong>
+          <ul style="color:var(--muted);font-size:0.85rem;padding-left:1.2rem;margin-top:0.3rem;">
+            <li>Head of Creative at DonorBureau — you LIVE this</li>
+            <li>Proven creative forensics on 5+ clients</li>
+            <li>Working AI agent (Railstote) that already does this daily</li>
+            <li>22K Substack audience for distribution</li>
+            <li>INBOUND 2026 talk for credibility</li>
+          </ul>
+        </div>
+        <div>
+          <strong>Competitive Moat:</strong>
+          <ul style="color:var(--muted);font-size:0.85rem;padding-left:1.2rem;margin-top:0.3rem;">
+            <li>Rules engine trained on real send data (not theory)</li>
+            <li>Client-specific learning (your forensics improve per org)</li>
+            <li>Full-stack: creative + scoring + testing + strategy</li>
+            <li>Enterprise orgs won't trust generic AI tools</li>
+            <li>Your Invention+Discernment genius = perfect fit</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Tab management
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Client profiles
+const profiles = {
+  semperk9: { name:'SemperK9 Assistance Dogs', tone:'animal', ask:'25', details:'Dogs: Indy, Nelli, Yuma. Founder: Chris Baity, Marine veteran.' },
+  soldierstrong: { name:'SoldierStrong', tone:'celebrity', ask:'35', details:'Dana Perino spokesperson. Exoskeletons for paralyzed veterans.' },
+  ncpd: { name:'National Coalition for Police Defense', tone:'wife', ask:'25', details:'Law enforcement families. Defund the police opposition.' },
+  herobox: { name:'HeroBox', tone:'gratitude', ask:'25', details:'Care packages for deployed troops. Personal notes from donors.' },
+  political: { name:'Republican Committee', tone:'urgency', ask:'50', details:'Election integrity, border security, America First agenda.' }
+};
+
+function loadProfile() {
+  const key = document.getElementById('clientProfile').value;
+  if (profiles[key]) {
+    const p = profiles[key];
+    document.getElementById('orgName').value = p.name;
+    document.getElementById('tone').value = p.tone;
+    document.getElementById('askAmount').value = p.ask;
+    document.getElementById('details').value = p.details;
+  }
+}
+
+// Creative generation engine
+const openers = {
+  urgency: [
+    '{first_name}, I need your help RIGHT NOW.',
+    'URGENT: We have 6 hours left.',
+    '{first_name} — this can\'t wait another day.',
+    'I just got word — and time is running out.',
+    'BREAKING: We need {first_name}\'s help before midnight.'
+  ],
+  wife: [
+    '{first_name}, my husband comes home every night and I never know if...',
+    'I\'m writing this while my kids are asleep. {first_name}, I need to tell you something.',
+    '{first_name}, as a wife and mother, I\'m asking you personally —',
+    'Last night my husband came home with that look. {first_name}, you know the one.',
+    '{first_name}, I promised myself I\'d reach out to someone who cares.'
+  ],
+  celebrity: [
+    '{first_name}, this is [AUTHORITY]. I don\'t usually send messages like this.',
+    'It\'s [AUTHORITY] here. {first_name}, I\'ve seen a lot — but this stopped me cold.',
+    '{first_name}, [AUTHORITY] here. I have to be straight with you.',
+    'This is [AUTHORITY]. {first_name}, what I\'m about to share changed everything for me.',
+    '{first_name}, I\'m [AUTHORITY] and I\'m personally asking for your help.'
+  ],
+  animal: [
+    '{first_name}, my name is [DOG_NAME]. I\'m not like other dogs.',
+    'They found me abandoned. Scared. But {first_name}, someone believed in me.',
+    '{first_name}, I can\'t write this myself — but my trainer says you might care.',
+    'My tail wags when I hear "{first_name}" because people like you saved me.',
+    '{first_name}, right now there\'s a veteran who needs me. But I need YOU first.'
+  ],
+  gratitude: [
+    '{first_name}, because of people like you, something amazing happened.',
+    'Thank you, {first_name}. That\'s how I want to start this message.',
+    '{first_name}, I want you to see what YOUR generosity made possible.',
+    'A quick note of gratitude, {first_name} — you deserve to know.',
+    '{first_name}, you probably didn\'t expect to hear from us today. But we had to say thank you.'
+  ],
+  anger: [
+    '{first_name}, I\'ve had enough. And I think you have too.',
+    'They thought we\'d stay silent, {first_name}. They were wrong.',
+    '{first_name}, what they just did crosses every line.',
+    'Enough is enough, {first_name}. It\'s time to fight back.',
+    '{first_name}, they don\'t want you to see this. That\'s exactly why I\'m sending it.'
+  ]
+};
+
+const middles = {
+  urgency: [
+    'A generous donor agreed to MATCH every gift — but only until midnight tonight.',
+    'We\'re {rand_pct}% of the way to our goal. If we fall short, we lose everything.',
+    'The deadline is in {rand_hours} hours. After that, this opportunity is gone forever.',
+    'Congress votes TOMORROW. We need to show overwhelming support RIGHT NOW.'
+  ],
+  wife: [
+    'Every day he puts on that uniform, I hold my breath. And every night I pray.',
+    'Our family sacrifices so much. The missed birthdays. The 3 AM calls. The worry that never stops.',
+    'I see the toll this takes. The exhaustion. The weight of responsibility. But he never complains.'
+  ],
+  celebrity: [
+    'I\'ve visited these heroes in person. I\'ve looked them in the eye. They deserve better.',
+    'In all my years of public service, I\'ve never seen anything quite like this mission.',
+    'When I first heard about this program, I thought it was too good to be true. Then I saw it work.'
+  ],
+  animal: [
+    'Right now I\'m learning to detect seizures. To open doors. To save a veteran\'s life.',
+    'It costs $40,000 to train a service dog like me. But the veteran I\'ll serve? They pay NOTHING.',
+    'There are 22 veterans who take their own lives every day. A dog like me can change that number.'
+  ],
+  gratitude: [
+    'Last month, because of donors like you, we were able to [IMPACT]. That\'s real. That\'s YOU.',
+    'Your last gift didn\'t just help — it transformed [BENEFICIARY]\'s life completely.',
+    'We keep a wall of photos in our office. Your name should be on it.'
+  ],
+  anger: [
+    'While politicians play games, real Americans are suffering. Our heroes are being abandoned.',
+    'They slashed funding by {rand_pct}%. They thought nobody would notice. They were wrong.',
+    'The mainstream media won\'t cover this. Big Tech is suppressing it. But YOU need to know.'
+  ]
+};
+
+const closers = [
+  'Will you chip in just ${ask} right now? → {link}',
+  'Can I count on you for ${ask} before midnight? → {link}',
+  '${ask} is all it takes to make a difference → {link}',
+  'Rush your ${ask} gift now → {link}\n\nEvery dollar counts. Every second matters.',
+  'Tap here to give ${ask} → {link}\n\nThank you, {first_name}. 🇺🇸',
+  'Give ${ask} now and DOUBLE your impact → {link}\n\nGod bless you.',
+  '${ask} today = a real hero helped tomorrow → {link}'
+];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function generateCreatives() {
+  const org = document.getElementById('orgName').value || 'Your Organization';
+  const channel = document.getElementById('channel').value;
+  const ask = document.getElementById('askAmount').value === 'any' ? '25' : document.getElementById('askAmount').value;
+  const tone = document.getElementById('tone').value;
+  const anchor = document.getElementById('anchor').value;
+  const details = document.getElementById('details').value;
+  const count = parseInt(document.getElementById('variations').value);
+
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    let opener = pick(openers[tone]);
+    let middle = pick(middles[tone]);
+    let closer = pick(closers);
+
+    // Replace placeholders
+    const text = [opener, '', middle, '', closer].join('\n')
+      .replace(/\{first_name\}/g, '{first_name}')
+      .replace(/\{ask\}/g, ask)
+      .replace(/\{link\}/g, '{link}')
+      .replace(/\{rand_pct\}/g, Math.floor(Math.random() * 30 + 60))
+      .replace(/\{rand_hours\}/g, Math.floor(Math.random() * 20 + 4))
+      .replace(/\[DOG_NAME\]/g, details.match(/Dog:\s*(\w+)/i)?.[1] || 'Buddy')
+      .replace(/\[AUTHORITY\]/g, details.match(/(\w+\s\w+)\s*spokesperson/i)?.[1] || 'a trusted voice')
+      .replace(/\[IMPACT\]/g, 'serve 15 more veterans')
+      .replace(/\[BENEFICIARY\]/g, 'a veteran in need');
+
+    const charCount = text.replace(/\{[^}]+\}/g, 'XXXXX').length;
+    const scoreClass = (charCount >= 250 && charCount <= 500) ? 'tag-green' : (charCount < 200 ? 'tag-red' : 'tag-gold');
+
+    if (anchor) {
+      // Insert anchor reference
+    }
+
+    html += `
+      <div style="margin-bottom:1.25rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+          <strong style="color:var(--accent);">Creative #${i+1}</strong>
+          <span>
+            <span class="tag ${scoreClass}">${charCount} chars</span>
+            <span class="tag tag-purple">${channel.toUpperCase()}</span>
+            <button class="copy-btn" onclick="copyCreative(this)">📋 Copy</button>
+          </span>
+        </div>
+        <div class="creative-output">${text.replace(/\{(\w+)\}/g, '<span class="merge">{$1}</span>')}</div>
+      </div>`;
+  }
+
+  if (anchor) {
+    html = `<div class="rule-card" style="margin-bottom:1rem;border-left-color:var(--gold)"><h4>🗓️ Anchor: ${anchor}</h4><p>Event anchoring boosts yield 2-3x. Weave "${anchor}" into your creatives above.</p></div>` + html;
+  }
+
+  document.getElementById('output').innerHTML = html;
+}
+
+function copyCreative(btn) {
+  const text = btn.closest('div').nextElementSibling.textContent;
+  navigator.clipboard.writeText(text);
+  btn.textContent = '✅ Copied!';
+  setTimeout(() => btn.textContent = '📋 Copy', 1500);
+}
+
+// SCORER
+function updateCharCount() {
+  const len = document.getElementById('scoreInput').value.length;
+  const el = document.getElementById('charCount');
+  el.textContent = `${len} characters`;
+  el.className = 'char-counter ' + (len >= 250 && len <= 500 ? 'ok' : len > 500 ? 'over' : len > 150 ? 'warn' : 'over');
+}
+
+function scoreCreative() {
+  const text = document.getElementById('scoreInput').value;
+  if (!text.trim()) return;
+
+  const len = text.length;
+  const checks = [];
+  let score = 0, max = 0;
+
+  // Length
+  max += 15;
+  if (len >= 250 && len <= 500) { score += 15; checks.push({name:'Length (250-500)', pass:true, pts:15}); }
+  else if (len >= 200 && len <= 600) { score += 8; checks.push({name:'Length (acceptable)', pass:'warn', pts:8}); }
+  else { checks.push({name:'Length', pass:false, pts:0, note:`${len} chars — outside sweet spot`}); }
+
+  // Personalization
+  max += 10;
+  if (/\{first_name\}|fname|FNAME/i.test(text)) { score += 10; checks.push({name:'Personalization merge field', pass:true, pts:10}); }
+  else { checks.push({name:'No personalization ({first_name})', pass:false, pts:0}); }
+
+  // Urgency
+  max += 15;
+  if (/urgent|right now|tonight|midnight|deadline|hours left|before|immediately|running out/i.test(text)) { score += 15; checks.push({name:'Urgency language', pass:true, pts:15}); }
+  else { checks.push({name:'No urgency trigger', pass:false, pts:0}); }
+
+  // Ask amount
+  max += 10;
+  if (/\$\d+|\{ask\}|chip in|give|donate|gift/i.test(text)) { score += 10; checks.push({name:'Clear ask/CTA', pass:true, pts:10}); }
+  else { checks.push({name:'No clear ask amount', pass:false, pts:0}); }
+
+  // Link
+  max += 10;
+  if (/\{link\}|http|tap here|click|→/i.test(text)) { score += 10; checks.push({name:'Donation link/CTA', pass:true, pts:10}); }
+  else { checks.push({name:'No link or CTA button', pass:false, pts:0}); }
+
+  // Emotional voice
+  max += 10;
+  if (/wife|husband|family|mother|father|child|kid|son|daughter|pray|heart|love/i.test(text)) { score += 10; checks.push({name:'Emotional/family voice', pass:true, pts:10}); }
+  else if (/hero|brave|sacrifice|serve|courage|honor|freedom/i.test(text)) { score += 7; checks.push({name:'Heroic voice (good, not top tier)', pass:'warn', pts:7}); }
+  else { checks.push({name:'No emotional connection', pass:false, pts:0}); }
+
+  // Story/narrative
+  max += 10;
+  if (text.split(/[.!?]/).length >= 4) { score += 10; checks.push({name:'Narrative arc (3+ sentences)', pass:true, pts:10}); }
+  else { score += 3; checks.push({name:'Could use more narrative', pass:'warn', pts:3}); }
+
+  // Named beneficiary
+  max += 10;
+  if (/[A-Z][a-z]+(?:\s[A-Z][a-z]+)?/.test(text) && !/\{/.test(text.match(/[A-Z][a-z]+/)?.[0] || '')) { score += 10; checks.push({name:'Named person/beneficiary', pass:true, pts:10}); }
+  else { checks.push({name:'No named beneficiary (generic)', pass:false, pts:0}); }
+
+  // Matching/multiplier
+  max += 10;
+  if (/match|double|triple|2x|3x|multiply/i.test(text)) { score += 10; checks.push({name:'Match/multiplier offer', pass:true, pts:10}); }
+  else { checks.push({name:'No match offer (missed opportunity)', pass:'warn', pts:0}); }
+
+  const pct = Math.round(score / max * 100);
+  const grade = pct >= 85 ? 'A' : pct >= 70 ? 'B' : pct >= 55 ? 'C' : pct >= 40 ? 'D' : 'F';
+  const gradeColor = pct >= 85 ? 'var(--green)' : pct >= 70 ? 'var(--accent)' : pct >= 55 ? 'var(--gold)' : 'var(--red)';
+
+  let html = `
+    <div style="text-align:center;margin:1rem 0;">
+      <div style="font-size:4rem;font-weight:900;color:${gradeColor};">${grade}</div>
+      <div style="font-size:1.2rem;color:var(--muted);">${score}/${max} points (${pct}%)</div>
+      <div class="score-bar" style="max-width:300px;margin:0.5rem auto;">
+        <div class="score-fill" style="width:${pct}%;background:${gradeColor};"></div>
+      </div>
+    </div>
+    <div style="margin-top:1rem;">`;
+
+  checks.forEach(c => {
+    const icon = c.pass === true ? '✅' : c.pass === 'warn' ? '⚠️' : '❌';
+    html += `<div style="padding:0.4rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;">${icon} <strong>${c.name}</strong> <span style="float:right;color:var(--muted);">+${c.pts}</span></div>`;
+  });
+
+  html += '</div>';
+  document.getElementById('scoreOutput').innerHTML = `<h3><span class="emoji">📊</span>Creative Score</h3>` + html;
+}
+
+// A/B Lab
+function updateABPreview() {
+  const v = document.getElementById('abVariable').value;
+  const configs = {
+    voice: { a:'Wife/Family Voice', b:'Celebrity Authority Voice', c:'Organization Direct', metric:'Yield/send' },
+    urgency: { a:'Hard Deadline ("midnight tonight")', b:'Scarcity ("only 50 spots")', c:'No urgency (gratitude only)', metric:'Conversion rate' },
+    length: { a:'Short (<200 chars)', b:'Medium (250-350 chars)', c:'Long (400+ chars)', metric:'Yield/send' },
+    ask: { a:'$25 ask', b:'$35 ask', c:'$50 ask', metric:'Revenue per send' },
+    opener: { a:'Name opener ("{first_name}, I need...")', b:'Question ("Did you see what...?")', c:'Shock stat ("22 veterans a day...")', metric:'CTR' },
+    channel: { a:'MMS with image', b:'SMS text only', metric:'Yield/send (cost-adjusted)' }
+  };
+  const c = configs[v];
+  let html = `<div class="grid-${c.c ? '3' : '2'}">`;
+  html += `<div class="rule-card"><h4>Variant A</h4><p>${c.a}</p></div>`;
+  html += `<div class="rule-card"><h4>Variant B</h4><p>${c.b}</p></div>`;
+  if (c.c) html += `<div class="rule-card"><h4>Variant C</h4><p>${c.c}</p></div>`;
+  html += `</div><p style="color:var(--muted);font-size:0.85rem;margin-top:0.5rem;">📏 Primary metric: <strong>${c.metric}</strong>. Hold all other variables constant.</p>`;
+  document.getElementById('abPreview').innerHTML = html;
+}
+
+function calcAB() {
+  const a = parseFloat(document.getElementById('yieldA').value);
+  const b = parseFloat(document.getElementById('yieldB').value);
+  const size = parseInt(document.getElementById('fullSend').value);
+  if (isNaN(a) || isNaN(b) || isNaN(size)) return;
+
+  const winner = b > a ? 'B' : 'A';
+  const lift = Math.abs((b - a) / a * 100).toFixed(1);
+  const revA = (a * size).toFixed(0);
+  const revB = (b * size).toFixed(0);
+  const diff = Math.abs(revB - revA).toFixed(0);
+
+  document.getElementById('abResult').innerHTML = `
+    <div class="stat-row">
+      <div class="stat"><div class="value">$${Number(revA).toLocaleString()}</div><div class="label">Variant A Revenue</div></div>
+      <div class="stat"><div class="value">$${Number(revB).toLocaleString()}</div><div class="label">Variant B Revenue</div></div>
+      <div class="stat"><div class="value" style="color:var(--green);">+${lift}%</div><div class="label">Lift (${winner} wins)</div></div>
+      <div class="stat"><div class="value" style="color:var(--gold);">$${Number(diff).toLocaleString()}</div><div class="label">Additional Revenue</div></div>
+    </div>
+    <p style="color:var(--muted);font-size:0.85rem;">At scale (${(size).toLocaleString()} sends), picking the winner nets <strong>$${Number(diff).toLocaleString()} more per campaign.</strong> Over 12 months with weekly sends: <strong>$${(diff * 52).toLocaleString()}/year.</strong></p>`;
+}
+
+// Init
+updateABPreview();
+</script>
+</body>
+</html>

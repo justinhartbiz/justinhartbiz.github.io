@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>If You Could Hie to Kolob</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital@0;1&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Crimson Text', Georgia, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+canvas#cosmos {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 60px 20px;
+}
+
+h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 42px;
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 40px rgba(255,215,0,0.5);
+  color: #FFD700;
+}
+
+.author {
+  text-align: center;
+  color: rgba(255,255,255,0.5);
+  font-style: italic;
+  margin-bottom: 60px;
+}
+
+.verse {
+  margin-bottom: 50px;
+  padding: 30px;
+  background: rgba(255,255,255,0.03);
+  border-left: 3px solid rgba(255,215,0,0.3);
+  border-radius: 0 12px 12px 0;
+  transition: all 0.5s ease;
+  cursor: pointer;
+}
+
+.verse:hover {
+  background: rgba(255,255,255,0.06);
+  border-left-color: rgba(255,215,0,0.8);
+  transform: translateX(10px);
+}
+
+.verse-number {
+  font-family: 'Cinzel', serif;
+  color: #FFD700;
+  font-size: 14px;
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+.verse-text {
+  font-size: 22px;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.9);
+}
+
+.verse-text em {
+  color: #FFD700;
+  font-style: normal;
+}
+
+.meditation {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 16px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.7;
+  display: none;
+}
+
+.verse.expanded .meditation {
+  display: block;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.journey-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #FFD700, #FF6B35, #FFD700);
+  width: 0%;
+  transition: width 0.3s ease;
+  z-index: 100;
+}
+
+.distance-counter {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+  text-align: right;
+}
+
+.distance-counter .number {
+  font-size: 24px;
+  color: #FFD700;
+  display: block;
+}
+
+.cosmic-note {
+  text-align: center;
+  padding: 40px;
+  margin: 40px 0;
+  border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 12px;
+  background: rgba(255,215,0,0.03);
+}
+
+.cosmic-note h3 {
+  font-family: 'Cinzel', serif;
+  color: #FFD700;
+  margin-bottom: 16px;
+}
+
+.cosmic-note p {
+  color: rgba(255,255,255,0.7);
+  line-height: 1.7;
+}
+
+.final-thought {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 24px;
+  font-style: italic;
+  color: rgba(255,255,255,0.7);
+}
+
+.final-thought span {
+  display: block;
+  margin-top: 20px;
+  font-size: 16px;
+  color: rgba(255,255,255,0.4);
+}
+
+footer {
+  text-align: center;
+  padding: 40px;
+  color: rgba(255,255,255,0.3);
+  font-size: 12px;
+}
+
+.play-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: rgba(255,215,0,0.2);
+  border: 1px solid rgba(255,215,0,0.4);
+  color: #FFD700;
+  padding: 12px 24px;
+  border-radius: 30px;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.play-btn:hover {
+  background: rgba(255,215,0,0.3);
+  transform: scale(1.05);
+}
+</style>
+</head>
+<body>
+
+<canvas id="cosmos"></canvas>
+
+<div class="journey-progress" id="progress"></div>
+
+<div class="distance-counter">
+  <span class="number" id="distance">0</span>
+  light-years from Earth
+</div>
+
+<div class="container">
+  <h1>If You Could Hie to Kolob</h1>
+  <p class="author">Hymn #284 • Text by William W. Phelps, 1835</p>
+
+  <div class="verse" data-distance="0">
+    <div class="verse-number">VERSE I</div>
+    <div class="verse-text">
+      If you could <em>hie to Kolob</em><br>
+      In the twinkling of an eye,<br>
+      And then continue onward<br>
+      With that same speed to fly,<br>
+      Do you think that you could ever,<br>
+      Through all eternity,<br>
+      Find out the generation<br>
+      Where Gods began to be?
+    </div>
+    <div class="meditation">
+      <strong>Meditation:</strong> The journey begins with a question that stretches the mind to its limits. Kolob — described in Abraham 3:3 as "the great one" near the throne of God. If you could travel there instantly, and keep going at that impossible speed forever... could you find the beginning? The hymn starts by suggesting: probably not.
+    </div>
+  </div>
+
+  <div class="verse" data-distance="26000">
+    <div class="verse-number">VERSE II</div>
+    <div class="verse-text">
+      Or see the <em>grand beginning</em>,<br>
+      Where space did not extend?<br>
+      Or view the last creation,<br>
+      Where Gods and matter end?<br>
+      Methinks the Spirit whispers,<br>
+      "No man has found 'pure space,'<br>
+      Nor seen the outside curtains,<br>
+      Where nothing has a place."
+    </div>
+    <div class="meditation">
+      <strong>Meditation:</strong> "Where space did not extend" — a pre-Big Bang concept, 150 years before modern cosmology. The "outside curtains" beyond which there is nothing. Phelps imagines asking the Spirit, who gently answers: no one has found the edge. Because there isn't one.
+    </div>
+  </div>
+
+  <div class="verse" data-distance="100000">
+    <div class="verse-number">VERSE III</div>
+    <div class="verse-text">
+      The works of God continue,<br>
+      And <em>worlds and lives abound</em>;<br>
+      Improvement and progression<br>
+      Have one eternal round.<br>
+      There is no end to matter;<br>
+      There is no end to space;<br>
+      There is no end to spirit;<br>
+      There is no end to race.
+    </div>
+    <div class="meditation">
+      <strong>Meditation:</strong> The great declaration: everything is eternal. Matter. Space. Spirit. And "race" — the family of God, extending infinitely. "One eternal round" — not a line with a beginning and end, but a circle, a cycle, an eternal process of becoming.
+    </div>
+  </div>
+
+  <div class="verse" data-distance="500000">
+    <div class="verse-number">VERSE IV</div>
+    <div class="verse-text">
+      There is no end to virtue;<br>
+      There is no end to might;<br>
+      There is no end to wisdom;<br>
+      There is no end to light.<br>
+      There is no end to union;<br>
+      There is no end to youth;<br>
+      There is no end to priesthood;<br>
+      There is <em>no end to truth</em>.
+    </div>
+    <div class="meditation">
+      <strong>Meditation:</strong> Eight "no ends" — a litany of eternities. Virtue never runs out. Power never diminishes. Knowledge never stops growing. Light never fades. Connection never breaks. Youth — eternal vitality — never ages. Authority never expires. And truth? Truth is forever.
+    </div>
+  </div>
+
+  <div class="verse" data-distance="2000000">
+    <div class="verse-number">VERSE V</div>
+    <div class="verse-text">
+      There is no end to glory;<br>
+      There is no end to love;<br>
+      There is no end to being;<br>
+      There is <em>no death above</em>.<br>
+      There is no end to glory;<br>
+      There is no end to love;<br>
+      There is no end to being;<br>
+      There is no death above.
+    </div>
+    <div class="meditation">
+      <strong>Meditation:</strong> The climax, repeated for emphasis. Glory — the radiant presence of God. Love — the binding force of eternity. Being — existence itself. And the final triumph: "no death above." In the celestial realm, the thing that ends everything here... simply doesn't exist there.
+    </div>
+  </div>
+
+  <div class="cosmic-note">
+    <h3>A Note on Kolob</h3>
+    <p>
+      In LDS theology, Kolob is a star (or planet) described in the Book of Abraham as being nearest to the throne of God. Its time runs differently — one day on Kolob equals 1,000 years on Earth (Abraham 3:4). The hymn uses Kolob not as a destination, but as a launching point for contemplating infinity.
+    </p>
+  </div>
+
+  <div class="final-thought">
+    "Do you think that you could ever, through all eternity, find out the generation where Gods began to be?"
+    <span>The answer, of course, is no. And that's the point. Infinity isn't a problem to solve. It's a wonder to inhabit.</span>
+  </div>
+
+  <footer>
+    An interactive meditation • Created for Justin Hart • February 2026<br>
+    <em>"If You Could Hie to Kolob"</em> — one of the most philosophically profound hymns in the LDS tradition.
+  </footer>
+</div>
+
+<button class="play-btn" onclick="toggleAmbient()">✦ Ambient Sound</button>
+
+<script>
+// Cosmic background
+const canvas = document.getElementById('cosmos');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Stars with depth
+const stars = [];
+for (let i = 0; i < 500; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    z: Math.random() * 3,
+    size: Math.random() * 2,
+    color: `hsl(${Math.random() * 60 + 30}, 80%, ${Math.random() * 30 + 70}%)`
+  });
+}
+
+// Nebula colors
+const nebulae = [
+  { x: 0.2, y: 0.3, r: 300, color: 'rgba(255, 100, 50, 0.03)' },
+  { x: 0.7, y: 0.6, r: 400, color: 'rgba(100, 50, 255, 0.02)' },
+  { x: 0.5, y: 0.8, r: 250, color: 'rgba(255, 200, 50, 0.02)' },
+];
+
+let time = 0;
+
+function animate() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw nebulae
+  nebulae.forEach(n => {
+    const gradient = ctx.createRadialGradient(
+      n.x * canvas.width, n.y * canvas.height, 0,
+      n.x * canvas.width, n.y * canvas.height, n.r
+    );
+    gradient.addColorStop(0, n.color);
+    gradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  });
+  
+  // Draw stars with parallax
+  stars.forEach(star => {
+    const parallax = star.z * 0.5;
+    const x = (star.x + time * parallax) % canvas.width;
+    
+    ctx.beginPath();
+    ctx.arc(x, star.y, star.size / star.z, 0, Math.PI * 2);
+    ctx.fillStyle = star.color;
+    ctx.globalAlpha = 0.5 + Math.sin(time * 0.01 + star.x) * 0.3;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+  
+  time += 0.5;
+  requestAnimationFrame(animate);
+}
+animate();
+
+// Verse interactions
+const verses = document.querySelectorAll('.verse');
+const progress = document.getElementById('progress');
+const distanceEl = document.getElementById('distance');
+
+verses.forEach(verse => {
+  verse.addEventListener('click', () => {
+    verse.classList.toggle('expanded');
+    updateProgress();
+  });
+});
+
+function updateProgress() {
+  const expanded = document.querySelectorAll('.verse.expanded').length;
+  const total = verses.length;
+  const pct = (expanded / total) * 100;
+  progress.style.width = pct + '%';
+  
+  // Update distance based on last expanded verse
+  let maxDistance = 0;
+  document.querySelectorAll('.verse.expanded').forEach(v => {
+    const d = parseInt(v.dataset.distance);
+    if (d > maxDistance) maxDistance = d;
+  });
+  
+  animateDistance(maxDistance);
+}
+
+let currentDistance = 0;
+function animateDistance(target) {
+  const step = (target - currentDistance) / 20;
+  function update() {
+    if (Math.abs(target - currentDistance) > 100) {
+      currentDistance += step;
+      distanceEl.textContent = Math.round(currentDistance).toLocaleString();
+      requestAnimationFrame(update);
+    } else {
+      currentDistance = target;
+      distanceEl.textContent = target.toLocaleString();
+    }
+  }
+  update();
+}
+
+// Scroll progress
+window.addEventListener('scroll', () => {
+  const scrollPct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  progress.style.width = (scrollPct * 100) + '%';
+});
+
+// Ambient sound toggle (placeholder)
+let ambientPlaying = false;
+function toggleAmbient() {
+  ambientPlaying = !ambientPlaying;
+  const btn = document.querySelector('.play-btn');
+  btn.textContent = ambientPlaying ? '✦ Sound On' : '✦ Ambient Sound';
+  // In a real implementation, this would play/pause ambient space sounds
+}
+</script>
+
+</body>
+</html>

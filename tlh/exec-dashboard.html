@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLH Executive Dashboard — Feb 5, 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#1a1a2e;--card:#16213e;--accent:#0f3460;--highlight:#e94560;--text:#e8e8e8;--text-dim:#8892a4;--green:#00c853;--yellow:#ffc107;--red:#e94560;--blue:#4fc3f7;--purple:#b388ff;--orange:#ff9800;--radius:12px;--shadow:0 4px 24px rgba(0,0,0,0.3)}
+html{font-size:15px}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.header{background:linear-gradient(135deg,#0f3460 0%,#1a1a2e 100%);padding:20px 32px 0;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,0.06)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.logo{font-size:1.6rem;font-weight:800;letter-spacing:-0.5px}
+.logo span{color:var(--highlight)}
+.header-date{font-size:.85rem;color:var(--text-dim);font-weight:500}
+.tabs{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 20px;border-radius:8px 8px 0 0;cursor:pointer;font-weight:600;font-size:.82rem;white-space:nowrap;color:var(--text-dim);transition:all .2s;border:1px solid transparent;border-bottom:none;user-select:none}
+.tab:hover{color:var(--text);background:rgba(255,255,255,0.04)}
+.tab.active{color:#fff;background:var(--card);border-color:rgba(255,255,255,0.08)}
+.content{padding:24px 32px 80px;max-width:1400px;margin:0 auto}
+.tab-panel{display:none;animation:fadeIn .3s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Cards */
+.cards{display:grid;gap:16px;margin-bottom:24px}
+.cards-4{grid-template-columns:repeat(4,1fr)}
+.cards-3{grid-template-columns:repeat(3,1fr)}
+.cards-5{grid-template-columns:repeat(5,1fr)}
+.cards-6{grid-template-columns:repeat(6,1fr)}
+.card{background:var(--card);border-radius:var(--radius);padding:20px 24px;border:1px solid rgba(255,255,255,0.06);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
+.card.blue::before{background:var(--blue)}
+.card.green::before{background:var(--green)}
+.card.red::before{background:var(--highlight)}
+.card.purple::before{background:var(--purple)}
+.card.orange::before{background:var(--orange)}
+.card.yellow::before{background:var(--yellow)}
+.card-label{font-size:.72rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-dim);font-weight:600;margin-bottom:6px}
+.card-value{font-size:2.2rem;font-weight:800;line-height:1.1}
+.card-sub{font-size:.75rem;color:var(--text-dim);margin-top:4px;font-weight:500}
+.card-value.small{font-size:1.6rem}
+
+/* Chart containers */
+.chart-row{display:grid;gap:20px;margin-bottom:24px}
+.chart-row-2{grid-template-columns:1fr 1fr}
+.chart-row-3{grid-template-columns:1fr 1fr 1fr}
+.chart-box{background:var(--card);border-radius:var(--radius);padding:24px;border:1px solid rgba(255,255,255,0.06)}
+.chart-box h3{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
+.chart-box h4{font-size:.8rem;font-weight:600;margin-bottom:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px}
+.chart-canvas{position:relative;width:100%;max-height:320px}
+
+/* Tables */
+.data-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.data-table th{text-align:left;padding:10px 14px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.8px;font-size:.7rem;border-bottom:2px solid rgba(255,255,255,0.08)}
+.data-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);font-weight:500}
+.data-table tr:hover td{background:rgba(255,255,255,0.02)}
+.data-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.7rem;font-weight:700}
+.badge-green{background:rgba(0,200,83,0.15);color:var(--green)}
+.badge-red{background:rgba(233,69,96,0.15);color:var(--red)}
+.badge-yellow{background:rgba(255,193,7,0.15);color:var(--yellow)}
+
+/* Funnel */
+.funnel{display:flex;flex-direction:column;align-items:center;gap:0;margin:20px 0}
+.funnel-step{display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;color:#fff;font-weight:700;position:relative;clip-path:polygon(5% 0%,95% 0%,100% 100%,0% 100%);transition:all .3s}
+.funnel-step .f-label{font-size:.75rem;opacity:.85;font-weight:500}
+.funnel-step .f-value{font-size:1.3rem;font-weight:800}
+.funnel-step .f-pct{font-size:.7rem;opacity:.7;margin-left:8px}
+
+/* Reverse funnel columns */
+.rf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:24px}
+.rf-col{background:var(--card);border-radius:var(--radius);padding:24px;border:1px solid rgba(255,255,255,0.06)}
+.rf-col h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.rf-col .rf-status{font-size:.75rem;font-weight:700;margin-bottom:16px}
+.rf-step{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin:4px 0;border-radius:6px;font-size:.78rem;font-weight:600;border-left:3px solid}
+.rf-step .rf-label{color:var(--text-dim)}
+.rf-step .rf-val{font-weight:800;font-variant-numeric:tabular-nums}
+
+/* Inputs */
+.input-row{display:flex;gap:16px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.input-group{display:flex;align-items:center;gap:6px;font-size:.8rem}
+.input-group label{color:var(--text-dim);font-weight:600;white-space:nowrap}
+.input-group input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:6px 10px;color:#fff;font-size:.82rem;width:70px;font-weight:600;font-family:inherit}
+.input-group input:focus{outline:none;border-color:var(--blue)}
+.btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:.72rem;font-weight:700;font-family:inherit;transition:all .2s}
+.btn-ghost{background:rgba(255,255,255,0.06);color:var(--text-dim)}
+.btn-ghost:hover{background:rgba(255,255,255,0.1);color:#fff}
+.btn-accent{background:var(--highlight);color:#fff}
+.btn-accent:hover{background:#d63a55}
+
+/* Reco box */
+.reco-box{background:var(--card);border-radius:var(--radius);padding:24px;border:1px solid rgba(255,255,255,0.06);margin-top:20px}
+.reco-box h3{font-size:.95rem;font-weight:700;margin-bottom:14px}
+.reco-item{display:flex;gap:12px;margin-bottom:12px;padding:12px 16px;border-radius:8px;background:rgba(255,255,255,0.02);border-left:3px solid}
+.reco-item.keep{border-color:var(--green)}
+.reco-item.fix{border-color:var(--yellow)}
+.reco-item.kill{border-color:var(--red)}
+.reco-item .reco-badge{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;min-width:50px}
+.reco-item p{font-size:.82rem;color:var(--text-dim);line-height:1.5}
+
+/* Tooltip */
+.info-tip{display:inline-block;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,0.08);color:var(--text-dim);text-align:center;font-size:.65rem;line-height:16px;cursor:help;position:relative;font-weight:700;margin-left:6px}
+.info-tip:hover .tip-content{display:block}
+.tip-content{display:none;position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:#0d1117;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:12px 16px;font-size:.72rem;color:var(--text-dim);width:320px;z-index:50;font-weight:400;line-height:1.6;box-shadow:var(--shadow)}
+
+/* Footer */
+.footer{text-align:center;padding:24px;font-size:.7rem;color:rgba(255,255,255,0.2);font-weight:500;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(transparent,var(--bg) 40%);pointer-events:none}
+
+/* PMAX split bar */
+.split-bar{display:flex;height:24px;border-radius:6px;overflow:hidden;margin:6px 0;font-size:.65rem;font-weight:700}
+.split-bar .pmax{background:var(--orange);display:flex;align-items:center;justify-content:center}
+.split-bar .search{background:var(--blue);display:flex;align-items:center;justify-content:center}
+
+/* Wins section */
+.win-item{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.win-item:last-child{border-bottom:none}
+.win-icon{width:32px;height:32px;border-radius:50%;background:rgba(0,200,83,0.15);display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.win-detail{flex:1}
+.win-detail .win-name{font-weight:700;font-size:.85rem}
+.win-detail .win-sub{font-size:.72rem;color:var(--text-dim)}
+.win-amount{font-weight:800;color:var(--green);font-size:1rem}
+
+/* Responsive */
+@media(max-width:1200px){.cards-4,.cards-5,.cards-6{grid-template-columns:repeat(3,1fr)}.rf-grid{grid-template-columns:1fr}}
+@media(max-width:768px){.cards-4,.cards-3,.cards-5,.cards-6{grid-template-columns:repeat(2,1fr)}.chart-row-2,.chart-row-3{grid-template-columns:1fr}.content{padding:16px}}
+
+/* Print */
+@media print{
+body{background:#fff;color:#111}
+.header{position:relative;background:#fff;border-bottom:2px solid #ccc}
+.tab{color:#333}
+.tab.active{background:#eee;color:#000}
+.card{background:#f5f5f5;border:1px solid #ddd;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.card::before{display:none}
+.chart-box,.rf-col,.reco-box{background:#f5f5f5;border:1px solid #ddd}
+.data-table th{border-bottom:2px solid #999}
+.data-table td{border-bottom:1px solid #ddd}
+.footer{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">TLH <span>Executive Dashboard</span></div>
+    <div class="header-date">Weekly Review — February 5, 2026</div>
+  </div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="thisweek">📊 This Week</div>
+    <div class="tab" data-tab="funnel">🔽 Lead Funnel</div>
+    <div class="tab" data-tab="janfeb">📈 Jan–Feb 2026</div>
+    <div class="tab" data-tab="source">🎯 Source Analysis</div>
+    <div class="tab" data-tab="reverse">🔄 Reverse Funnel</div>
+    <div class="tab" data-tab="roi">💰 Campaign ROI</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════ TAB 1: THIS WEEK ═══════════════ -->
+<div class="tab-panel active" id="panel-thisweek">
+  <div class="cards cards-4" style="margin-bottom:20px">
+    <div class="card blue">
+      <div class="card-label">Meetings Booked</div>
+      <div class="card-value">15</div>
+      <div class="card-sub">9 SD · 3 OC · 1 LA · 2 Other</div>
+    </div>
+    <div class="card green">
+      <div class="card-label">New Opportunities</div>
+      <div class="card-value">14</div>
+      <div class="card-sub">9 SD · 5 OC</div>
+    </div>
+    <div class="card purple">
+      <div class="card-label">Total Leads</div>
+      <div class="card-value">94</div>
+      <div class="card-sub">38 quality · 10 qualified · 1 connected</div>
+    </div>
+    <div class="card red">
+      <div class="card-label">Wins This Week</div>
+      <div class="card-value">2</div>
+      <div class="card-sub">$20,000 total revenue</div>
+    </div>
+  </div>
+
+  <div class="chart-row chart-row-2">
+    <div class="chart-box">
+      <h3>Meetings by Day</h3>
+      <div class="chart-canvas"><canvas id="chart-meetings-day"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>🏆 This Week's Wins</h3>
+      <div class="win-item">
+        <div class="win-icon">🏠</div>
+        <div class="win-detail">
+          <div class="win-name">Thomas Ave</div>
+          <div class="win-sub">San Diego · Closed this week</div>
+        </div>
+        <div class="win-amount">$12,000</div>
+      </div>
+      <div class="win-item">
+        <div class="win-icon">🏠</div>
+        <div class="win-detail">
+          <div class="win-name">Golfcrest Dr</div>
+          <div class="win-sub">San Diego · Closed this week</div>
+        </div>
+        <div class="win-amount">$8,000</div>
+      </div>
+      <div style="margin-top:20px">
+        <h4 style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Lead Quality Breakdown</h4>
+        <table class="data-table">
+          <thead><tr><th>Category</th><th class="num">Count</th></tr></thead>
+          <tbody>
+            <tr><td>Quality Leads</td><td class="num"><strong>38</strong></td></tr>
+            <tr><td>↳ Qualified</td><td class="num">10</td></tr>
+            <tr><td>↳ Connected</td><td class="num">1</td></tr>
+            <tr><td>↳ Working / New</td><td class="num">27</td></tr>
+            <tr><td>Unqualified</td><td class="num">56</td></tr>
+            <tr><td style="font-weight:700">Total Leads</td><td class="num" style="font-weight:700">94</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB 2: LEAD FUNNEL ═══════════════ -->
+<div class="tab-panel" id="panel-funnel">
+  <div class="cards cards-5" style="margin-bottom:20px">
+    <div class="card blue">
+      <div class="card-label">Total Leads</div>
+      <div class="card-value">1,847</div>
+      <div class="card-sub">Sept–Dec 2025</div>
+    </div>
+    <div class="card purple">
+      <div class="card-label">After Junk Filter</div>
+      <div class="card-value">1,031</div>
+      <div class="card-sub">56% pass rate</div>
+    </div>
+    <div class="card orange">
+      <div class="card-label">Qualified</div>
+      <div class="card-value">207</div>
+      <div class="card-sub">20% of filtered</div>
+    </div>
+    <div class="card yellow">
+      <div class="card-label">Opps Created</div>
+      <div class="card-value">216</div>
+      <div class="card-sub">From qualified leads</div>
+    </div>
+    <div class="card green">
+      <div class="card-label">Wins</div>
+      <div class="card-value">65</div>
+      <div class="card-sub">46 SD · 7 OC · 12 LA</div>
+    </div>
+  </div>
+
+  <div class="chart-row" style="grid-template-columns:1fr">
+    <div class="chart-box">
+      <h3>Lead-to-Win Funnel (Sept–Dec 2025)
+        <span class="info-tip">?
+          <div class="tip-content">
+            <strong>Junk Filter Excludes:</strong><br>
+            Spam, Shopper, Out-of-service area, Unrelated to sale, Too small &amp; no RE, Apartment/Mobile Home, Storage Unit, Not within time frame &amp; no RE, HOA restrictions &amp; no RE, Item Appraisal, Bad Data, Seamless.AI, Out-of-service area LA, Already sold (Property Sales AI)
+          </div>
+        </span>
+      </h3>
+      <div class="chart-canvas" style="max-height:380px"><canvas id="chart-funnel"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-box" style="margin-top:20px">
+    <h3>Wins by County</h3>
+    <div class="chart-canvas" style="max-height:260px"><canvas id="chart-wins-county"></canvas></div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB 3: JAN-FEB 2026 ═══════════════ -->
+<div class="tab-panel" id="panel-janfeb">
+  <div class="cards cards-4" style="margin-bottom:20px">
+    <div class="card blue">
+      <div class="card-label">Total Leads</div>
+      <div class="card-value">514</div>
+      <div class="card-sub">Jan–Feb 2026</div>
+    </div>
+    <div class="card green">
+      <div class="card-label">Opportunities</div>
+      <div class="card-value">121</div>
+      <div class="card-sub">SD 76 · OC 24 · LA 18 · Other 3</div>
+    </div>
+    <div class="card red">
+      <div class="card-label">Wins</div>
+      <div class="card-value">13</div>
+      <div class="card-sub">SD 8 · LA 5 · OC 0</div>
+    </div>
+    <div class="card orange">
+      <div class="card-label">Win Revenue</div>
+      <div class="card-value small">$97,500</div>
+      <div class="card-sub">SD $69,500 · LA $28,000</div>
+    </div>
+  </div>
+
+  <div class="chart-row chart-row-2">
+    <div class="chart-box">
+      <h3>Leads by Week</h3>
+      <div class="chart-canvas"><canvas id="chart-jf-weekly"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Lead Status Distribution</h3>
+      <div class="chart-canvas"><canvas id="chart-jf-status"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-row chart-row-2" style="margin-top:0">
+    <div class="chart-box">
+      <h3>Unqualified Breakdown (352 total)</h3>
+      <div class="chart-canvas" style="max-height:360px"><canvas id="chart-jf-unqual"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Opportunities by County</h3>
+      <div class="chart-canvas"><canvas id="chart-jf-opps"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB 4: SOURCE ANALYSIS ═══════════════ -->
+<div class="tab-panel" id="panel-source">
+  <div class="cards cards-3" style="margin-bottom:20px">
+    <div class="card green">
+      <div class="card-label">Total Wins (Sept–Dec)</div>
+      <div class="card-value">65</div>
+      <div class="card-sub">Across all sources</div>
+    </div>
+    <div class="card blue">
+      <div class="card-label">Total Revenue</div>
+      <div class="card-value small">$528,900</div>
+      <div class="card-sub">Sept–Dec 2025</div>
+    </div>
+    <div class="card purple">
+      <div class="card-label">Avg Revenue / Win</div>
+      <div class="card-value small">$8,137</div>
+      <div class="card-sub">Across all counties</div>
+    </div>
+  </div>
+
+  <div class="chart-row chart-row-2">
+    <div class="chart-box">
+      <h3>Wins by Source (Sept–Dec)</h3>
+      <div class="chart-canvas"><canvas id="chart-source-pie"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Holistic County View — "Paul's View"</h3>
+      <div class="chart-canvas"><canvas id="chart-county-bar"></canvas></div>
+      <p style="font-size:.7rem;color:var(--text-dim);margin-top:10px">* SD cost/win is low because 31 wins came from non-Google sources. Holistic view = total spend ÷ total wins regardless of source.</p>
+    </div>
+  </div>
+
+  <div class="chart-box" style="margin-top:20px">
+    <h3>County Economics</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>County</th><th class="num">Ad Spend</th><th class="num">Opps</th><th class="num">Wins</th><th class="num">Cost/Win</th><th class="num">Avg Rev/Win</th><th class="num">ROI</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>San Diego</td><td class="num">$52,533</td><td class="num">121</td><td class="num">46</td><td class="num" style="color:var(--green)">$1,142</td><td class="num">$8,459</td><td class="num" style="color:var(--green)">641%</td></tr>
+        <tr><td>Orange County</td><td class="num">$51,331</td><td class="num">66</td><td class="num">7</td><td class="num" style="color:var(--red)">$7,333</td><td class="num">$6,186</td><td class="num" style="color:var(--yellow)">-16%</td></tr>
+        <tr><td>Los Angeles</td><td class="num">$41,168</td><td class="num">29</td><td class="num">12</td><td class="num" style="color:var(--yellow)">$3,431</td><td class="num">$8,042</td><td class="num" style="color:var(--green)">134%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="chart-box" style="margin-top:20px">
+    <h3>Lead-to-Win Funnel by Source</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>Source</th><th class="num">Leads</th><th class="num">Filtered</th><th class="num">Qualified</th><th class="num">Wins</th><th class="num">Overall Conv.</th><th class="num">Filtered Conv.</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Google Ads</td><td class="num">1,018</td><td class="num">629</td><td class="num">121</td><td class="num">34</td><td class="num">3.3%</td><td class="num">5.4%</td></tr>
+        <tr><td>Google My Business</td><td class="num">258</td><td class="num">121</td><td class="num">21</td><td class="num">7</td><td class="num">2.7%</td><td class="num">5.8%</td></tr>
+        <tr><td>Google Organic <span class="badge badge-green">Best Rate</span></td><td class="num">80</td><td class="num">47</td><td class="num">19</td><td class="num">6</td><td class="num">7.5%</td><td class="num">12.8%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB 5: REVERSE FUNNEL ═══════════════ -->
+<div class="tab-panel" id="panel-reverse">
+  <div class="chart-box" style="margin-bottom:20px">
+    <h3>🎯 Monthly Win Targets & Conversion Rates</h3>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end">
+      <div>
+        <h4 style="font-size:.72rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px">Win Targets (per month)</h4>
+        <div class="input-row">
+          <div class="input-group"><label>SD:</label><input type="number" id="rf-target-sd" value="8" min="0" max="50" onchange="recalcReverse()"></div>
+          <div class="input-group"><label>OC:</label><input type="number" id="rf-target-oc" value="4" min="0" max="50" onchange="recalcReverse()"></div>
+          <div class="input-group"><label>LA:</label><input type="number" id="rf-target-la" value="4" min="0" max="50" onchange="recalcReverse()"></div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:.72rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px">Opp Win Rates</h4>
+        <div class="input-row">
+          <div class="input-group"><label>SD:</label><input type="number" id="rf-winrate-sd" value="34.6" step="0.1" min="0" max="100" onchange="recalcReverse()">%</div>
+          <div class="input-group"><label>OC:</label><input type="number" id="rf-winrate-oc" value="11.3" step="0.1" min="0" max="100" onchange="recalcReverse()">%</div>
+          <div class="input-group"><label>LA:</label><input type="number" id="rf-winrate-la" value="36.4" step="0.1" min="0" max="100" onchange="recalcReverse()">%</div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:.72rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px">Lead→Qual / Filter Rate</h4>
+        <div class="input-row">
+          <div class="input-group"><label>L→Q:</label><input type="number" id="rf-lq" value="20" step="1" min="0" max="100" onchange="recalcReverse()">%</div>
+          <div class="input-group"><label>Filter:</label><input type="number" id="rf-filter" value="56" step="1" min="0" max="100" onchange="recalcReverse()">%</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost" onclick="resetReverse()">↺ Reset to Defaults</button>
+    </div>
+  </div>
+
+  <!-- Current Actuals -->
+  <div class="cards cards-3" style="margin-bottom:20px">
+    <div class="card green">
+      <div class="card-label">SD Current (Avg/Mo)</div>
+      <div class="card-value small">11.5 wins <span class="badge badge-green">EXCEEDS ✅</span></div>
+      <div class="card-sub">30 opps/mo · $13,133/mo ad spend</div>
+    </div>
+    <div class="card red">
+      <div class="card-label">OC Current (Avg/Mo)</div>
+      <div class="card-value small">1.75 wins <span class="badge badge-red">BELOW ❌</span></div>
+      <div class="card-sub">16.5 opps/mo · $12,833/mo ad spend</div>
+    </div>
+    <div class="card yellow">
+      <div class="card-label">LA Current (Avg/Mo)</div>
+      <div class="card-value small">3.0 wins <span class="badge badge-yellow">BELOW ⚠️</span></div>
+      <div class="card-sub">7.25 opps/mo · $10,292/mo ad spend</div>
+    </div>
+  </div>
+
+  <!-- Reverse Funnel Columns -->
+  <div class="rf-grid" id="rf-results">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- PMAX vs Search Split -->
+  <div class="chart-box">
+    <h3>Ad Spend Split: PMAX vs Search</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:12px">
+      <div>
+        <h4 style="font-size:.78rem;font-weight:700;margin-bottom:6px">San Diego</h4>
+        <div class="split-bar"><div class="pmax" style="width:25%">25% PMAX</div><div class="search" style="width:75%">75% Search</div></div>
+        <div style="font-size:.7rem;color:var(--text-dim);margin-top:4px">Keep current split</div>
+      </div>
+      <div>
+        <h4 style="font-size:.78rem;font-weight:700;margin-bottom:6px">Orange County</h4>
+        <div class="split-bar"><div class="pmax" style="width:24%">24% PMAX</div><div class="search" style="width:76%">76% Search</div></div>
+        <div style="font-size:.7rem;color:var(--text-dim);margin-top:4px">Fix process first</div>
+      </div>
+      <div>
+        <h4 style="font-size:.78rem;font-weight:700;margin-bottom:6px">Los Angeles</h4>
+        <div class="split-bar"><div class="pmax" style="width:9%">9%</div><div class="search" style="width:91%">91% Search</div></div>
+        <div style="font-size:.7rem;color:var(--red);margin-top:4px;font-weight:600">⚠ Recommend: 0% PMAX / 100% Search</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB 6: CAMPAIGN ROI ═══════════════ -->
+<div class="tab-panel" id="panel-roi">
+  <div class="chart-box" style="margin-bottom:20px">
+    <h3>PMAX vs Search — Full Breakdown (Sept–Dec 2025)</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>Campaign</th><th class="num">Spend</th><th class="num">Leads</th><th class="num">Qualified</th><th class="num">Qual %</th><th class="num">Wins</th><th class="num">$/Win</th><th class="num">No-Response</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>SD PMAX</td><td class="num">$13,000</td><td class="num">111</td><td class="num">20</td><td class="num">18%</td><td class="num">3</td><td class="num">$4,413</td><td class="num" style="color:var(--yellow)">67%</td></tr>
+        <tr><td>SD Search</td><td class="num">$39,000</td><td class="num">53</td><td class="num">23</td><td class="num" style="color:var(--green)">43%</td><td class="num">9</td><td class="num">$4,366</td><td class="num" style="color:var(--green)">15%</td></tr>
+        <tr style="border-top:2px solid rgba(255,255,255,0.08)"><td>OC PMAX</td><td class="num">$12,000</td><td class="num">139</td><td class="num">15</td><td class="num">11%</td><td class="num">1</td><td class="num" style="color:var(--red)">$12,327</td><td class="num" style="color:var(--red)">78%</td></tr>
+        <tr><td>OC Search</td><td class="num">$39,000</td><td class="num">57</td><td class="num">24</td><td class="num" style="color:var(--green)">42%</td><td class="num">3</td><td class="num" style="color:var(--red)">$13,001</td><td class="num" style="color:var(--green)">16%</td></tr>
+        <tr style="border-top:2px solid rgba(255,255,255,0.08)"><td>LA PMAX</td><td class="num">$4,000</td><td class="num">30</td><td class="num">0</td><td class="num" style="color:var(--red)">0%</td><td class="num" style="color:var(--red)">0</td><td class="num" style="color:var(--red)">∞</td><td class="num" style="color:var(--red)">90%</td></tr>
+        <tr><td>LA Search</td><td class="num">$38,000</td><td class="num">64</td><td class="num">19</td><td class="num">30%</td><td class="num">8</td><td class="num" style="color:var(--green)">$4,695</td><td class="num" style="color:var(--green)">12%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="chart-row chart-row-2">
+    <div class="chart-box">
+      <h3>Cost per Win: PMAX vs Search</h3>
+      <div class="chart-canvas"><canvas id="chart-roi-cost"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Qualification Rate: PMAX vs Search</h3>
+      <div class="chart-canvas"><canvas id="chart-roi-qual"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-box" style="margin-top:20px">
+    <h3>No-Response Rate Comparison</h3>
+    <div class="chart-canvas" style="max-height:260px"><canvas id="chart-roi-noresponse"></canvas></div>
+  </div>
+
+  <div class="reco-box">
+    <h3>📋 Recommendations</h3>
+    <div class="reco-item keep">
+      <div>
+        <div class="reco-badge" style="color:var(--green)">SD: KEEP</div>
+        <p><strong>Keep both PMAX &amp; Search.</strong> PMAX works in San Diego — similar cost/win ($4,413 vs $4,366). 18% qualification rate is acceptable. Continue current 25/75 split.</p>
+      </div>
+    </div>
+    <div class="reco-item fix">
+      <div>
+        <div class="reco-badge" style="color:var(--yellow)">OC: FIX</div>
+        <p><strong>Fix process before increasing spend.</strong> 78% PMAX no-response rate is a people problem, not a channel problem. Cost/win is $12K+ on both channels — the issue is operational. Investigate lead follow-up process.</p>
+      </div>
+    </div>
+    <div class="reco-item kill">
+      <div>
+        <div class="reco-badge" style="color:var(--red)">LA: KILL</div>
+        <p><strong>Kill PMAX immediately. Redirect budget to Search.</strong> 0 qualified leads and 90% no-response from PMAX. Search performs well ($4,695/win, 30% qual rate). Reallocate the ~$1K/mo PMAX budget to Search campaigns.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">Powered by Railstote 🦉</div>
+
+<script>
+// ═══ Tab Navigation ═══
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ═══ Chart.js Global Config ═══
+Chart.defaults.color = '#8892a4';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+Chart.defaults.font.weight = 500;
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyleWidth = 10;
+Chart.defaults.plugins.legend.labels.padding = 16;
+
+const COLORS = {
+  blue: '#4fc3f7', red: '#e94560', green: '#00c853', purple: '#b388ff',
+  orange: '#ff9800', yellow: '#ffc107', teal: '#26a69a', pink: '#f06292',
+  blueDim: 'rgba(79,195,247,0.15)', greenDim: 'rgba(0,200,83,0.15)',
+  redDim: 'rgba(233,69,96,0.15)', purpleDim: 'rgba(179,136,255,0.15)',
+  orangeDim: 'rgba(255,152,0,0.15)'
+};
+
+// ═══ TAB 1: Meetings by Day ═══
+new Chart(document.getElementById('chart-meetings-day'), {
+  type: 'bar',
+  data: {
+    labels: ['Sun 2/2', 'Mon 2/3', 'Tue 2/4', 'Wed 2/5', 'Thu 2/6'],
+    datasets: [{
+      label: 'Meetings',
+      data: [4, 3, 2, 3, 3],
+      backgroundColor: COLORS.blue,
+      borderRadius: 6,
+      borderSkipped: false,
+      barPercentage: 0.6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ═══ TAB 2: Lead Funnel ═══
+new Chart(document.getElementById('chart-funnel'), {
+  type: 'bar',
+  data: {
+    labels: ['Total Leads', 'After Junk Filter', 'Qualified', 'Opps Created', 'Wins'],
+    datasets: [{
+      label: 'Count',
+      data: [1847, 1031, 207, 216, 65],
+      backgroundColor: [COLORS.blue, COLORS.purple, COLORS.orange, COLORS.yellow, COLORS.green],
+      borderRadius: 6,
+      borderSkipped: false,
+      barPercentage: 0.7
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          afterLabel: function(ctx) {
+            const pcts = ['', '56% pass rate', '20% of filtered', '', '30% opp win rate'];
+            return pcts[ctx.dataIndex] || '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// Wins by County
+new Chart(document.getElementById('chart-wins-county'), {
+  type: 'doughnut',
+  data: {
+    labels: ['San Diego (46)', 'Orange County (7)', 'Los Angeles (12)'],
+    datasets: [{
+      data: [46, 7, 12],
+      backgroundColor: [COLORS.blue, COLORS.orange, COLORS.purple],
+      borderWidth: 0,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '55%',
+    plugins: {
+      legend: { position: 'bottom' }
+    }
+  }
+});
+
+// ═══ TAB 3: Jan-Feb ═══
+new Chart(document.getElementById('chart-jf-weekly'), {
+  type: 'line',
+  data: {
+    labels: ['W1 (Jan 1)', 'W2 (Jan 6)', 'W3 (Jan 13)', 'W4 (Jan 20)', 'W5 (Jan 27)', 'W6 (Feb 3)'],
+    datasets: [{
+      label: 'Leads',
+      data: [22, 78, 109, 78, 145, 82],
+      borderColor: COLORS.blue,
+      backgroundColor: COLORS.blueDim,
+      fill: true,
+      tension: 0.3,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      borderWidth: 2.5
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+new Chart(document.getElementById('chart-jf-status'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Unqualified (352)', 'Working (88)', 'Qualified (70)', 'Connected (3)', 'New (1)'],
+    datasets: [{
+      data: [352, 88, 70, 3, 1],
+      backgroundColor: [COLORS.red, COLORS.yellow, COLORS.green, COLORS.blue, COLORS.purple],
+      borderWidth: 0,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '55%',
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+
+new Chart(document.getElementById('chart-jf-unqual'), {
+  type: 'bar',
+  data: {
+    labels: ['Spam','Shopper','No Response','Other Reason','No Estate Sale','Bad Data','OOS','Too Small','OOS LA','Mobile Home','Not Ready','Buyout','Competitor','Storage','Other','Timeframe','HOA'],
+    datasets: [{
+      label: 'Count',
+      data: [140,50,32,31,28,19,10,8,8,6,6,5,4,2,2,1,1],
+      backgroundColor: COLORS.red,
+      borderRadius: 4,
+      borderSkipped: false,
+      barPercentage: 0.7
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('chart-jf-opps'), {
+  type: 'bar',
+  data: {
+    labels: ['San Diego', 'Orange County', 'Los Angeles', 'Riverside', 'San Bernardino'],
+    datasets: [{
+      label: 'Opps',
+      data: [76, 24, 18, 1, 1],
+      backgroundColor: [COLORS.blue, COLORS.orange, COLORS.purple, COLORS.teal, COLORS.yellow],
+      borderRadius: 6,
+      borderSkipped: false,
+      barPercentage: 0.6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ═══ TAB 4: Source Analysis ═══
+new Chart(document.getElementById('chart-source-pie'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Google Ads (34)','GMB (7)','Organic (6)','Direct (4)','Offline (3)','CallRail (3)','Yelp (3)','Referral (2)','Other (3)'],
+    datasets: [{
+      data: [34,7,6,4,3,3,3,2,3],
+      backgroundColor: [COLORS.blue,'#66bb6a',COLORS.green,COLORS.purple,COLORS.orange,COLORS.teal,COLORS.red,COLORS.pink,COLORS.yellow],
+      borderWidth: 0,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '50%',
+    plugins: {
+      legend: { position: 'right', labels: { font: { size: 11 } } },
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.label}: ${ctx.raw} wins (${Math.round(ctx.raw/65*100)}%)`
+        }
+      }
+    }
+  }
+});
+
+new Chart(document.getElementById('chart-county-bar'), {
+  type: 'bar',
+  data: {
+    labels: ['San Diego', 'Orange County', 'Los Angeles'],
+    datasets: [
+      { label: 'Cost/Win', data: [1142, 7333, 3431], backgroundColor: COLORS.red, borderRadius: 4, borderSkipped: false },
+      { label: 'Avg Rev/Win', data: [8459, 6186, 8042], backgroundColor: COLORS.green, borderRadius: 4, borderSkipped: false }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString() } }
+    },
+    scales: {
+      y: { beginAtZero: true, ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ═══ TAB 5: Reverse Funnel ═══
+const RF_DEFAULTS = { targetSD:8, targetOC:4, targetLA:4, winrateSD:34.6, winrateOC:11.3, winrateLA:36.4, lq:20, filter:56 };
+const RF_CONFIG = {
+  SD: { name:'San Diego', color:COLORS.blue, googlePct:.33, costPerFiltered:320, pmaxPct:25, actual:{wins:11.5,opps:30,spend:13133}, status:'EXCEEDS ✅', statusClass:'badge-green' },
+  OC: { name:'Orange County', color:COLORS.orange, googlePct:.71, costPerFiltered:262, pmaxPct:24, actual:{wins:1.75,opps:16.5,spend:12833}, status:'BELOW ❌', statusClass:'badge-red' },
+  LA: { name:'Los Angeles', color:COLORS.purple, googlePct:.67, costPerFiltered:438, pmaxPct:9, actual:{wins:3,opps:7.25,spend:10292}, status:'BELOW ⚠️', statusClass:'badge-yellow' }
+};
+
+function recalcReverse() {
+  const target = {
+    SD: +document.getElementById('rf-target-sd').value,
+    OC: +document.getElementById('rf-target-oc').value,
+    LA: +document.getElementById('rf-target-la').value
+  };
+  const winrate = {
+    SD: +document.getElementById('rf-winrate-sd').value / 100,
+    OC: +document.getElementById('rf-winrate-oc').value / 100,
+    LA: +document.getElementById('rf-winrate-la').value / 100
+  };
+  const lq = +document.getElementById('rf-lq').value / 100;
+  const filter = +document.getElementById('rf-filter').value / 100;
+
+  let html = '';
+  for (const key of ['SD','OC','LA']) {
+    const c = RF_CONFIG[key];
+    const wins = target[key];
+    const closedOpps = Math.ceil(wins / winrate[key]);
+    const oppsCreated = Math.ceil(closedOpps / 0.85);
+    const qualLeads = Math.ceil(oppsCreated);  // ~1:1 qualified to opp
+    const filteredLeads = Math.ceil(qualLeads / lq);
+    const totalLeads = Math.ceil(filteredLeads / filter);
+    const googleLeads = Math.ceil(filteredLeads * c.googlePct);
+    const estSpend = Math.round(googleLeads * c.costPerFiltered);
+
+    html += `
+    <div class="rf-col">
+      <h3 style="color:${c.color}">${c.name}</h3>
+      <div class="rf-status">Target: <strong>${wins} wins/mo</strong> · Current: ${c.actual.wins}/mo <span class="badge ${c.statusClass}">${c.status}</span></div>
+      <div class="rf-step" style="border-color:${COLORS.green};background:${COLORS.greenDim}">
+        <span class="rf-label">🎯 Target Wins</span><span class="rf-val">${wins}</span>
+      </div>
+      <div class="rf-step" style="border-color:${COLORS.yellow};background:rgba(255,193,7,0.08)">
+        <span class="rf-label">Required Closed Opps</span><span class="rf-val">${closedOpps}</span>
+      </div>
+      <div class="rf-step" style="border-color:${COLORS.orange};background:${COLORS.orangeDim}">
+        <span class="rf-label">Required Opps Created</span><span class="rf-val">${oppsCreated}</span>
+      </div>
+      <div class="rf-step" style="border-color:${COLORS.purple};background:${COLORS.purpleDim}">
+        <span class="rf-label">Required Qualified Leads</span><span class="rf-val">${qualLeads}</span>
+      </div>
+      <div class="rf-step" style="border-color:${COLORS.blue};background:${COLORS.blueDim}">
+        <span class="rf-label">Required Filtered Leads</span><span class="rf-val">${filteredLeads}</span>
+      </div>
+      <div class="rf-step" style="border-color:${COLORS.teal};background:rgba(38,166,154,0.08)">
+        <span class="rf-label">Required Total Leads</span><span class="rf-val">${totalLeads}</span>
+      </div>
+      <div style="margin-top:12px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px">
+        <div style="font-size:.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Google Ads Estimate</div>
+        <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px">
+          <span>GA Filtered Leads Needed</span><span style="font-weight:700">${googleLeads}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px">
+          <span>Est. Monthly Ad Spend</span><span style="font-weight:800;color:${c.color}">$${estSpend.toLocaleString()}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-dim)">
+          <span>Current spend: $${c.actual.spend.toLocaleString()}/mo</span>
+          <span>${estSpend > c.actual.spend ? '↑ +$'+(estSpend-c.actual.spend).toLocaleString() : estSpend < c.actual.spend ? '↓ -$'+(c.actual.spend-estSpend).toLocaleString() : '= Same'}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('rf-results').innerHTML = html;
+}
+
+function resetReverse() {
+  document.getElementById('rf-target-sd').value = RF_DEFAULTS.targetSD;
+  document.getElementById('rf-target-oc').value = RF_DEFAULTS.targetOC;
+  document.getElementById('rf-target-la').value = RF_DEFAULTS.targetLA;
+  document.getElementById('rf-winrate-sd').value = RF_DEFAULTS.winrateSD;
+  document.getElementById('rf-winrate-oc').value = RF_DEFAULTS.winrateOC;
+  document.getElementById('rf-winrate-la').value = RF_DEFAULTS.winrateLA;
+  document.getElementById('rf-lq').value = RF_DEFAULTS.lq;
+  document.getElementById('rf-filter').value = RF_DEFAULTS.filter;
+  recalcReverse();
+}
+
+recalcReverse();
+
+// ═══ TAB 6: Campaign ROI Charts ═══
+new Chart(document.getElementById('chart-roi-cost'), {
+  type: 'bar',
+  data: {
+    labels: ['San Diego', 'Orange County', 'Los Angeles'],
+    datasets: [
+      { label: 'PMAX $/Win', data: [4413, 12327, null], backgroundColor: COLORS.orange, borderRadius: 4, borderSkipped: false },
+      { label: 'Search $/Win', data: [4366, 13001, 4695], backgroundColor: COLORS.blue, borderRadius: 4, borderSkipped: false }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + (ctx.raw ? '$'+ctx.raw.toLocaleString() : 'N/A (0 wins)') } }
+    },
+    scales: {
+      y: { beginAtZero: true, ticks: { callback: v => '$'+(v/1000).toFixed(0)+'K' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+new Chart(document.getElementById('chart-roi-qual'), {
+  type: 'bar',
+  data: {
+    labels: ['San Diego', 'Orange County', 'Los Angeles'],
+    datasets: [
+      { label: 'PMAX Qual %', data: [18, 11, 0], backgroundColor: COLORS.orange, borderRadius: 4, borderSkipped: false },
+      { label: 'Search Qual %', data: [43, 42, 30], backgroundColor: COLORS.blue, borderRadius: 4, borderSkipped: false }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } }
+    },
+    scales: {
+      y: { beginAtZero: true, max: 50, ticks: { callback: v => v+'%' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+new Chart(document.getElementById('chart-roi-noresponse'), {
+  type: 'bar',
+  data: {
+    labels: ['SD PMAX','SD Search','OC PMAX','OC Search','LA PMAX','LA Search'],
+    datasets: [{
+      label: 'No-Response Rate',
+      data: [67, 15, 78, 16, 90, 12],
+      backgroundColor: [COLORS.orange, COLORS.blue, COLORS.orange, COLORS.blue, COLORS.orange, COLORS.blue],
+      borderRadius: 4,
+      borderSkipped: false,
+      barPercentage: 0.6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ctx.raw + '% no-response' } }
+    },
+    scales: {
+      y: { beginAtZero: true, max: 100, ticks: { callback: v => v+'%' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

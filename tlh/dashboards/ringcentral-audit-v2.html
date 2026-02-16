@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RingCentral Audit | True Legacy Homes</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-card-hover: #1f2b4a;
+            --text-primary: #e8e8e8;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6c6c7c;
+            --accent-blue: #4f8cff;
+            --accent-cyan: #00d4ff;
+            --accent-purple: #9f7aea;
+            --critical: #ef4444;
+            --critical-bg: rgba(239, 68, 68, 0.15);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.15);
+            --success: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.15);
+            --gradient-1: linear-gradient(135deg, #4f8cff 0%, #9f7aea 100%);
+            --gradient-2: linear-gradient(135deg, #00d4ff 0%, #4f8cff 100%);
+            --gradient-critical: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .header .period {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: var(--bg-card);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+        }
+
+        /* Alert Banner */
+        .alert-banner {
+            background: var(--critical-bg);
+            border: 1px solid var(--critical);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .alert-banner .icon {
+            font-size: 2rem;
+        }
+
+        .alert-banner .content h3 {
+            color: var(--critical);
+            margin-bottom: 0.25rem;
+        }
+
+        .alert-banner .content p {
+            color: var(--text-secondary);
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.75rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            background: var(--bg-card-hover);
+            box-shadow: var(--shadow);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .metric-card.critical::before { background: var(--gradient-critical); }
+        .metric-card.warning::before { background: var(--warning); }
+        .metric-card.success::before { background: var(--success); }
+        .metric-card.info::before { background: var(--gradient-2); }
+
+        .metric-card .label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .metric-card .value {
+            font-size: 2.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card.critical .value { color: var(--critical); }
+        .metric-card.warning .value { color: var(--warning); }
+        .metric-card.success .value { color: var(--success); }
+        .metric-card.info .value { color: var(--accent-cyan); }
+
+        .metric-card .detail {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .metric-card .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.75rem;
+        }
+
+        .badge.critical { background: var(--critical-bg); color: var(--critical); }
+        .badge.warning { background: var(--warning-bg); color: var(--warning); }
+        .badge.success { background: var(--success-bg); color: var(--success); }
+
+        /* Section */
+        .section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-header h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-header .icon {
+            font-size: 1.5rem;
+        }
+
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 968px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Queue Visual */
+        .queue-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .queue-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .queue-members {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .queue-member {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .queue-member .position {
+            width: 28px;
+            height: 28px;
+            background: var(--gradient-2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .queue-member .name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .queue-member .ext {
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        /* User Activity Table */
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .activity-table th,
+        .activity-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .activity-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .activity-table tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        .activity-table .calls-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .activity-table .bar {
+            height: 8px;
+            background: var(--gradient-2);
+            border-radius: 4px;
+            min-width: 4px;
+        }
+
+        .activity-table .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+        }
+
+        .status.active { background: var(--success-bg); color: var(--success); }
+        .status.inactive { background: var(--warning-bg); color: var(--warning); }
+
+        /* Recommendations */
+        .recommendations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .recommendation {
+            display: flex;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border-left: 4px solid;
+            transition: all 0.2s ease;
+        }
+
+        .recommendation:hover {
+            transform: translateX(4px);
+        }
+
+        .recommendation.high { border-color: var(--critical); }
+        .recommendation.medium { border-color: var(--warning); }
+        .recommendation.low { border-color: var(--success); }
+
+        .recommendation .priority {
+            flex-shrink: 0;
+            width: 70px;
+            padding: 0.35rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .recommendation.high .priority { background: var(--critical-bg); color: var(--critical); }
+        .recommendation.medium .priority { background: var(--warning-bg); color: var(--warning); }
+        .recommendation.low .priority { background: var(--success-bg); color: var(--success); }
+
+        .recommendation .content h4 {
+            margin-bottom: 0.35rem;
+            font-weight: 600;
+        }
+
+        .recommendation .content p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .recommendation .effort {
+            margin-left: auto;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        /* Business Hours */
+        .hours-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .day-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .day-card .day {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent-cyan);
+        }
+
+        .day-card .hours {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .hours-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Call Outcomes Pie */
+        .outcomes-legend {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-item .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-item .value {
+            margin-left: auto;
+            color: var(--text-muted);
+        }
+
+        /* Insights */
+        .insight-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .insight-card .icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .insight-card h4 {
+            margin-bottom: 0.25rem;
+        }
+
+        .insight-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header animate-in">
+            <h1>📞 RingCentral Phone System Audit</h1>
+            <p class="subtitle">True Legacy Homes • +1 (619) 937-3816</p>
+            <span class="period">📅 January 14 - February 13, 2026 (30 days)</span>
+        </header>
+
+        <!-- Critical Alert -->
+        <div class="alert-banner animate-in delay-1">
+            <span class="icon">⚠️</span>
+            <div class="content">
+                <h3>Critical Issue: Over Half of Calls Going Unanswered</h3>
+                <p>52.2% of inbound calls result in voicemail or missed calls. This represents significant lost revenue opportunities for your estate sales business.</p>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card info animate-in delay-1">
+                <div class="label">Total Calls (30 days)</div>
+                <div class="value">1,910</div>
+                <div class="detail">Inbound: 828 • Outbound: 1,082</div>
+                <span class="badge success">63.7 calls/day avg</span>
+            </div>
+            <div class="metric-card critical animate-in delay-2">
+                <div class="label">Inbound Answer Rate</div>
+                <div class="value">46.5%</div>
+                <div class="detail">385 of 828 inbound calls answered</div>
+                <span class="badge critical">⚠️ Critical - Target 85%+</span>
+            </div>
+            <div class="metric-card critical animate-in delay-3">
+                <div class="label">Missed + Voicemail</div>
+                <div class="value">52.2%</div>
+                <div class="detail">266 missed + 166 voicemail = 432 total</div>
+                <span class="badge critical">Lost opportunities</span>
+            </div>
+            <div class="metric-card warning animate-in delay-4">
+                <div class="label">After-Hours Missed</div>
+                <div class="value">192</div>
+                <div class="detail">Calls outside business hours</div>
+                <span class="badge warning">⏰ Needs attention</span>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="two-col">
+            <div class="section animate-in">
+                <div class="section-header">
+                    <h2><span class="icon">📊</span> Call Volume by Hour</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+                <div class="insight-card" style="margin-top: 1rem;">
+                    <span class="icon">💡</span>
+                    <div>
+                        <h4>Peak Hours: 9-10 AM</h4>
+                        <p>39% of all calls come in during these two hours. Ensure maximum coverage during this window.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section animate-in">
+                <div class="section-header">
+                    <h2><span class="icon">📈</span> Call Outcomes</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="outcomesChart"></canvas>
+                </div>
+                <div class="outcomes-legend">
+                    <div class="legend-item">
+                        <span class="dot" style="background: #10b981"></span>
+                        <span>Connected</span>
+                        <span class="value">721</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="dot" style="background: #4f8cff"></span>
+                        <span>Accepted</span>
+                        <span class="value">377</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="dot" style="background: #ef4444"></span>
+                        <span>Missed</span>
+                        <span class="value">263</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="dot" style="background: #f59e0b"></span>
+                        <span>Voicemail</span>
+                        <span class="value">166</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="dot" style="background: #6c6c7c"></span>
+                        <span>Hang Up</span>
+                        <span class="value">307</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="dot" style="background: #9f7aea"></span>
+                        <span>Other</span>
+                        <span class="value">76</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day of Week -->
+        <div class="section animate-in">
+            <div class="section-header">
+                <h2><span class="icon">📅</span> Call Volume by Day</h2>
+            </div>
+            <div class="chart-container" style="height: 200px;">
+                <canvas id="dayChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Queue Configuration & Users -->
+        <div class="two-col">
+            <div class="section animate-in">
+                <div class="section-header">
+                    <h2><span class="icon">👥</span> Call Queue Configuration</h2>
+                </div>
+                
+                <div class="queue-card">
+                    <h3>📅 Week Day Queue (Ext 1)</h3>
+                    <div class="queue-members">
+                        <div class="queue-member">
+                            <span class="position">1</span>
+                            <span class="name">James Tercero</span>
+                            <span class="ext">Ext 106</span>
+                        </div>
+                        <div class="queue-member">
+                            <span class="position">2</span>
+                            <span class="name">Jonathan Sotelo</span>
+                            <span class="ext">Ext 105</span>
+                        </div>
+                        <div class="queue-member">
+                            <span class="position">3</span>
+                            <span class="name">Justin Hart</span>
+                            <span class="ext">Ext 109</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="queue-card">
+                    <h3>🌴 Week End Queue (Ext 2)</h3>
+                    <div class="queue-members">
+                        <div class="queue-member">
+                            <span class="position">1</span>
+                            <span class="name">James Tercero</span>
+                            <span class="ext">Ext 106</span>
+                        </div>
+                        <div class="queue-member">
+                            <span class="position">2</span>
+                            <span class="name">Justin Hart</span>
+                            <span class="ext">Ext 109</span>
+                        </div>
+                    </div>
+                    <p style="color: var(--warning); font-size: 0.85rem; margin-top: 0.75rem;">
+                        ⚠️ Jonathan Sotelo not in weekend queue - verify if intentional
+                    </p>
+                </div>
+            </div>
+
+            <div class="section animate-in">
+                <div class="section-header">
+                    <h2><span class="icon">📞</span> User Activity (30 Days)</h2>
+                </div>
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Ext</th>
+                            <th>Outbound Calls</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Jonathan Sotelo</td>
+                            <td>105</td>
+                            <td>
+                                <div class="calls-bar">
+                                    <div class="bar" style="width: 100%;"></div>
+                                    <span>713</span>
+                                </div>
+                            </td>
+                            <td><span class="status active">✓ Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>James Tercero</td>
+                            <td>106</td>
+                            <td>
+                                <div class="calls-bar">
+                                    <div class="bar" style="width: 51%;"></div>
+                                    <span>362</span>
+                                </div>
+                            </td>
+                            <td><span class="status active">✓ Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>Steven Tran</td>
+                            <td>101</td>
+                            <td>
+                                <div class="calls-bar">
+                                    <div class="bar" style="width: 1%;"></div>
+                                    <span>7</span>
+                                </div>
+                            </td>
+                            <td><span class="status active">✓ Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>Peter Ohm</td>
+                            <td>103</td>
+                            <td><span style="color: var(--text-muted)">—</span></td>
+                            <td><span class="status inactive">⚠️ Never Activated</span></td>
+                        </tr>
+                        <tr>
+                            <td>Accounting Billing</td>
+                            <td>110</td>
+                            <td><span style="color: var(--text-muted)">—</span></td>
+                            <td><span class="status inactive">⚠️ Never Activated</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Business Hours -->
+        <div class="section animate-in">
+            <div class="section-header">
+                <h2><span class="icon">🕐</span> Business Hours Configuration</h2>
+                <span style="color: var(--text-muted);">Pacific Time (America/Los_Angeles)</span>
+            </div>
+            <div class="hours-grid">
+                <div class="day-card">
+                    <div class="day">Mon</div>
+                    <div class="hours">9:00 AM<br>5:00 PM</div>
+                </div>
+                <div class="day-card">
+                    <div class="day">Tue</div>
+                    <div class="hours">9:00 AM<br>5:00 PM</div>
+                </div>
+                <div class="day-card">
+                    <div class="day">Wed</div>
+                    <div class="hours">9:00 AM<br>5:00 PM</div>
+                </div>
+                <div class="day-card">
+                    <div class="day">Thu</div>
+                    <div class="hours">9:00 AM<br>5:00 PM</div>
+                </div>
+                <div class="day-card">
+                    <div class="day">Fri</div>
+                    <div class="hours">9:00 AM<br>5:00 PM</div>
+                </div>
+                <div class="day-card" style="border: 1px solid var(--warning);">
+                    <div class="day">Sat</div>
+                    <div class="hours">8:00 AM<br>3:15 PM</div>
+                </div>
+                <div class="day-card" style="border: 1px solid var(--warning);">
+                    <div class="day">Sun</div>
+                    <div class="hours">8:00 AM<br>3:15 PM</div>
+                </div>
+            </div>
+            <div class="insight-card" style="margin-top: 1rem;">
+                <span class="icon">💡</span>
+                <div>
+                    <h4>Consider Earlier Start Time</h4>
+                    <p>Many calls come in before 9 AM. Consider moving weekday start to 8:00 AM to match weekend hours and capture early callers.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="section animate-in">
+            <div class="section-header">
+                <h2><span class="icon">🎯</span> Actionable Recommendations</h2>
+            </div>
+
+            <h3 style="margin-bottom: 1rem; color: var(--critical);">🔴 Immediate Actions (This Week)</h3>
+            <div class="recommendations-list" style="margin-bottom: 2rem;">
+                <div class="recommendation high">
+                    <span class="priority">Critical</span>
+                    <div class="content">
+                        <h4>Add More Queue Members</h4>
+                        <p>Add Jose Orozco (113) and/or Mike Wagner (114) to the Week Day queue to increase answer capacity.</p>
+                    </div>
+                    <span class="effort">⏱ 5 min</span>
+                </div>
+                <div class="recommendation high">
+                    <span class="priority">Critical</span>
+                    <div class="content">
+                        <h4>Enable Simultaneous Ring</h4>
+                        <p>Change queue ring type from Sequential to Simultaneous so all agents' phones ring at once.</p>
+                    </div>
+                    <span class="effort">⏱ 5 min</span>
+                </div>
+                <div class="recommendation medium">
+                    <span class="priority">Medium</span>
+                    <div class="content">
+                        <h4>Clean Up Inactive Accounts</h4>
+                        <p>Delete or activate Peter Ohm (103) and Accounting Billing (110) accounts to reduce clutter.</p>
+                    </div>
+                    <span class="effort">⏱ 5 min</span>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem; color: var(--warning);">🟡 Short Term (This Month)</h3>
+            <div class="recommendations-list" style="margin-bottom: 2rem;">
+                <div class="recommendation high">
+                    <span class="priority">High</span>
+                    <div class="content">
+                        <h4>Extend Business Hours to 8 AM</h4>
+                        <p>Match weekday start time to weekend hours (8 AM) to capture early morning callers.</p>
+                    </div>
+                    <span class="effort">⏱ 15 min</span>
+                </div>
+                <div class="recommendation medium">
+                    <span class="priority">Medium</span>
+                    <div class="content">
+                        <h4>Improve After-Hours Voicemail</h4>
+                        <p>Update voicemail greeting to promise callback and set expectations for response time.</p>
+                    </div>
+                    <span class="effort">⏱ 30 min</span>
+                </div>
+                <div class="recommendation medium">
+                    <span class="priority">Medium</span>
+                    <div class="content">
+                        <h4>Set Up Weekly Metrics Review</h4>
+                        <p>Schedule a recurring review of call metrics to track improvement and catch issues early.</p>
+                    </div>
+                    <span class="effort">⏱ 30 min</span>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem; color: var(--success);">🟢 Long Term (This Quarter)</h3>
+            <div class="recommendations-list">
+                <div class="recommendation medium">
+                    <span class="priority">Medium</span>
+                    <div class="content">
+                        <h4>Consider Virtual Receptionist</h4>
+                        <p>For peak hours (9-11 AM), a virtual receptionist service could dramatically improve answer rates.</p>
+                    </div>
+                    <span class="effort">📋 Research</span>
+                </div>
+                <div class="recommendation medium">
+                    <span class="priority">Medium</span>
+                    <div class="content">
+                        <h4>Migrate to CallQueue Type</h4>
+                        <p>Current "Department" type limits API control. Migrating to true CallQueue enables better automation.</p>
+                    </div>
+                    <span class="effort">⏱ 2-4 hrs</span>
+                </div>
+                <div class="recommendation low">
+                    <span class="priority">Low</span>
+                    <div class="content">
+                        <h4>Build Real-Time Dashboard</h4>
+                        <p>Implement a live dashboard showing current queue status, calls in progress, and availability.</p>
+                    </div>
+                    <span class="effort">⏱ 4-8 hrs</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- What's Working -->
+        <div class="section animate-in">
+            <div class="section-header">
+                <h2><span class="icon">✅</span> What's Working Well</h2>
+            </div>
+            <div class="two-col" style="gap: 1rem;">
+                <div class="insight-card">
+                    <span class="icon">🎙️</span>
+                    <div>
+                        <h4>Call Recording Enabled</h4>
+                        <p>Automatic call recording is active and working for quality assurance.</p>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <span class="icon">🤖</span>
+                    <div>
+                        <h4>Professional IVR Menu</h4>
+                        <p>"Company Main" IVR provides a professional first impression.</p>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <span class="icon">📞</span>
+                    <div>
+                        <h4>Strong Outbound Activity</h4>
+                        <p>Jonathan and James making 1,000+ outbound calls/month combined.</p>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <span class="icon">🗓️</span>
+                    <div>
+                        <h4>Weekend Coverage</h4>
+                        <p>Saturday and Sunday coverage exists — many businesses don't have this.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Summary -->
+        <div class="section animate-in">
+            <div class="section-header">
+                <h2><span class="icon">⚙️</span> Account Configuration Summary</h2>
+            </div>
+            <div class="two-col" style="gap: 1rem;">
+                <div>
+                    <table class="activity-table">
+                        <tr><td style="color: var(--text-secondary);">Account</td><td>True Legacy Homes</td></tr>
+                        <tr><td style="color: var(--text-secondary);">Main Number</td><td>+1 (619) 937-3816</td></tr>
+                        <tr><td style="color: var(--text-secondary);">Plan</td><td>RingEX Advanced™</td></tr>
+                        <tr><td style="color: var(--text-secondary);">Timezone</td><td>America/Los_Angeles</td></tr>
+                    </table>
+                </div>
+                <div>
+                    <table class="activity-table">
+                        <tr><td style="color: var(--text-secondary);">User Extensions</td><td>10</td></tr>
+                        <tr><td style="color: var(--text-secondary);">Call Queues</td><td>2 (Week Day, Week End)</td></tr>
+                        <tr><td style="color: var(--text-secondary);">IVR Menus</td><td>1 (Company Main)</td></tr>
+                        <tr><td style="color: var(--text-secondary);">Total Extensions</td><td>13</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Report generated by OpenClaw RingCentral Audit Tool • Data source: RingCentral API</p>
+            <p style="margin-top: 0.5rem;">February 13, 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        // Chart.js defaults for dark theme
+        Chart.defaults.color = '#a0a0b0';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
+
+        // Hourly Call Volume Chart
+        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+        new Chart(hourlyCtx, {
+            type: 'bar',
+            data: {
+                labels: ['6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM+'],
+                datasets: [{
+                    label: 'Calls',
+                    data: [15, 25, 131, 436, 307, 195, 234, 177, 115, 115, 61, 30, 60],
+                    backgroundColor: 'rgba(79, 140, 255, 0.7)',
+                    borderColor: '#4f8cff',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Call Outcomes Doughnut Chart
+        const outcomesCtx = document.getElementById('outcomesChart').getContext('2d');
+        new Chart(outcomesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Connected', 'Accepted', 'Missed', 'Voicemail', 'Hang Up', 'Other'],
+                datasets: [{
+                    data: [721, 377, 263, 166, 307, 76],
+                    backgroundColor: [
+                        '#10b981',
+                        '#4f8cff',
+                        '#ef4444',
+                        '#f59e0b',
+                        '#6c6c7c',
+                        '#9f7aea'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Day of Week Chart
+        const dayCtx = document.getElementById('dayChart').getContext('2d');
+        new Chart(dayCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                datasets: [{
+                    label: 'Calls',
+                    data: [93, 328, 344, 422, 374, 254, 95],
+                    backgroundColor: [
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(79, 140, 255, 0.7)',
+                        'rgba(79, 140, 255, 0.7)',
+                        'rgba(0, 212, 255, 0.7)',
+                        'rgba(79, 140, 255, 0.7)',
+                        'rgba(79, 140, 255, 0.7)',
+                        'rgba(245, 158, 11, 0.7)'
+                    ],
+                    borderColor: [
+                        '#f59e0b',
+                        '#4f8cff',
+                        '#4f8cff',
+                        '#00d4ff',
+                        '#4f8cff',
+                        '#4f8cff',
+                        '#f59e0b'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Add scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.section').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
