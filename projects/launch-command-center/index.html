@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Launch Week Command Center — Operator's Prompt Pack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg: #050508;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --accent: #00ff88;
+            --accent-dim: #00ff8833;
+            --warning: #ff6b35;
+            --gold: #ffd700;
+            --text: #ffffff;
+            --text-dim: #888;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+        
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 20%, rgba(0, 255, 136, 0.08) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 80%, rgba(255, 107, 53, 0.05) 0%, transparent 50%);
+            animation: drift 30s ease-in-out infinite;
+        }
+        
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-5%, -5%) rotate(5deg); }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .mission-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px var(--accent-dim); }
+            50% { box-shadow: 0 0 40px var(--accent-dim); }
+        }
+        
+        .mission-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: blink 1s ease-in-out infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+        }
+        
+        h1 .accent { color: var(--accent); }
+        
+        .subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+        
+        /* Countdown */
+        .countdown-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .countdown-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .countdown-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .countdown-number {
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .countdown-unit {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0.5rem;
+        }
+        
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-dim);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        
+        .card-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        /* Daily Schedule Card */
+        .schedule-card { grid-column: span 8; }
+        
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+        }
+        
+        .day-column {
+            text-align: center;
+        }
+        
+        .day-header {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+        
+        .day-header.today {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .task {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .task:hover {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+        
+        .task.completed {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+        
+        .task-emoji {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Revenue Card */
+        .revenue-card { grid-column: span 4; }
+        
+        .revenue-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        
+        .revenue-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 1.5rem;
+        }
+        
+        .revenue-bar {
+            background: var(--border);
+            border-radius: 8px;
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+        
+        .revenue-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--gold));
+            border-radius: 8px;
+            transition: width 1s ease;
+        }
+        
+        .revenue-target {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* Ground Crew Card */
+        .crew-card { grid-column: span 6; }
+        
+        .crew-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        
+        .crew-member {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        
+        .crew-member:hover {
+            background: var(--accent-dim);
+        }
+        
+        .crew-avatar {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .crew-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .crew-role {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+        
+        /* Tweet Generator Card */
+        .tweet-card { grid-column: span 6; }
+        
+        .tweet-preview {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            min-height: 120px;
+        }
+        
+        .tweet-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg);
+        }
+        
+        .btn-primary:hover {
+            filter: brightness(1.1);
+            transform: scale(1.02);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        /* Milestones Card */
+        .milestones-card { grid-column: span 12; }
+        
+        .milestones-track {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 1rem 0;
+        }
+        
+        .milestone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .milestone::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            width: 100%;
+            height: 3px;
+            background: var(--border);
+        }
+        
+        .milestone:last-child::before {
+            display: none;
+        }
+        
+        .milestone.reached::before {
+            background: var(--accent);
+        }
+        
+        .milestone-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 3px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+        
+        .milestone.reached .milestone-dot {
+            border-color: var(--accent);
+            background: var(--accent);
+            box-shadow: 0 0 20px var(--accent-dim);
+        }
+        
+        .milestone-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-top: 0.75rem;
+            text-align: center;
+        }
+        
+        .milestone.reached .milestone-label {
+            color: var(--accent);
+        }
+        
+        /* Quick Links */
+        .quick-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        .quick-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .quick-link:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .footer-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .schedule-card,
+            .revenue-card,
+            .crew-card,
+            .tweet-card,
+            .milestones-card {
+                grid-column: span 12;
+            }
+            
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .crew-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Confetti animation for celebration */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            animation: fall 3s ease-out forwards;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <div class="container">
+        <header>
+            <div class="mission-badge">
+                <span class="dot"></span>
+                <span>Mission Active — Launch Week 2026</span>
+            </div>
+            <h1>🚀 Launch <span class="accent">Command Center</span></h1>
+            <p class="subtitle">Operator's Prompt Pack • $29 • Gumroad</p>
+        </header>
+        
+        <!-- Countdown -->
+        <section class="countdown-section">
+            <div class="countdown-label">⏱️ Time Until Hard Launch (Feb 18, 9 AM PT)</div>
+            <div class="countdown" id="countdown">
+                <div class="countdown-item">
+                    <span class="countdown-number" id="days">2</span>
+                    <span class="countdown-unit">Days</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="hours">4</span>
+                    <span class="countdown-unit">Hours</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="minutes">30</span>
+                    <span class="countdown-unit">Minutes</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="seconds">00</span>
+                    <span class="countdown-unit">Seconds</span>
+                </div>
+            </div>
+        </section>
+        
+        <div class="grid">
+            <!-- Daily Schedule -->
+            <div class="card schedule-card">
+                <div class="card-header">
+                    <div class="card-icon">📅</div>
+                    <div class="card-title">Launch Week Schedule</div>
+                </div>
+                <div class="schedule-grid">
+                    <div class="day-column">
+                        <div class="day-header today">Mon 16</div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">🌅</span>
+                            Soft Launch Post
+                        </div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">📧</span>
+                            Substack Tease
+                        </div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">🎯</span>
+                            Early Bird DMs
+                        </div>
+                    </div>
+                    <div class="day-column">
+                        <div class="day-header">Tue 17</div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">🧵</span>
+                            Thread: "Why I built this"
+                        </div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">🎬</span>
+                            Demo Video
+                        </div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">💬</span>
+                            Reply to comments
+                        </div>
+                    </div>
+                    <div class="day-column">
+                        <div class="day-header">Wed 18 ⚡</div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">🚀</span>
+                            HARD LAUNCH
+                        </div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">📰</span>
+                            Full Substack Post
+                        </div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">🔥</span>
+                            3 Posts Today
+                        </div>
+                    </div>
+                    <div class="day-column">
+                        <div class="day-header">Thu 19</div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">🎉</span>
+                            Share Results
+                        </div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">📊</span>
+                            Testimonials Push
+                        </div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">🤝</span>
+                            Thank Supporters
+                        </div>
+                    </div>
+                    <div class="day-column">
+                        <div class="day-header">Fri 20</div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">📈</span>
+                            Week Recap
+                        </div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">🎯</span>
+                            Retarget Engaged
+                        </div>
+                        <div class="task" onclick="this.classList.toggle('completed')">
+                            <span class="task-emoji">💡</span>
+                            Plan Week 2
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Revenue Tracker -->
+            <div class="card revenue-card">
+                <div class="card-header">
+                    <div class="card-icon">💰</div>
+                    <div class="card-title">Revenue Tracker</div>
+                </div>
+                <div class="revenue-number">$<span id="revenue">0</span></div>
+                <div class="revenue-label">Launch Week Total</div>
+                <div class="revenue-bar">
+                    <div class="revenue-fill" id="revenueFill" style="width: 0%"></div>
+                </div>
+                <div class="revenue-target">
+                    <span>Week Goal: $1,450</span>
+                    <span id="percentComplete">0%</span>
+                </div>
+                <div style="margin-top: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim);">
+                    <div>50 sales × $29 = $1,450</div>
+                    <div style="margin-top: 0.5rem;">
+                        <span style="color: var(--accent);">▲</span> Update: Click revenue number
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ground Crew (Kids) -->
+            <div class="card crew-card">
+                <div class="card-header">
+                    <div class="card-icon">👨‍👧‍👦</div>
+                    <div class="card-title">Ground Crew — Hart Family Mission Control</div>
+                </div>
+                <div class="crew-grid">
+                    <div class="crew-member">
+                        <div class="crew-avatar">👨</div>
+                        <div class="crew-name">Justin</div>
+                        <div class="crew-role">Mission Commander</div>
+                    </div>
+                    <div class="crew-member">
+                        <div class="crew-avatar">👩</div>
+                        <div class="crew-name">Jenny</div>
+                        <div class="crew-role">Ground Support</div>
+                    </div>
+                    <div class="crew-member">
+                        <div class="crew-avatar">🦉</div>
+                        <div class="crew-name">Railstote</div>
+                        <div class="crew-role">Flight Computer</div>
+                    </div>
+                    <div class="crew-member">
+                        <div class="crew-avatar">👧</div>
+                        <div class="crew-name">Arya</div>
+                        <div class="crew-role">Morale Officer</div>
+                    </div>
+                    <div class="crew-member">
+                        <div class="crew-avatar">👧</div>
+                        <div class="crew-name">Trinity</div>
+                        <div class="crew-role">Hype Squad</div>
+                    </div>
+                    <div class="crew-member">
+                        <div class="crew-avatar">👶</div>
+                        <div class="crew-name">Ellis</div>
+                        <div class="crew-role">Chaos Agent</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tweet Generator -->
+            <div class="card tweet-card">
+                <div class="card-header">
+                    <div class="card-icon">🐦</div>
+                    <div class="card-title">Quick Tweet Generator</div>
+                </div>
+                <div class="tweet-preview" id="tweetPreview">
+                    I built an AI assistant while raising 9 kids.
+
+Then I packaged what I learned into a prompt pack.
+
+The Operator's Prompt Pack is live — 30+ prompts for running your life with AI agents.
+
+$29 on Gumroad: [link]
+                </div>
+                <div class="tweet-actions">
+                    <button class="btn btn-secondary" onclick="generateTweet()">🎲 New Tweet</button>
+                    <button class="btn btn-primary" onclick="copyTweet()">📋 Copy</button>
+                </div>
+            </div>
+            
+            <!-- Milestones -->
+            <div class="card milestones-card">
+                <div class="card-header">
+                    <div class="card-icon">🏆</div>
+                    <div class="card-title">Launch Milestones</div>
+                </div>
+                <div class="milestones-track">
+                    <div class="milestone reached">
+                        <div class="milestone-dot">✓</div>
+                        <div class="milestone-label">Product Live</div>
+                    </div>
+                    <div class="milestone reached">
+                        <div class="milestone-dot">✓</div>
+                        <div class="milestone-label">Landing Page</div>
+                    </div>
+                    <div class="milestone" id="milestone-sale">
+                        <div class="milestone-dot">🎉</div>
+                        <div class="milestone-label">First Sale</div>
+                    </div>
+                    <div class="milestone" id="milestone-10">
+                        <div class="milestone-dot">🔟</div>
+                        <div class="milestone-label">10 Sales</div>
+                    </div>
+                    <div class="milestone" id="milestone-25">
+                        <div class="milestone-dot">🔥</div>
+                        <div class="milestone-label">25 Sales</div>
+                    </div>
+                    <div class="milestone" id="milestone-50">
+                        <div class="milestone-dot">🚀</div>
+                        <div class="milestone-label">50 Sales</div>
+                    </div>
+                    <div class="milestone" id="milestone-100">
+                        <div class="milestone-dot">💯</div>
+                        <div class="milestone-label">100 Sales</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="quick-links">
+            <a href="https://3721720184906.gumroad.com/l/operator-prompt-pack" target="_blank" class="quick-link">
+                🛒 Gumroad Product
+            </a>
+            <a href="https://justinhart.biz/products/ai-operator/" target="_blank" class="quick-link">
+                🌐 Landing Page
+            </a>
+            <a href="https://x.com/justin_hart" target="_blank" class="quick-link">
+                🐦 X/Twitter
+            </a>
+            <a href="https://rationalground.com" target="_blank" class="quick-link">
+                📰 Substack
+            </a>
+        </div>
+        
+        <footer>
+            <p class="footer-text">Built by Railstote 🦉 at 4:30 AM while Justin was sleeping • February 16, 2026</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Countdown timer
+        function updateCountdown() {
+            const launch = new Date('2026-02-18T09:00:00-08:00');
+            const now = new Date();
+            const diff = launch - now;
+            
+            if (diff <= 0) {
+                document.getElementById('days').textContent = '🚀';
+                document.getElementById('hours').textContent = 'LAUNCHED';
+                document.getElementById('minutes').textContent = '';
+                document.getElementById('seconds').textContent = '';
+                return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            document.getElementById('days').textContent = days;
+            document.getElementById('hours').textContent = hours;
+            document.getElementById('minutes').textContent = minutes;
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        }
+        
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+        
+        // Tweet templates
+        const tweets = [
+            `I built an AI assistant while raising 9 kids.
+
+Then I packaged what I learned into a prompt pack.
+
+The Operator's Prompt Pack is live — 30+ prompts for running your life with AI agents.
+
+$29 on Gumroad: [link]`,
+            
+            `Most people use AI to write emails.
+
+I use it to:
+• Schedule my 9 kids' activities
+• Write 50 fundraising campaigns/week
+• Build dashboards in minutes
+• Never forget a follow-up
+
+Here's how I set it up (30+ prompts): [link]`,
+            
+            `Built this prompt pack in 25 minutes with AI agents.
+
+That's the whole point.
+
+The Operator's Prompt Pack — $29
+
+For people who want results, not tutorials.`,
+            
+            `9 kids. 2 jobs. 3 hours of free time.
+
+AI agents gave me my life back.
+
+I'm sharing the exact prompts I use: [link]`,
+            
+            `"You have 9 kids and still get more done than me?"
+
+Yeah. Because I run AI agents like a mission control center.
+
+Here's the playbook: [link]`,
+            
+            `The Operator's Prompt Pack just dropped.
+
+30+ prompts I actually use. Not theory.
+
+$29. One coffee a week for a month.
+
+Or keep doing things the slow way. Your call.`,
+            
+            `Posted this morning: my AI assistant Railstote built a surprise dashboard while I slept.
+
+That's the power of agents + good prompts.
+
+The Operator's Prompt Pack is how I set this up: [link]`
+        ];
+        
+        function generateTweet() {
+            const preview = document.getElementById('tweetPreview');
+            preview.textContent = tweets[Math.floor(Math.random() * tweets.length)];
+        }
+        
+        function copyTweet() {
+            const text = document.getElementById('tweetPreview').textContent;
+            navigator.clipboard.writeText(text);
+            
+            // Visual feedback
+            const btn = event.target;
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => btn.textContent = '📋 Copy', 1500);
+        }
+        
+        // Revenue tracker (click to update)
+        let currentRevenue = 0;
+        document.querySelector('.revenue-number').addEventListener('click', () => {
+            const input = prompt('Enter current revenue ($):', currentRevenue);
+            if (input !== null) {
+                currentRevenue = parseInt(input) || 0;
+                updateRevenue(currentRevenue);
+            }
+        });
+        
+        function updateRevenue(amount) {
+            document.getElementById('revenue').textContent = amount;
+            const percent = Math.min((amount / 1450) * 100, 100);
+            document.getElementById('revenueFill').style.width = percent + '%';
+            document.getElementById('percentComplete').textContent = Math.round(percent) + '%';
+            
+            // Update milestones
+            const sales = Math.floor(amount / 29);
+            if (sales >= 1) markMilestone('milestone-sale');
+            if (sales >= 10) markMilestone('milestone-10');
+            if (sales >= 25) markMilestone('milestone-25');
+            if (sales >= 50) markMilestone('milestone-50');
+            if (sales >= 100) markMilestone('milestone-100');
+        }
+        
+        function markMilestone(id) {
+            const el = document.getElementById(id);
+            if (!el.classList.contains('reached')) {
+                el.classList.add('reached');
+                celebrate();
+            }
+        }
+        
+        function celebrate() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.background = ['#00ff88', '#ffd700', '#ff6b35', '#fff'][Math.floor(Math.random() * 4)];
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+    </script>
+</body>
+</html>
