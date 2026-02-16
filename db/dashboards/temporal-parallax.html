@@ -4,25 +4,39 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Temporal Parallax</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+:root{--void:#030305;--starlight:#E2E2E8;--muted:#6B6B78;--horizon-gold:#FFD28E;--horizon-red:#D66D50;--telemetry-blue:#7F9CBB;--glass:rgba(255,255,255,0.03);--border-faint:rgba(255,255,255,0.08)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0a0f;color:#c8c8d0;font-family:'Courier New',monospace;min-height:100vh;padding:40px 20px}
-h1{font-size:1.8em;color:#fff;text-align:center;margin-bottom:8px}
-.sub{color:#555;font-size:.8em;text-align:center;margin-bottom:40px}
+body{background:var(--void);color:var(--starlight);font-family:'JetBrains Mono',monospace;min-height:100vh;padding:40px 20px;overflow-x:hidden}
+h1,h2,h3{font-family:'Playfair Display',serif}
+.starfield{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-2;background:radial-gradient(1px 1px at 10% 10%,#fff 100%,transparent),radial-gradient(1px 1px at 20% 20%,#fff 100%,transparent),radial-gradient(2px 2px at 30% 30%,#fff 100%,transparent),radial-gradient(1px 1px at 40% 40%,#fff 100%,transparent);background-size:550px 550px;opacity:.3}
+.planet-horizon{position:fixed;bottom:-40vh;right:-20vw;width:120vw;height:120vw;border-radius:50%;background:radial-gradient(circle at 50% 0%,rgba(0,0,0,1) 40%,#2a2a35 60%,var(--horizon-red) 65%,var(--horizon-gold) 68%,transparent 72%);z-index:-1;filter:blur(40px);opacity:.6}
+.orbital-ring{position:fixed;border:1px solid rgba(255,255,255,0.05);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);z-index:-1;pointer-events:none}
+h1{font-size:2.2em;color:var(--starlight);text-align:center;margin-bottom:8px}
+.sub{color:var(--muted);font-size:.8em;text-align:center;margin-bottom:40px}
 .input-area{max-width:600px;margin:0 auto 30px}
-input[type=text]{width:100%;background:#111;border:1px solid #333;color:#ddd;padding:14px 16px;font-family:inherit;font-size:.9em;border-radius:8px}
-input::placeholder{color:#444}
-button{display:block;margin:12px auto 0;background:#1a1a2e;color:#7b68ee;border:1px solid #2a2a4e;padding:10px 28px;font-family:inherit;cursor:pointer;border-radius:6px;transition:all .2s}
-button:hover{background:#2a2a4e}
+input[type=text]{width:100%;background:var(--glass);border:1px solid var(--border-faint);color:var(--starlight);padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:.9em;border-radius:8px;backdrop-filter:blur(4px)}
+input::placeholder{color:var(--muted)}
+button{display:block;margin:12px auto 0;background:rgba(255,210,142,0.1);border:1px solid var(--horizon-gold);color:var(--horizon-gold);padding:10px 28px;font-family:'JetBrains Mono',monospace;cursor:pointer;border-radius:6px;transition:all .4s;text-transform:uppercase;letter-spacing:.1em;font-size:.8em}
+button:hover{background:var(--horizon-gold);color:var(--void);box-shadow:0 0 20px rgba(255,210,142,0.3)}
 .parallax-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:1100px;margin:0 auto}
-.horizon{background:#0d0d14;border:1px solid #1a1a2e;border-radius:8px;padding:20px;min-height:160px}
-.horizon .scale{color:#7b68ee;font-size:.75em;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
-.horizon .label{color:#fff;font-size:.95em;margin-bottom:10px}
-.horizon .reading{color:#666;font-size:.8em;line-height:1.7}
-.note{color:#333;font-size:.7em;text-align:center;margin-top:40px}
+.horizon{background:var(--glass);border:1px solid var(--border-faint);border-radius:8px;padding:20px;min-height:160px;backdrop-filter:blur(4px);position:relative;overflow:hidden;animation:drift 20s infinite linear}
+.horizon::before{content:'';width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);position:absolute;top:0;animation:scan 4s infinite linear}
+@keyframes scan{0%{top:-10%}100%{top:110%}}
+@keyframes drift{0%{transform:translateY(0)}50%{transform:translateY(-8px)}100%{transform:translateY(0)}}
+.horizon .scale{color:var(--horizon-gold);font-size:.75em;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+.horizon .label{font-family:'Playfair Display',serif;color:var(--starlight);font-size:.95em;margin-bottom:10px}
+.horizon .reading{color:var(--muted);font-size:.8em;line-height:1.7}
+.note{color:rgba(255,255,255,0.15);font-size:.7em;text-align:center;margin-top:40px;letter-spacing:.15em;text-transform:uppercase}
 </style>
 </head>
 <body>
+<div class="starfield"></div>
+<div class="planet-horizon"></div>
+<div class="orbital-ring" style="width:80vw;height:80vw;opacity:.1"></div>
+<div class="orbital-ring" style="width:120vw;height:120vw;opacity:.05;border-style:dashed"></div>
+
 <h1>Temporal Parallax</h1>
 <p class="sub">One event. Seven timescales. Seven different truths.</p>
 <div class="input-area">
@@ -30,33 +44,11 @@ button:hover{background:#2a2a4e}
 <button onclick="render()">Refract</button>
 </div>
 <div class="parallax-grid" id="grid"></div>
-<p class="note">All seven are equally true. You're always choosing which one to believe.</p>
+<p class="note">All seven are equally true. You're always choosing which one to believe. // Parallax engaged</p>
 
 <script>
-const horizons = [
-  {scale:'1 Hour',frames:['Adrenaline spike. The body knows before the mind catches up. Nothing has changed yet except the signal.','Raw nerve. The event is the entire world for these 60 minutes. Context doesn\'t exist yet.','The first phone call. The first text. The event is being encoded into narrative in real-time.']},
-  {scale:'1 Day',frames:['The story solidifies. You\'ve told it 3 times. Each retelling edits it. By tonight, it\'s already a different event than what happened.','Sleep will process this. Tomorrow morning the emotional charge will have shifted by 30-40%. The day-version is the most distorted.','Practical consequences begin to emerge. What actually needs to happen? The event starts to become a logistics problem.']},
-  {scale:'1 Month',frames:['The event has been absorbed into routine. It\'s now "that thing that happened." The sharp edges are gone. What remains is the structural change it caused.','You can now see who showed up and who didn\'t. The event was a social filter you didn\'t choose to run.','New patterns are forming around the absence or presence this event created. You\'re adapting without noticing.']},
-  {scale:'1 Year',frames:['The event is now a chapter marker. "That was before/after X." It has become a coordinate in your personal timeline.','You can trace second-order effects. Things that happened because of this event that seemed unrelated at the time.','The emotional memory has been rewritten at least twice. What you "felt" is now a reconstruction, not a recording.']},
-  {scale:'1 Decade',frames:['The event is one of maybe 20 that still matter from this entire period. Everything else dissolved. Why did this one persist?','You can now see the counterfactual. The life you would have had. It\'s probably neither better nor worse — just different.','This event trained a reflex you still carry. A bias, a caution, a confidence. The event is gone but its residue is structural.']},
-  {scale:'1 Century',frames:['Nobody alive remembers this event. If it persists at all, it\'s in the downstream effects on people who never knew it happened.','The systems that made this event possible or painful may themselves be gone. The context evaporated before the memory did.','At this scale, the event is indistinguishable from noise unless it shifted a lineage, a community, or an institution.']},
-  {scale:'1 Millennium',frames:['Civilizations have risen and fallen. Your event is less than a whisper. Even the language you described it in may not exist.','And yet: every large-scale pattern is made of events exactly like this one. The millennium is nothing but a million forgotten Tuesdays.','The only version of this event that could survive 1,000 years is myth. And myth preserves the structure, not the facts.']}
-];
-
-function render(){
-  const event = document.getElementById('event').value.trim();
-  if(!event) return;
-  let html = '';
-  horizons.forEach(h => {
-    const reading = h.frames[Math.floor(Math.random()*h.frames.length)];
-    html += `<div class="horizon">
-      <div class="scale">${h.scale}</div>
-      <div class="label">"${event}"</div>
-      <div class="reading">${reading}</div>
-    </div>`;
-  });
-  document.getElementById('grid').innerHTML = html;
-}
+const horizons=[{scale:'1 Hour',frames:['Adrenaline spike. The body knows before the mind catches up. Nothing has changed yet except the signal.','Raw nerve. The event is the entire world for these 60 minutes. Context doesn\'t exist yet.','The first phone call. The first text. The event is being encoded into narrative in real-time.']},{scale:'1 Day',frames:['The story solidifies. You\'ve told it 3 times. Each retelling edits it. By tonight, it\'s already a different event than what happened.','Sleep will process this. Tomorrow morning the emotional charge will have shifted by 30-40%. The day-version is the most distorted.','Practical consequences begin to emerge. What actually needs to happen? The event starts to become a logistics problem.']},{scale:'1 Month',frames:['The event has been absorbed into routine. It\'s now "that thing that happened." The sharp edges are gone. What remains is the structural change it caused.','You can now see who showed up and who didn\'t. The event was a social filter you didn\'t choose to run.','New patterns are forming around the absence or presence this event created. You\'re adapting without noticing.']},{scale:'1 Year',frames:['The event is now a chapter marker. "That was before/after X." It has become a coordinate in your personal timeline.','You can trace second-order effects. Things that happened because of this event that seemed unrelated at the time.','The emotional memory has been rewritten at least twice. What you "felt" is now a reconstruction, not a recording.']},{scale:'1 Decade',frames:['The event is one of maybe 20 that still matter from this entire period. Everything else dissolved. Why did this one persist?','You can now see the counterfactual. The life you would have had. It\'s probably neither better nor worse — just different.','This event trained a reflex you still carry. A bias, a caution, a confidence. The event is gone but its residue is structural.']},{scale:'1 Century',frames:['Nobody alive remembers this event. If it persists at all, it\'s in the downstream effects on people who never knew it happened.','The systems that made this event possible or painful may themselves be gone. The context evaporated before the memory did.','At this scale, the event is indistinguishable from noise unless it shifted a lineage, a community, or an institution.']},{scale:'1 Millennium',frames:['Civilizations have risen and fallen. Your event is less than a whisper. Even the language you described it in may not exist.','And yet: every large-scale pattern is made of events exactly like this one. The millennium is nothing but a million forgotten Tuesdays.','The only version of this event that could survive 1,000 years is myth. And myth preserves the structure, not the facts.']}];
+function render(){const event=document.getElementById('event').value.trim();if(!event)return;let html='';horizons.forEach(h=>{const reading=h.frames[Math.floor(Math.random()*h.frames.length)];html+=`<div class="horizon"><div class="scale">${h.scale}</div><div class="label">"${event}"</div><div class="reading">${reading}</div></div>`});document.getElementById('grid').innerHTML=html}
 </script>
 </body>
 </html>

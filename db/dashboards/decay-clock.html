@@ -4,32 +4,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Decay Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+:root{--void:#030305;--starlight:#E2E2E8;--muted:#6B6B78;--horizon-gold:#FFD28E;--horizon-red:#D66D50;--telemetry-blue:#7F9CBB;--glass:rgba(255,255,255,0.03);--border-faint:rgba(255,255,255,0.08)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0a0f;color:#c8c8d0;font-family:'Courier New',monospace;min-height:100vh;padding:40px 20px}
-h1{font-size:1.8em;color:#fff;text-align:center;margin-bottom:8px}
-.sub{color:#555;font-size:.8em;text-align:center;margin-bottom:30px}
+body{background:var(--void);color:var(--starlight);font-family:'JetBrains Mono',monospace;min-height:100vh;padding:40px 20px;overflow-x:hidden}
+h1,h2,h3{font-family:'Playfair Display',serif}
+.starfield{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-2;background:radial-gradient(1px 1px at 10% 10%,#fff 100%,transparent),radial-gradient(1px 1px at 20% 20%,#fff 100%,transparent),radial-gradient(2px 2px at 30% 30%,#fff 100%,transparent),radial-gradient(1px 1px at 40% 40%,#fff 100%,transparent);background-size:550px 550px;opacity:.3}
+.planet-horizon{position:fixed;bottom:-40vh;right:-20vw;width:120vw;height:120vw;border-radius:50%;background:radial-gradient(circle at 50% 0%,rgba(0,0,0,1) 40%,#2a2a35 60%,var(--horizon-red) 65%,var(--horizon-gold) 68%,transparent 72%);z-index:-1;filter:blur(40px);opacity:.6}
+.orbital-ring{position:fixed;border:1px solid rgba(255,255,255,0.05);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);z-index:-1;pointer-events:none}
+h1{font-size:2.2em;color:var(--starlight);text-align:center;margin-bottom:8px}
+.sub{color:var(--muted);font-size:.8em;text-align:center;margin-bottom:30px}
 .add-section{max-width:600px;margin:0 auto 30px;display:flex;gap:8px}
-.add-section input,.add-section select{background:#111;border:1px solid #333;color:#ddd;padding:10px;font-family:inherit;font-size:.8em;border-radius:6px}
+.add-section input,.add-section select{background:var(--glass);border:1px solid var(--border-faint);color:var(--starlight);padding:10px;font-family:'JetBrains Mono',monospace;font-size:.8em;border-radius:6px;backdrop-filter:blur(4px)}
 .add-section input{flex:1}
 .add-section select{width:160px}
-.add-section button{background:#1a1a1a;color:#ee6868;border:1px solid #333;padding:10px 16px;font-family:inherit;cursor:pointer;border-radius:6px;font-size:.8em}
+.add-section select option{background:#0a0a0f;color:var(--starlight)}
+.add-section button{background:rgba(214,109,80,0.1);border:1px solid var(--horizon-red);color:var(--horizon-red);padding:10px 16px;font-family:'JetBrains Mono',monospace;cursor:pointer;border-radius:6px;font-size:.8em;transition:all .4s;text-transform:uppercase;letter-spacing:.1em}
+.add-section button:hover{background:var(--horizon-red);color:var(--void)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;max-width:1000px;margin:0 auto}
-.artifact{background:#0d0d14;border:1px solid #1a1a2e;border-radius:8px;padding:16px;position:relative;overflow:hidden;transition:opacity .3s}
-.artifact .name{color:#fff;font-size:.85em;margin-bottom:4px}
-.artifact .type{color:#555;font-size:.7em;margin-bottom:10px}
-.bar-bg{height:6px;background:#111;border-radius:3px;overflow:hidden;margin-bottom:6px}
+.artifact{background:var(--glass);border:1px solid var(--border-faint);border-radius:8px;padding:16px;position:relative;overflow:hidden;transition:opacity .3s;backdrop-filter:blur(4px)}
+.artifact .name{color:var(--starlight);font-size:.85em;margin-bottom:4px}
+.artifact .type{color:var(--muted);font-size:.7em;margin-bottom:10px}
+.bar-bg{height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;margin-bottom:6px}
 .bar-fill{height:100%;border-radius:3px;transition:width 1s}
-.remaining{color:#666;font-size:.7em}
+.remaining{color:var(--muted);font-size:.7em}
 .dead{opacity:.3}
 .dead .name{text-decoration:line-through}
-.summary{max-width:600px;margin:30px auto 0;background:#0d0d14;border:1px solid #1a1a2e;border-radius:8px;padding:20px;text-align:center}
-.summary h3{color:#ee6868;font-size:.85em;margin-bottom:10px}
-.summary p{color:#666;font-size:.8em;line-height:1.6}
-.meta{color:#333;font-size:.7em;text-align:center;margin-top:30px}
+.summary{max-width:600px;margin:30px auto 0;background:var(--glass);border:1px solid var(--border-faint);border-radius:8px;padding:20px;text-align:center;backdrop-filter:blur(4px)}
+.summary h3{color:var(--horizon-red);font-size:.85em;margin-bottom:10px}
+.summary p{color:var(--muted);font-size:.8em;line-height:1.6}
+.meta{color:rgba(255,255,255,0.15);font-size:.7em;text-align:center;margin-top:30px;letter-spacing:.15em;text-transform:uppercase}
 </style>
 </head>
 <body>
+<div class="starfield"></div>
+<div class="planet-horizon"></div>
+<div class="orbital-ring" style="width:80vw;height:80vw;opacity:.1"></div>
+<div class="orbital-ring" style="width:120vw;height:120vw;opacity:.05;border-style:dashed"></div>
+
 <h1>Decay Clock</h1>
 <p class="sub">Everything you build is already decomposing. This dashboard shows the entropy.</p>
 
@@ -52,60 +65,15 @@ h1{font-size:1.8em;color:#fff;text-align:center;margin-bottom:8px}
 
 <div class="grid" id="grid"></div>
 <div class="summary" id="summary" style="display:none"></div>
-<p class="meta">Entropy is not your enemy. It's your editor.</p>
+<p class="meta">Entropy is not your enemy. It's your editor. // Half-life monitoring active</p>
 
 <script>
-const halfLives = {tweet:.0125,post:.167,email:2,blogpost:180,video:365,tool:730,course:1095,book:7300,building:29200,institution:73000};
-const colors = {tweet:'#ff4444',post:'#ff6644',email:'#ff8844',blogpost:'#ffaa44',video:'#ffcc44',tool:'#aacc44',course:'#88cc66',book:'#44aa88',building:'#4488aa',institution:'#4466cc'};
-
-let artifacts = [
-  {name:'Campaign Dashboard',type:'tool',created:Date.now()-86400000*30},
-  {name:'SMS Analysis Thread',type:'post',created:Date.now()-86400000*2},
-  {name:'Donor Genome Project',type:'tool',created:Date.now()-86400000*3},
-  {name:'Blog: AI Operator',type:'blogpost',created:Date.now()-86400000*7},
-  {name:'Product Landing Page',type:'tool',created:Date.now()-86400000*5},
-  {name:'Fundraising Video',type:'video',created:Date.now()-86400000*14},
-];
-
-function addArtifact(){
-  const name = document.getElementById('name').value.trim();
-  const type = document.getElementById('type').value;
-  if(!name) return;
-  artifacts.push({name,type,created:Date.now()});
-  document.getElementById('name').value = '';
-  render();
-}
-
-function render(){
-  const now = Date.now();
-  let html = '';
-  let alive = 0, dead = 0;
-  artifacts.forEach(a => {
-    const ageDays = (now - a.created) / 86400000;
-    const hl = halfLives[a.type];
-    const remaining = Math.pow(0.5, ageDays/hl);
-    const pct = Math.max(0, remaining * 100);
-    const isDead = pct < 5;
-    if(isDead) dead++; else alive++;
-    const color = colors[a.type];
-    html += `<div class="artifact ${isDead?'dead':''}">
-      <div class="name">${a.name}</div>
-      <div class="type">${a.type} · half-life: ${hl < 1 ? Math.round(hl*24)+'h' : hl < 365 ? Math.round(hl)+'d' : Math.round(hl/365)+'y'}</div>
-      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      <div class="remaining">${pct.toFixed(1)}% relevance remaining</div>
-    </div>`;
-  });
-  document.getElementById('grid').innerHTML = html;
-
-  if(artifacts.length > 0){
-    const s = document.getElementById('summary');
-    s.style.display = 'block';
-    s.innerHTML = `<h3>Entropy Report</h3><p>${alive} artifacts still decaying · ${dead} effectively dissolved<br>Most of what you build will be gone before you notice it left.</p>`;
-  }
-}
-
-render();
-setInterval(render, 60000);
+const halfLives={tweet:.0125,post:.167,email:2,blogpost:180,video:365,tool:730,course:1095,book:7300,building:29200,institution:73000};
+const colors={tweet:'#D66D50',post:'#D66D50',email:'#FFD28E',blogpost:'#FFD28E',video:'#FFD28E',tool:'#7F9CBB',course:'#7F9CBB',book:'#7F9CBB',building:'#E2E2E8',institution:'#E2E2E8'};
+let artifacts=[{name:'Campaign Dashboard',type:'tool',created:Date.now()-86400000*30},{name:'SMS Analysis Thread',type:'post',created:Date.now()-86400000*2},{name:'Donor Genome Project',type:'tool',created:Date.now()-86400000*3},{name:'Blog: AI Operator',type:'blogpost',created:Date.now()-86400000*7},{name:'Product Landing Page',type:'tool',created:Date.now()-86400000*5},{name:'Fundraising Video',type:'video',created:Date.now()-86400000*14}];
+function addArtifact(){const name=document.getElementById('name').value.trim(),type=document.getElementById('type').value;if(!name)return;artifacts.push({name,type,created:Date.now()});document.getElementById('name').value='';render()}
+function render(){const now=Date.now();let html='',alive=0,dead=0;artifacts.forEach(a=>{const ageDays=(now-a.created)/86400000,hl=halfLives[a.type],remaining=Math.pow(0.5,ageDays/hl),pct=Math.max(0,remaining*100),isDead=pct<5;if(isDead)dead++;else alive++;const color=colors[a.type];html+=`<div class="artifact ${isDead?'dead':''}"><div class="name">${a.name}</div><div class="type">${a.type} · half-life: ${hl<1?Math.round(hl*24)+'h':hl<365?Math.round(hl)+'d':Math.round(hl/365)+'y'}</div><div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div><div class="remaining">${pct.toFixed(1)}% relevance remaining</div></div>`});document.getElementById('grid').innerHTML=html;if(artifacts.length>0){const s=document.getElementById('summary');s.style.display='block';s.innerHTML=`<h3>Entropy Report</h3><p>${alive} artifacts still decaying · ${dead} effectively dissolved<br>Most of what you build will be gone before you notice it left.</p>`}}
+render();setInterval(render,60000);
 </script>
 </body>
 </html>
