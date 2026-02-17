@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Operator ROI Calculator | Justin Hart</title>
+    <meta name="description" content="Calculate how much time and money you'll save by working with an AI Operator. Real numbers, no BS.">
+    <meta property="og:title" content="AI Operator ROI Calculator">
+    <meta property="og:description" content="Calculate your ROI from AI-powered operations in 30 seconds.">
+    <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --void: #030305;
+            --surface: #0a0a0f;
+            --border: rgba(255,255,255,0.08);
+            --text: #e8e6e3;
+            --text-dim: #8a8a8a;
+            --gold: #FFD28E;
+            --gold-dim: rgba(255,210,142,0.2);
+            --teal: #4FD1C5;
+            --teal-dim: rgba(79,209,197,0.15);
+            --coral: #FF6B6B;
+            --coral-dim: rgba(255,107,107,0.15);
+            --purple: #A78BFA;
+            --green: #4ade80;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--void);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-top: 2rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            background: var(--gold-dim);
+            color: var(--gold);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, var(--text) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .calculator-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .input-section {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .input-group {
+            display: grid;
+            gap: 0.5rem;
+        }
+        
+        .input-group label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .input-group label .icon {
+            font-size: 1.1rem;
+        }
+        
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .slider-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--gold);
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: 0 2px 8px rgba(255,210,142,0.4);
+            transition: transform 0.15s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:active {
+            cursor: grabbing;
+        }
+        
+        .value-display {
+            min-width: 100px;
+            text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gold);
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .results-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .result-card {
+            background: var(--void);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result-card.highlight {
+            border-color: var(--gold);
+            background: var(--gold-dim);
+        }
+        
+        .result-card .label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .result-card .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+        
+        .result-card .subtext {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+        
+        .time-value { color: var(--teal); }
+        .money-value { color: var(--green); }
+        .roi-value { color: var(--gold); }
+        .cost-value { color: var(--coral); }
+        
+        .roi-bar-container {
+            margin: 2rem 0;
+        }
+        
+        .roi-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .roi-bar {
+            height: 24px;
+            background: var(--void);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .roi-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--coral) 0%, var(--gold) 50%, var(--green) 100%);
+            border-radius: 12px;
+            transition: width 0.5s ease-out;
+            position: relative;
+        }
+        
+        .roi-bar-marker {
+            position: absolute;
+            top: -8px;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 40px;
+            background: var(--text);
+        }
+        
+        .roi-bar-marker::after {
+            content: 'Break-even';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            white-space: nowrap;
+            color: var(--text-dim);
+        }
+        
+        .breakdown-section {
+            background: var(--void);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .breakdown-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        
+        .breakdown-row:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            padding-top: 1rem;
+        }
+        
+        .breakdown-row .label {
+            color: var(--text-dim);
+        }
+        
+        .breakdown-row .value {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .scenario-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .scenario-tab {
+            padding: 0.6rem 1.2rem;
+            background: var(--void);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: var(--text-dim);
+        }
+        
+        .scenario-tab:hover {
+            border-color: var(--gold);
+            color: var(--text);
+        }
+        
+        .scenario-tab.active {
+            background: var(--gold-dim);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--gold-dim) 0%, var(--teal-dim) 100%);
+            border-radius: 16px;
+        }
+        
+        .cta-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .cta-section p {
+            color: var(--text-dim);
+            margin-bottom: 1.5rem;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: var(--gold);
+            color: var(--void);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255,210,142,0.3);
+        }
+        
+        .assumptions {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--void);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+        
+        .assumptions summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .assumptions ul {
+            margin-top: 0.75rem;
+            padding-left: 1.25rem;
+        }
+        
+        .assumptions li {
+            margin-bottom: 0.25rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+        }
+        
+        footer a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+        
+        @media (max-width: 600px) {
+            .input-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .value-display {
+                text-align: center;
+                margin-top: 0.5rem;
+            }
+            .results-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge">Free Tool</div>
+            <h1>AI Operator ROI Calculator</h1>
+            <p class="subtitle">See exactly how much time and money you'll save with AI-powered operations. Real numbers, not hype.</p>
+        </header>
+        
+        <div class="calculator-card">
+            <div class="scenario-tabs">
+                <button class="scenario-tab active" data-scenario="solo">Solopreneur</button>
+                <button class="scenario-tab" data-scenario="small">Small Team (5-10)</button>
+                <button class="scenario-tab" data-scenario="agency">Agency (10-25)</button>
+                <button class="scenario-tab" data-scenario="custom">Custom</button>
+            </div>
+            
+            <div class="input-section">
+                <div class="input-group">
+                    <label><span class="icon">⏱️</span> Hours spent on repetitive tasks per week</label>
+                    <div class="input-row">
+                        <div class="slider-container">
+                            <input type="range" id="hours" min="5" max="60" value="25">
+                            <div class="slider-labels">
+                                <span>5 hrs</span>
+                                <span>60 hrs</span>
+                            </div>
+                        </div>
+                        <div class="value-display" id="hours-display">25 hrs</div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label><span class="icon">💰</span> Your effective hourly rate (or cost per employee hour)</label>
+                    <div class="input-row">
+                        <div class="slider-container">
+                            <input type="range" id="rate" min="25" max="300" value="75" step="5">
+                            <div class="slider-labels">
+                                <span>$25/hr</span>
+                                <span>$300/hr</span>
+                            </div>
+                        </div>
+                        <div class="value-display" id="rate-display">$75/hr</div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label><span class="icon">🎯</span> Expected AI automation rate (conservative → aggressive)</label>
+                    <div class="input-row">
+                        <div class="slider-container">
+                            <input type="range" id="automation" min="30" max="80" value="50" step="5">
+                            <div class="slider-labels">
+                                <span>30%</span>
+                                <span>80%</span>
+                            </div>
+                        </div>
+                        <div class="value-display" id="automation-display">50%</div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label><span class="icon">📅</span> Engagement length</label>
+                    <div class="input-row">
+                        <div class="slider-container">
+                            <input type="range" id="months" min="1" max="12" value="6">
+                            <div class="slider-labels">
+                                <span>1 mo</span>
+                                <span>12 mo</span>
+                            </div>
+                        </div>
+                        <div class="value-display" id="months-display">6 months</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-section">
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="label">Time Saved</div>
+                        <div class="value time-value" id="time-saved">650 hrs</div>
+                        <div class="subtext" id="time-subtext">≈ 16 work weeks</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="label">Value Created</div>
+                        <div class="value money-value" id="value-created">$48,750</div>
+                        <div class="subtext">At your hourly rate</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="label">Est. Investment</div>
+                        <div class="value cost-value" id="investment">$9,000</div>
+                        <div class="subtext" id="monthly-cost">$1,500/mo</div>
+                    </div>
+                    <div class="result-card highlight">
+                        <div class="label">Net ROI</div>
+                        <div class="value roi-value" id="roi">442%</div>
+                        <div class="subtext" id="net-value">Net: $39,750</div>
+                    </div>
+                </div>
+                
+                <div class="roi-bar-container">
+                    <div class="roi-bar-label">
+                        <span>Investment</span>
+                        <span id="roi-percentage">442% ROI</span>
+                    </div>
+                    <div class="roi-bar">
+                        <div class="roi-bar-fill" id="roi-bar" style="width: 100%"></div>
+                        <div class="roi-bar-marker" style="left: 18%"></div>
+                    </div>
+                </div>
+                
+                <div class="breakdown-section">
+                    <div class="breakdown-title">📊 Monthly Breakdown</div>
+                    <div class="breakdown-row">
+                        <span class="label">Hours automated per month</span>
+                        <span class="value" id="monthly-hours">54 hrs</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">Monthly value created</span>
+                        <span class="value" id="monthly-value">$4,050</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">Monthly investment</span>
+                        <span class="value" id="monthly-invest">$1,500</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">Monthly net benefit</span>
+                        <span class="value money-value" id="monthly-net">+$2,550</span>
+                    </div>
+                </div>
+            </div>
+            
+            <details class="assumptions">
+                <summary>📋 Assumptions & Methodology</summary>
+                <ul>
+                    <li>Time saved = Weekly repetitive hours × Automation rate × Weeks</li>
+                    <li>Value created = Time saved × Your hourly rate</li>
+                    <li>Investment based on typical AI Operator engagement ($1,500-$5,000/mo)</li>
+                    <li>ROI = (Value Created - Investment) / Investment × 100</li>
+                    <li>Conservative automation rates (30-50%) typical for first engagement</li>
+                    <li>Higher rates (60-80%) achievable with mature systems</li>
+                </ul>
+            </details>
+        </div>
+        
+        <div class="cta-section">
+            <h3>Ready to see these numbers in your business?</h3>
+            <p>Book a free 30-minute AI Workflow Audit. I'll identify your top 3 automation opportunities.</p>
+            <a href="mailto:justinhart.biz@gmail.com?subject=AI%20Workflow%20Audit%20Request&body=Hi%20Justin,%0A%0AI%20used%20your%20ROI%20calculator%20and%20I'm%20interested%20in%20an%20AI%20Workflow%20Audit.%0A%0AMy%20current%20situation:%0A-%20Industry:%0A-%20Team%20size:%0A-%20Biggest%20time%20drain:%0A%0AThanks!" class="cta-button">Book Free Audit →</a>
+        </div>
+        
+        <footer>
+            Built by <a href="https://justinhart.biz">Justin Hart</a> — AI Operator, 9-kid dad, professional time-saver.
+            <br>
+            <span style="font-size: 0.7rem; opacity: 0.6;">Calculator v1.0 | February 2026</span>
+        </footer>
+    </div>
+    
+    <script>
+        const scenarios = {
+            solo: { hours: 25, rate: 75, automation: 50, months: 6, investment: 1500 },
+            small: { hours: 40, rate: 60, automation: 55, months: 6, investment: 3000 },
+            agency: { hours: 60, rate: 50, automation: 60, months: 12, investment: 5000 },
+            custom: null
+        };
+        
+        let currentScenario = 'solo';
+        
+        const elements = {
+            hours: document.getElementById('hours'),
+            rate: document.getElementById('rate'),
+            automation: document.getElementById('automation'),
+            months: document.getElementById('months'),
+            hoursDisplay: document.getElementById('hours-display'),
+            rateDisplay: document.getElementById('rate-display'),
+            automationDisplay: document.getElementById('automation-display'),
+            monthsDisplay: document.getElementById('months-display'),
+            timeSaved: document.getElementById('time-saved'),
+            timeSubtext: document.getElementById('time-subtext'),
+            valueCreated: document.getElementById('value-created'),
+            investment: document.getElementById('investment'),
+            monthlyCost: document.getElementById('monthly-cost'),
+            roi: document.getElementById('roi'),
+            netValue: document.getElementById('net-value'),
+            roiPercentage: document.getElementById('roi-percentage'),
+            roiBar: document.getElementById('roi-bar'),
+            monthlyHours: document.getElementById('monthly-hours'),
+            monthlyValue: document.getElementById('monthly-value'),
+            monthlyInvest: document.getElementById('monthly-invest'),
+            monthlyNet: document.getElementById('monthly-net')
+        };
+        
+        function formatCurrency(num) {
+            return '$' + Math.round(num).toLocaleString();
+        }
+        
+        function formatHours(num) {
+            return Math.round(num).toLocaleString() + ' hrs';
+        }
+        
+        function getInvestment(months, scenario) {
+            const baseRates = { solo: 1500, small: 3000, agency: 5000, custom: 2000 };
+            return baseRates[scenario] * months;
+        }
+        
+        function calculate() {
+            const hours = parseInt(elements.hours.value);
+            const rate = parseInt(elements.rate.value);
+            const automation = parseInt(elements.automation.value) / 100;
+            const months = parseInt(elements.months.value);
+            const weeks = months * 4.33;
+            
+            // Calculate
+            const monthlyHoursAutomated = hours * automation * 4.33;
+            const totalTimeSaved = hours * automation * weeks;
+            const totalValueCreated = totalTimeSaved * rate;
+            const monthlyInvestment = scenarios[currentScenario]?.investment || 2000;
+            const totalInvestment = monthlyInvestment * months;
+            const netValue = totalValueCreated - totalInvestment;
+            const roiPercent = ((totalValueCreated - totalInvestment) / totalInvestment) * 100;
+            
+            // Update displays
+            elements.hoursDisplay.textContent = hours + ' hrs';
+            elements.rateDisplay.textContent = '$' + rate + '/hr';
+            elements.automationDisplay.textContent = (automation * 100) + '%';
+            elements.monthsDisplay.textContent = months + (months === 1 ? ' month' : ' months');
+            
+            elements.timeSaved.textContent = formatHours(totalTimeSaved);
+            const workWeeks = Math.round(totalTimeSaved / 40);
+            elements.timeSubtext.textContent = '≈ ' + workWeeks + ' work week' + (workWeeks !== 1 ? 's' : '');
+            
+            elements.valueCreated.textContent = formatCurrency(totalValueCreated);
+            elements.investment.textContent = formatCurrency(totalInvestment);
+            elements.monthlyCost.textContent = formatCurrency(monthlyInvestment) + '/mo';
+            
+            elements.roi.textContent = Math.round(roiPercent) + '%';
+            elements.netValue.textContent = 'Net: ' + formatCurrency(netValue);
+            elements.roiPercentage.textContent = Math.round(roiPercent) + '% ROI';
+            
+            // ROI bar (cap at 1000% for visual)
+            const barWidth = Math.min(100, (roiPercent / 500) * 100);
+            elements.roiBar.style.width = Math.max(barWidth, 5) + '%';
+            
+            // Monthly breakdown
+            const monthlyValue = monthlyHoursAutomated * rate;
+            const monthlyNet = monthlyValue - monthlyInvestment;
+            elements.monthlyHours.textContent = Math.round(monthlyHoursAutomated) + ' hrs';
+            elements.monthlyValue.textContent = formatCurrency(monthlyValue);
+            elements.monthlyInvest.textContent = formatCurrency(monthlyInvestment);
+            elements.monthlyNet.textContent = (monthlyNet >= 0 ? '+' : '') + formatCurrency(monthlyNet);
+            elements.monthlyNet.className = monthlyNet >= 0 ? 'value money-value' : 'value cost-value';
+        }
+        
+        function setScenario(scenario) {
+            currentScenario = scenario;
+            document.querySelectorAll('.scenario-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.scenario === scenario);
+            });
+            
+            if (scenarios[scenario]) {
+                elements.hours.value = scenarios[scenario].hours;
+                elements.rate.value = scenarios[scenario].rate;
+                elements.automation.value = scenarios[scenario].automation;
+                elements.months.value = scenarios[scenario].months;
+            }
+            
+            calculate();
+        }
+        
+        // Event listeners
+        document.querySelectorAll('.scenario-tab').forEach(tab => {
+            tab.addEventListener('click', () => setScenario(tab.dataset.scenario));
+        });
+        
+        [elements.hours, elements.rate, elements.automation, elements.months].forEach(input => {
+            input.addEventListener('input', () => {
+                currentScenario = 'custom';
+                document.querySelectorAll('.scenario-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.scenario === 'custom');
+                });
+                calculate();
+            });
+        });
+        
+        // Initial calculation
+        calculate();
+    </script>
+</body>
+</html>
