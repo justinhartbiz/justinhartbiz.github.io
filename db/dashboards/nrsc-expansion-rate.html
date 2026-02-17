@@ -5,40 +5,55 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NRSC Creative Expansion Rate — 24 Week Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:wght@400;700&display=swap');
+  :root {
+    --navy: #0E3358;
+    --gold: #F2AA1F;
+    --blue: #2EA3F2;
+    --light-gray: #EEEFF0;
+    --dark-gray: #30353B;
+    --text: #666666;
+    --text-dark: #333333;
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:#030305; color:#e0ddd5; font-family:'JetBrains Mono',monospace; min-height:100vh; overflow-x:hidden; }
-  .stars { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
-  .stars canvas { width:100%; height:100%; }
-  .container { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:24px 20px; }
-  h1 { font-family:'Playfair Display',serif; font-size:2rem; color:#FFD28E; margin-bottom:4px; }
-  .subtitle { color:#7F9CBB; font-size:0.85rem; margin-bottom:28px; }
-  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
-  .kpi { background:rgba(255,255,255,0.03); border:1px solid rgba(255,210,142,0.12); border-radius:12px; padding:18px; backdrop-filter:blur(8px); }
-  .kpi-label { font-size:0.7rem; color:#7F9CBB; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
-  .kpi-value { font-size:1.8rem; font-weight:700; color:#FFD28E; }
-  .kpi-sub { font-size:0.7rem; color:#888; margin-top:4px; }
-  .kpi-value.green { color:#4ade80; }
-  .kpi-value.red { color:#D66D50; }
-  .panel { background:rgba(255,255,255,0.03); border:1px solid rgba(255,210,142,0.12); border-radius:12px; padding:24px; margin-bottom:20px; backdrop-filter:blur(8px); }
-  .panel-title { font-family:'Playfair Display',serif; font-size:1.1rem; color:#FFD28E; margin-bottom:16px; }
+  body { background:var(--light-gray); color:var(--text); font-family:'Open Sans',Arial,sans-serif; min-height:100vh; }
+  .header { background:var(--navy); padding:16px 28px; display:flex; align-items:center; gap:16px; }
+  .header img { height:32px; }
+  .header-text { color:#fff; font-family:'Lato',sans-serif; font-size:0.8rem; opacity:0.7; letter-spacing:1px; text-transform:uppercase; }
+  .container { max-width:1100px; margin:0 auto; padding:24px 20px; }
+  h1 { font-family:'Lato',sans-serif; font-size:1.8rem; color:var(--navy); margin-bottom:4px; font-weight:900; }
+  .subtitle { color:var(--text); font-size:0.85rem; margin-bottom:24px; }
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .kpi { background:#fff; border-radius:8px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.06); border-top:3px solid var(--navy); }
+  .kpi-label { font-size:0.7rem; color:var(--text); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; font-weight:600; }
+  .kpi-value { font-size:1.8rem; font-weight:900; color:var(--navy); font-family:'Lato',sans-serif; }
+  .kpi-sub { font-size:0.7rem; color:#999; margin-top:4px; }
+  .kpi-value.gold { color:var(--gold); }
+  .kpi-value.green { color:#2ecc71; }
+  .kpi-value.red { color:#e74c3c; }
+  .panel { background:#fff; border-radius:8px; padding:24px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+  .panel-title { font-family:'Lato',sans-serif; font-size:1.1rem; color:var(--navy); margin-bottom:16px; font-weight:700; border-bottom:2px solid var(--gold); padding-bottom:8px; display:inline-block; }
   .chart-wrap { position:relative; height:320px; }
-  table { width:100%; border-collapse:collapse; font-size:0.75rem; }
-  th { text-align:left; color:#7F9CBB; font-size:0.65rem; text-transform:uppercase; letter-spacing:1px; padding:8px 10px; border-bottom:1px solid rgba(255,210,142,0.15); }
-  td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.04); }
-  tr:hover td { background:rgba(255,210,142,0.04); }
-  .rate-bar { display:inline-block; height:14px; border-radius:3px; background:linear-gradient(90deg,#D66D50,#FFD28E); vertical-align:middle; margin-right:6px; min-width:2px; }
+  table { width:100%; border-collapse:collapse; font-size:0.78rem; }
+  th { text-align:left; color:var(--navy); font-size:0.68rem; text-transform:uppercase; letter-spacing:1px; padding:10px 10px; border-bottom:2px solid var(--navy); font-weight:700; }
+  td { padding:9px 10px; border-bottom:1px solid #eee; }
+  tr:hover td { background:rgba(242,170,31,0.06); }
+  .rate-bar { display:inline-block; height:14px; border-radius:3px; background:linear-gradient(90deg,var(--gold),var(--blue)); vertical-align:middle; margin-right:6px; min-width:2px; }
   .rate-zero { opacity:0.3; }
-  .trend-up { color:#4ade80; }
-  .trend-down { color:#D66D50; }
-  .annotation { font-size:0.7rem; color:#FFD28E; background:rgba(255,210,142,0.1); border:1px solid rgba(255,210,142,0.2); border-radius:6px; padding:10px 14px; margin-top:16px; line-height:1.5; }
-  .annotation strong { color:#fff; }
-  @media(max-width:700px){ .kpi-row{grid-template-columns:repeat(2,1fr);} h1{font-size:1.4rem;} }
+  .trend-up { color:#2ecc71; font-weight:700; }
+  .trend-down { color:#e74c3c; font-weight:700; }
+  .annotation { font-size:0.78rem; color:var(--text-dark); background:#fff; border-left:4px solid var(--gold); border-radius:0 8px 8px 0; padding:14px 18px; margin-top:16px; line-height:1.6; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+  .annotation strong { color:var(--navy); }
+  .footer { text-align:center; padding:20px; font-size:0.7rem; color:#999; }
+  @media(max-width:700px){ .kpi-row{grid-template-columns:repeat(2,1fr);} h1{font-size:1.3rem;} }
 </style>
 </head>
 <body>
-<div class="stars"><canvas id="starfield"></canvas></div>
+<div class="header">
+  <img src="https://donorbureau.sitepreview.co/assets/uploads/sites/627/2020/03/home_03.png" alt="DonorBureau" onerror="this.style.display='none'">
+  <span class="header-text">Creative Analytics</span>
+</div>
 <div class="container">
   <h1>📈 NRSC Expansion Rate Tracker</h1>
   <p class="subtitle">24-week creative expansion rate — % of test creatives expanded to D10+ | Updated Feb 17, 2026</p>
@@ -56,13 +71,13 @@
     </div>
     <div class="kpi">
       <div class="kpi-label">Overall Rate</div>
-      <div class="kpi-value" id="kpi-rate" style="color:#FFD28E">—</div>
+      <div class="kpi-value gold" id="kpi-rate">—</div>
       <div class="kpi-sub">Expansion %</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">Recent 4-Wk Rate</div>
       <div class="kpi-value" id="kpi-recent">—</div>
-      <div class="kpi-sub">vs prior 4-wk</div>
+      <div class="kpi-sub" id="kpi-recent-sub">vs prior 4-wk</div>
     </div>
   </div>
 
@@ -92,6 +107,7 @@
     Rising rate = better creative selection. Track this as AI-assisted picks come online.
   </div>
 </div>
+<div class="footer">DonorBureau Creative Analytics · Powered by Railstote 🦉</div>
 
 <script>
 const DATA = [
@@ -128,50 +144,50 @@ const totalExpanded = DATA.reduce((s,d)=>s+d.expanded,0);
 const overallRate = (totalExpanded/totalTested*100).toFixed(1);
 const recent4 = DATA.slice(-4);
 const prior4 = DATA.slice(-8,-4);
-const recent4tested = recent4.reduce((s,d)=>s+d.tested,0);
-const recent4expanded = recent4.reduce((s,d)=>s+d.expanded,0);
-const recent4rate = recent4tested ? (recent4expanded/recent4tested*100).toFixed(1) : 0;
-const prior4tested = prior4.reduce((s,d)=>s+d.tested,0);
-const prior4expanded = prior4.reduce((s,d)=>s+d.expanded,0);
-const prior4rate = prior4tested ? (prior4expanded/prior4tested*100).toFixed(1) : 0;
+const r4t = recent4.reduce((s,d)=>s+d.tested,0);
+const r4e = recent4.reduce((s,d)=>s+d.expanded,0);
+const r4r = r4t ? (r4e/r4t*100).toFixed(1) : 0;
+const p4t = prior4.reduce((s,d)=>s+d.tested,0);
+const p4e = prior4.reduce((s,d)=>s+d.expanded,0);
+const p4r = p4t ? (p4e/p4t*100).toFixed(1) : 0;
 
 document.getElementById('kpi-tested').textContent = totalTested;
 document.getElementById('kpi-expanded').textContent = totalExpanded;
 document.getElementById('kpi-rate').textContent = overallRate + '%';
 const recentEl = document.getElementById('kpi-recent');
-recentEl.textContent = recent4rate + '%';
-const diff = (recent4rate - prior4rate).toFixed(1);
+recentEl.textContent = r4r + '%';
+const diff = (r4r - p4r).toFixed(1);
 recentEl.className = 'kpi-value ' + (diff >= 0 ? 'green' : 'red');
-recentEl.parentElement.querySelector('.kpi-sub').textContent = 
-  (diff >= 0 ? '↑' : '↓') + ' ' + Math.abs(diff) + '% vs prior 4-wk (' + prior4rate + '%)';
+document.getElementById('kpi-recent-sub').textContent = (diff >= 0 ? '↑' : '↓') + ' ' + Math.abs(diff) + '% vs prior 4-wk (' + p4r + '%)';
 
 // Rate Chart
-const ctx1 = document.getElementById('rateChart').getContext('2d');
-new Chart(ctx1, {
+new Chart(document.getElementById('rateChart').getContext('2d'), {
   type: 'line',
   data: {
     labels: DATA.map(d=>d.week),
     datasets: [{
       label: 'Expansion Rate %',
       data: DATA.map(d=>d.rate),
-      borderColor: '#FFD28E',
-      backgroundColor: 'rgba(255,210,142,0.1)',
+      borderColor: '#F2AA1F',
+      backgroundColor: 'rgba(242,170,31,0.08)',
       fill: true,
       tension: 0.3,
-      pointRadius: 4,
-      pointBackgroundColor: DATA.map(d=>d.rate>=30?'#4ade80':d.rate>0?'#FFD28E':'#D66D50'),
-      borderWidth: 2
+      pointRadius: 5,
+      pointBackgroundColor: DATA.map(d=>d.rate>=30?'#2ecc71':d.rate>0?'#F2AA1F':'#e74c3c'),
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      borderWidth: 2.5
     },{
       label: '4-Wk Moving Avg',
       data: DATA.map((d,i)=>{
         if(i<3) return null;
-        const slice = DATA.slice(i-3,i+1);
-        const t = slice.reduce((s,x)=>s+x.tested,0);
-        const e = slice.reduce((s,x)=>s+x.expanded,0);
+        const s = DATA.slice(i-3,i+1);
+        const t = s.reduce((a,x)=>a+x.tested,0);
+        const e = s.reduce((a,x)=>a+x.expanded,0);
         return t ? +(e/t*100).toFixed(1) : 0;
       }),
-      borderColor: '#7F9CBB',
-      borderDash: [5,5],
+      borderColor: '#2EA3F2',
+      borderDash: [6,4],
       borderWidth: 2,
       pointRadius: 0,
       fill: false,
@@ -180,40 +196,41 @@ new Chart(ctx1, {
   },
   options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#888', font: { family: 'JetBrains Mono', size: 11 }}}},
+    plugins: { legend: { labels: { color: '#666', font: { family: 'Open Sans', size: 11 }}}},
     scales: {
-      y: { beginAtZero: true, max: 80, ticks: { color: '#666', callback: v=>v+'%' }, grid: { color: 'rgba(255,255,255,0.05)' }},
-      x: { ticks: { color: '#666', font: { size: 10 }}, grid: { display: false }}
+      y: { beginAtZero: true, max: 80, ticks: { color: '#999', callback: v=>v+'%' }, grid: { color: '#eee' }},
+      x: { ticks: { color: '#999', font: { size: 10 }}, grid: { display: false }}
     }
   }
 });
 
 // Volume Chart
-const ctx2 = document.getElementById('volChart').getContext('2d');
-new Chart(ctx2, {
+new Chart(document.getElementById('volChart').getContext('2d'), {
   type: 'bar',
   data: {
     labels: DATA.map(d=>d.week),
     datasets: [{
       label: 'Tested',
       data: DATA.map(d=>d.tested),
-      backgroundColor: 'rgba(127,156,187,0.5)',
-      borderColor: '#7F9CBB',
-      borderWidth: 1
+      backgroundColor: 'rgba(14,51,88,0.6)',
+      borderColor: '#0E3358',
+      borderWidth: 1,
+      borderRadius: 3
     },{
       label: 'Expanded',
       data: DATA.map(d=>d.expanded),
-      backgroundColor: 'rgba(74,222,128,0.6)',
-      borderColor: '#4ade80',
-      borderWidth: 1
+      backgroundColor: 'rgba(242,170,31,0.7)',
+      borderColor: '#F2AA1F',
+      borderWidth: 1,
+      borderRadius: 3
     }]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#888', font: { family: 'JetBrains Mono', size: 11 }}}},
+    plugins: { legend: { labels: { color: '#666', font: { family: 'Open Sans', size: 11 }}}},
     scales: {
-      y: { beginAtZero: true, ticks: { color: '#666' }, grid: { color: 'rgba(255,255,255,0.05)' }},
-      x: { ticks: { color: '#666', font: { size: 10 }}, grid: { display: false }}
+      y: { beginAtZero: true, ticks: { color: '#999' }, grid: { color: '#eee' }},
+      x: { ticks: { color: '#999', font: { size: 10 }}, grid: { display: false }}
     }
   }
 });
@@ -227,29 +244,18 @@ DATA.forEach((d,i) => {
     const delta = d.rate - prev;
     if(delta > 5) trend = '<span class="trend-up">▲ +' + delta.toFixed(0) + '</span>';
     else if(delta < -5) trend = '<span class="trend-down">▼ ' + delta.toFixed(0) + '</span>';
-    else trend = '—';
+    else trend = '<span style="color:#ccc">—</span>';
   }
   const barW = Math.max(d.rate * 1.2, d.rate > 0 ? 3 : 0);
-  tbody.innerHTML += `<tr>
-    <td style="color:#FFD28E;font-weight:600">${d.week}</td>
-    <td>${d.dates}</td>
-    <td>${d.tested}</td>
-    <td style="color:${d.expanded?'#4ade80':'#666'}">${d.expanded}</td>
-    <td class="${d.rate===0?'rate-zero':''}">${d.rate.toFixed(1)}%</td>
-    <td><span class="rate-bar" style="width:${barW}px"></span></td>
-    <td>${trend}</td>
-  </tr>`;
+  tbody.innerHTML += '<tr>' +
+    '<td style="color:#0E3358;font-weight:700">' + d.week + '</td>' +
+    '<td>' + d.dates + '</td>' +
+    '<td>' + d.tested + '</td>' +
+    '<td style="color:' + (d.expanded?'#2ecc71':'#ccc') + ';font-weight:700">' + d.expanded + '</td>' +
+    '<td class="' + (d.rate===0?'rate-zero':'') + '">' + d.rate.toFixed(1) + '%</td>' +
+    '<td><span class="rate-bar" style="width:' + barW + 'px"></span></td>' +
+    '<td>' + trend + '</td></tr>';
 });
-
-// Starfield
-const sc = document.getElementById('starfield');
-sc.width = window.innerWidth; sc.height = window.innerHeight;
-const sctx = sc.getContext('2d');
-for(let i=0;i<200;i++){
-  const x=Math.random()*sc.width, y=Math.random()*sc.height, r=Math.random()*1.2;
-  sctx.fillStyle=`rgba(255,255,255,${Math.random()*0.5+0.1})`;
-  sctx.beginPath(); sctx.arc(x,y,r,0,Math.PI*2); sctx.fill();
-}
 </script>
 </body>
 </html>
