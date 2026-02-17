@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topological Knot Theory | Horizon Project</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Three.js for 3D knot visualization -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.min.js"></script>
+  
+  <style>
+    :root {
+      --void-black: #030305;
+      --horizon-gold: #FFD28E;
+      --horizon-red: #D66D50;
+      --telemetry-blue: #7F9CBB;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+    
+    body {
+      background-color: var(--void-black);
+      color: white;
+      font-family: 'Playfair Display', serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+    
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Starfield Background */
+    .starfield {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .star {
+      position: absolute;
+      background-color: white;
+      border-radius: 50%;
+      opacity: 0;
+      animation: twinkle var(--duration) ease-in-out infinite;
+      animation-delay: var(--delay);
+    }
+    
+    @keyframes twinkle {
+      0%, 100% { opacity: 0; }
+      50% { opacity: var(--intensity); }
+    }
+    
+    /* Glass Panels */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .glass-panel:hover {
+      border-color: var(--horizon-gold);
+      box-shadow: 0 0 15px rgba(255, 210, 142, 0.2);
+    }
+    
+    /* Navigation Styles */
+    .nav-link {
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--horizon-gold);
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    /* Content Area */
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Color Accents */
+    .horizon-gold {
+      color: var(--horizon-gold);
+    }
+    
+    .horizon-red {
+      color: var(--horizon-red);
+    }
+    
+    .telemetry-blue {
+      color: var(--telemetry-blue);
+    }
+    
+    /* 3D Visualization Containers */
+    .knot-container {
+      width: 100%;
+      height: 300px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+    
+    .knot-controls {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+    
+    .control-btn {
+      background: var(--telemetry-blue);
+      color: var(--void-black);
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .control-btn:hover {
+      background: var(--horizon-gold);
+    }
+    
+    /* Quiz Styles */
+    .quiz-option {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .quiz-option:hover {
+      border-color: var(--horizon-gold);
+    }
+    
+    .quiz-option.correct {
+      border-color: #4CAF50;
+      background: rgba(76, 175, 80, 0.1);
+    }
+    
+    .quiz-option.incorrect {
+      border-color: #FF5252;
+      background: rgba(255, 82, 82, 0.1);
+    }
+    
+    /* Progress Bar */
+    .progress-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--telemetry-blue), var(--horizon-gold));
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    
+    /* Knot Comparison Challenge */
+    .knot-card {
+      position: relative;
+      height: 200px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .knot-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .knot-card.selected {
+      border-color: var(--horizon-gold);
+      box-shadow: 0 0 15px rgba(255, 210, 142, 0.3);
+    }
+    
+    /* Interactive Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 30px;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--horizon-gold), var(--telemetry-blue));
+    }
+    
+    .timeline-item {
+      position: relative;
+      padding-bottom: 30px;
+    }
+    
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -34px;
+      top: 0;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--horizon-gold);
+    }
+    
+    /* Matrix Display for Knot Invariants */
+    .matrix-display {
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.1em;
+      line-height: 1.6;
+    }
+    
+    /* Tabs */
+    .tab {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      border-bottom: 2px solid var(--horizon-gold);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Starfield Background (will be generated by JS) -->
+  <div class="starfield" id="starfield"></div>
+  
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-12 content">
+    <nav class="flex justify-between items-center mb-12">
+      <div class="text-2xl font-bold horizon-gold">HORIZON</div>
+      <div class="flex space-x-8">
+        <a href="#" class="nav-link">Home</a>
+        <a href="#" class="nav-link">Projects</a>
+        <a href="#" class="nav-link">About</a>
+      </div>
+    </nav>
+    
+    <header class="text-center mb-16">
+      <h1 class="text-5xl font-bold mb-4">Topological <span class="horizon-gold">Knot Theory</span></h1>
+      <p class="text-xl max-w-3xl mx-auto opacity-75">Exploring the fascinating mathematics of knots and their applications in physics, biology, and beyond</p>
+    </header>
+    
+    <!-- Introduction Section -->
+    <section class="glass-panel p-8 mb-16">
+      <div class="flex flex-col md:flex-row gap-8">
+        <div class="md:w-1/2">
+          <h2 class="text-3xl font-bold mb-4">The <span class="horizon-gold">Mathematics</span> of Entanglement</h2>
+          <p class="mb-4">Knot theory is a branch of topology that studies mathematical knots, which are defined as embeddings of a circle in 3-dimensional Euclidean space. Unlike ordinary knots in rope, mathematical knots have their ends joined together, forming a closed loop.</p>
+          <p class="mb-4">What began as a purely abstract mathematical pursuit in the 19th century has evolved into a field with profound connections to quantum physics, molecular biology, and even computing.</p>
+          <p class="mono text-sm telemetry-blue mt-8">SYSTEM NOTE: The study of knots is over 250 years old, dating back to Leibniz's concept of "geometria situs" (geometry of position).</p>
+        </div>
+        <div class="md:w-1/2">
+          <div id="intro-knot" class="knot-container"></div>
+          <div class="text-center mt-2 text-sm opacity-75">Interactive Trefoil Knot (click and drag to rotate)</div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Basic Concepts Section -->
+    <section class="mb-16">
+      <h2 class="text-3xl font-bold mb-6 text-center">Basic <span class="horizon-gold">Concepts</span></h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <div class="glass-panel p-6">
+          <h3 class="text-2xl font-bold mb-4">Knots & Links</h3>
+          <p class="mb-4">A mathematical knot is a closed curve in three-dimensional space that doesn't intersect itself. A link is a collection of knots that may be interlinked but don't intersect.</p>
+          <div class="flex justify-center mt-6 space-x-4">
+            <div class="text-center">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Knot_3_1.svg/240px-Knot_3_1.svg.png" alt="Trefoil knot" class="h-24 mx-auto mb-2">
+              <p class="text-sm">Trefoil Knot</p>
+            </div>
+            <div class="text-center">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Hopf_link.svg/240px-Hopf_link.svg.png" alt="Hopf link" class="h-24 mx-auto mb-2">
+              <p class="text-sm">Hopf Link</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="glass-panel p-6">
+          <h3 class="text-2xl font-bold mb-4">Knot Equivalence</h3>
+          <p class="mb-4">Two knots are considered equivalent if one can be transformed into the other through a continuous deformation without cutting the knot or passing it through itself.</p>
+          <p>This concept is formalized in the Reidemeister moves, which provide a complete set of operations for determining knot equivalence.</p>
+          <div class="flex justify-center mt-4">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Reidemeister_moves.svg/320px-Reidemeister_moves.svg.png" alt="Reidemeister moves" class="h-32">
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="glass-panel p-6">
+          <h3 class="text-xl font-bold mb-3">Knot Diagrams</h3>
+          <p class="mb-3">2D representations of 3D knots that show crossing information through breaks in the lines.</p>
+          <div class="flex justify-center">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Trefoil_knot.svg/200px-Trefoil_knot.svg.png" alt="Knot diagram" class="h-20">
+          </div>
+        </div>
+        
+        <div class="glass-panel p-6">
+          <h3 class="text-xl font-bold mb-3">Crossing Number</h3>
+          <p class="mb-3">The minimum number of crossings in any diagram of a knot. The trefoil has crossing number 3.</p>
+          <div class="flex justify-center">
+            <span class="text-3xl mono telemetry-blue">C = 3</span>
+          </div>
+        </div>
+        
+        <div class="glass-panel p-6">
+          <h3 class="text-xl font-bold mb-3">The Unknot</h3>
+          <p class="mb-3">The simplest knot - equivalent to a circle. Determining if a complex knot is actually the unknot is surprisingly difficult.</p>
+          <div class="flex justify-center">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Unknot.svg/200px-Unknot.svg.png" alt="Unknot" class="h-20">
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Knot Gallery Section -->
+    <section class="mb-16">
+      <h2 class="text-3xl font-bold mb-8 text-center">Knot <span class="horizon-gold">Gallery</span></h2>
+      
+      <div class="glass-panel p-6 mb-8">
+        <p class="text-center mb-6">Explore different types of knots by selecting from the gallery below</p>
+        
+        <!-- Knot Selection Tabs -->
+        <div class="flex justify-center mb-8 border-b border-gray-700">
+          <div class="tab active px-4 py-2" data-target="simple">Simple Knots</div>
+          <div class="tab px-4 py-2" data-target="prime">Prime Knots</div>
+          <div class="tab px-4 py-2" data-target="complex">Complex Links</div>
+        </div>
+        
+        <!-- Knot Display Area -->
+        <div class="knot-tab-content">
+          <!-- Simple Knots Tab -->
+          <div id="simple-tab" class="tab-content active">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="glass-panel p-4 knot-selection" data-knot="unknot">
+                <h3 class="text-xl font-bold mb-2 text-center">Unknot</h3>
+                <div class="knot-container" id="unknot-container"></div>
+                <div class="text-center mt-2">
+                  <span class="text-sm mono telemetry-blue">Crossing Number: 0</span>
+                </div>
+              </div>
+              
+              <div class="glass-panel p-4 knot-selection active" data-knot="trefoil">
+                <h3 class="text-xl font-bold mb-2 text-center">Trefoil Knot</h3>
+                <div class="knot-container" id="trefoil-container"></div>
+                <div class="text-center mt-2">
+                  <span class="text-sm mono telemetry-blue">Crossing Number: 3</span>
+                </div>
+              </div>
+              
+              <div class="glass-panel p-4 knot-selection" data-knot="figure8">
+                <h3 class="text-xl font-bold mb-2 text-center">Figure-8 Knot</h3>
+                <div class="knot-container" id="figure8-container"></div>
+                <div class="text-center mt-2">
+                  <span class="text-sm mono telemetry-blue">Crossing Number: 4</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Prime Knots Tab -->
+          <div id="prime-tab" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Additional knot visualizations would go here -->
+              <div class="glass-panel p-4">
+                <h3 class="text-xl font-bold mb-2 text-center">Cinquefoil Knot</h3>
+                <div class="knot-container" id="cinquefoil-container"></div>
+                <div class="text-center mt-2">
+                  <span class="text-sm mono telemetry-blue">Crossing Number: 5</span>
+                </div>
+              </div>
+              
+              <div class="glass-panel p-4">
+                <h3 class="text-xl font-bold mb-2 text-center">Three-Twist Knot</h3>
+                <div class="knot-container" id="threetwist-container"></div>
+                <div class="text-center mt-2">
+                  <span class="text-sm mono telemetry-blue">Crossing Number: 6</span>
+                </div>
+              </div>
+              
+              <div class="glass-panel p-4">
+                <h3 class="text-xl font-bold mb-2 text-center">Stevedore Knot</h3>
+                <div class="knot-container" id="stevedore-container"></div>
+                <div class="text-center mt-2">
+                  <span class="text-sm mono telemetry-blue">Crossing Number: 6</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Complex Links Tab -->
+          <div id="complex-tab" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Additional link visualizations would go here -->
+              <div class="glass-panel p-4">
+                <h3 class="text-xl font-bold mb-2 text-center">Hopf Link</h3>
+                <div class="knot-container" id="hopf-container"></div>
+                <div class="text-center mt-2">
+                  <span class="text-sm mono telemetry-blue">Components: 2</span>
+                </div>
+              </div>
+              
+              <div class="glass-panel p-4">
+                <h3 class="text-xl font-bold mb-2 text-center">Borromean Rings</h3>
+                <div class="knot-container" id="borromean-container"></div>
+                <div class="text-center mt-2">
+                  <span class="text-sm mono telemetry-blue">Components: 3</span>
+                </div>
+              </div>
+              
+              <div class="glass-panel p-4">
+                <h3 class="text-xl font-bold mb-2 text-center">Whitehead Link</h3>
+                <div class="knot-container" id="whitehead-container"></div>
+                <div class="text-center mt-2">
+                  <span class="text-sm mono telemetry-blue">Components: 2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Knot Information Display -->
+      <div class="glass-panel p-6" id="knot-info-panel">
+        <h3 class="text-2xl font-bold mb-4">Trefoil Knot</h3>
+        <div class="flex flex-col md:flex-row gap-8">
+          <div class="md:w-1/2">
+            <p class="mb-4">The trefoil knot is the simplest non-trivial knot. It cannot be untangled to form the unknot. The trefoil is chiral, meaning it is distinct from its mirror image.</p>
+            
+            <div class="mb-6 glass-panel p-4">
+              <h4 class="text-lg font-bold mb-2">Knot Invariants</h4>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <span class="mono text-sm">Crossing Number:</span>
+                  <span class="mono text-sm telemetry-blue ml-2">3</span>
+                </div>
+                <div>
+                  <span class="mono text-sm">Unknotting Number:</span>
+                  <span class="mono text-sm telemetry-blue ml-2">1</span>
+                </div>
+                <div>
+                  <span class="mono text-sm">Bridge Number:</span>
+                  <span class="mono text-sm telemetry-blue ml-2">2</span>
+                </div>
+                <div>
+                  <span class="mono text-sm">Genus:</span>
+                  <span class="mono text-sm telemetry-blue ml-2">1</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="glass-panel p-4">
+              <h4 class="text-lg font-bold mb-2">Alexander Polynomial</h4>
+              <div class="matrix-display text-center">
+                <span class="telemetry-blue">Δ(t) = t - 1 + t<sup>-1</sup></span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="md:w-1/2">
+            <h4 class="text-lg font-bold mb-2">Properties</h4>
+            <ul class="space-y-2">
+              <li>• The trefoil is alternating (crossings alternate over and under)</li>
+              <li>• It has a 3-fold rotational symmetry</li>
+              <li>• The right-handed and left-handed trefoils are not equivalent</li>
+              <li>• It is a torus knot, meaning it can lie on the surface of a torus</li>
+            </ul>
+            
+            <div class="mt-6">
+              <h4 class="text-lg font-bold mb-2">Appearances</h4>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="glass-panel p-3">
+                  <h5 class="font-bold mb-1 horizon-gold">DNA</h5>
+                  <p class="text-sm">Forms in certain DNA structures</p>
+                </div>
+                <div class="glass-panel p-3">
+                  <h5 class="font-bold mb-1 horizon-gold">Proteins</h5>
+                  <p class="text-sm">Found in protein folding</p>
+                </div>
+                <div class="glass-panel p-3">
+                  <h5 class="font-bold mb-1 horizon-gold">Celtic Art</h5>
+                  <p class="text-sm">Common in traditional designs</p>
+                </div>
+                <div class="glass-panel p-3">
+                  <h5 class="font-bold mb-1 horizon-gold">Physics</h5>
+                  <p class="text-sm">Quantum field configurations</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Knot Invariants Section -->
+    <section class="mb-16">
+      <h2 class="text-3xl font-bold mb-8 text-center">Knot <span class="horizon-gold">Invariants</span></h2>
+      
+      <div class="glass-panel p-8">
+        <p class="mb-6 text-center">Invariants are properties that remain unchanged under continuous deformation, helping mathematicians distinguish between different knots</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h3 class="text-2xl font-bold mb-4">Polynomial Invariants</h3>
+            <p class="mb-4">Polynomial expressions that capture essential information about a knot's structure. Different knots often have different polynomials.</p>
+            
+            <div class="glass-panel p-4 mb-4">
+              <h4 class="font-bold mb-2 horizon-gold">Alexander Polynomial (1923)</h4>
+              <p class="mb-2">The first polynomial knot invariant, based on the homology of the knot complement.</p>
+              <div class="matrix-display">
+                <p class="text-sm telemetry-blue">Trefoil: Δ(t) = t - 1 + t<sup>-1</sup></p>
+                <p class="text-sm telemetry-blue">Figure-8: Δ(t) = t<sup>2</sup> - 3t + 1 - 3t<sup>-1</sup> + t<sup>-2</sup></p>
+              </div>
+            </div>
+            
+            <div class="glass-panel p-4">
+              <h4 class="font-bold mb-2 horizon-gold">Jones Polynomial (1984)</h4>
+              <p class="mb-2">A more powerful invariant that revolutionized knot theory, with connections to quantum physics.</p>
+              <div class="matrix-display">
+                <p class="text-sm telemetry-blue">Trefoil: V(t) = t + t<sup>3</sup> - t<sup>4</sup></p>
+                <p class="text-sm telemetry-blue">Figure-8: V(t) = t<sup>-2</sup> - t<sup>-1</sup> + 1 - t + t<sup>2</sup></p>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h3 class="text-2xl font-bold mb-4">Numerical Invariants</h3>
+            <p class="mb-4">Single numbers that capture specific aspects of knot complexity and structure.</p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="glass-panel p-4">
+                <h4 class="font-bold mb-2 horizon-gold">Crossing Number</h4>
+                <p class="text-sm">Minimum number of crossings in any diagram of the knot.</p>
+                <div class="flex justify-center mt-2">
+                  <span class="text-xl mono telemetry-blue">C(K)</span>
+                </div>
+              </div>
+              
+              <div class="glass-panel p-4">
+                <h4 class="font-bold mb-2 horizon-gold">Unknotting Number</h4>
+                <p class="text-sm">Minimum number of crossing changes needed to transform into the unknot.</p>
+                <div class="flex justify-center mt-2">
+                  <span class="text-xl mono telemetry-blue">u(K)</span>
+                </div>
+              </div>
+              
+              <div class="glass-panel p-4">
+                <h4 class="font-bold mb-2 horizon-gold">Bridge Number</h4>
+                <p class="text-sm">Minimum number of bridges in any bridge presentation of the knot.</p>
+                <div class="flex justify-center mt-2">
+                  <span class="text-xl mono telemetry-blue">b(K)</span>
+                </div>
+              </div>
+              
+              <div class="glass-panel p-4">
+                <h4 class="font-bold mb-2 horizon-gold">Genus</h4>
+                <p class="text-sm">Minimum genus of any surface that the knot bounds.</p>
+                <div class="flex justify-center mt-2">
+                  <span class="text-xl mono telemetry-blue">g(K)</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="glass-panel p-4 mt-4">
+              <h4 class="font-bold mb-2 horizon-gold">Colored Invariants</h4>
+              <p>Extensions of basic invariants that use multiple "colors" or labels, offering finer distinctions between knots that simpler invariants cannot detect.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Applications Section -->
+    <section class="mb-16">
+      <h2 class="text-3xl font-bold mb-8 text-center">Real-World <span class="horizon-gold">Applications</span></h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="glass-panel p-6">
+          <div class="w-16 h-16 rounded-full bg-horizon-gold flex items-center justify-center text-void-black font-bold mb-4">DNA</div>
+          <h3 class="text-xl font-bold mb-3">Molecular Biology</h3>
+          <p class="mb-4">DNA molecules can form knots and links during replication and recombination. Enzymes called topoisomerases help untangle these structures to prevent genetic errors.</p>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/DNA_supercoil.png/320px-DNA_supercoil.png" alt="DNA Supercoiling" class="rounded-lg w-full h-auto mb-4">
+          <p class="mono text-sm telemetry-blue">Knot theory helps scientists understand how enzymes detect and manipulate DNA topology.</p>
+        </div>
+        
+        <div class="glass-panel p-6">
+          <div class="w-16 h-16 rounded-full bg-horizon-red flex items-center justify-center text-void-black font-bold mb-4">QC</div>
+          <h3 class="text-xl font-bold mb-3">Quantum Computing</h3>
+          <p class="mb-4">Topological quantum computers use the braiding of anyons (exotic quasi-particles) to perform calculations. These operations are resistant to local perturbations, making them more stable.</p>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Braided_Anyons.svg/320px-Braided_Anyons.svg.png" alt="Quantum Braiding" class="rounded-lg w-full h-auto mb-4">
+          <p class="mono text-sm telemetry-blue">Braiding operations correspond to unitary transformations in quantum mechanics.</p>
+        </div>
+        
+        <div class="glass-panel p-6">
+          <div class="w-16 h-16 rounded-full bg-telemetry-blue flex items-center justify-center text-void-black font-bold mb-4">QFT</div>
+          <h3 class="text-xl font-bold mb-3">Quantum Field Theory</h3>
+          <p class="mb-4">The Jones polynomial, a key knot invariant, has deep connections to quantum field theory, specifically Chern-Simons theory. This relationship has led to new insights in both fields.</p>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Feynman_Diagram_Gluon_Radiation.svg/320px-Feynman_Diagram_Gluon_Radiation.svg.png" alt="Quantum Field Diagram" class="rounded-lg w-full h-auto mb-4">
+          <p class="mono text-sm telemetry-blue">Path integrals in QFT can be formulated in terms of knot invariants.</p>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+        <div class="glass-panel p-6">
+          <h3 class="text-xl font-bold mb-3">Protein Folding</h3>
+          <p>Proteins can form knots during their folding process. Understanding these structures helps scientists design drugs and predict protein behavior.</p>
+          <div class="flex justify-center mt-4">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/ProteinKnot.png/320px-ProteinKnot.png" alt="Knotted Protein" class="h-32">
+          </div>
+        </div>
+        
+        <div class="glass-panel p-6">
+          <h3 class="text-xl font-bold mb-3">Fluid Dynamics</h3>
+          <p>Vortex knots can form in fluid flows and plasma, with applications in understanding weather patterns, oceanography, and plasma confinement in fusion reactors.</p>
+          <div class="flex justify-center mt-4">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Vortex_street-1.jpg/320px-Vortex_street-1.jpg" alt="Vortex Flow" class="h-32">
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Quiz Section -->
+    <section class="mb-16">
+      <h2 class="text-3xl font-bold mb-8 text-center">Knot Theory <span class="horizon-gold">Quiz</span></h2>
+      
+      <div class="glass-panel p-8">
+        <div id="quiz-container">
+          <div class="flex justify-between items-center mb-6">
+            <div class="text-xl font-bold">Question <span id="current-question">1</span> of <span id="total-questions">5</span></div>
+            <div class="w-1/3">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 20%;"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="question-container" class="mb-8">
+            <h3 class="text-xl font-bold mb-4" id="question-text">What is the crossing number of the trefoil knot?</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="options-container">
+              <div class="glass-panel p-4 quiz-option" data-correct="false">
+                <span>2</span>
+              </div>
+              <div class="glass-panel p-4 quiz-option" data-correct="true">
+                <span>3</span>
+              </div>
+              <div class="glass-panel p-4 quiz-option" data-correct="false">
+                <span>4</span>
+              </div>
+              <div class="glass-panel p-4 quiz-option" data-correct="false">
+                <span>5</span>
+              </div>
+            </div>
+          </div>
+          
+          <div id="result-container" class="hidden mb-6 p-4 border rounded-lg">
+            <p id="result-text" class="font-bold"></p>
+            <p id="explanation-text" class="mt-2"></p>
+          </div>
+          
+          <div class="flex justify-between">
+            <button id="prev-btn" class="px-4 py-2 bg-telemetry-blue text-void-black rounded-md opacity-50 cursor-not-allowed">Previous</button>
+            <button id="next-btn" class="px-4 py-2 bg-horizon-gold text-void-black rounded-md">Next Question</button>
+          </div>
+        </div>
+        
+        <div id="quiz-summary" class="hidden text-center">
+          <h3 class="text-2xl font-bold mb-4">Quiz Complete!</h3>
+          <p class="text-xl mb-6">Your score: <span id="score-display" class="horizon-gold">0/5</span></p>
+          <div class="glass-panel p-4 inline-block">
+            <p class="mb-4">Want to learn more about knot theory?</p>
+            <p class="mono text-sm telemetry-blue">TRY THE KNOT COMPARISON CHALLENGE BELOW</p>
+          </div>
+          <button id="restart-quiz" class="mt-6 px-6 py-3 bg-horizon-gold text-void-black rounded-md">Restart Quiz</button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Knot Comparison Challenge -->
+    <section class="mb-16">
+      <h2 class="text-3xl font-bold mb-8 text-center">Is It the <span class="horizon-gold">Same Knot?</span></h2>
+      
+      <div class="glass-panel p-8">
+        <p class="text-center mb-8">One of the central problems in knot theory is determining whether two knot diagrams represent the same knot. Try the challenge below!</p>
+        
+        <div id="knot-challenge">
+          <div class="text-center mb-8">
+            <p class="text-xl font-bold mb-2">Do these two knots represent the same topological structure?</p>
+            <p class="text-sm opacity-75 mb-4">Select the two knots that you think are the same</p>
+          </div>
+          
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <div class="glass-panel knot-card" data-knot="A" id="knot-A">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Trefoil_knot_left.svg/200px-Trefoil_knot_left.svg.png" alt="Knot A" class="w-full h-full object-contain">
+            </div>
+            
+            <div class="glass-panel knot-card" data-knot="B" id="knot-B">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Trefoil_knot_right.svg/200px-Trefoil_knot_right.svg.png" alt="Knot B" class="w-full h-full object-contain">
+            </div>
+            
+            <div class="glass-panel knot-card" data-knot="C" id="knot-C">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Knot_3_1.svg/200px-Knot_3_1.svg.png" alt="Knot C" class="w-full h-full object-contain">
+            </div>
+            
+            <div class="glass-panel knot-card" data-knot="D" id="knot-D">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Perko_knots.svg/200px-Perko_knots.svg.png" alt="Knot D" class="w-full h-full object-contain">
+            </div>
+          </div>
+          
+          <div class="flex justify-center">
+            <button id="check-answer" class="px-6 py-3 bg-horizon-gold text-void-black rounded-md">Check Answer</button>
+          </div>
+          
+          <div id="challenge-result" class="mt-8 glass-panel p-6 hidden">
+            <h3 class="text-xl font-bold mb-4 text-center">Result</h3>
+            <p id="challenge-result-text" class="mb-4"></p>
+            <div id="challenge-explanation" class="mb-4"></div>
+            <div class="text-center mt-6">
+              <button id="next-challenge" class="px-6 py-2 bg-telemetry-blue text-void-black rounded-md">Try Another Challenge</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Timeline Section -->
+    <section class="glass-panel p-8 mb-16">
+      <h2 class="text-3xl font-bold mb-8 text-center">The <span class="horizon-gold">History</span> of Knot Theory</h2>
+      
+      <div class="timeline">
+        <div class="timeline-item">
+          <h3 class="text-xl font-bold horizon-gold">1771</h3>
+          <h4 class="text-lg font-bold">Alexandre-Théophile Vandermonde</h4>
+          <p>First mathematical study of knots, focusing on the "geometry of position"</p>
+        </div>
+        
+        <div class="timeline-item">
+          <h3 class="text-xl font-bold horizon-gold">1867</h3>
+          <h4 class="text-lg font-bold">Lord Kelvin's Vortex Atom Theory</h4>
+          <p>Proposed that atoms were knots in the ether, spurring interest in classifying knots</p>
+        </div>
+        
+        <div class="timeline-item">
+          <h3 class="text-xl font-bold horizon-gold">1877</h3>
+          <h4 class="text-lg font-bold">P.G. Tait's Knot Tables</h4>
+          <p>First systematic attempt to classify knots by crossing number</p>
+        </div>
+        
+        <div class="timeline-item">
+          <h3 class="text-xl font-bold horizon-gold">1923</h3>
+          <h4 class="text-lg font-bold">Alexander Polynomial</h4>
+          <p>James W. Alexander introduced the first polynomial knot invariant</p>
+        </div>
+        
+        <div class="timeline-item">
+          <h3 class="text-xl font-bold horizon-gold">1927</h3>
+          <h4 class="text-lg font-bold">Reidemeister Moves</h4>
+          <p>Kurt Reidemeister established the three elementary moves for knot equivalence</p>
+        </div>
+        
+        <div class="timeline-item">
+          <h3 class="text-xl font-bold horizon-gold">1984</h3>
+          <h4 class="text-lg font-bold">Jones Polynomial</h4>
+          <p>Vaughan Jones discovered a new polynomial invariant with connections to statistical mechanics</p>
+        </div>
+        
+        <div class="timeline-item">
+          <h3 class="text-xl font-bold horizon-gold">1990s</h3>
+          <h4 class="text-lg font-bold">Quantum Knot Invariants</h4>
+          <p>Development of new invariants based on quantum groups and Chern-Simons theory</p>
+        </div>
+        
+        <div class="timeline-item">
+          <h3 class="text-xl font-bold horizon-gold">2020s</h3>
+          <h4 class="text-lg font-bold">Machine Learning in Knot Theory</h4>
+          <p>AI techniques being applied to knot classification and invariant calculation</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="text-center mt-16 pb-8">
+      <p class="mono text-sm opacity-50">© 2026 Horizon Project | Design: Justin Hart</p>
+      <div class="flex justify-center space-x-6 mt-4">
+        <a href="#" class="opacity-50 hover:opacity-100 transition-opacity">
+          <i data-lucide="github" class="w-5 h-5"></i>
+        </a>
+        <a href="#" class="opacity-50 hover:opacity-100 transition-opacity">
+          <i data-lucide="twitter" class="w-5 h-5"></i>
+        </a>
+        <a href="#" class="opacity-50 hover:opacity-100 transition-opacity">
+          <i data-lucide="instagram" class="w-5 h-5"></i>
+        </a>
+      </div>
+    </footer>
+  </div>
+  
+  <!-- Scripts -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+    
+    // Generate Starfield
+    document.addEventListener('DOMContentLoaded', function() {
+      const starfield = document.getElementById('starfield');
+      const starCount = 200;
+      
+      for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.classList.add('star');
+        
+        // Random size between 1px and 3px
+        const size = Math.random() * 2 + 1;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        
+        // Random position
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        
+        // Random animation duration and delay
+        star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
+        star.style.setProperty('--delay', `${Math.random() * 5}s`);
+        star.style.setProperty('--intensity', `${Math.random() * 0.7 + 0.3}`);
+        
+        starfield.appendChild(star);
+      }
+    });
+    
+    // Tab Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.tab');
+      
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          // Remove active class from all tabs
+          tabs.forEach(t => t.classList.remove('active'));
+          // Add active class to clicked tab
+          this.classList.add('active');
+          
+          // Hide all tab contents
+          const allContents = document.querySelectorAll('.tab-content');
+          allContents.forEach(content => content.classList.remove('active'));
+          
+          // Show the corresponding tab content
+          const targetId = this.dataset.target + '-tab';
+          document.getElementById(targetId).classList.add('active');
+        });
+      });
+    });
+    
+    // Knot Selection Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const knotSelections = document.querySelectorAll('.knot-selection');
+      const knotInfoPanel = document.getElementById('knot-info-panel');
+      
+      knotSelections.forEach(selection => {
+        selection.addEventListener('click', function() {
+          // Remove active class from all selections
+          knotSelections.forEach(sel => sel.classList.remove('active'));
+          // Add active class to clicked selection
+          this.classList.add('active');
+          
+          // Update knot info panel based on selection
+          const knotType = this.dataset.knot;
+          
+          // This is a simplified example - in a real implementation,
+          // you would dynamically update the knot info panel with data
+          // corresponding to the selected knot
+          if (knotType === 'unknot') {
+            knotInfoPanel.querySelector('h3').textContent = 'Unknot';
+            // Update other information...
+          } else if (knotType === 'trefoil') {
+            knotInfoPanel.querySelector('h3').textContent = 'Trefoil Knot';
+            // Update other information...
+          } else if (knotType === 'figure8') {
+            knotInfoPanel.querySelector('h3').textContent = 'Figure-8 Knot';
+            // Update other information...
+          }
+        });
+      });
+    });
+    
+    // Quiz Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const quizData = [
+        {
+          question: "What is the crossing number of the trefoil knot?",
+          options: ["2", "3", "4", "5"],
+          correct: 1,
+          explanation: "The trefoil knot has a crossing number of 3, which is the minimum number of crossings in any diagram of this knot."
+        },
+        {
+          question: "Which polynomial invariant was discovered first?",
+          options: ["Jones polynomial", "Alexander polynomial", "HOMFLY polynomial", "Conway polynomial"],
+          correct: 1,
+          explanation: "The Alexander polynomial was discovered by James W. Alexander in 1923, making it the first polynomial knot invariant."
+        },
+        {
+          question: "Which of these is NOT a Reidemeister move?",
+          options: ["Twist", "Poke", "Slide", "Flip"],
+          correct: 3,
+          explanation: "The three Reidemeister moves are twist (type I), poke (type II), and slide (type III). 'Flip' is not a Reidemeister move."
+        },
+        {
+          question: "What is the unknotting number of the trefoil knot?",
+          options: ["0", "1", "2", "3"],
+          correct: 1,
+          explanation: "The unknotting number of the trefoil is 1, meaning it takes exactly one crossing change to transform it into the unknot."
+        },
+        {
+          question: "Which field does NOT commonly use knot theory?",
+          options: ["Quantum field theory", "Molecular biology", "Automotive engineering", "Fluid dynamics"],
+          correct: 2,
+          explanation: "While knot theory has applications in physics, biology, and fluid dynamics, it's not commonly used in automotive engineering."
+        }
+      ];
+      
+      let currentQuestion = 0;
+      let score = 0;
+      
+      const questionText = document.getElementById('question-text');
+      const optionsContainer = document.getElementById('options-container');
+      const nextBtn = document.getElementById('next-btn');
+      const prevBtn = document.getElementById('prev-btn');
+      const currentQuestionDisplay = document.getElementById('current-question');
+      const totalQuestionsDisplay = document.getElementById('total-questions');
+      const progressFill = document.querySelector('.progress-fill');
+      const resultContainer = document.getElementById('result-container');
+      const resultText = document.getElementById('result-text');
+      const explanationText = document.getElementById('explanation-text');
+      const quizContainer = document.getElementById('quiz-container');
+      const quizSummary = document.getElementById('quiz-summary');
+      const scoreDisplay = document.getElementById('score-display');
+      const restartQuizBtn = document.getElementById('restart-quiz');
+      
+      // Initialize quiz
+      totalQuestionsDisplay.textContent = quizData.length;
+      loadQuestion();
+      
+      // Load question function
+      function loadQuestion() {
+        const question = quizData[currentQuestion];
+        questionText.textContent = question.question;
+        
+        optionsContainer.innerHTML = '';
+        question.options.forEach((option, index) => {
+          const optionDiv = document.createElement('div');
+          optionDiv.classList.add('glass-panel', 'p-4', 'quiz-option');
+          optionDiv.dataset.correct = (index === question.correct);
+          optionDiv.innerHTML = `<span>${option}</span>`;
+          
+          optionDiv.addEventListener('click', function() {
+            selectOption(this);
+          });
+          
+          optionsContainer.appendChild(optionDiv);
+        });
+        
+        currentQuestionDisplay.textContent = currentQuestion + 1;
+        progressFill.style.width = `${((currentQuestion + 1) / quizData.length) * 100}%`;
+        
+        // Update button states
+        prevBtn.classList.toggle('opacity-50', currentQuestion === 0);
+        prevBtn.classList.toggle('cursor-not-allowed', currentQuestion === 0);
+        
+        // Hide result container when loading a new question
+        resultContainer.classList.add('hidden');
+      }
+      
+      // Select option function
+      function selectOption(selectedOption) {
+        const options = document.querySelectorAll('.quiz-option');
+        
+        // Disable all options
+        options.forEach(option => {
+          option.style.pointerEvents = 'none';
+          
+          if (option.dataset.correct === 'true') {
+            option.classList.add('correct');
+          }
+        });
+        
+        if (selectedOption.dataset.correct === 'true') {
+          selectedOption.classList.add('correct');
+          resultText.textContent = 'Correct!';
+          resultText.className = 'font-bold horizon-gold';
+          score++;
+        } else {
+          selectedOption.classList.add('incorrect');
+          resultText.textContent = 'Incorrect';
+          resultText.className = 'font-bold horizon-red';
+        }
+        
+        explanationText.textContent = quizData[currentQuestion].explanation;
+        resultContainer.classList.remove('hidden');
+      }
+      
+      // Next button event
+      nextBtn.addEventListener('click', function() {
+        if (currentQuestion < quizData.length - 1) {
+          currentQuestion++;
+          loadQuestion();
+        } else {
+          // End of quiz
+          quizContainer.classList.add('hidden');
+          quizSummary.classList.remove('hidden');
+          scoreDisplay.textContent = `${score}/${quizData.length}`;
+        }
+      });
+      
+      // Previous button event
+      prevBtn.addEventListener('click', function() {
+        if (currentQuestion > 0) {
+          currentQuestion--;
+          loadQuestion();
+        }
+      });
+      
+      // Restart quiz button
+      restartQuizBtn.addEventListener('click', function() {
+        currentQuestion = 0;
+        score = 0;
+        quizSummary.classList.add('hidden');
+        quizContainer.classList.remove('hidden');
+        loadQuestion();
+      });
+    });
+    
+    // Knot Comparison Challenge Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const knotCards = document.querySelectorAll('.knot-card');
+      const checkAnswerBtn = document.getElementById('check-answer');
+      const challengeResult = document.getElementById('challenge-result');
+      const challengeResultText = document.getElementById('challenge-result-text');
+      const challengeExplanation = document.getElementById('challenge-explanation');
+      const nextChallengeBtn = document.getElementById('next-challenge');
+      
+      let selectedKnots = [];
+      
+      // Set up the challenge
+      knotCards.forEach(card => {
+        card.addEventListener('click', function() {
+          // Toggle selection
+          if (this.classList.contains('selected')) {
+            this.classList.remove('selected');
+            selectedKnots = selectedKnots.filter(k => k !== this.dataset.knot);
+          } else {
+            // Only allow selecting 2 knots
+            if (selectedKnots.length < 2) {
+              this.classList.add('selected');
+              selectedKnots.push(this.dataset.knot);
+            }
+          }
+        });
+      });
+      
+      // Check answer
+      checkAnswerBtn.addEventListener('click', function() {
+        if (selectedKnots.length !== 2) {
+          alert('Please select exactly 2 knots to compare.');
+          return;
+        }
+        
+        // In this example, knots A and C are the same (both trefoil knots)
+        const correctPair = ['A', 'C'];
+        const isCorrect = (
+          (selectedKnots.includes(correctPair[0]) && selectedKnots.includes(correctPair[1]))
+        );
+        
+        if (isCorrect) {
+          challengeResultText.textContent = 'Correct! These two knots are equivalent.';
+          challengeResultText.className = 'mb-4 horizon-gold font-bold';
+          challengeExplanation.innerHTML = 'Knots A and C are both representations of the trefoil knot. Despite their different appearances, they can be transformed into each other through a series of Reidemeister moves without cutting the knot.';
+        } else {
+          challengeResultText.textContent = 'Not quite. These knots are not equivalent.';
+          challengeResultText.className = 'mb-4 horizon-red font-bold';
+          
+          if (selectedKnots.includes('A') && selectedKnots.includes('B')) {
+            challengeExplanation.innerHTML = 'Knots A and B are actually mirror images of each other (left and right-handed trefoils). They cannot be transformed into each other without cutting the knot, making them distinct knots.';
+          } else if (selectedKnots.includes('D')) {
+            challengeExplanation.innerHTML = 'Knot D is the Perko pair, which was long thought to be two distinct knots until it was proven in 1974 that they are actually the same knot. However, it is not equivalent to any of the other knots shown here.';
+          } else {
+            challengeExplanation.innerHTML = 'These knots have different topological properties and cannot be transformed into each other without cutting and rejoining the knot.';
+          }
+        }
+        
+        challengeResult.classList.remove('hidden');
+      });
+      
+      // Next challenge
+      nextChallengeBtn.addEventListener('click', function() {
+        // Reset selections
+        selectedKnots = [];
+        knotCards.forEach(card => card.classList.remove('selected'));
+        challengeResult.classList.add('hidden');
+        
+        // In a real implementation, you would load a new set of knots here
+        // For this demo, we'll just alert the user
+        alert('In a full implementation, a new set of knots would be loaded here.');
+      });
+    });
+    
+    // 3D Knot Visualization using Three.js
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize intro knot
+      initKnot('intro-knot', 'trefoil');
+      
+      // Initialize gallery knots
+      initKnot('trefoil-container', 'trefoil');
+      initKnot('unknot-container', 'unknot');
+      initKnot('figure8-container', 'figure8');
+      
+      // Function to initialize a 3D knot visualization
+      function initKnot(containerId, knotType) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        
+        // Initialize scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#030305');
+        
+        // Initialize camera
+        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        camera.position.z = 5;
+        
+        // Initialize renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
+        
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        
+        const light1 = new THREE.DirectionalLight(0xFFD28E, 1);
+        light1.position.set(1, 1, 1);
+        scene.add(light1);
+        
+        const light2 = new THREE.DirectionalLight(0x7F9CBB, 0.5);
+        light2.position.set(-1, -1, -1);
+        scene.add(light2);
+        
+        // Create knot geometry based on type
+        let geometry;
+        switch (knotType) {
+          case 'unknot':
+            geometry = new THREE.TorusGeometry(2, 0.4, 16, 50);
+            break;
+          case 'trefoil':
+            geometry = new THREE.TorusKnotGeometry(2, 0.4, 64, 8, 3, 2);
+            break;
+          case 'figure8':
+            geometry = new THREE.TorusKnotGeometry(2, 0.4, 64, 8, 4, 3);
+            break;
+          default:
+            geometry = new THREE.TorusKnotGeometry(2, 0.4, 64, 8, 3, 2);
+        }
+        
+        // Create material
+        const material = new THREE.MeshStandardMaterial({
+          color: 0x7F9CBB,
+          metalness: 0.3,
+          roughness: 0.5
+        });
+        
+        // Create mesh
+        const knot = new THREE.Mesh(geometry, material);
+        scene.add(knot);
+        
+        // Add OrbitControls for interaction
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        
+        // Animation function
+        function animate() {
+          requestAnimationFrame(animate);
+          knot.rotation.y += 0.005;
+          controls.update();
+          renderer.render(scene, camera);
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+          const newWidth = container.clientWidth;
+          const newHeight = container.clientHeight;
+          
+          camera.aspect = newWidth / newHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(newWidth, newHeight);
+        });
+        
+        // Start animation
+        animate();
+      }
+    });
+  </script>
+</body>
+</html>

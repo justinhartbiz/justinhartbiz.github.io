@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biomimicry in Architecture | Horizon Project</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    :root {
+      --void-black: #030305;
+      --horizon-gold: #FFD28E;
+      --horizon-red: #D66D50;
+      --telemetry-blue: #7F9CBB;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+    
+    body {
+      background-color: var(--void-black);
+      color: white;
+      font-family: 'Playfair Display', serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+    
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Starfield Background */
+    .starfield {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .star {
+      position: absolute;
+      background-color: white;
+      border-radius: 50%;
+      opacity: 0;
+      animation: twinkle var(--duration) ease-in-out infinite;
+      animation-delay: var(--delay);
+    }
+    
+    @keyframes twinkle {
+      0%, 100% { opacity: 0; }
+      50% { opacity: var(--intensity); }
+    }
+    
+    /* Glass Panels */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .glass-panel:hover {
+      border-color: var(--horizon-gold);
+      box-shadow: 0 0 15px rgba(255, 210, 142, 0.2);
+    }
+    
+    /* Navigation Styles */
+    .nav-link {
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--horizon-gold);
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    /* Content Area */
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Color Accents */
+    .horizon-gold {
+      color: var(--horizon-gold);
+    }
+    
+    .horizon-red {
+      color: var(--horizon-red);
+    }
+    
+    .telemetry-blue {
+      color: var(--telemetry-blue);
+    }
+    
+    .efficiency-meter {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .efficiency-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--telemetry-blue), var(--horizon-gold));
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+    
+    /* Comparison Slider */
+    .comparison-container {
+      position: relative;
+      width: 100%;
+      height: 300px;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+    
+    .comparison-before, .comparison-after {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 100%;
+      background-size: cover;
+      background-position: center;
+      transition: all 0.3s ease;
+    }
+    
+    .comparison-after {
+      width: 50%;
+      border-right: 2px solid var(--horizon-gold);
+    }
+    
+    .comparison-slider {
+      position: absolute;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      background-color: var(--horizon-gold);
+      left: 50%;
+      cursor: ew-resize;
+      z-index: 10;
+    }
+    
+    .comparison-slider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      background-color: var(--horizon-gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .comparison-handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--horizon-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: ew-resize;
+      z-index: 11;
+    }
+    
+    /* Interactive Cards */
+    .bio-card {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      transform-style: preserve-3d;
+      perspective: 1000px;
+    }
+    
+    .bio-card:hover {
+      transform: translateY(-10px);
+    }
+    
+    .bio-card.active {
+      border: 2px solid var(--horizon-gold);
+    }
+    
+    /* Detail Sections */
+    .detail-section {
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.5s ease;
+    }
+    
+    .detail-section.visible {
+      opacity: 1;
+      max-height: 2000px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Starfield Background (will be generated by JS) -->
+  <div class="starfield" id="starfield"></div>
+  
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-12 content">
+    <nav class="flex justify-between items-center mb-12">
+      <div class="text-2xl font-bold horizon-gold">HORIZON</div>
+      <div class="flex space-x-8">
+        <a href="#" class="nav-link">Home</a>
+        <a href="#" class="nav-link">Projects</a>
+        <a href="#" class="nav-link">About</a>
+      </div>
+    </nav>
+    
+    <header class="text-center mb-16">
+      <h1 class="text-5xl font-bold mb-4">Biomimicry in <span class="horizon-gold">Architecture</span></h1>
+      <p class="text-xl max-w-3xl mx-auto opacity-75">Exploring how nature's 3.8 billion years of design expertise inspires innovative human structures and systems</p>
+    </header>
+    
+    <!-- Introduction Section -->
+    <section class="glass-panel p-8 mb-16">
+      <div class="flex flex-col md:flex-row gap-8">
+        <div class="md:w-1/2">
+          <h2 class="text-3xl font-bold mb-4">Learning from <span class="horizon-gold">Nature's Genius</span></h2>
+          <p class="mb-4">Biomimicry is the practice of looking to nature for inspiration to solve complex human problems. In architecture, this approach has led to buildings that are not only aesthetically striking but also more efficient, sustainable, and resilient.</p>
+          <p class="mb-4">Nature has been perfecting its designs for billions of years through the process of evolution. By studying these time-tested patterns and strategies, architects and engineers can create structures that work in harmony with the natural world rather than against it.</p>
+          <p class="mono text-sm telemetry-blue mt-8">DATA POINT: Buildings account for nearly 40% of global energy consumption and carbon emissions. Biomimetic designs can reduce energy usage by 20-80%.</p>
+        </div>
+        <div class="md:w-1/2 flex items-center justify-center">
+          <div class="relative">
+            <div class="absolute -top-4 -left-4 w-20 h-20 border-t-2 border-l-2 border-horizon-gold"></div>
+            <img src="https://images.unsplash.com/photo-1518005068251-37900150dfca?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Biomimicry Concept" class="rounded-lg w-full h-auto">
+            <div class="absolute -bottom-4 -right-4 w-20 h-20 border-b-2 border-r-2 border-horizon-gold"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Interactive Exploration Section -->
+    <section class="mb-16">
+      <h2 class="text-3xl font-bold mb-8 text-center">Explore <span class="horizon-gold">Nature-Inspired</span> Designs</h2>
+      
+      <div class="mb-8">
+        <p class="text-center opacity-75 mb-6">Select an example to learn how natural structures have inspired architectural innovations</p>
+        
+        <!-- Card Selection Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12" id="bio-cards">
+          <!-- Card 1: Termite Mounds -->
+          <div class="bio-card glass-panel p-6 active" data-target="termite">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-horizon-gold flex items-center justify-center text-void-black font-bold">01</div>
+              <h3 class="text-xl font-bold ml-4">Termite Mounds</h3>
+            </div>
+            <p class="text-sm opacity-75">Natural ventilation systems that maintain constant temperatures</p>
+            <div class="mt-4 text-right">
+              <span class="text-horizon-gold">→ Explore</span>
+            </div>
+          </div>
+          
+          <!-- Card 2: Lotus Leaf -->
+          <div class="bio-card glass-panel p-6" data-target="lotus">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-telemetry-blue flex items-center justify-center text-void-black font-bold">02</div>
+              <h3 class="text-xl font-bold ml-4">Lotus Leaf</h3>
+            </div>
+            <p class="text-sm opacity-75">Self-cleaning surfaces through microscopic texture</p>
+            <div class="mt-4 text-right">
+              <span class="text-horizon-gold">→ Explore</span>
+            </div>
+          </div>
+          
+          <!-- Card 3: Bird Skulls -->
+          <div class="bio-card glass-panel p-6" data-target="bird">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-horizon-red flex items-center justify-center text-void-black font-bold">03</div>
+              <h3 class="text-xl font-bold ml-4">Bird Skulls</h3>
+            </div>
+            <p class="text-sm opacity-75">Lightweight structures with maximum strength</p>
+            <div class="mt-4 text-right">
+              <span class="text-horizon-gold">→ Explore</span>
+            </div>
+          </div>
+          
+          <!-- Card 4: Spider Silk -->
+          <div class="bio-card glass-panel p-6" data-target="spider">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-horizon-gold flex items-center justify-center text-void-black font-bold">04</div>
+              <h3 class="text-xl font-bold ml-4">Spider Silk</h3>
+            </div>
+            <p class="text-sm opacity-75">Tensile engineering for flexible, strong structures</p>
+            <div class="mt-4 text-right">
+              <span class="text-horizon-gold">→ Explore</span>
+            </div>
+          </div>
+          
+          <!-- Card 5: Honeycomb -->
+          <div class="bio-card glass-panel p-6" data-target="honeycomb">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-telemetry-blue flex items-center justify-center text-void-black font-bold">05</div>
+              <h3 class="text-xl font-bold ml-4">Honeycomb</h3>
+            </div>
+            <p class="text-sm opacity-75">Hexagonal structures for material efficiency</p>
+            <div class="mt-4 text-right">
+              <span class="text-horizon-gold">→ Explore</span>
+            </div>
+          </div>
+          
+          <!-- Card 6: Whale Fins -->
+          <div class="bio-card glass-panel p-6" data-target="whale">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-horizon-red flex items-center justify-center text-void-black font-bold">06</div>
+              <h3 class="text-xl font-bold ml-4">Whale Fins</h3>
+            </div>
+            <p class="text-sm opacity-75">Turbine blade design for efficient energy capture</p>
+            <div class="mt-4 text-right">
+              <span class="text-horizon-gold">→ Explore</span>
+            </div>
+          </div>
+          
+          <!-- Card 7: Cactus Skin -->
+          <div class="bio-card glass-panel p-6" data-target="cactus">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-horizon-gold flex items-center justify-center text-void-black font-bold">07</div>
+              <h3 class="text-xl font-bold ml-4">Cactus Skin</h3>
+            </div>
+            <p class="text-sm opacity-75">Water harvesting and thermal regulation</p>
+            <div class="mt-4 text-right">
+              <span class="text-horizon-gold">→ Explore</span>
+            </div>
+          </div>
+          
+          <!-- Card 8: Nautilus Shell -->
+          <div class="bio-card glass-panel p-6" data-target="nautilus">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-telemetry-blue flex items-center justify-center text-void-black font-bold">08</div>
+              <h3 class="text-xl font-bold ml-4">Nautilus Shell</h3>
+            </div>
+            <p class="text-sm opacity-75">Logarithmic spiral proportions for expansion</p>
+            <div class="mt-4 text-right">
+              <span class="text-horizon-gold">→ Explore</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Detail Sections -->
+        <div class="detail-sections">
+          <!-- Termite Mounds -->
+          <div id="termite-detail" class="detail-section visible glass-panel p-8">
+            <div class="flex flex-col lg:flex-row gap-8">
+              <div class="lg:w-1/2">
+                <h3 class="text-2xl font-bold mb-4">Termite Mounds <span class="horizon-gold">→</span> Eastgate Centre</h3>
+                <p class="mb-4">Termite mounds in Africa maintain a nearly constant internal temperature despite external temperatures varying from near freezing at night to over 100°F during the day. They achieve this through a sophisticated passive ventilation system that continuously moves air throughout the structure.</p>
+                <p class="mb-6">Architect Mick Pearce drew inspiration from these termite mounds when designing the Eastgate Centre in Harare, Zimbabwe. The building uses a similar system of passive cooling and ventilation, requiring no conventional air-conditioning and using only 10% of the energy of comparable conventional buildings.</p>
+                
+                <div class="mb-6">
+                  <h4 class="text-lg font-bold mb-2">Efficiency Metrics</h4>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <p class="mono text-sm mb-1">Energy Savings</p>
+                      <div class="efficiency-meter">
+                        <div class="efficiency-fill" style="width: 90%;"></div>
+                      </div>
+                      <p class="text-right text-sm mono telemetry-blue">90%</p>
+                    </div>
+                    <div>
+                      <p class="mono text-sm mb-1">Cost Reduction</p>
+                      <div class="efficiency-meter">
+                        <div class="efficiency-fill" style="width: 35%;"></div>
+                      </div>
+                      <p class="text-right text-sm mono telemetry-blue">35%</p>
+                    </div>
+                    <div>
+                      <p class="mono text-sm mb-1">Thermal Regulation</p>
+                      <div class="efficiency-meter">
+                        <div class="efficiency-fill" style="width: 85%;"></div>
+                      </div>
+                      <p class="text-right text-sm mono telemetry-blue">85%</p>
+                    </div>
+                    <div>
+                      <p class="mono text-sm mb-1">Carbon Reduction</p>
+                      <div class="efficiency-meter">
+                        <div class="efficiency-fill" style="width: 75%;"></div>
+                      </div>
+                      <p class="text-right text-sm mono telemetry-blue">75%</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="p-4 border border-horizon-gold rounded-lg">
+                  <h4 class="text-lg font-bold mb-2">Key Innovation</h4>
+                  <p>The building uses thermal mass, careful orientation, and a system of stacks that draw cool air in from the bottom and expel hot air from the top, creating a constant flow of fresh air without mechanical assistance.</p>
+                </div>
+              </div>
+              
+              <div class="lg:w-1/2">
+                <div class="comparison-container mb-6">
+                  <div class="comparison-before" style="background-image: url('https://images.unsplash.com/photo-1517149321930-4c6b9c122ed9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                  <div class="comparison-after" style="background-image: url('https://images.unsplash.com/photo-1600607286378-9459c4acbd25?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                  <div class="comparison-slider">
+                    <div class="comparison-handle">
+                      <i data-lucide="move-horizontal" class="w-5 h-5 text-void-black"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span>Termite Mound</span>
+                  <span>Eastgate Centre</span>
+                </div>
+                
+                <div class="mt-8">
+                  <h4 class="text-lg font-bold mb-2">How It Works</h4>
+                  <div class="glass-panel p-4 mb-4">
+                    <div class="flex items-center">
+                      <div class="w-8 h-8 rounded-full bg-horizon-gold flex items-center justify-center text-void-black font-bold mr-3">1</div>
+                      <p>Cool air enters through low-level vents</p>
+                    </div>
+                  </div>
+                  <div class="glass-panel p-4 mb-4">
+                    <div class="flex items-center">
+                      <div class="w-8 h-8 rounded-full bg-horizon-gold flex items-center justify-center text-void-black font-bold mr-3">2</div>
+                      <p>Air is warmed by people and equipment</p>
+                    </div>
+                  </div>
+                  <div class="glass-panel p-4 mb-4">
+                    <div class="flex items-center">
+                      <div class="w-8 h-8 rounded-full bg-horizon-gold flex items-center justify-center text-void-black font-bold mr-3">3</div>
+                      <p>Warm air rises through vertical ducts</p>
+                    </div>
+                  </div>
+                  <div class="glass-panel p-4">
+                    <div class="flex items-center">
+                      <div class="w-8 h-8 rounded-full bg-horizon-gold flex items-center justify-center text-void-black font-bold mr-3">4</div>
+                      <p>Hot air vents through chimneys at the top</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Lotus Leaf -->
+          <div id="lotus-detail" class="detail-section glass-panel p-8">
+            <div class="flex flex-col lg:flex-row gap-8">
+              <div class="lg:w-1/2">
+                <h3 class="text-2xl font-bold mb-4">Lotus Leaf <span class="horizon-gold">→</span> Self-Cleaning Surfaces</h3>
+                <p class="mb-4">The lotus leaf has a remarkable ability to repel water and clean itself. This property, known as the "lotus effect," is due to the leaf's microscopic texture that creates a superhydrophobic surface where water beads up and rolls off, taking dirt particles with it.</p>
+                <p class="mb-6">This natural mechanism has inspired self-cleaning surface technologies in architecture, including special facade coatings, windows, and panels that require minimal maintenance and cleaning.</p>
+                
+                <div class="mb-6">
+                  <h4 class="text-lg font-bold mb-2">Efficiency Metrics</h4>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <p class="mono text-sm mb-1">Maintenance Reduction</p>
+                      <div class="efficiency-meter">
+                        <div class="efficiency-fill" style="width: 80%;"></div>
+                      </div>
+                      <p class="text-right text-sm mono telemetry-blue">80%</p>
+                    </div>
+                    <div>
+                      <p class="mono text-sm mb-1">Water Savings</p>
+                      <div class="efficiency-meter">
+                        <div class="efficiency-fill" style="width: 65%;"></div>
+                      </div>
+                      <p class="text-right text-sm mono telemetry-blue">65%</p>
+                    </div>
+                    <div>
+                      <p class="mono text-sm mb-1">Pollution Resistance</p>
+                      <div class="efficiency-meter">
+                        <div class="efficiency-fill" style="width: 75%;"></div>
+                      </div>
+                      <p class="text-right text-sm mono telemetry-blue">75%</p>
+                    </div>
+                    <div>
+                      <p class="mono text-sm mb-1">Longevity Increase</p>
+                      <div class="efficiency-meter">
+                        <div class="efficiency-fill" style="width: 45%;"></div>
+                      </div>
+                      <p class="text-right text-sm mono telemetry-blue">45%</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="p-4 border border-horizon-gold rounded-lg">
+                  <h4 class="text-lg font-bold mb-2">Key Innovation</h4>
+                  <p>Self-cleaning glass and coatings use nanoscale texturing to create superhydrophobic surfaces that shed water and dirt, significantly reducing cleaning requirements and maintenance costs in buildings.</p>
+                </div>
+              </div>
+              
+              <div class="lg:w-1/2">
+                <div class="comparison-container mb-6">
+                  <div class="comparison-before" style="background-image: url('https://images.unsplash.com/photo-1530968033775-2c92736b131e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                  <div class="comparison-after" style="background-image: url('https://images.unsplash.com/photo-1577985043696-8bd54d9f093f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                  <div class="comparison-slider">
+                    <div class="comparison-handle">
+                      <i data-lucide="move-horizontal" class="w-5 h-5 text-void-black"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span>Lotus Leaf</span>
+                  <span>Self-Cleaning Building</span>
+                </div>
+                
+                <div class="mt-8">
+                  <h4 class="text-lg font-bold mb-2">Applications in Architecture</h4>
+                  <div class="glass-panel p-4 mb-4">
+                    <h5 class="font-bold mb-2 horizon-gold">One World Trade Center, New York</h5>
+                    <p>Uses self-cleaning glass that reduces maintenance costs and keeps the building's exterior pristine.</p>
+                  </div>
+                  <div class="glass-panel p-4 mb-4">
+                    <h5 class="font-bold mb-2 horizon-gold">St. Mary Axe (The Gherkin), London</h5>
+                    <p>Incorporates self-cleaning panels that maintain the building's distinctive appearance with minimal intervention.</p>
+                  </div>
+                  <div class="glass-panel p-4">
+                    <h5 class="font-bold mb-2 horizon-gold">Beijing National Stadium (Bird's Nest)</h5>
+                    <p>Features special coatings that help the complex steel structure resist pollution and stay clean in an urban environment.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Content for other detail sections would go here -->
+          <!-- Bird Skull Section -->
+          <div id="bird-detail" class="detail-section glass-panel p-8">
+            <!-- Similar structure to above detail sections -->
+          </div>
+          
+          <!-- Spider Silk Section -->
+          <div id="spider-detail" class="detail-section glass-panel p-8">
+            <!-- Similar structure to above detail sections -->
+          </div>
+          
+          <!-- Honeycomb Section -->
+          <div id="honeycomb-detail" class="detail-section glass-panel p-8">
+            <!-- Similar structure to above detail sections -->
+          </div>
+          
+          <!-- Whale Fins Section -->
+          <div id="whale-detail" class="detail-section glass-panel p-8">
+            <!-- Similar structure to above detail sections -->
+          </div>
+          
+          <!-- Cactus Skin Section -->
+          <div id="cactus-detail" class="detail-section glass-panel p-8">
+            <!-- Similar structure to above detail sections -->
+          </div>
+          
+          <!-- Nautilus Shell Section -->
+          <div id="nautilus-detail" class="detail-section glass-panel p-8">
+            <!-- Similar structure to above detail sections -->
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Future of Biomimicry Section -->
+    <section class="glass-panel p-8 mb-16">
+      <h2 class="text-3xl font-bold mb-6">The <span class="horizon-gold">Future</span> of Biomimetic Design</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <div class="w-16 h-16 rounded-full bg-telemetry-blue flex items-center justify-center text-void-black font-bold mb-4">01</div>
+          <h3 class="text-xl font-bold mb-3">Responsive Facades</h3>
+          <p>Building skins that adapt like plant leaves to changing light and temperature conditions, optimizing energy performance throughout the day.</p>
+        </div>
+        <div>
+          <div class="w-16 h-16 rounded-full bg-horizon-gold flex items-center justify-center text-void-black font-bold mb-4">02</div>
+          <h3 class="text-xl font-bold mb-3">Living Materials</h3>
+          <p>Engineered materials that can heal themselves, respond to environmental changes, and even grow or adapt over time like biological organisms.</p>
+        </div>
+        <div>
+          <div class="w-16 h-16 rounded-full bg-horizon-red flex items-center justify-center text-void-black font-bold mb-4">03</div>
+          <h3 class="text-xl font-bold mb-3">Urban Ecosystems</h3>
+          <p>Entire cities designed as functional ecosystems that process waste, generate energy, and create closed-loop systems mimicking natural cycles.</p>
+        </div>
+      </div>
+      <div class="mt-8 text-center">
+        <p class="mono text-sm telemetry-blue">SYSTEM PROJECTION: By 2050, over 75% of new construction may incorporate some form of biomimetic design principle.</p>
+      </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="text-center mt-16 pb-8">
+      <p class="mono text-sm opacity-50">© 2026 Horizon Project | Design: Justin Hart</p>
+      <div class="flex justify-center space-x-6 mt-4">
+        <a href="#" class="opacity-50 hover:opacity-100 transition-opacity">
+          <i data-lucide="github" class="w-5 h-5"></i>
+        </a>
+        <a href="#" class="opacity-50 hover:opacity-100 transition-opacity">
+          <i data-lucide="twitter" class="w-5 h-5"></i>
+        </a>
+        <a href="#" class="opacity-50 hover:opacity-100 transition-opacity">
+          <i data-lucide="instagram" class="w-5 h-5"></i>
+        </a>
+      </div>
+    </footer>
+  </div>
+  
+  <!-- Scripts -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+    
+    // Generate Starfield
+    document.addEventListener('DOMContentLoaded', function() {
+      const starfield = document.getElementById('starfield');
+      const starCount = 200;
+      
+      for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.classList.add('star');
+        
+        // Random size between 1px and 3px
+        const size = Math.random() * 2 + 1;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        
+        // Random position
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        
+        // Random animation duration and delay
+        star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
+        star.style.setProperty('--delay', `${Math.random() * 5}s`);
+        star.style.setProperty('--intensity', `${Math.random() * 0.7 + 0.3}`);
+        
+        starfield.appendChild(star);
+      }
+    });
+    
+    // Interactive Bio Cards
+    document.addEventListener('DOMContentLoaded', function() {
+      const bioCards = document.querySelectorAll('.bio-card');
+      const detailSections = document.querySelectorAll('.detail-section');
+      
+      bioCards.forEach(card => {
+        card.addEventListener('click', function() {
+          // Remove active class from all cards
+          bioCards.forEach(c => c.classList.remove('active'));
+          // Add active class to clicked card
+          this.classList.add('active');
+          
+          // Hide all detail sections
+          detailSections.forEach(section => {
+            section.classList.remove('visible');
+          });
+          
+          // Show the corresponding detail section
+          const targetId = this.dataset.target + '-detail';
+          document.getElementById(targetId).classList.add('visible');
+        });
+      });
+    });
+    
+    // Comparison Slider Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const sliders = document.querySelectorAll('.comparison-slider');
+      
+      sliders.forEach(slider => {
+        const container = slider.closest('.comparison-container');
+        const after = container.querySelector('.comparison-after');
+        let isDown = false;
+        
+        // Mouse events
+        slider.addEventListener('mousedown', () => isDown = true);
+        window.addEventListener('mouseup', () => isDown = false);
+        window.addEventListener('mousemove', handleMove);
+        
+        // Touch events
+        slider.addEventListener('touchstart', () => isDown = true);
+        window.addEventListener('touchend', () => isDown = false);
+        window.addEventListener('touchmove', handleTouchMove);
+        
+        function handleMove(e) {
+          if (!isDown) return;
+          e.preventDefault();
+          const containerRect = container.getBoundingClientRect();
+          const x = e.clientX - containerRect.left;
+          updateSliderPosition(x, containerRect.width);
+        }
+        
+        function handleTouchMove(e) {
+          if (!isDown) return;
+          const containerRect = container.getBoundingClientRect();
+          const x = e.touches[0].clientX - containerRect.left;
+          updateSliderPosition(x, containerRect.width);
+        }
+        
+        function updateSliderPosition(x, width) {
+          const percent = Math.min(Math.max(x / width * 100, 0), 100);
+          slider.style.left = `${percent}%`;
+          after.style.width = `${percent}%`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
