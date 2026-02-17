@@ -1,270 +1,1492 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NRSC Creative Expansion Rate — 24 Week Tracker</title>
-<script>
-(function(){
-  const k='db_auth';
-  if(sessionStorage.getItem(k)==='1') return;
-  const p=prompt('Enter password:');
-  if(p!=='donor2026'){document.documentElement.innerHTML='<body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#EEEFF0"><h2 style="color:#0E3358">Access Denied</h2></body>';throw new Error('blocked');}
-  sessionStorage.setItem(k,'1');
-})();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --navy: #0E3358;
-    --gold: #F2AA1F;
-    --blue: #2EA3F2;
-    --light-gray: #EEEFF0;
-    --dark-gray: #30353B;
-    --text: #666666;
-    --text-dark: #333333;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--light-gray); color:var(--text); font-family:'Open Sans',Arial,sans-serif; min-height:100vh; }
-  .header { background:var(--navy); padding:16px 28px; display:flex; align-items:center; gap:16px; }
-  .header img { height:32px; }
-  .header-text { color:#fff; font-family:'Lato',sans-serif; font-size:0.8rem; opacity:0.7; letter-spacing:1px; text-transform:uppercase; }
-  .container { max-width:1100px; margin:0 auto; padding:24px 20px; }
-  h1 { font-family:'Lato',sans-serif; font-size:1.8rem; color:var(--navy); margin-bottom:4px; font-weight:900; }
-  .subtitle { color:var(--text); font-size:0.85rem; margin-bottom:24px; }
-  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
-  .kpi { background:#fff; border-radius:8px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.06); border-top:3px solid var(--navy); }
-  .kpi-label { font-size:0.7rem; color:var(--text); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; font-weight:600; }
-  .kpi-value { font-size:1.8rem; font-weight:900; color:var(--navy); font-family:'Lato',sans-serif; }
-  .kpi-sub { font-size:0.7rem; color:#999; margin-top:4px; }
-  .kpi-value.gold { color:var(--gold); }
-  .kpi-value.green { color:#2ecc71; }
-  .kpi-value.red { color:#e74c3c; }
-  .panel { background:#fff; border-radius:8px; padding:24px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
-  .panel-title { font-family:'Lato',sans-serif; font-size:1.1rem; color:var(--navy); margin-bottom:16px; font-weight:700; border-bottom:2px solid var(--gold); padding-bottom:8px; display:inline-block; }
-  .chart-wrap { position:relative; height:320px; }
-  table { width:100%; border-collapse:collapse; font-size:0.78rem; }
-  th { text-align:left; color:var(--navy); font-size:0.68rem; text-transform:uppercase; letter-spacing:1px; padding:10px 10px; border-bottom:2px solid var(--navy); font-weight:700; }
-  td { padding:9px 10px; border-bottom:1px solid #eee; }
-  tr:hover td { background:rgba(242,170,31,0.06); }
-  .rate-bar { display:inline-block; height:14px; border-radius:3px; background:linear-gradient(90deg,var(--gold),var(--blue)); vertical-align:middle; margin-right:6px; min-width:2px; }
-  .rate-zero { opacity:0.3; }
-  .trend-up { color:#2ecc71; font-weight:700; }
-  .trend-down { color:#e74c3c; font-weight:700; }
-  .annotation { font-size:0.78rem; color:var(--text-dark); background:#fff; border-left:4px solid var(--gold); border-radius:0 8px 8px 0; padding:14px 18px; margin-top:16px; line-height:1.6; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
-  .annotation strong { color:var(--navy); }
-  .footer { text-align:center; padding:20px; font-size:0.7rem; color:#999; }
-  @media(max-width:700px){ .kpi-row{grid-template-columns:repeat(2,1fr);} h1{font-size:1.3rem;} }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NRSC Expansion Rate Dashboard | DonorBureau</title>
+    
+    <!-- Password Protection -->
+    <script>
+    (function(){
+      const k='db_auth';
+      if(sessionStorage.getItem(k)==='1') return;
+      const p=prompt('Enter password:');
+      if(p!=='donor2026'){document.documentElement.innerHTML='<body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#EEEFF0"><h2 style="color:#0E3358">Access Denied</h2></body>';throw new Error('blocked');}
+      sessionStorage.setItem(k,'1');
+    })();
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --navy: #0E3358;
+            --gold: #F2AA1F;
+            --blue: #2EA3F2;
+            --light-gray: #EEEFF0;
+            --white: #FFFFFF;
+            --text: #666666;
+            --dark-text: #333333;
+            --green: #4CAF50;
+            --red: #F44336;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Lato', sans-serif;
+            color: var(--navy);
+            font-weight: 700;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        .header {
+            background-color: var(--navy);
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo img {
+            max-height: 60px;
+        }
+        
+        .header-title {
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            margin: 20px 0;
+            border-bottom: 1px solid #ddd;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 15px 25px;
+            font-family: 'Lato', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--navy);
+            cursor: pointer;
+            position: relative;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .tab-button:hover {
+            background-color: rgba(14, 51, 88, 0.05);
+        }
+        
+        .tab-button.active {
+            color: var(--navy);
+            border-bottom: 3px solid var(--gold);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Cards */
+        .card {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background-color: var(--navy);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-family: 'Lato', sans-serif;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* KPI Section */
+        .kpi-section {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        
+        .kpi-card {
+            flex: 1 1 200px;
+            margin: 10px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .kpi-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        
+        .kpi-value {
+            font-family: 'Lato', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 5px;
+            line-height: 1.2;
+        }
+        
+        .kpi-subtitle {
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            margin: 20px 0;
+            height: 300px;
+        }
+        
+        .chart-container.small {
+            height: 250px;
+        }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        .data-table th {
+            background-color: var(--navy);
+            color: white;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 15px;
+        }
+        
+        .data-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: rgba(14, 51, 88, 0.03);
+        }
+        
+        .data-table tr:hover {
+            background-color: rgba(14, 51, 88, 0.05);
+        }
+        
+        /* Rate Bars */
+        .rate-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .rate-bar {
+            height: 100%;
+            background-color: var(--gold);
+        }
+        
+        /* Trend Indicators */
+        .trend {
+            display: inline-block;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+        
+        .trend-up {
+            color: var(--green);
+        }
+        
+        .trend-down {
+            color: var(--red);
+        }
+        
+        /* Lifecycle Visualization */
+        .lifecycle-flow {
+            display: flex;
+            flex-direction: column;
+            margin: 30px 0;
+        }
+        
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .flow-box {
+            padding: 15px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            position: relative;
+            min-width: 180px;
+        }
+        
+        .flow-box.test {
+            background-color: var(--navy);
+        }
+        
+        .flow-box.expand {
+            background-color: var(--blue);
+        }
+        
+        .flow-box.scale {
+            background-color: var(--gold);
+        }
+        
+        .flow-box.continue {
+            background-color: #4caf50;
+        }
+        
+        .flow-arrow {
+            flex: 1;
+            height: 3px;
+            background-color: #ddd;
+            position: relative;
+            margin: 0 15px;
+        }
+        
+        .flow-arrow:after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: -8.5px;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 10px solid #ddd;
+        }
+        
+        .flow-metrics {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 5px;
+        }
+        
+        /* Responsive Timeline */
+        .lifecycle-timeline {
+            margin: 30px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: var(--navy);
+            color: white;
+            padding: 20px 0;
+            margin-top: 40px;
+            font-size: 0.9rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo img {
+                margin-bottom: 15px;
+            }
+            
+            .kpi-card {
+                flex-basis: 100%;
+                margin: 5px 0;
+            }
+            
+            .tab-button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+            
+            .data-table {
+                font-size: 0.8rem;
+            }
+            
+            .data-table th, .data-table td {
+                padding: 8px 10px;
+            }
+            
+            .flow-step {
+                flex-direction: column;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+                width: 30px;
+                margin: 20px 0;
+            }
+        }
+        
+        /* Expansion Path Visualization */
+        .expansion-path {
+            display: flex;
+            flex-direction: column;
+            margin: 40px 0;
+        }
+        
+        .path-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .path-node {
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .path-node-test {
+            background-color: var(--navy);
+        }
+        
+        .path-node-expand {
+            background-color: var(--blue);
+        }
+        
+        .path-node-scale {
+            background-color: var(--gold);
+        }
+        
+        .path-node-continue {
+            background-color: #4CAF50;
+        }
+        
+        .path-node-final {
+            background-color: var(--navy);
+        }
+        
+        .path-connector {
+            flex: 1;
+            height: 3px;
+            background: linear-gradient(to right, var(--navy), var(--gold));
+            margin: 0 15px;
+            position: relative;
+        }
+        
+        .path-connector:after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: -8px;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 10px solid var(--gold);
+        }
+        
+        .path-metrics {
+            font-size: 0.85rem;
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .path-details {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+        
+        /* Annotations */
+        .annotation {
+            background-color: rgba(46, 163, 242, 0.1);
+            border-left: 4px solid var(--blue);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.9rem;
+        }
+        
+        /* Helper Classes */
+        .text-center {
+            text-align: center;
+        }
+        
+        .mb-10 {
+            margin-bottom: 10px;
+        }
+        
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+        
+        .mt-20 {
+            margin-top: 20px;
+        }
+        
+        .gold {
+            color: var(--gold);
+        }
+        
+        .navy {
+            color: var(--navy);
+        }
+        
+        .blue {
+            color: var(--blue);
+        }
+    </style>
 </head>
 <body>
-<div class="header">
-  <img src="https://donorbureau.sitepreview.co/assets/uploads/sites/627/2020/03/home_03.png" alt="DonorBureau" onerror="this.style.display='none'">
-  <span class="header-text">Creative Analytics</span>
-</div>
-<div class="container">
-  <h1>📈 NRSC Expansion Rate Tracker</h1>
-  <p class="subtitle">24-week creative expansion rate — % of test creatives expanded to D10+ | Updated Feb 17, 2026</p>
-
-  <div class="kpi-row">
-    <div class="kpi">
-      <div class="kpi-label">Total Tested</div>
-      <div class="kpi-value" id="kpi-tested">—</div>
-      <div class="kpi-sub">Unique creatives (24 wks)</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Total Expanded</div>
-      <div class="kpi-value green" id="kpi-expanded">—</div>
-      <div class="kpi-sub">Reached D10 / Millitile</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Overall Rate</div>
-      <div class="kpi-value gold" id="kpi-rate">—</div>
-      <div class="kpi-sub">Expansion %</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Recent 4-Wk Rate</div>
-      <div class="kpi-value" id="kpi-recent">—</div>
-      <div class="kpi-sub" id="kpi-recent-sub">vs prior 4-wk</div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Expansion Rate by Week</div>
-    <div class="chart-wrap"><canvas id="rateChart"></canvas></div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Volume: Tested vs Expanded</div>
-    <div class="chart-wrap"><canvas id="volChart"></canvas></div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Weekly Detail</div>
-    <div style="overflow-x:auto;">
-      <table id="weekTable">
-        <thead><tr><th>Week</th><th>Dates</th><th>Tested</th><th>Expanded</th><th>Rate</th><th>Visual</th><th>Trend</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="annotation">
-    <strong>How to read this:</strong> Each week, NRSC tests new creatives at Decile 9-6. Winners get expanded to D10 or Millitile segments. 
-    The <strong>expansion rate</strong> is the % of creatives that earned expansion — a direct measure of creative quality. 
-    Rising rate = better creative selection. Track this as AI-assisted picks come online.
-  </div>
-</div>
-<div class="footer">DonorBureau Creative Analytics · Powered by Railstote 🦉</div>
-
-<script>
-const DATA = [
-  {week:"W35",dates:"Aug 25–31",tested:10,expanded:7,rate:70.0},
-  {week:"W36",dates:"Sep 1–7",tested:5,expanded:2,rate:40.0},
-  {week:"W37",dates:"Sep 8–14",tested:6,expanded:1,rate:16.7},
-  {week:"W38",dates:"Sep 15–21",tested:6,expanded:2,rate:33.3},
-  {week:"W39",dates:"Sep 22–28",tested:9,expanded:2,rate:22.2},
-  {week:"W40",dates:"Sep 29–Oct 5",tested:10,expanded:2,rate:20.0},
-  {week:"W41",dates:"Oct 6–12",tested:5,expanded:1,rate:20.0},
-  {week:"W42",dates:"Oct 13–19",tested:2,expanded:1,rate:50.0},
-  {week:"W43",dates:"Oct 20–26",tested:8,expanded:3,rate:37.5},
-  {week:"W44",dates:"Oct 27–Nov 2",tested:5,expanded:0,rate:0},
-  {week:"W45",dates:"Nov 3–9",tested:4,expanded:0,rate:0},
-  {week:"W46",dates:"Nov 10–16",tested:10,expanded:0,rate:0},
-  {week:"W47",dates:"Nov 17–23",tested:2,expanded:0,rate:0},
-  {week:"W48",dates:"Nov 24–30",tested:9,expanded:2,rate:22.2},
-  {week:"W49",dates:"Dec 1–7",tested:4,expanded:1,rate:25.0},
-  {week:"W50",dates:"Dec 8–14",tested:5,expanded:1,rate:20.0},
-  {week:"W51",dates:"Dec 15–21",tested:7,expanded:2,rate:28.6},
-  {week:"W52",dates:"Dec 22–28",tested:2,expanded:0,rate:0},
-  {week:"W01",dates:"Dec 29–Jan 4",tested:14,expanded:5,rate:35.7},
-  {week:"W02",dates:"Jan 5–11",tested:4,expanded:3,rate:75.0},
-  {week:"W03",dates:"Jan 12–18",tested:7,expanded:0,rate:0},
-  {week:"W04",dates:"Jan 19–25",tested:6,expanded:0,rate:0},
-  {week:"W05",dates:"Jan 26–Feb 1",tested:10,expanded:3,rate:30.0},
-  {week:"W06",dates:"Feb 2–8",tested:14,expanded:4,rate:28.6},
-  {week:"W07",dates:"Feb 9–15",tested:3,expanded:0,rate:0},
-];
-
-// KPIs
-const totalTested = DATA.reduce((s,d)=>s+d.tested,0);
-const totalExpanded = DATA.reduce((s,d)=>s+d.expanded,0);
-const overallRate = (totalExpanded/totalTested*100).toFixed(1);
-const recent4 = DATA.slice(-4);
-const prior4 = DATA.slice(-8,-4);
-const r4t = recent4.reduce((s,d)=>s+d.tested,0);
-const r4e = recent4.reduce((s,d)=>s+d.expanded,0);
-const r4r = r4t ? (r4e/r4t*100).toFixed(1) : 0;
-const p4t = prior4.reduce((s,d)=>s+d.tested,0);
-const p4e = prior4.reduce((s,d)=>s+d.expanded,0);
-const p4r = p4t ? (p4e/p4t*100).toFixed(1) : 0;
-
-document.getElementById('kpi-tested').textContent = totalTested;
-document.getElementById('kpi-expanded').textContent = totalExpanded;
-document.getElementById('kpi-rate').textContent = overallRate + '%';
-const recentEl = document.getElementById('kpi-recent');
-recentEl.textContent = r4r + '%';
-const diff = (r4r - p4r).toFixed(1);
-recentEl.className = 'kpi-value ' + (diff >= 0 ? 'green' : 'red');
-document.getElementById('kpi-recent-sub').textContent = (diff >= 0 ? '↑' : '↓') + ' ' + Math.abs(diff) + '% vs prior 4-wk (' + p4r + '%)';
-
-// Rate Chart
-new Chart(document.getElementById('rateChart').getContext('2d'), {
-  type: 'line',
-  data: {
-    labels: DATA.map(d=>d.week),
-    datasets: [{
-      label: 'Expansion Rate %',
-      data: DATA.map(d=>d.rate),
-      borderColor: '#F2AA1F',
-      backgroundColor: 'rgba(242,170,31,0.08)',
-      fill: true,
-      tension: 0.3,
-      pointRadius: 5,
-      pointBackgroundColor: DATA.map(d=>d.rate>=30?'#2ecc71':d.rate>0?'#F2AA1F':'#e74c3c'),
-      pointBorderColor: '#fff',
-      pointBorderWidth: 2,
-      borderWidth: 2.5
-    },{
-      label: '4-Wk Moving Avg',
-      data: DATA.map((d,i)=>{
-        if(i<3) return null;
-        const s = DATA.slice(i-3,i+1);
-        const t = s.reduce((a,x)=>a+x.tested,0);
-        const e = s.reduce((a,x)=>a+x.expanded,0);
-        return t ? +(e/t*100).toFixed(1) : 0;
-      }),
-      borderColor: '#2EA3F2',
-      borderDash: [6,4],
-      borderWidth: 2,
-      pointRadius: 0,
-      fill: false,
-      tension: 0.3
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#666', font: { family: 'Open Sans', size: 11 }}}},
-    scales: {
-      y: { beginAtZero: true, max: 80, ticks: { color: '#999', callback: v=>v+'%' }, grid: { color: '#eee' }},
-      x: { ticks: { color: '#999', font: { size: 10 }}, grid: { display: false }}
-    }
-  }
-});
-
-// Volume Chart
-new Chart(document.getElementById('volChart').getContext('2d'), {
-  type: 'bar',
-  data: {
-    labels: DATA.map(d=>d.week),
-    datasets: [{
-      label: 'Tested',
-      data: DATA.map(d=>d.tested),
-      backgroundColor: 'rgba(14,51,88,0.6)',
-      borderColor: '#0E3358',
-      borderWidth: 1,
-      borderRadius: 3
-    },{
-      label: 'Expanded',
-      data: DATA.map(d=>d.expanded),
-      backgroundColor: 'rgba(242,170,31,0.7)',
-      borderColor: '#F2AA1F',
-      borderWidth: 1,
-      borderRadius: 3
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#666', font: { family: 'Open Sans', size: 11 }}}},
-    scales: {
-      y: { beginAtZero: true, ticks: { color: '#999' }, grid: { color: '#eee' }},
-      x: { ticks: { color: '#999', font: { size: 10 }}, grid: { display: false }}
-    }
-  }
-});
-
-// Table
-const tbody = document.querySelector('#weekTable tbody');
-DATA.forEach((d,i) => {
-  const prev = i > 0 ? DATA[i-1].rate : null;
-  let trend = '';
-  if(prev !== null) {
-    const delta = d.rate - prev;
-    if(delta > 5) trend = '<span class="trend-up">▲ +' + delta.toFixed(0) + '</span>';
-    else if(delta < -5) trend = '<span class="trend-down">▼ ' + delta.toFixed(0) + '</span>';
-    else trend = '<span style="color:#ccc">—</span>';
-  }
-  const barW = Math.max(d.rate * 1.2, d.rate > 0 ? 3 : 0);
-  tbody.innerHTML += '<tr>' +
-    '<td style="color:#0E3358;font-weight:700">' + d.week + '</td>' +
-    '<td>' + d.dates + '</td>' +
-    '<td>' + d.tested + '</td>' +
-    '<td style="color:' + (d.expanded?'#2ecc71':'#ccc') + ';font-weight:700">' + d.expanded + '</td>' +
-    '<td class="' + (d.rate===0?'rate-zero':'') + '">' + d.rate.toFixed(1) + '%</td>' +
-    '<td><span class="rate-bar" style="width:' + barW + 'px"></span></td>' +
-    '<td>' + trend + '</td></tr>';
-});
-</script>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <img src="https://donorbureau.sitepreview.co/assets/uploads/sites/627/2020/03/home_03.png" alt="DonorBureau Logo">
+            </div>
+            <h1 class="header-title">NRSC Expansion Rate Dashboard</h1>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-button active" data-tab="tab1">Expansion Rate</button>
+            <button class="tab-button" data-tab="tab2">Home Runs</button>
+            <button class="tab-button" data-tab="tab3">🏠 Cr-2166SMS Lifecycle</button>
+        </div>
+        
+        <!-- Tab 1: Expansion Rate -->
+        <div id="tab1" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    NRSC Weekly Expansion Rate
+                </div>
+                <div class="card-body">
+                    <!-- KPIs -->
+                    <div class="kpi-section">
+                        <div class="kpi-card">
+                            <div class="kpi-title">Total Tested</div>
+                            <div class="kpi-value" id="total-tested">156</div>
+                            <div class="kpi-subtitle">Creatives</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Total Expanded</div>
+                            <div class="kpi-value" id="total-expanded">40</div>
+                            <div class="kpi-subtitle">Creatives</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Overall Rate</div>
+                            <div class="kpi-value" id="overall-rate">25.6%</div>
+                            <div class="kpi-subtitle">Expansion Rate</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Recent 4-Wk Rate</div>
+                            <div class="kpi-value" id="recent-rate">22.6%</div>
+                            <div class="kpi-subtitle">Last 4 Weeks</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Expansion Rate Chart -->
+                    <div class="chart-container">
+                        <canvas id="expansionRateChart"></canvas>
+                    </div>
+                    
+                    <!-- Volume Chart -->
+                    <div class="chart-container">
+                        <canvas id="volumeChart"></canvas>
+                    </div>
+                    
+                    <!-- Weekly Data Table -->
+                    <h3 class="mb-10">Weekly Expansion Details</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="expansion-table">
+                            <thead>
+                                <tr>
+                                    <th>Week</th>
+                                    <th>Date Range</th>
+                                    <th>Tested</th>
+                                    <th>Expanded</th>
+                                    <th>Rate</th>
+                                    <th>Rate Visual</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table rows will be added via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab 2: Home Runs -->
+        <div id="tab2" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    NRSC Home Run Rate
+                </div>
+                <div class="card-body">
+                    <!-- Home Run KPIs -->
+                    <div class="kpi-section">
+                        <div class="kpi-card">
+                            <div class="kpi-title">Total Tested</div>
+                            <div class="kpi-value" id="hr-total-tested">156</div>
+                            <div class="kpi-subtitle">Creatives</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Total Home Runs</div>
+                            <div class="kpi-value" id="total-home-runs">16</div>
+                            <div class="kpi-subtitle">Creatives</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Home Run Rate</div>
+                            <div class="kpi-value" id="hr-overall-rate">10.3%</div>
+                            <div class="kpi-subtitle">Overall</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Recent 4-Wk Rate</div>
+                            <div class="kpi-value" id="hr-recent-rate">9.7%</div>
+                            <div class="kpi-subtitle">Last 4 Weeks</div>
+                        </div>
+                    </div>
+                    
+                    <div class="annotation">
+                        <strong>What is a Home Run?</strong> A Home Run is a creative that breaks through from test segments to DB Responders — the highest-value audience.
+                    </div>
+                    
+                    <!-- Home Run Chart -->
+                    <div class="chart-container">
+                        <canvas id="homeRunRateChart"></canvas>
+                    </div>
+                    
+                    <!-- Home Run Volume Chart -->
+                    <div class="chart-container">
+                        <canvas id="hrVolumeChart"></canvas>
+                    </div>
+                    
+                    <!-- Weekly Data Table -->
+                    <h3 class="mb-10">Weekly Home Run Details</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="home-run-table">
+                            <thead>
+                                <tr>
+                                    <th>Week</th>
+                                    <th>Date Range</th>
+                                    <th>Tested</th>
+                                    <th>Home Runs</th>
+                                    <th>Rate</th>
+                                    <th>Rate Visual</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table rows will be added via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab 3: Cr-2166SMS Lifecycle -->
+        <div id="tab3" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    Creative Cr-2166SMS Lifecycle Analysis
+                </div>
+                <div class="card-body">
+                    <!-- Lifecycle KPIs -->
+                    <div class="kpi-section">
+                        <div class="kpi-card">
+                            <div class="kpi-title">Total Sends</div>
+                            <div class="kpi-value">1.23M</div>
+                            <div class="kpi-subtitle">Recipients</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Total Donors</div>
+                            <div class="kpi-value">630</div>
+                            <div class="kpi-subtitle">Conversions</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Total Revenue</div>
+                            <div class="kpi-value">$30.3K</div>
+                            <div class="kpi-subtitle">Gross</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Revenue per 1K</div>
+                            <div class="kpi-value">$24.68</div>
+                            <div class="kpi-subtitle">Yield</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Days Active</div>
+                            <div class="kpi-value">14</div>
+                            <div class="kpi-subtitle">Campaign Length</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Lists Reached</div>
+                            <div class="kpi-value">5</div>
+                            <div class="kpi-subtitle">Audience Segments</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Timeline Chart -->
+                    <div class="chart-container">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                    
+                    <!-- Expansion Path Visualization -->
+                    <h3 class="mb-20">Cr-2166SMS Expansion Journey</h3>
+                    <div class="expansion-path">
+                        <div class="path-step">
+                            <div class="path-node path-node-test">
+                                <div>Feb 3: Initial Test</div>
+                                <div class="path-metrics">4,957 sends | D9-6 DB Donors</div>
+                                <div class="path-details">3 donors | $239 | $48.21 per 1K</div>
+                            </div>
+                            <div class="path-connector"></div>
+                            <div class="path-node path-node-expand">
+                                <div>Feb 4: Early Expansion</div>
+                                <div class="path-metrics">97,159 sends | Multiple Lists</div>
+                                <div class="path-details">96 donors | $5,308 | $54.63 per 1K</div>
+                            </div>
+                        </div>
+                        
+                        <div class="path-step">
+                            <div class="path-node path-node-expand">
+                                <div>Feb 4: Early Expansion</div>
+                                <div class="path-metrics">97,159 sends | Multiple Lists</div>
+                                <div class="path-details">96 donors | $5,308 | $54.63 per 1K</div>
+                            </div>
+                            <div class="path-connector"></div>
+                            <div class="path-node path-node-scale">
+                                <div>Feb 5: Full Scale</div>
+                                <div class="path-metrics">251,225 sends | All Deciles + L2</div>
+                                <div class="path-details">91 donors | $4,552 | $18.12 per 1K</div>
+                            </div>
+                        </div>
+                        
+                        <div class="path-step">
+                            <div class="path-node path-node-scale">
+                                <div>Feb 5: Full Scale</div>
+                                <div class="path-metrics">251,225 sends | All Deciles + L2</div>
+                                <div class="path-details">91 donors | $4,552 | $18.12 per 1K</div>
+                            </div>
+                            <div class="path-connector"></div>
+                            <div class="path-node path-node-continue">
+                                <div>Feb 6-15: Continued Rollout</div>
+                                <div class="path-metrics">168,593 sends | All Segments</div>
+                                <div class="path-details">42 donors | $1,792 | $10.63 per 1K</div>
+                            </div>
+                        </div>
+                        
+                        <div class="path-step">
+                            <div class="path-node path-node-continue">
+                                <div>Feb 6-15: Continued Rollout</div>
+                                <div class="path-metrics">168,593 sends | All Segments</div>
+                                <div class="path-details">42 donors | $1,792 | $10.63 per 1K</div>
+                            </div>
+                            <div class="path-connector"></div>
+                            <div class="path-node path-node-final">
+                                <div>Feb 16: Final Sends</div>
+                                <div class="path-metrics">60,524 sends | Key Segments</div>
+                                <div class="path-details">46 donors | $1,588 | $26.24 per 1K</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Send Details Table -->
+                    <h3 class="mb-10">Detailed Send Performance</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="lifecycle-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>List</th>
+                                    <th>Scoring</th>
+                                    <th>Sent</th>
+                                    <th>Donors</th>
+                                    <th>Donated</th>
+                                    <th>Est Revenue</th>
+                                    <th>Yield/1K</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table rows will be added via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            DonorBureau Creative Analytics · Powered by Railstote 🦉
+        </div>
+    </footer>
+    
+    <script>
+        // Tab Switching
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Expansion Rate Data (Tab 1)
+            const expansionData = [
+                { week: 'W35', dateRange: 'Aug25-31', tested: 10, expanded: 7, rate: 70.0 },
+                { week: 'W36', dateRange: 'Sep1-7', tested: 5, expanded: 2, rate: 40.0 },
+                { week: 'W37', dateRange: 'Sep8-14', tested: 6, expanded: 1, rate: 16.7 },
+                { week: 'W38', dateRange: 'Sep15-21', tested: 6, expanded: 2, rate: 33.3 },
+                { week: 'W39', dateRange: 'Sep22-28', tested: 9, expanded: 2, rate: 22.2 },
+                { week: 'W40', dateRange: 'Sep29-Oct5', tested: 10, expanded: 2, rate: 20.0 },
+                { week: 'W41', dateRange: 'Oct6-12', tested: 5, expanded: 1, rate: 20.0 },
+                { week: 'W42', dateRange: 'Oct13-19', tested: 2, expanded: 1, rate: 50.0 },
+                { week: 'W43', dateRange: 'Oct20-26', tested: 8, expanded: 3, rate: 37.5 },
+                { week: 'W44', dateRange: 'Oct27-Nov2', tested: 5, expanded: 0, rate: 0 },
+                { week: 'W45', dateRange: 'Nov3-9', tested: 4, expanded: 0, rate: 0 },
+                { week: 'W46', dateRange: 'Nov10-16', tested: 10, expanded: 0, rate: 0 },
+                { week: 'W47', dateRange: 'Nov17-23', tested: 2, expanded: 0, rate: 0 },
+                { week: 'W48', dateRange: 'Nov24-30', tested: 9, expanded: 2, rate: 22.2 },
+                { week: 'W49', dateRange: 'Dec1-7', tested: 4, expanded: 1, rate: 25.0 },
+                { week: 'W50', dateRange: 'Dec8-14', tested: 5, expanded: 1, rate: 20.0 },
+                { week: 'W51', dateRange: 'Dec15-21', tested: 7, expanded: 2, rate: 28.6 },
+                { week: 'W52', dateRange: 'Dec22-28', tested: 2, expanded: 0, rate: 0 },
+                { week: 'W01', dateRange: 'Dec29-Jan4', tested: 14, expanded: 5, rate: 35.7 },
+                { week: 'W02', dateRange: 'Jan5-11', tested: 4, expanded: 3, rate: 75.0 },
+                { week: 'W03', dateRange: 'Jan12-18', tested: 7, expanded: 0, rate: 0 },
+                { week: 'W04', dateRange: 'Jan19-25', tested: 6, expanded: 0, rate: 0 },
+                { week: 'W05', dateRange: 'Jan26-Feb1', tested: 10, expanded: 3, rate: 30.0 },
+                { week: 'W06', dateRange: 'Feb2-8', tested: 14, expanded: 4, rate: 28.6 },
+                { week: 'W07', dateRange: 'Feb9-15', tested: 3, expanded: 0, rate: 0 }
+            ];
+            
+            // Home Run Data (Tab 2)
+            const homeRunData = [
+                { week: 'W35', dateRange: 'Aug25-31', tested: 10, homeRuns: 3, rate: 30.0 },
+                { week: 'W36', dateRange: 'Sep1-7', tested: 5, homeRuns: 1, rate: 20.0 },
+                { week: 'W37', dateRange: 'Sep8-14', tested: 6, homeRuns: 0, rate: 0 },
+                { week: 'W38', dateRange: 'Sep15-21', tested: 6, homeRuns: 1, rate: 16.7 },
+                { week: 'W39', dateRange: 'Sep22-28', tested: 9, homeRuns: 1, rate: 11.1 },
+                { week: 'W40', dateRange: 'Sep29-Oct5', tested: 10, homeRuns: 1, rate: 10.0 },
+                { week: 'W41', dateRange: 'Oct6-12', tested: 5, homeRuns: 0, rate: 0 },
+                { week: 'W42', dateRange: 'Oct13-19', tested: 2, homeRuns: 0, rate: 0 },
+                { week: 'W43', dateRange: 'Oct20-26', tested: 8, homeRuns: 1, rate: 12.5 },
+                { week: 'W44', dateRange: 'Oct27-Nov2', tested: 5, homeRuns: 0, rate: 0 },
+                { week: 'W45', dateRange: 'Nov3-9', tested: 4, homeRuns: 0, rate: 0 },
+                { week: 'W46', dateRange: 'Nov10-16', tested: 10, homeRuns: 0, rate: 0 },
+                { week: 'W47', dateRange: 'Nov17-23', tested: 2, homeRuns: 0, rate: 0 },
+                { week: 'W48', dateRange: 'Nov24-30', tested: 9, homeRuns: 1, rate: 11.1 },
+                { week: 'W49', dateRange: 'Dec1-7', tested: 4, homeRuns: 0, rate: 0 },
+                { week: 'W50', dateRange: 'Dec8-14', tested: 5, homeRuns: 0, rate: 0 },
+                { week: 'W51', dateRange: 'Dec15-21', tested: 7, homeRuns: 1, rate: 14.3 },
+                { week: 'W52', dateRange: 'Dec22-28', tested: 2, homeRuns: 0, rate: 0 },
+                { week: 'W01', dateRange: 'Dec29-Jan4', tested: 14, homeRuns: 2, rate: 14.3 },
+                { week: 'W02', dateRange: 'Jan5-11', tested: 4, homeRuns: 1, rate: 25.0 },
+                { week: 'W03', dateRange: 'Jan12-18', tested: 7, homeRuns: 0, rate: 0 },
+                { week: 'W04', dateRange: 'Jan19-25', tested: 6, homeRuns: 0, rate: 0 },
+                { week: 'W05', dateRange: 'Jan26-Feb1', tested: 10, homeRuns: 1, rate: 10.0 },
+                { week: 'W06', dateRange: 'Feb2-8', tested: 14, homeRuns: 2, rate: 14.3 },
+                { week: 'W07', dateRange: 'Feb9-15', tested: 3, homeRuns: 0, rate: 0 }
+            ];
+            
+            // Lifecycle Data (Tab 3)
+            const lifecycleData = [
+                { date: '2026-02-03', list: 'DB Donors', scoring: 'D9-6', sent: 4957, donors: 3, donated: 239, revenue: 227, yield: 45.8 },
+                { date: '2026-02-04', list: 'DB Responders', scoring: 'D9', sent: 5998, donors: 0, donated: 0, revenue: 0, yield: 0 },
+                { date: '2026-02-04', list: 'DB Responders', scoring: 'D10', sent: 19926, donors: 7, donated: 547, revenue: 520, yield: 26.1 },
+                { date: '2026-02-04', list: 'DigitalDonors', scoring: 'D9', sent: 5001, donors: 2, donated: 20, revenue: 19, yield: 3.8 },
+                { date: '2026-02-04', list: 'DigitalDonors', scoring: 'D10', sent: 29594, donors: 15, donated: 793, revenue: 753, yield: 25.4 },
+                { date: '2026-02-04', list: 'DigitalDonors', scoring: 'D10', sent: 4953, donors: 4, donated: 174, revenue: 165, yield: 33.3 },
+                { date: '2026-02-04', list: 'DB Responders', scoring: 'D10', sent: 5983, donors: 2, donated: 136, revenue: 129, yield: 21.6 },
+                { date: '2026-02-04', list: 'DB Donors', scoring: 'D9', sent: 4945, donors: 4, donated: 303, revenue: 288, yield: 58.2 },
+                { date: '2026-02-04', list: 'DB Donors', scoring: 'D10', sent: 21869, donors: 49, donated: 2633, revenue: 2502, yield: 114.4 },
+                { date: '2026-02-04', list: 'DB Donors', scoring: 'D10', sent: 4890, donors: 13, donated: 501, revenue: 476, yield: 97.3 },
+                { date: '2026-02-05', list: 'L2 Right Leaning', scoring: 'M1000-951', sent: 19995, donors: 3, donated: 260, revenue: 247, yield: 12.4 },
+                { date: '2026-02-05', list: 'L2', scoring: 'M950-901', sent: 6002, donors: 1, donated: 52, revenue: 49, yield: 8.2 },
+                { date: '2026-02-05', list: 'DB Donors', scoring: 'D7', sent: 23586, donors: 15, donated: 1408, revenue: 1338, yield: 56.7 },
+                { date: '2026-02-05', list: 'DB Donors', scoring: 'D8', sent: 24934, donors: 7, donated: 230, revenue: 219, yield: 8.8 },
+                { date: '2026-02-05', list: 'L2 Right Leaning', scoring: 'M1000-951', sent: 6010, donors: 2, donated: 156, revenue: 148, yield: 24.6 },
+                { date: '2026-02-05', list: 'DigitalDonors', scoring: 'D8', sent: 4994, donors: 0, donated: 0, revenue: 0, yield: 0 },
+                { date: '2026-02-05', list: 'DigitalDonors', scoring: 'D9', sent: 32664, donors: 26, donated: 930, revenue: 884, yield: 27.1 },
+                { date: '2026-02-05', list: 'DB Responders', scoring: 'D8', sent: 5985, donors: 1, donated: 78, revenue: 74, yield: 12.4 },
+                { date: '2026-02-05', list: 'DB Responders', scoring: 'D9', sent: 5982, donors: 0, donated: 0, revenue: 0, yield: 0 },
+                { date: '2026-02-05', list: 'DB Responders', scoring: 'D10', sent: 59778, donors: 17, donated: 731, revenue: 694, yield: 11.6 },
+                { date: '2026-02-05', list: 'DB Donors', scoring: 'D6', sent: 4940, donors: 0, donated: 0, revenue: 0, yield: 0 },
+                { date: '2026-02-05', list: 'DB Donors', scoring: 'D7', sent: 4949, donors: 4, donated: 135, revenue: 128, yield: 25.9 },
+                { date: '2026-02-05', list: 'DB Donors', scoring: 'D9', sent: 26467, donors: 11, donated: 447, revenue: 425, yield: 16.1 },
+                { date: '2026-02-05', list: 'DB Donors', scoring: 'D8', sent: 4939, donors: 3, donated: 125, revenue: 119, yield: 24.1 },
+                { date: '2026-02-06', list: 'L2 Right Leaning', scoring: 'M1000-951', sent: 19988, donors: 2, donated: 104, revenue: 99, yield: 5.0 },
+                { date: '2026-02-06', list: 'DigitalDonors', scoring: 'D8', sent: 4998, donors: 3, donated: 146, revenue: 139, yield: 27.8 },
+                { date: '2026-02-06', list: 'DB Donors', scoring: 'D5', sent: 4968, donors: 2, donated: 25, revenue: 24, yield: 4.8 },
+                { date: '2026-02-06', list: 'DB Donors', scoring: 'D6', sent: 24806, donors: 8, donated: 412, revenue: 391, yield: 15.8 },
+                { date: '2026-02-09', list: 'DigitalDonors', scoring: 'D7', sent: 5000, donors: 1, donated: 100, revenue: 95, yield: 19.0 },
+                { date: '2026-02-09', list: 'DigitalDonors', scoring: 'D8', sent: 23745, donors: 12, donated: 415, revenue: 394, yield: 16.6 },
+                { date: '2026-02-09', list: 'DB Responders', scoring: 'D10', sent: 59758, donors: 11, donated: 617, revenue: 586, yield: 9.8 },
+                { date: '2026-02-10', list: 'DigitalDonors', scoring: 'D6', sent: 4995, donors: 1, donated: 104, revenue: 99, yield: 19.8 },
+                { date: '2026-02-10', list: 'DigitalDonors', scoring: 'D7', sent: 28161, donors: 12, donated: 758, revenue: 720, yield: 25.6 },
+                { date: '2026-02-11', list: 'DB Donors', scoring: 'D10', sent: 4888, donors: 13, donated: 352, revenue: 334, yield: 68.3 },
+                { date: '2026-02-11', list: 'DigitalDonors', scoring: 'D5', sent: 4996, donors: 2, donated: 11, revenue: 10, yield: 2.0 },
+                { date: '2026-02-11', list: 'DigitalDonors', scoring: 'D6', sent: 26842, donors: 13, donated: 595, revenue: 565, yield: 21.0 },
+                { date: '2026-02-16', list: 'DB Responders', scoring: 'D9', sent: 5993, donors: 0, donated: 0, revenue: 0, yield: 0 },
+                { date: '2026-02-16', list: 'DB Responders', scoring: 'D10', sent: 19915, donors: 2, donated: 135, revenue: 128, yield: 6.4 },
+                { date: '2026-02-16', list: 'DigitalDonors', scoring: 'D10', sent: 4968, donors: 0, donated: 0, revenue: 0, yield: 0 },
+                { date: '2026-02-16', list: 'DB Responders', scoring: 'D10', sent: 5989, donors: 1, donated: 100, revenue: 95, yield: 15.9 },
+                { date: '2026-02-16', list: 'DB Donors', scoring: 'D9', sent: 4935, donors: 5, donated: 199, revenue: 189, yield: 38.3 },
+                { date: '2026-02-16', list: 'DB Donors', scoring: 'D10', sent: 18724, donors: 38, donated: 1154, revenue: 1096, yield: 58.5 }
+            ];
+            
+            // Calculate and update KPIs for Tab 1
+            const calculateExpansionKPIs = () => {
+                let totalTested = 0;
+                let totalExpanded = 0;
+                
+                expansionData.forEach(week => {
+                    totalTested += week.tested;
+                    totalExpanded += week.expanded;
+                });
+                
+                const overallRate = (totalExpanded / totalTested) * 100;
+                
+                // Recent 4 weeks
+                const recent4Weeks = expansionData.slice(-4);
+                let recent4Tested = 0;
+                let recent4Expanded = 0;
+                
+                recent4Weeks.forEach(week => {
+                    recent4Tested += week.tested;
+                    recent4Expanded += week.expanded;
+                });
+                
+                const recent4Rate = (recent4Expanded / recent4Tested) * 100;
+                
+                // Update KPI values
+                document.getElementById('total-tested').textContent = totalTested;
+                document.getElementById('total-expanded').textContent = totalExpanded;
+                document.getElementById('overall-rate').textContent = overallRate.toFixed(1) + '%';
+                document.getElementById('recent-rate').textContent = recent4Rate.toFixed(1) + '%';
+            };
+            
+            // Calculate and update KPIs for Tab 2
+            const calculateHomeRunKPIs = () => {
+                let totalTested = 0;
+                let totalHomeRuns = 0;
+                
+                homeRunData.forEach(week => {
+                    totalTested += week.tested;
+                    totalHomeRuns += week.homeRuns;
+                });
+                
+                const overallRate = (totalHomeRuns / totalTested) * 100;
+                
+                // Recent 4 weeks
+                const recent4Weeks = homeRunData.slice(-4);
+                let recent4Tested = 0;
+                let recent4HomeRuns = 0;
+                
+                recent4Weeks.forEach(week => {
+                    recent4Tested += week.tested;
+                    recent4HomeRuns += week.homeRuns;
+                });
+                
+                const recent4Rate = (recent4HomeRuns / recent4Tested) * 100;
+                
+                // Update KPI values
+                document.getElementById('hr-total-tested').textContent = totalTested;
+                document.getElementById('total-home-runs').textContent = totalHomeRuns;
+                document.getElementById('hr-overall-rate').textContent = overallRate.toFixed(1) + '%';
+                document.getElementById('hr-recent-rate').textContent = recent4Rate.toFixed(1) + '%';
+            };
+            
+            // Calculate KPIs
+            calculateExpansionKPIs();
+            calculateHomeRunKPIs();
+            
+            // Populate tables
+            const populateExpansionTable = () => {
+                const tableBody = document.querySelector('#expansion-table tbody');
+                tableBody.innerHTML = '';
+                
+                // Add rows in reverse order (newest first)
+                [...expansionData].reverse().forEach((week, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // Calculate trend (compare with previous week)
+                    let trend = '';
+                    if (index < expansionData.length - 1) {
+                        const prevWeek = [...expansionData].reverse()[index + 1];
+                        if (week.rate > prevWeek.rate) {
+                            trend = '<span class="trend trend-up">↑</span>';
+                        } else if (week.rate < prevWeek.rate) {
+                            trend = '<span class="trend trend-down">↓</span>';
+                        }
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${week.week}</td>
+                        <td>${week.dateRange}</td>
+                        <td>${week.tested}</td>
+                        <td>${week.expanded}</td>
+                        <td>${week.rate.toFixed(1)}%</td>
+                        <td>
+                            <div class="rate-bar-container">
+                                <div class="rate-bar" style="width: ${Math.min(100, week.rate)}%"></div>
+                            </div>
+                        </td>
+                        <td>${trend}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            };
+            
+            const populateHomeRunTable = () => {
+                const tableBody = document.querySelector('#home-run-table tbody');
+                tableBody.innerHTML = '';
+                
+                // Add rows in reverse order (newest first)
+                [...homeRunData].reverse().forEach((week, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // Calculate trend (compare with previous week)
+                    let trend = '';
+                    if (index < homeRunData.length - 1) {
+                        const prevWeek = [...homeRunData].reverse()[index + 1];
+                        if (week.rate > prevWeek.rate) {
+                            trend = '<span class="trend trend-up">↑</span>';
+                        } else if (week.rate < prevWeek.rate) {
+                            trend = '<span class="trend trend-down">↓</span>';
+                        }
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${week.week}</td>
+                        <td>${week.dateRange}</td>
+                        <td>${week.tested}</td>
+                        <td>${week.homeRuns}</td>
+                        <td>${week.rate.toFixed(1)}%</td>
+                        <td>
+                            <div class="rate-bar-container">
+                                <div class="rate-bar" style="width: ${Math.min(100, week.rate)}%"></div>
+                            </div>
+                        </td>
+                        <td>${trend}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            };
+            
+            const populateLifecycleTable = () => {
+                const tableBody = document.querySelector('#lifecycle-table tbody');
+                tableBody.innerHTML = '';
+                
+                // Sort by date (newest first)
+                [...lifecycleData].sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(item => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${item.date}</td>
+                        <td>${item.list}</td>
+                        <td>${item.scoring}</td>
+                        <td>${item.sent.toLocaleString()}</td>
+                        <td>${item.donors}</td>
+                        <td>$${item.donated}</td>
+                        <td>$${item.revenue}</td>
+                        <td>$${item.yield.toFixed(2)}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            };
+            
+            // Populate tables
+            populateExpansionTable();
+            populateHomeRunTable();
+            populateLifecycleTable();
+            
+            // Render Charts
+            const renderExpansionRateChart = () => {
+                const ctx = document.getElementById('expansionRateChart').getContext('2d');
+                
+                // Prepare data
+                const labels = expansionData.map(item => item.week);
+                const rates = expansionData.map(item => item.rate);
+                
+                // Calculate 4-week moving average
+                const movingAvg = rates.map((rate, i) => {
+                    if (i < 3) return null;
+                    const avg = (rates[i] + rates[i-1] + rates[i-2] + rates[i-3]) / 4;
+                    return avg;
+                });
+                
+                // Create chart
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Weekly Rate',
+                                data: rates,
+                                borderColor: '#F2AA1F',
+                                backgroundColor: 'rgba(242, 170, 31, 0.2)',
+                                tension: 0.3,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#F2AA1F'
+                            },
+                            {
+                                label: '4-Week Moving Avg',
+                                data: movingAvg,
+                                borderColor: '#2EA3F2',
+                                backgroundColor: 'transparent',
+                                borderDash: [5, 5],
+                                tension: 0.3,
+                                pointRadius: 0
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Weekly Expansion Rate',
+                                font: {
+                                    family: 'Lato',
+                                    size: 16
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Rate (%)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            
+            const renderVolumeChart = () => {
+                const ctx = document.getElementById('volumeChart').getContext('2d');
+                
+                // Prepare data
+                const labels = expansionData.map(item => item.week);
+                const tested = expansionData.map(item => item.tested);
+                const expanded = expansionData.map(item => item.expanded);
+                
+                // Create chart
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Tested',
+                                data: tested,
+                                backgroundColor: '#0E3358',
+                                order: 1
+                            },
+                            {
+                                label: 'Expanded',
+                                data: expanded,
+                                backgroundColor: '#F2AA1F',
+                                order: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Weekly Test vs Expansion Volume',
+                                font: {
+                                    family: 'Lato',
+                                    size: 16
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Creatives'
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            
+            const renderHomeRunRateChart = () => {
+                const ctx = document.getElementById('homeRunRateChart').getContext('2d');
+                
+                // Prepare data
+                const labels = homeRunData.map(item => item.week);
+                const rates = homeRunData.map(item => item.rate);
+                
+                // Calculate 4-week moving average
+                const movingAvg = rates.map((rate, i) => {
+                    if (i < 3) return null;
+                    const avg = (rates[i] + rates[i-1] + rates[i-2] + rates[i-3]) / 4;
+                    return avg;
+                });
+                
+                // Create chart
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Weekly Rate',
+                                data: rates,
+                                borderColor: '#2EA3F2',
+                                backgroundColor: 'rgba(46, 163, 242, 0.2)',
+                                tension: 0.3,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#2EA3F2'
+                            },
+                            {
+                                label: '4-Week Moving Avg',
+                                data: movingAvg,
+                                borderColor: '#0E3358',
+                                backgroundColor: 'transparent',
+                                borderDash: [5, 5],
+                                tension: 0.3,
+                                pointRadius: 0
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Weekly Home Run Rate',
+                                font: {
+                                    family: 'Lato',
+                                    size: 16
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Rate (%)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            
+            const renderHomeRunVolumeChart = () => {
+                const ctx = document.getElementById('hrVolumeChart').getContext('2d');
+                
+                // Prepare data
+                const labels = homeRunData.map(item => item.week);
+                const tested = homeRunData.map(item => item.tested);
+                const homeRuns = homeRunData.map(item => item.homeRuns);
+                
+                // Create chart
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Tested',
+                                data: tested,
+                                backgroundColor: '#0E3358',
+                                order: 1
+                            },
+                            {
+                                label: 'Home Runs',
+                                data: homeRuns,
+                                backgroundColor: '#2EA3F2',
+                                order: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Weekly Test vs Home Run Volume',
+                                font: {
+                                    family: 'Lato',
+                                    size: 16
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Creatives'
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            
+            const renderTimelineChart = () => {
+                const ctx = document.getElementById('timelineChart').getContext('2d');
+                
+                // Group data by date
+                const dateGroups = {};
+                lifecycleData.forEach(item => {
+                    if (!dateGroups[item.date]) {
+                        dateGroups[item.date] = {
+                            'DB Donors': 0,
+                            'DB Responders': 0,
+                            'DigitalDonors': 0,
+                            'L2 Right Leaning': 0,
+                            'L2': 0,
+                            revenue: 0
+                        };
+                    }
+                    
+                    // Add to corresponding list type
+                    dateGroups[item.date][item.list] += item.sent;
+                    
+                    // Add revenue
+                    dateGroups[item.date].revenue += item.revenue;
+                });
+                
+                // Sort dates
+                const sortedDates = Object.keys(dateGroups).sort();
+                
+                // Prepare data for chart
+                const dbDonors = sortedDates.map(date => dateGroups[date]['DB Donors']);
+                const dbResponders = sortedDates.map(date => dateGroups[date]['DB Responders']);
+                const digitalDonors = sortedDates.map(date => dateGroups[date]['DigitalDonors']);
+                const l2Right = sortedDates.map(date => dateGroups[date]['L2 Right Leaning']);
+                const l2Other = sortedDates.map(date => dateGroups[date]['L2']);
+                
+                // Calculate cumulative revenue
+                let cumulativeRevenue = 0;
+                const revenue = sortedDates.map(date => {
+                    cumulativeRevenue += dateGroups[date].revenue;
+                    return cumulativeRevenue;
+                });
+                
+                // Create chart
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedDates,
+                        datasets: [
+                            {
+                                label: 'DB Donors',
+                                data: dbDonors,
+                                backgroundColor: '#0E3358',
+                                stack: 'Stack 0'
+                            },
+                            {
+                                label: 'DB Responders',
+                                data: dbResponders,
+                                backgroundColor: '#F2AA1F',
+                                stack: 'Stack 0'
+                            },
+                            {
+                                label: 'DigitalDonors',
+                                data: digitalDonors,
+                                backgroundColor: '#2EA3F2',
+                                stack: 'Stack 0'
+                            },
+                            {
+                                label: 'L2 Right Leaning',
+                                data: l2Right,
+                                backgroundColor: '#4CAF50',
+                                stack: 'Stack 0'
+                            },
+                            {
+                                label: 'L2 Other',
+                                data: l2Other,
+                                backgroundColor: '#8BC34A',
+                                stack: 'Stack 0'
+                            },
+                            {
+                                label: 'Cumulative Revenue',
+                                data: revenue,
+                                type: 'line',
+                                borderColor: '#F44336',
+                                backgroundColor: 'transparent',
+                                tension: 0.3,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#F44336',
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Cr-2166SMS Lifecycle Timeline',
+                                font: {
+                                    family: 'Lato',
+                                    size: 16
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Sends'
+                                },
+                                stacked: true
+                            },
+                            y1: {
+                                beginAtZero: true,
+                                position: 'right',
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Revenue ($)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            
+            // Render all charts
+            renderExpansionRateChart();
+            renderVolumeChart();
+            renderHomeRunRateChart();
+            renderHomeRunVolumeChart();
+            renderTimelineChart();
+        });
+    </script>
 </body>
 </html>
