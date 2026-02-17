@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NRSC Creative Expansion Rate — 24 Week Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:wght@400;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#030305; color:#e0ddd5; font-family:'JetBrains Mono',monospace; min-height:100vh; overflow-x:hidden; }
+  .stars { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+  .stars canvas { width:100%; height:100%; }
+  .container { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:24px 20px; }
+  h1 { font-family:'Playfair Display',serif; font-size:2rem; color:#FFD28E; margin-bottom:4px; }
+  .subtitle { color:#7F9CBB; font-size:0.85rem; margin-bottom:28px; }
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+  .kpi { background:rgba(255,255,255,0.03); border:1px solid rgba(255,210,142,0.12); border-radius:12px; padding:18px; backdrop-filter:blur(8px); }
+  .kpi-label { font-size:0.7rem; color:#7F9CBB; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+  .kpi-value { font-size:1.8rem; font-weight:700; color:#FFD28E; }
+  .kpi-sub { font-size:0.7rem; color:#888; margin-top:4px; }
+  .kpi-value.green { color:#4ade80; }
+  .kpi-value.red { color:#D66D50; }
+  .panel { background:rgba(255,255,255,0.03); border:1px solid rgba(255,210,142,0.12); border-radius:12px; padding:24px; margin-bottom:20px; backdrop-filter:blur(8px); }
+  .panel-title { font-family:'Playfair Display',serif; font-size:1.1rem; color:#FFD28E; margin-bottom:16px; }
+  .chart-wrap { position:relative; height:320px; }
+  table { width:100%; border-collapse:collapse; font-size:0.75rem; }
+  th { text-align:left; color:#7F9CBB; font-size:0.65rem; text-transform:uppercase; letter-spacing:1px; padding:8px 10px; border-bottom:1px solid rgba(255,210,142,0.15); }
+  td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.04); }
+  tr:hover td { background:rgba(255,210,142,0.04); }
+  .rate-bar { display:inline-block; height:14px; border-radius:3px; background:linear-gradient(90deg,#D66D50,#FFD28E); vertical-align:middle; margin-right:6px; min-width:2px; }
+  .rate-zero { opacity:0.3; }
+  .trend-up { color:#4ade80; }
+  .trend-down { color:#D66D50; }
+  .annotation { font-size:0.7rem; color:#FFD28E; background:rgba(255,210,142,0.1); border:1px solid rgba(255,210,142,0.2); border-radius:6px; padding:10px 14px; margin-top:16px; line-height:1.5; }
+  .annotation strong { color:#fff; }
+  @media(max-width:700px){ .kpi-row{grid-template-columns:repeat(2,1fr);} h1{font-size:1.4rem;} }
+</style>
+</head>
+<body>
+<div class="stars"><canvas id="starfield"></canvas></div>
+<div class="container">
+  <h1>📈 NRSC Expansion Rate Tracker</h1>
+  <p class="subtitle">24-week creative expansion rate — % of test creatives expanded to D10+ | Updated Feb 17, 2026</p>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Total Tested</div>
+      <div class="kpi-value" id="kpi-tested">—</div>
+      <div class="kpi-sub">Unique creatives (24 wks)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Expanded</div>
+      <div class="kpi-value green" id="kpi-expanded">—</div>
+      <div class="kpi-sub">Reached D10 / Millitile</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Overall Rate</div>
+      <div class="kpi-value" id="kpi-rate" style="color:#FFD28E">—</div>
+      <div class="kpi-sub">Expansion %</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Recent 4-Wk Rate</div>
+      <div class="kpi-value" id="kpi-recent">—</div>
+      <div class="kpi-sub">vs prior 4-wk</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Expansion Rate by Week</div>
+    <div class="chart-wrap"><canvas id="rateChart"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Volume: Tested vs Expanded</div>
+    <div class="chart-wrap"><canvas id="volChart"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Weekly Detail</div>
+    <div style="overflow-x:auto;">
+      <table id="weekTable">
+        <thead><tr><th>Week</th><th>Dates</th><th>Tested</th><th>Expanded</th><th>Rate</th><th>Visual</th><th>Trend</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>How to read this:</strong> Each week, NRSC tests new creatives at Decile 9-6. Winners get expanded to D10 or Millitile segments. 
+    The <strong>expansion rate</strong> is the % of creatives that earned expansion — a direct measure of creative quality. 
+    Rising rate = better creative selection. Track this as AI-assisted picks come online.
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {week:"W35",dates:"Aug 25–31",tested:10,expanded:7,rate:70.0},
+  {week:"W36",dates:"Sep 1–7",tested:5,expanded:2,rate:40.0},
+  {week:"W37",dates:"Sep 8–14",tested:6,expanded:1,rate:16.7},
+  {week:"W38",dates:"Sep 15–21",tested:6,expanded:2,rate:33.3},
+  {week:"W39",dates:"Sep 22–28",tested:9,expanded:2,rate:22.2},
+  {week:"W40",dates:"Sep 29–Oct 5",tested:10,expanded:2,rate:20.0},
+  {week:"W41",dates:"Oct 6–12",tested:5,expanded:1,rate:20.0},
+  {week:"W42",dates:"Oct 13–19",tested:2,expanded:1,rate:50.0},
+  {week:"W43",dates:"Oct 20–26",tested:8,expanded:3,rate:37.5},
+  {week:"W44",dates:"Oct 27–Nov 2",tested:5,expanded:0,rate:0},
+  {week:"W45",dates:"Nov 3–9",tested:4,expanded:0,rate:0},
+  {week:"W46",dates:"Nov 10–16",tested:10,expanded:0,rate:0},
+  {week:"W47",dates:"Nov 17–23",tested:2,expanded:0,rate:0},
+  {week:"W48",dates:"Nov 24–30",tested:9,expanded:2,rate:22.2},
+  {week:"W49",dates:"Dec 1–7",tested:4,expanded:1,rate:25.0},
+  {week:"W50",dates:"Dec 8–14",tested:5,expanded:1,rate:20.0},
+  {week:"W51",dates:"Dec 15–21",tested:7,expanded:2,rate:28.6},
+  {week:"W52",dates:"Dec 22–28",tested:2,expanded:0,rate:0},
+  {week:"W01",dates:"Dec 29–Jan 4",tested:14,expanded:5,rate:35.7},
+  {week:"W02",dates:"Jan 5–11",tested:4,expanded:3,rate:75.0},
+  {week:"W03",dates:"Jan 12–18",tested:7,expanded:0,rate:0},
+  {week:"W04",dates:"Jan 19–25",tested:6,expanded:0,rate:0},
+  {week:"W05",dates:"Jan 26–Feb 1",tested:10,expanded:3,rate:30.0},
+  {week:"W06",dates:"Feb 2–8",tested:14,expanded:4,rate:28.6},
+  {week:"W07",dates:"Feb 9–15",tested:3,expanded:0,rate:0},
+];
+
+// KPIs
+const totalTested = DATA.reduce((s,d)=>s+d.tested,0);
+const totalExpanded = DATA.reduce((s,d)=>s+d.expanded,0);
+const overallRate = (totalExpanded/totalTested*100).toFixed(1);
+const recent4 = DATA.slice(-4);
+const prior4 = DATA.slice(-8,-4);
+const recent4tested = recent4.reduce((s,d)=>s+d.tested,0);
+const recent4expanded = recent4.reduce((s,d)=>s+d.expanded,0);
+const recent4rate = recent4tested ? (recent4expanded/recent4tested*100).toFixed(1) : 0;
+const prior4tested = prior4.reduce((s,d)=>s+d.tested,0);
+const prior4expanded = prior4.reduce((s,d)=>s+d.expanded,0);
+const prior4rate = prior4tested ? (prior4expanded/prior4tested*100).toFixed(1) : 0;
+
+document.getElementById('kpi-tested').textContent = totalTested;
+document.getElementById('kpi-expanded').textContent = totalExpanded;
+document.getElementById('kpi-rate').textContent = overallRate + '%';
+const recentEl = document.getElementById('kpi-recent');
+recentEl.textContent = recent4rate + '%';
+const diff = (recent4rate - prior4rate).toFixed(1);
+recentEl.className = 'kpi-value ' + (diff >= 0 ? 'green' : 'red');
+recentEl.parentElement.querySelector('.kpi-sub').textContent = 
+  (diff >= 0 ? '↑' : '↓') + ' ' + Math.abs(diff) + '% vs prior 4-wk (' + prior4rate + '%)';
+
+// Rate Chart
+const ctx1 = document.getElementById('rateChart').getContext('2d');
+new Chart(ctx1, {
+  type: 'line',
+  data: {
+    labels: DATA.map(d=>d.week),
+    datasets: [{
+      label: 'Expansion Rate %',
+      data: DATA.map(d=>d.rate),
+      borderColor: '#FFD28E',
+      backgroundColor: 'rgba(255,210,142,0.1)',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 4,
+      pointBackgroundColor: DATA.map(d=>d.rate>=30?'#4ade80':d.rate>0?'#FFD28E':'#D66D50'),
+      borderWidth: 2
+    },{
+      label: '4-Wk Moving Avg',
+      data: DATA.map((d,i)=>{
+        if(i<3) return null;
+        const slice = DATA.slice(i-3,i+1);
+        const t = slice.reduce((s,x)=>s+x.tested,0);
+        const e = slice.reduce((s,x)=>s+x.expanded,0);
+        return t ? +(e/t*100).toFixed(1) : 0;
+      }),
+      borderColor: '#7F9CBB',
+      borderDash: [5,5],
+      borderWidth: 2,
+      pointRadius: 0,
+      fill: false,
+      tension: 0.3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: '#888', font: { family: 'JetBrains Mono', size: 11 }}}},
+    scales: {
+      y: { beginAtZero: true, max: 80, ticks: { color: '#666', callback: v=>v+'%' }, grid: { color: 'rgba(255,255,255,0.05)' }},
+      x: { ticks: { color: '#666', font: { size: 10 }}, grid: { display: false }}
+    }
+  }
+});
+
+// Volume Chart
+const ctx2 = document.getElementById('volChart').getContext('2d');
+new Chart(ctx2, {
+  type: 'bar',
+  data: {
+    labels: DATA.map(d=>d.week),
+    datasets: [{
+      label: 'Tested',
+      data: DATA.map(d=>d.tested),
+      backgroundColor: 'rgba(127,156,187,0.5)',
+      borderColor: '#7F9CBB',
+      borderWidth: 1
+    },{
+      label: 'Expanded',
+      data: DATA.map(d=>d.expanded),
+      backgroundColor: 'rgba(74,222,128,0.6)',
+      borderColor: '#4ade80',
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: '#888', font: { family: 'JetBrains Mono', size: 11 }}}},
+    scales: {
+      y: { beginAtZero: true, ticks: { color: '#666' }, grid: { color: 'rgba(255,255,255,0.05)' }},
+      x: { ticks: { color: '#666', font: { size: 10 }}, grid: { display: false }}
+    }
+  }
+});
+
+// Table
+const tbody = document.querySelector('#weekTable tbody');
+DATA.forEach((d,i) => {
+  const prev = i > 0 ? DATA[i-1].rate : null;
+  let trend = '';
+  if(prev !== null) {
+    const delta = d.rate - prev;
+    if(delta > 5) trend = '<span class="trend-up">▲ +' + delta.toFixed(0) + '</span>';
+    else if(delta < -5) trend = '<span class="trend-down">▼ ' + delta.toFixed(0) + '</span>';
+    else trend = '—';
+  }
+  const barW = Math.max(d.rate * 1.2, d.rate > 0 ? 3 : 0);
+  tbody.innerHTML += `<tr>
+    <td style="color:#FFD28E;font-weight:600">${d.week}</td>
+    <td>${d.dates}</td>
+    <td>${d.tested}</td>
+    <td style="color:${d.expanded?'#4ade80':'#666'}">${d.expanded}</td>
+    <td class="${d.rate===0?'rate-zero':''}">${d.rate.toFixed(1)}%</td>
+    <td><span class="rate-bar" style="width:${barW}px"></span></td>
+    <td>${trend}</td>
+  </tr>`;
+});
+
+// Starfield
+const sc = document.getElementById('starfield');
+sc.width = window.innerWidth; sc.height = window.innerHeight;
+const sctx = sc.getContext('2d');
+for(let i=0;i<200;i++){
+  const x=Math.random()*sc.width, y=Math.random()*sc.height, r=Math.random()*1.2;
+  sctx.fillStyle=`rgba(255,255,255,${Math.random()*0.5+0.1})`;
+  sctx.beginPath(); sctx.arc(x,y,r,0,Math.PI*2); sctx.fill();
+}
+</script>
+</body>
+</html>
