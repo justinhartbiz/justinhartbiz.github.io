@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structural Curiosities | Justin Hart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --void: #030305;
+            --starlight: #E2E2E8;
+            --muted: #6B6B78;
+            --horizon-gold: #FFD28E;
+            --horizon-red: #D66D50;
+            --telemetry-blue: #7F9CBB;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border-faint: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--void);
+            color: var(--starlight);
+            font-family: 'JetBrains Mono', monospace;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        h1, h2, h3, h4, .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            background: 
+                radial-gradient(1px 1px at 10% 10%, #fff 100%, transparent),
+                radial-gradient(1px 1px at 20% 20%, #fff 100%, transparent),
+                radial-gradient(2px 2px at 30% 30%, #fff 100%, transparent),
+                radial-gradient(1px 1px at 40% 40%, #fff 100%, transparent);
+            background-size: 550px 550px;
+            opacity: 0.3;
+        }
+
+        .planet-horizon {
+            position: fixed;
+            bottom: -40vh;
+            right: -20vw;
+            width: 120vw;
+            height: 120vw;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 0%, rgba(0,0,0,1) 40%, #2a2a35 60%, var(--horizon-red) 65%, var(--horizon-gold) 68%, transparent 72%);
+            z-index: -1;
+            filter: blur(40px);
+            opacity: 0.6;
+        }
+
+        .orbital-ring {
+            position: fixed;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glass-panel {
+            background: var(--glass);
+            border: 1px solid var(--border-faint);
+            backdrop-filter: blur(4px);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 210, 142, 0.3);
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px; right: -1px; bottom: -1px;
+            border: 1px solid transparent;
+            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .scan-line {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            position: absolute;
+            top: 0;
+            animation: scan 4s infinite linear;
+        }
+
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        .animate-drift {
+            animation: drift 20s infinite linear;
+        }
+
+        @keyframes drift {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .btn-primary {
+            background: rgba(255, 210, 142, 0.1);
+            border: 1px solid var(--horizon-gold);
+            color: var(--horizon-gold);
+            padding: 0.75rem 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            background: var(--horizon-gold);
+            color: var(--void);
+            box-shadow: 0 0 20px rgba(255, 210, 142, 0.3);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .tag-curiosity {
+            background-color: rgba(255, 210, 142, 0.1);
+            color: var(--horizon-gold);
+            border: 1px solid rgba(255, 210, 142, 0.3);
+        }
+
+        .tag-curiosity:hover {
+            background-color: rgba(255, 210, 142, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="starfield"></div>
+    <div class="planet-horizon" id="planet"></div>
+    <div class="orbital-ring" style="width: 80vw; height: 80vw; opacity: 0.1;"></div>
+    <div class="orbital-ring" style="width: 120vw; height: 120vw; opacity: 0.05; border-style: dashed;"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 flex justify-between items-center px-8 py-6 backdrop-blur-sm border-b border-[rgba(255,255,255,0.05)]">
+        <div class="flex items-center gap-4">
+            <div class="w-4 h-4 rounded-full border border-white"></div>
+            <a href="/" class="tracking-widest text-sm font-bold">JUSTIN<span class="text-gray-500">_HART</span></a>
+        </div>
+        <div class="hidden md:flex gap-12 text-xs tracking-widest text-gray-400">
+            <a href="/projects/" class="hover:text-white transition-colors">PROJECTS</a>
+            <a href="/tlh/" class="hover:text-white transition-colors">TLH</a>
+            <a href="/db/" class="hover:text-white transition-colors">DONORBUREAU</a>
+            <a href="/personal/" class="hover:text-white transition-colors">PERSONAL</a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="pt-36 pb-12 px-8 md:px-24 text-center">
+        <h1 class="text-4xl md:text-6xl serif mb-6">Structural Curiosities</h1>
+        <p class="text-muted max-w-3xl mx-auto">A collection of experimental dashboards designed to explore the edges of perception, understanding, and meaning. Each curiosity is an invitation to see the world differently.</p>
+        
+        <div class="flex justify-center mt-8">
+            <a href="/projects/operator-toolkit/index.html" class="btn-primary flex items-center gap-2">
+                <span>Return to Operator Toolkit</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Description Section -->
+    <section class="px-8 md:px-24 py-12 text-center">
+        <div class="glass-panel p-8 rounded-lg mb-12 max-w-4xl mx-auto">
+            <div class="scan-line"></div>
+            <p class="text-lg serif italic text-gray-300 mb-6">
+                "The map is not the territory. The word is not the thing. The symbol is never the thing symbolized."
+            </p>
+            <p class="text-sm text-gray-400 mb-4">
+                Structural Curiosities are speculative instruments and experimental dashboards that probe the boundaries of how we make meaning, understand systems, and relate to information. They invite us to step outside conventional frames and consider alternative ways of seeing.
+            </p>
+            <p class="text-sm text-gray-400">
+                Neither art nor tool, each curiosity occupies the fertile territory between — inviting both aesthetic contemplation and practical application.
+            </p>
+        </div>
+    </section>
+
+    <!-- Curiosities Grid -->
+    <section class="px-8 md:px-24 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Negative Space Cartographer -->
+            <a href="/db/dashboards/negative-space-cartographer.html" class="glass-panel p-6 rounded-lg block">
+                <div class="flex justify-between items-start mb-4">
+                    <i data-lucide="map" class="text-[#FFD28E] w-6 h-6"></i>
+                    <div class="tag tag-curiosity">perception</div>
+                </div>
+                <h3 class="text-xl serif mb-2">Negative Space Cartographer</h3>
+                <p class="text-sm text-gray-400 mb-4">Map the absence, the gaps between what is visible. The negative space cartographer helps you visualize what's missing rather than what's present.</p>
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <span class="tag tag-curiosity">absence</span>
+                    <span class="tag tag-curiosity">perception</span>
+                    <span class="tag tag-curiosity">mapping</span>
+                </div>
+            </a>
+            
+            <!-- Temporal Parallax -->
+            <a href="/db/dashboards/temporal-parallax.html" class="glass-panel p-6 rounded-lg block">
+                <div class="flex justify-between items-start mb-4">
+                    <i data-lucide="clock" class="text-[#FFD28E] w-6 h-6"></i>
+                    <div class="tag tag-curiosity">time</div>
+                </div>
+                <h3 class="text-xl serif mb-2">Temporal Parallax</h3>
+                <p class="text-sm text-gray-400 mb-4">Observe how the past changes depending on where you stand in the present. Track how your perspective shifts the meaning of historical events.</p>
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <span class="tag tag-curiosity">time</span>
+                    <span class="tag tag-curiosity">perspective</span>
+                    <span class="tag tag-curiosity">memory</span>
+                </div>
+            </a>
+            
+            <!-- Untranslatable Dictionary -->
+            <a href="/db/dashboards/untranslatable-dictionary.html" class="glass-panel p-6 rounded-lg block">
+                <div class="flex justify-between items-start mb-4">
+                    <i data-lucide="book" class="text-[#FFD28E] w-6 h-6"></i>
+                    <div class="tag tag-curiosity">language</div>
+                </div>
+                <h3 class="text-xl serif mb-2">Untranslatable Dictionary</h3>
+                <p class="text-sm text-gray-400 mb-4">Collection of concepts that resist direct translation between languages and cultures, revealing the limits of linguistic and cultural understanding.</p>
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <span class="tag tag-curiosity">language</span>
+                    <span class="tag tag-curiosity">culture</span>
+                    <span class="tag tag-curiosity">meaning</span>
+                </div>
+            </a>
+            
+            <!-- Contradiction Engine -->
+            <a href="/db/dashboards/contradiction-engine.html" class="glass-panel p-6 rounded-lg block">
+                <div class="flex justify-between items-start mb-4">
+                    <i data-lucide="copy-x" class="text-[#D66D50] w-6 h-6"></i>
+                    <div class="tag tag-curiosity">paradox</div>
+                </div>
+                <h3 class="text-xl serif mb-2">Contradiction Engine</h3>
+                <p class="text-sm text-gray-400 mb-4">System for generating and exploring productive tensions and paradoxes. Find creative breakthroughs by embracing contradictory ideas simultaneously.</p>
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <span class="tag tag-curiosity">paradox</span>
+                    <span class="tag tag-curiosity">creativity</span>
+                    <span class="tag tag-curiosity">tension</span>
+                </div>
+            </a>
+            
+            <!-- Decay Clock -->
+            <a href="/db/dashboards/decay-clock.html" class="glass-panel p-6 rounded-lg block">
+                <div class="flex justify-between items-start mb-4">
+                    <i data-lucide="timer" class="text-[#D66D50] w-6 h-6"></i>
+                    <div class="tag tag-curiosity">belief</div>
+                </div>
+                <h3 class="text-xl serif mb-2">Decay Clock</h3>
+                <p class="text-sm text-gray-400 mb-4">Measure the half-life of certainty in your convictions and beliefs. Watch as confident predictions erode with the passage of time.</p>
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <span class="tag tag-curiosity">time</span>
+                    <span class="tag tag-curiosity">belief</span>
+                    <span class="tag tag-curiosity">certainty</span>
+                </div>
+            </a>
+            
+            <!-- Ancestor Simulator -->
+            <a href="/db/dashboards/ancestor-simulator.html" class="glass-panel p-6 rounded-lg block">
+                <div class="flex justify-between items-start mb-4">
+                    <i data-lucide="history" class="text-[#7F9CBB] w-6 h-6"></i>
+                    <div class="tag tag-curiosity">history</div>
+                </div>
+                <h3 class="text-xl serif mb-2">Ancestor Simulator</h3>
+                <p class="text-sm text-gray-400 mb-4">Step into the decision frameworks of those who came before. Experience how historical constraints and contexts shaped choices we take for granted.</p>
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <span class="tag tag-curiosity">history</span>
+                    <span class="tag tag-curiosity">decision</span>
+                    <span class="tag tag-curiosity">perspective</span>
+                </div>
+            </a>
+            
+            <!-- Silence Topography -->
+            <a href="/db/dashboards/silence-topography.html" class="glass-panel p-6 rounded-lg block">
+                <div class="flex justify-between items-start mb-4">
+                    <i data-lucide="mountain" class="text-[#7F9CBB] w-6 h-6"></i>
+                    <div class="tag tag-curiosity">communication</div>
+                </div>
+                <h3 class="text-xl serif mb-2">Silence Topography</h3>
+                <p class="text-sm text-gray-400 mb-4">Map the contours of what remains unsaid in conversations and culture. Explore the negative space of communication and the meaning within silence.</p>
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <span class="tag tag-curiosity">communication</span>
+                    <span class="tag tag-curiosity">culture</span>
+                    <span class="tag tag-curiosity">silence</span>
+                </div>
+            </a>
+            
+            <!-- Inverted Resume -->
+            <a href="/db/dashboards/inverted-resume.html" class="glass-panel p-6 rounded-lg block">
+                <div class="flex justify-between items-start mb-4">
+                    <i data-lucide="file-minus" class="text-[#7F9CBB] w-6 h-6"></i>
+                    <div class="tag tag-curiosity">reflection</div>
+                </div>
+                <h3 class="text-xl serif mb-2">Inverted Resume</h3>
+                <p class="text-sm text-gray-400 mb-4">Document the failures, mistakes, and paths not taken that shaped your journey. Discover how rejection and redirection ultimately defined success.</p>
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <span class="tag tag-curiosity">reflection</span>
+                    <span class="tag tag-curiosity">career</span>
+                    <span class="tag tag-curiosity">failure</span>
+                </div>
+            </a>
+            
+            <!-- Metabolic Argument Mapper -->
+            <a href="/db/dashboards/metabolic-argument-mapper.html" class="glass-panel p-6 rounded-lg block">
+                <div class="flex justify-between items-start mb-4">
+                    <i data-lucide="activity" class="text-[#D66D50] w-6 h-6"></i>
+                    <div class="tag tag-curiosity">debate</div>
+                </div>
+                <h3 class="text-xl serif mb-2">Metabolic Argument Mapper</h3>
+                <p class="text-sm text-gray-400 mb-4">Visualize how ideas are consumed, transformed, and excreted in discourse. Track the digestion of concepts as they move through intellectual ecosystems.</p>
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <span class="tag tag-curiosity">debate</span>
+                    <span class="tag tag-curiosity">ideas</span>
+                    <span class="tag tag-curiosity">systems</span>
+                </div>
+            </a>
+            
+            <!-- Familiar Stranger -->
+            <a href="/db/dashboards/familiar-stranger.html" class="glass-panel p-6 rounded-lg block">
+                <div class="flex justify-between items-start mb-4">
+                    <i data-lucide="user-cog" class="text-[#D66D50] w-6 h-6"></i>
+                    <div class="tag tag-curiosity">identity</div>
+                </div>
+                <h3 class="text-xl serif mb-2">Familiar Stranger</h3>
+                <p class="text-sm text-gray-400 mb-4">Explore the uncanny valley between recognition and novelty. Discover how small shifts in context can transform the familiar into the strange.</p>
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <span class="tag tag-curiosity">identity</span>
+                    <span class="tag tag-curiosity">perception</span>
+                    <span class="tag tag-curiosity">uncanny</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Outro Section -->
+    <section class="px-8 md:px-24 py-16 text-center">
+        <div class="glass-panel p-8 rounded-lg max-w-3xl mx-auto animate-drift">
+            <h2 class="text-3xl serif mb-6 italic">Curious, not Conclusive</h2>
+            <p class="text-gray-400 mb-6">
+                These dashboards don't seek to answer but to question. They don't solve problems but reveal them. Each is designed to operate at the edge of our understanding, where certainty gives way to possibility.
+            </p>
+            <a href="/projects/operator-toolkit/index.html" class="inline-block btn-primary mt-4">
+                <span class="flex items-center gap-2">
+                    Return to Operator Toolkit
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-[rgba(255,255,255,0.05)] py-12 px-8 md:px-24">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0">
+                <a href="/" class="flex items-center gap-4">
+                    <div class="w-4 h-4 rounded-full border border-white"></div>
+                    <span class="tracking-widest text-sm font-bold">JUSTIN<span class="text-gray-500">_HART</span></span>
+                </a>
+            </div>
+            <div class="text-center md:text-right">
+                <div class="flex justify-center md:justify-end space-x-6 mb-4">
+                    <a href="https://twitter.com/justin_hart" target="_blank" class="text-gray-500 hover:text-white">
+                        <i data-lucide="twitter" class="w-5 h-5"></i>
+                    </a>
+                    <a href="https://linkedin.com/in/justinhart" target="_blank" class="text-gray-500 hover:text-white">
+                        <i data-lucide="linkedin" class="w-5 h-5"></i>
+                    </a>
+                    <a href="https://helloai.substack.com" target="_blank" class="text-gray-500 hover:text-white">
+                        <i data-lucide="rss" class="w-5 h-5"></i>
+                    </a>
+                </div>
+                <div class="text-xs text-gray-600">
+                    Structural Curiosities • Created: February 16, 2026
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Parallax effect for the planet
+        window.addEventListener('scroll', () => {
+            const planet = document.getElementById('planet');
+            const scrolled = window.scrollY;
+            planet.style.transform = `translateY(${scrolled * 0.1}px)`;
+        });
+
+        // Simple animation for sections on scroll
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section > div').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+    </style>
+</body>
+</html>
