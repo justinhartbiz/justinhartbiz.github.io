@@ -2213,16 +2213,26 @@
     <script>
         // Tab Navigation
         document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabId = tab.getAttribute('data-tab');
+            tab.addEventListener('click', (e) => {
+                const target = e.currentTarget;
+                const tabId = target.getAttribute('data-tab');
+                if (!tabId) return;
                 
                 // Update active tab
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
+                target.classList.add('active');
                 
                 // Update active content
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 document.getElementById(tabId + '-tab').classList.add('active');
+                
+                // Resize charts on newly visible tab
+                setTimeout(() => {
+                    document.querySelectorAll('#' + tabId + '-tab canvas').forEach(c => {
+                        const chart = Chart.getChart(c);
+                        if (chart) chart.resize();
+                    });
+                }, 50);
             });
         });
         
