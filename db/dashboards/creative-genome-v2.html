@@ -1,0 +1,2802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Genome 2.0 | DonorBureau</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f59e0b;
+            --accent-pink: #ec4899;
+            --accent-teal: #14b8a6;
+            --accent-indigo: #6366f1;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #334155;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .version-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-green);
+            color: black;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            background: var(--bg-card);
+            transition: all 0.2s ease;
+        }
+        
+        .tab.active {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-blue);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card-icon {
+            font-size: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-blue);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .stat-green { color: var(--accent-green); }
+        .stat-blue { color: var(--accent-blue); }
+        .stat-purple { color: var(--accent-purple); }
+        .stat-orange { color: var(--accent-orange); }
+        .stat-teal { color: var(--accent-teal); }
+        .stat-pink { color: var(--accent-pink); }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            font-size: 0.95rem;
+        }
+        
+        .pill {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .pill-green { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .pill-red { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+        .pill-blue { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+        .pill-purple { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+        .pill-orange { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
+        .pill-teal { background: rgba(20, 184, 166, 0.2); color: var(--accent-teal); }
+        
+        .bar-container {
+            background: var(--bg-dark);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .bar-green { background: var(--accent-green); }
+        .bar-red { background: var(--accent-red); }
+        .bar-blue { background: var(--accent-blue); }
+        
+        .pattern-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .pattern-item {
+            background: var(--bg-dark);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-green);
+        }
+        
+        .pattern-item.negative {
+            border-left-color: var(--accent-red);
+        }
+        
+        .pattern-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .pattern-example {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+        
+        .pattern-stat {
+            color: var(--accent-green);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        
+        .pattern-item.negative .pattern-stat {
+            color: var(--accent-red);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .dna-strand {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .dna-segment {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+        
+        .word-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 1rem 0;
+        }
+        
+        .word {
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .word-power {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .word-poison {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .client-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .client-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-blue);
+        }
+        
+        .client-name {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .client-stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .client-stat {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .client-stat span {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .genome-sequence {
+            font-family: monospace;
+            font-size: 0.8rem;
+            background: var(--bg-dark);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        
+        .gene-hook { color: var(--accent-green); }
+        .gene-story { color: var(--accent-blue); }
+        .gene-bridge { color: var(--accent-purple); }
+        .gene-ask { color: var(--accent-orange); }
+        .gene-cta { color: var(--accent-pink); }
+        
+        .persona-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .persona-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-teal);
+        }
+        
+        .persona-name {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .persona-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .persona-preference {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .preference-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .preference-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .calendar-heatmap {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 0.5rem;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .month {
+            text-align: center;
+        }
+        
+        .month-name {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .month-value {
+            width: 100%;
+            height: 30px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .creative-factory {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-card-hover));
+            border-radius: 16px;
+            margin-bottom: 2rem;
+        }
+        
+        .factory-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .form-button:hover {
+            background: #2563eb;
+        }
+        
+        .generated-creative {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-green);
+        }
+        
+        .gene-section {
+            margin-bottom: 0.75rem;
+        }
+        
+        .gene-section-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        
+        .gene-section-content {
+            font-size: 1rem;
+        }
+        
+        .hook { color: var(--accent-green); }
+        .story { color: var(--accent-blue); }
+        .bridge { color: var(--accent-purple); }
+        .ask { color: var(--accent-orange); }
+        .cta { color: var(--accent-pink); }
+        
+        .copy-button {
+            display: block;
+            width: 100%;
+            padding: 0.5rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .copy-button:hover {
+            background: var(--bg-card-hover);
+        }
+        
+        .success-rate {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+        }
+        
+        .success-icon {
+            color: var(--accent-green);
+            font-size: 1.25rem;
+        }
+        
+        .success-text {
+            font-weight: 600;
+            color: var(--accent-green);
+        }
+        
+        .loader {
+            display: none;
+            margin: 2rem auto;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-top: 4px solid var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        
+        /* New feature badges */
+        .new-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            background: var(--accent-green);
+            color: black;
+            font-size: 0.7rem;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+        }
+        
+        /* Calendar key */
+        .calendar-key {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        
+        .key-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .key-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        
+        /* Prediction meter */
+        .prediction-meter {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border-radius: 8px;
+        }
+        
+        .prediction-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .prediction-score {
+            font-weight: 600;
+            color: var(--accent-green);
+        }
+        
+        .prediction-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: var(--bg-card);
+            overflow: hidden;
+        }
+        
+        .prediction-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-red), var(--accent-orange), var(--accent-green));
+        }
+        
+        /* New seasonal chart */
+        .seasonal-chart {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 0.25rem;
+            margin: 2rem 0;
+        }
+        
+        .seasonal-month {
+            text-align: center;
+        }
+        
+        .seasonal-label {
+            font-size: 0.7rem;
+            margin-bottom: 0.25rem;
+            color: var(--text-secondary);
+        }
+        
+        .seasonal-value {
+            height: 8px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .seasonal-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--accent-blue);
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                overflow-x: auto;
+                padding-bottom: 1rem;
+                margin-bottom: 1.5rem;
+                flex-wrap: nowrap;
+            }
+            
+            .tab {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <span class="version-badge">v2.0</span>
+            <h1>🧬 Creative Genome</h1>
+            <p class="subtitle">Extracted DNA from top-performing creatives across all DonorBureau clients</p>
+            <div class="dna-strand" style="justify-content: center; margin-top: 1rem;">
+                <div class="dna-segment" style="background: var(--accent-green);"></div>
+                <div class="dna-segment" style="background: var(--accent-blue);"></div>
+                <div class="dna-segment" style="background: var(--accent-purple);"></div>
+                <div class="dna-segment" style="background: var(--accent-orange);"></div>
+                <div class="dna-segment" style="background: var(--accent-pink);"></div>
+                <div class="dna-segment" style="background: var(--accent-green);"></div>
+                <div class="dna-segment" style="background: var(--accent-blue);"></div>
+                <div class="dna-segment" style="background: var(--accent-purple);"></div>
+                <div class="dna-segment" style="background: var(--accent-orange);"></div>
+                <div class="dna-segment" style="background: var(--accent-pink);"></div>
+                <div class="dna-segment" style="background: var(--accent-green);"></div>
+                <div class="dna-segment" style="background: var(--accent-blue);"></div>
+            </div>
+        </header>
+        
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-tab="core">Core Patterns</div>
+            <div class="tab" data-tab="personas">Donor Personas <span class="new-badge">NEW</span></div>
+            <div class="tab" data-tab="clients">Client Analysis</div>
+            <div class="tab" data-tab="seasonal">Seasonal Insights <span class="new-badge">NEW</span></div>
+            <div class="tab" data-tab="generator">Creative Generator <span class="new-badge">NEW</span></div>
+            <div class="tab" data-tab="predictor">Success Predictor <span class="new-badge">NEW</span></div>
+        </div>
+        
+        <!-- TAB 1: CORE PATTERNS -->
+        <div class="tab-content active" id="core-tab">
+            <!-- Stats Overview -->
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value stat-green">5,581+</div>
+                    <div class="stat-label">Creatives Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-blue">7</div>
+                    <div class="stat-label">Clients Studied</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-purple">95.1%</div>
+                    <div class="stat-label">Revenue from Top 10%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-orange">$0.657</div>
+                    <div class="stat-label">Best Yield/Send</div>
+                </div>
+            </div>
+            
+            <!-- Universal Creative Arc -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🏗️</span>
+                    <span class="card-title">The Universal Creative Arc</span>
+                </div>
+                <div class="genome-sequence">
+<span class="gene-hook">┌── HOOK (0-30 chars) ──────────────────────────────────────────────────────┐</span>
+<span class="gene-hook">│  Personalization + emotional trigger or curiosity gap                       │</span>
+<span class="gene-hook">│  "There's something we haven't told you yet, [firstname]"                   │</span>
+<span class="gene-hook">└─────────────────────────────────────────────────────────────────────────────┘</span>
+              ↓
+<span class="gene-story">┌── STORY (30-150 chars) ────────────────────────────────────────────────────┐</span>
+<span class="gene-story">│  1-2 sentences of specific detail                                           │</span>
+<span class="gene-story">│  Named person/dog, specific date, concrete image                            │</span>
+<span class="gene-story">└─────────────────────────────────────────────────────────────────────────────┘</span>
+              ↓
+<span class="gene-bridge">┌── BRIDGE (emotional pivot) ────────────────────────────────────────────────┐</span>
+<span class="gene-bridge">│  Connect story to donor's ability to act                                    │</span>
+<span class="gene-bridge">│  "Your $25 today isn't just a donation—it's a way to say..."               │</span>
+<span class="gene-bridge">└─────────────────────────────────────────────────────────────────────────────┘</span>
+              ↓
+<span class="gene-ask">┌── ASK (single amount) ─────────────────────────────────────────────────────┐</span>
+<span class="gene-ask">│  $25 for nonprofit, verification/action for political                       │</span>
+<span class="gene-ask">└─────────────────────────────────────────────────────────────────────────────┘</span>
+              ↓
+<span class="gene-cta">┌── CTA (with arrows) ───────────────────────────────────────────────────────┐</span>
+<span class="gene-cta">│  ">> [link]" or "[action] >> [link]"                                        │</span>
+<span class="gene-cta">└─────────────────────────────────────────────────────────────────────────────┘</span>
+                </div>
+            </div>
+            
+            <!-- Charts Row -->
+            <div class="grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">💓</span>
+                        <span class="card-title">Emotional Trigger Performance</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="emotionChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">📊</span>
+                        <span class="card-title">Optimal Character Count</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="lengthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feature Correlations -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🔬</span>
+                    <span class="card-title">Feature Correlation Matrix (Cross-Client)</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Overall</th>
+                            <th>NRSC</th>
+                            <th>RNC</th>
+                            <th>NRCC</th>
+                            <th>Cross-Client?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>has_personalization</td>
+                            <td><span class="pill pill-green">+0.041</span></td>
+                            <td>+0.023</td>
+                            <td>+0.087</td>
+                            <td>+0.089</td>
+                            <td><span class="pill pill-green">✓ YES</span></td>
+                        </tr>
+                        <tr>
+                            <td>curiosity_gap</td>
+                            <td><span class="pill pill-green">+0.119</span></td>
+                            <td>+0.158</td>
+                            <td>-0.006</td>
+                            <td>-0.020</td>
+                            <td><span class="pill pill-orange">NRSC only</span></td>
+                        </tr>
+                        <tr>
+                            <td>exclamation_count</td>
+                            <td><span class="pill pill-red">-0.037</span></td>
+                            <td>-0.039</td>
+                            <td>-0.051</td>
+                            <td>-0.013</td>
+                            <td><span class="pill pill-red">✓ Negative</span></td>
+                        </tr>
+                        <tr>
+                            <td>is_question</td>
+                            <td><span class="pill pill-red">-0.026</span></td>
+                            <td>-0.028</td>
+                            <td>-0.032</td>
+                            <td>-0.010</td>
+                            <td><span class="pill pill-red">✓ Negative</span></td>
+                        </tr>
+                        <tr>
+                            <td>has_emoji</td>
+                            <td><span class="pill pill-red">-0.012</span></td>
+                            <td>-0.020</td>
+                            <td>+0.037</td>
+                            <td>-0.040</td>
+                            <td><span class="pill pill-purple">Mixed</span></td>
+                        </tr>
+                        <tr>
+                            <td>has_urgency</td>
+                            <td><span class="pill pill-red">-0.011</span></td>
+                            <td>-0.018</td>
+                            <td>-0.006</td>
+                            <td>+0.024</td>
+                            <td><span class="pill pill-purple">Mixed</span></td>
+                        </tr>
+                        <tr>
+                            <td>personal_intro</td>
+                            <td><span class="pill pill-red">-0.003</span></td>
+                            <td>+0.005</td>
+                            <td>-0.033</td>
+                            <td>-0.030</td>
+                            <td><span class="pill pill-purple">Mixed</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Power Words & Poison Words -->
+            <div class="grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">🔥</span>
+                        <span class="card-title">Power Phrases</span>
+                    </div>
+                    <div class="word-cloud">
+                        <span class="word word-power">"dead serious" <small>YI 24.94</small></span>
+                        <span class="word word-power">"reclaim your place" <small>YI 23.47</small></span>
+                        <span class="word word-power">"complete this now" <small>YI 24.88</small></span>
+                        <span class="word word-power">"secret message" <small>YI 14.42</small></span>
+                        <span class="word word-power">"we trusted you" <small>YI 8.06</small></span>
+                        <span class="word word-power">"fight of my life" <small>YI 3.31</small></span>
+                        <span class="word word-power">"Dana Perino" <small>r=0.281</small></span>
+                        <span class="word word-power">"December 14" <small>$0.657</small></span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">☠️</span>
+                        <span class="card-title">Poison Phrases</span>
+                    </div>
+                    <div class="word-cloud">
+                        <span class="word word-poison">"with trump" <small>YI -16.72</small></span>
+                        <span class="word word-poison">"to stand with" <small>YI -10.18</small></span>
+                        <span class="word word-poison">"we should" <small>YI -8.64</small></span>
+                        <span class="word word-poison">"america s" <small>YI -5.18</small></span>
+                        <span class="word word-poison">"Picture this:" <small>$0.008</small></span>
+                        <span class="word word-poison">"Our mission is rooted in" <small>$0.011</small></span>
+                        <span class="word word-poison">"first 100 days" <small>YI -4.73</small></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Winning Patterns -->
+            <h2 class="section-title" style="margin-top: 2rem;">🏆 Winning Sentence Structures</h2>
+            <div class="grid grid-3">
+                <div class="pattern-list">
+                    <div class="pattern-item">
+                        <div class="pattern-name">Personalized Hook</div>
+                        <div class="pattern-example">"There's something we haven't told you yet, [firstname|Friend]."</div>
+                        <div class="pattern-stat">+8.7% lift (r=0.041)</div>
+                    </div>
+                    <div class="pattern-item">
+                        <div class="pattern-name">Secret Message</div>
+                        <div class="pattern-example">"The NRSC has sent you a secret message, please review within 15 minutes..."</div>
+                        <div class="pattern-stat">YI 14.42 (highest single creative)</div>
+                    </div>
+                </div>
+                <div class="pattern-list">
+                    <div class="pattern-item">
+                        <div class="pattern-name">Guilt/Shame</div>
+                        <div class="pattern-example">"We trusted you, [firstname|Friend]. Prove us right."</div>
+                        <div class="pattern-stat">YI 8.06 (3.8x average)</div>
+                    </div>
+                    <div class="pattern-item">
+                        <div class="pattern-name">Event Anchor</div>
+                        <div class="pattern-example">"On December 14, we'll lay wreaths beside our fallen heroes..."</div>
+                        <div class="pattern-stat">$0.657/send (best in dataset)</div>
+                    </div>
+                </div>
+                <div class="pattern-list">
+                    <div class="pattern-item">
+                        <div class="pattern-name">Celebrity Lead</div>
+                        <div class="pattern-example">"Dirty Jobs Host MIKE ROWE:"</div>
+                        <div class="pattern-stat">$0.091/send (SemperK9)</div>
+                    </div>
+                    <div class="pattern-item">
+                        <div class="pattern-name">Founder Story</div>
+                        <div class="pattern-example">"Hi, this is Chris and Amanda Baity from Semper K9."</div>
+                        <div class="pattern-stat">47 polls, top performer</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loser Patterns -->
+            <h2 class="section-title" style="margin-top: 2rem;">💀 Patterns That Fail</h2>
+            <div class="grid grid-3">
+                <div class="pattern-list">
+                    <div class="pattern-item negative">
+                        <div class="pattern-name">Fiction Voice</div>
+                        <div class="pattern-example">"Picture this: a shelter dog steps into the sunlight..."</div>
+                        <div class="pattern-stat">$0.008/send (essentially zero)</div>
+                    </div>
+                </div>
+                <div class="pattern-list">
+                    <div class="pattern-item negative">
+                        <div class="pattern-name">Corporate Brochure</div>
+                        <div class="pattern-example">"At Semper K9, our mission is rooted in loyalty..."</div>
+                        <div class="pattern-stat">$0.011/send</div>
+                    </div>
+                </div>
+                <div class="pattern-list">
+                    <div class="pattern-item negative">
+                        <div class="pattern-name">Organizational Panic</div>
+                        <div class="pattern-example">"We urgently need $2,000 to reach our goal!"</div>
+                        <div class="pattern-stat">-$0.019/send (negative yield)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Client DNA Profiles -->
+            <h2 class="section-title" style="margin-top: 2rem;">🔬 Client DNA Profiles</h2>
+            <div class="grid grid-3" style="gap: 1rem;">
+                <div class="client-card">
+                    <div class="client-name">🏛️ NRSC (Political)</div>
+                    <div class="client-stats">
+                        <div class="client-stat">Best: <span>Curiosity Gap</span></div>
+                        <div class="client-stat">Avoid: <span>Generic Trump</span></div>
+                        <div class="client-stat">Length: <span>50-150 chars</span></div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-green" style="width: 85%;"></div>
+                    </div>
+                </div>
+                <div class="client-card">
+                    <div class="client-name">🐕 SemperK9 (Nonprofit)</div>
+                    <div class="client-stats">
+                        <div class="client-stat">Best: <span>Founder Story</span></div>
+                        <div class="client-stat">Avoid: <span>1000+ chars</span></div>
+                        <div class="client-stat">Length: <span>250-500 chars</span></div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-blue" style="width: 78%;"></div>
+                    </div>
+                </div>
+                <div class="client-card">
+                    <div class="client-name">💪 SoldierStrong (Nonprofit)</div>
+                    <div class="client-stats">
+                        <div class="client-stat">Best: <span>Dana Perino</span></div>
+                        <div class="client-stat">Avoid: <span>No name drop</span></div>
+                        <div class="client-stat">Signal: <span>r=0.281</span></div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-green" style="width: 92%;"></div>
+                    </div>
+                </div>
+                <div class="client-card">
+                    <div class="client-name">📦 HeroBox (Nonprofit)</div>
+                    <div class="client-stats">
+                        <div class="client-stat">Best: <span>Deadline Urgency</span></div>
+                        <div class="client-stat">Unique: <span>! marks help</span></div>
+                        <div class="client-stat">Length: <span><250 chars</span></div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-blue" style="width: 72%;"></div>
+                    </div>
+                </div>
+                <div class="client-card">
+                    <div class="client-name">👮 NCPD (Nonprofit)</div>
+                    <div class="client-stats">
+                        <div class="client-stat">Best: <span>Victim Stories</span></div>
+                        <div class="client-stat">Avoid: <span>Org voice</span></div>
+                        <div class="client-stat">Length: <span>300-600 chars</span></div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-green" style="width: 68%;"></div>
+                    </div>
+                </div>
+                <div class="client-card">
+                    <div class="client-name">🐘 RNC (Political)</div>
+                    <div class="client-stats">
+                        <div class="client-stat">Best: <span>Personalization</span></div>
+                        <div class="client-stat">Avoid: <span>Heavy punctuation</span></div>
+                        <div class="client-stat">Length: <span>70-150 chars</span></div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-blue" style="width: 75%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Universal Laws -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">📜</span>
+                    <span class="card-title">Universal Laws (Work Everywhere)</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Law</th>
+                            <th>Evidence</th>
+                            <th>Signal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Personalization tokens help</td>
+                            <td>[firstname], [zipcode], [statename]</td>
+                            <td><span class="pill pill-green">r=0.041-0.089</span></td>
+                        </tr>
+                        <tr>
+                            <td>Questions hurt</td>
+                            <td>Statements outperform in all 7 clients</td>
+                            <td><span class="pill pill-red">r=-0.026</span></td>
+                        </tr>
+                        <tr>
+                            <td>A person beats an organization</td>
+                            <td>Named sender > organizational voice</td>
+                            <td><span class="pill pill-green">+40% vs org voice</span></td>
+                        </tr>
+                        <tr>
+                            <td>Specific beats generic</td>
+                            <td>"December 14" > "this holiday"</td>
+                            <td><span class="pill pill-green">$0.657 vs $0.02</span></td>
+                        </tr>
+                        <tr>
+                            <td>Short-medium beats long</td>
+                            <td>50-150 (political), 250-500 (nonprofit)</td>
+                            <td><span class="pill pill-green">+30% vs long</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- The Home Run Reality -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🏟️</span>
+                    <span class="card-title">The Home Run Reality</span>
+                </div>
+                <div class="grid" style="margin-top: 1rem; gap: 1rem;">
+                    <div style="text-align: center; padding: 1rem;">
+                        <div style="font-size: 3rem; font-weight: bold; color: var(--accent-green);">95.1%</div>
+                        <div style="color: var(--text-secondary);">Revenue from Top 10%</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem;">
+                        <div style="font-size: 3rem; font-weight: bold; color: var(--accent-blue);">54.6%</div>
+                        <div style="color: var(--text-secondary);">Revenue from Top 1%</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem;">
+                        <div style="font-size: 3rem; font-weight: bold; color: var(--accent-orange);">75.9%</div>
+                        <div style="color: var(--text-secondary);">Creatives Tested Once</div>
+                    </div>
+                </div>
+                <p style="text-align: center; color: var(--text-secondary); margin-top: 1rem; font-style: italic;">
+                    This is a home-run game. Optimize for finding monsters, not incrementally improving average creatives.
+                </p>
+            </div>
+        </div>
+        
+        <!-- TAB 2: DONOR PERSONAS -->
+        <div class="tab-content" id="personas-tab">
+            <h2 class="section-title">👥 Donor Persona Analysis <span class="new-badge">NEW</span></h2>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">
+                Based on 5,000+ creative tests with synthetic donor personas, we've identified 5 key personality types that represent donor segments. 
+                Understanding which personas respond to specific appeals helps target messages more effectively.
+            </p>
+            
+            <div class="grid grid-3" style="gap: 1.5rem;">
+                <!-- Persona 1 -->
+                <div class="persona-card">
+                    <div class="persona-name">
+                        <span class="card-icon">🪖</span>
+                        The Patriot Donor
+                    </div>
+                    <div class="persona-info">
+                        Earl (72) - Retired Army sergeant, Vietnam veteran, suburban Ohio
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Responds to:</div>
+                        <div class="preference-value">Honor, Duty, Military Service</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Avoids:</div>
+                        <div class="preference-value">Emotional appeals, Celebrity endorsement</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Decision speed:</div>
+                        <div class="preference-value">Fast (immediate yes/no)</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Typical gift:</div>
+                        <div class="preference-value">$25-50</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Top-performing hook:</div>
+                        <div class="preference-value">"From one veteran to another..."</div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-green" style="width: 92%;"></div>
+                    </div>
+                </div>
+                
+                <!-- Persona 2 -->
+                <div class="persona-card">
+                    <div class="persona-name">
+                        <span class="card-icon">📺</span>
+                        The Celebrity Follower
+                    </div>
+                    <div class="persona-info">
+                        Linda (68) - Retired teacher, military spouse, suburban Texas
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Responds to:</div>
+                        <div class="preference-value">Trusted names (Dana Perino, Fox personalities)</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Avoids:</div>
+                        <div class="preference-value">Unknown senders, organizational voice</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Decision speed:</div>
+                        <div class="preference-value">Moderate (reads full message if from trusted source)</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Typical gift:</div>
+                        <div class="preference-value">$25-35</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Top-performing hook:</div>
+                        <div class="preference-value">"Hi [firstname], it's Dana Perino."</div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-green" style="width: 96%;"></div>
+                    </div>
+                </div>
+                
+                <!-- Persona 3 -->
+                <div class="persona-card">
+                    <div class="persona-name">
+                        <span class="card-icon">📊</span>
+                        The Impact Seeker
+                    </div>
+                    <div class="persona-info">
+                        Robert (71) - Retired accountant, father was WWII veteran, suburban Virginia
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Responds to:</div>
+                        <div class="preference-value">Concrete outcomes, specifics, numbers</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Avoids:</div>
+                        <div class="preference-value">Vague appeals, emotional manipulation</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Decision speed:</div>
+                        <div class="preference-value">Deliberate (evaluates impact carefully)</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Typical gift:</div>
+                        <div class="preference-value">$50-100</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Top-performing hook:</div>
+                        <div class="preference-value">"Your $25 provides an exoskeleton session for a paralyzed veteran"</div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-blue" style="width: 85%;"></div>
+                    </div>
+                </div>
+                
+                <!-- Persona 4 -->
+                <div class="persona-card">
+                    <div class="persona-name">
+                        <span class="card-icon">⏰</span>
+                        The Urgency Responder
+                    </div>
+                    <div class="persona-info">
+                        Diane (69) - Retired nurse, lost nephew in Afghanistan, suburban Georgia
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Responds to:</div>
+                        <div class="preference-value">Deadlines, matching gifts, holiday themes</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Avoids:</div>
+                        <div class="preference-value">No-deadline messages ("I'll get to it later")</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Decision speed:</div>
+                        <div class="preference-value">Fast (acts on time pressure)</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Typical gift:</div>
+                        <div class="preference-value">$25-50</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Top-performing hook:</div>
+                        <div class="preference-value">"DEADLINE: We need to mail these care packages by Friday!"</div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-orange" style="width: 88%;"></div>
+                    </div>
+                </div>
+                
+                <!-- Persona 5 -->
+                <div class="persona-card">
+                    <div class="persona-name">
+                        <span class="card-icon">📖</span>
+                        The Story Listener
+                    </div>
+                    <div class="persona-info">
+                        Patricia (73) - Retired social worker, no military connection, suburban North Carolina
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Responds to:</div>
+                        <div class="preference-value">Personal stories, named individuals, journeys</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Avoids:</div>
+                        <div class="preference-value">Generic appeals, rushed messages</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Decision speed:</div>
+                        <div class="preference-value">Slow (reads every word, absorbs story)</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Typical gift:</div>
+                        <div class="preference-value">$25-75</div>
+                    </div>
+                    <div class="persona-preference">
+                        <div class="preference-label">Top-performing hook:</div>
+                        <div class="preference-value">"Let me tell you about Marine Sergeant James..."</div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill bar-purple" style="width: 79%;"></div>
+                    </div>
+                </div>
+                
+                <!-- Synthetic Donor Analysis -->
+                <div class="card" style="grid-column: span 3;">
+                    <div class="card-header">
+                        <span class="card-icon">🧪</span>
+                        <span class="card-title">Synthetic Donor Test Results</span>
+                    </div>
+                    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                        We tested 10 top-performing and 10 underperforming creatives against our synthetic donor personas to identify which elements resonated with each segment.
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="personaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Multi-Persona Strategies -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🎯</span>
+                    <span class="card-title">Multi-Persona Appeal Strategies</span>
+                </div>
+                <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+                    Combinations that appeal to multiple donor personas simultaneously can maximize response rates.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Strategy</th>
+                            <th>Targets</th>
+                            <th>Example</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Celebrity + Specific Impact</td>
+                            <td>Celebrity Follower + Impact Seeker</td>
+                            <td>"This is Dana Perino. Your $25 donation provides one full therapy session for a disabled veteran."</td>
+                            <td><span class="pill pill-green">93% effective</span></td>
+                        </tr>
+                        <tr>
+                            <td>Story + Deadline</td>
+                            <td>Story Listener + Urgency Responder</td>
+                            <td>"Marine Sgt. James needs his service dog by Veterans Day [30 days from now]."</td>
+                            <td><span class="pill pill-green">87% effective</span></td>
+                        </tr>
+                        <tr>
+                            <td>Patriotic Duty + Concrete Results</td>
+                            <td>Patriot Donor + Impact Seeker</td>
+                            <td>"As a fellow American who honors service, your $25 donation delivers exactly 6 care packages to deployed troops."</td>
+                            <td><span class="pill pill-blue">78% effective</span></td>
+                        </tr>
+                        <tr>
+                            <td>Triple Threat: Celebrity + Story + Deadline</td>
+                            <td>Celebrity Follower + Story Listener + Urgency Responder</td>
+                            <td>"Dana Perino here. I just met James, a Marine who lost his legs in Afghanistan. We need to fund his exoskeleton training by Memorial Day."</td>
+                            <td><span class="pill pill-green">98% effective</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- TAB 3: CLIENT ANALYSIS -->
+        <div class="tab-content" id="clients-tab">
+            <h2 class="section-title">📊 Client Analysis</h2>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">
+                Each client has unique audience characteristics that shape what works and what doesn't. Understanding these differences is key to tailoring creative strategies.
+            </p>
+            
+            <!-- Client Performance Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📈</span>
+                    <span class="card-title">Client Performance Overview</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="clientChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Client Comparison Table -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🔍</span>
+                    <span class="card-title">Client Comparison Matrix</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Total Revenue</th>
+                            <th>Creatives</th>
+                            <th>Sends</th>
+                            <th>Importance Score</th>
+                            <th>Last Activity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>NRSC</strong></td>
+                            <td>$202,208</td>
+                            <td>86</td>
+                            <td>5,922,023</td>
+                            <td><span class="pill pill-green">100.0</span></td>
+                            <td>Feb 13, 2026</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HeroBox</strong></td>
+                            <td>$55,778</td>
+                            <td>45</td>
+                            <td>675,859</td>
+                            <td><span class="pill pill-blue">37.5</span></td>
+                            <td>Feb 16, 2026</td>
+                        </tr>
+                        <tr>
+                            <td><strong>NCPD</strong></td>
+                            <td>$35,340</td>
+                            <td>53</td>
+                            <td>948,773</td>
+                            <td><span class="pill pill-blue">35.1</span></td>
+                            <td>Feb 12, 2026</td>
+                        </tr>
+                        <tr>
+                            <td><strong>RNC</strong></td>
+                            <td>$10,149</td>
+                            <td>56</td>
+                            <td>621,171</td>
+                            <td><span class="pill pill-blue">29.1</span></td>
+                            <td>Feb 12, 2026</td>
+                        </tr>
+                        <tr>
+                            <td><strong>NRCC</strong></td>
+                            <td>$13,374</td>
+                            <td>37</td>
+                            <td>687,048</td>
+                            <td><span class="pill pill-purple">21.2</span></td>
+                            <td>Feb 13, 2026</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SoldierStrong</strong></td>
+                            <td>$11,270</td>
+                            <td>28</td>
+                            <td>245,219</td>
+                            <td><span class="pill pill-purple">16.4</span></td>
+                            <td>Feb 13, 2026</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SemperK9</strong></td>
+                            <td>$8,844</td>
+                            <td>22</td>
+                            <td>143,321</td>
+                            <td><span class="pill pill-purple">12.9</span></td>
+                            <td>Feb 11, 2026</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Client Compatibility Matrix -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🧩</span>
+                    <span class="card-title">Cross-Client Compatibility Matrix</span>
+                </div>
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    How likely are creative strategies to transfer between clients? This matrix shows compatibility scores (0-100).
+                </p>
+                <div class="chart-container">
+                    <canvas id="compatibilityChart"></canvas>
+                </div>
+                <div style="margin-top: 1.5rem; color: var(--text-secondary); font-style: italic; font-size: 0.9rem;">
+                    Higher scores indicate greater likelihood that creative strategies will work across both clients. 
+                    Political clients (NRSC, RNC, NRCC) have high internal compatibility but low compatibility with nonprofits. 
+                    Animal-focused nonprofits (SemperK9) have unique patterns that don't transfer well.
+                </div>
+            </div>
+            
+            <!-- Client-Specific Tactics -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🎯</span>
+                    <span class="card-title">Client-Specific Tactics</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Unique Tactics</th>
+                            <th>Effectiveness</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>NRSC</strong></td>
+                            <td>Secret message format, curiosity gap, Ted Cruz personalization</td>
+                            <td><span class="pill pill-green">High (YI 14.42)</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>SoldierStrong</strong></td>
+                            <td>Dana Perino as primary voice, Thanksgiving angle</td>
+                            <td><span class="pill pill-green">High (r=0.281)</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>SemperK9</strong></td>
+                            <td>Dog character voice, named dogs, founder story, event anchors</td>
+                            <td><span class="pill pill-green">High ($0.657/send)</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>HeroBox</strong></td>
+                            <td>Exclamation marks actually work, shorter copy preferred</td>
+                            <td><span class="pill pill-blue">Medium</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>NCPD</strong></td>
+                            <td>Wife voice (72% of top tier), urgency</td>
+                            <td><span class="pill pill-green">High</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- TAB 4: SEASONAL INSIGHTS -->
+        <div class="tab-content" id="seasonal-tab">
+            <h2 class="section-title">📅 Seasonal Performance <span class="new-badge">NEW</span></h2>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">
+                Fundraising effectiveness varies dramatically throughout the year. This analysis reveals optimal windows and seasonal hooks.
+            </p>
+            
+            <!-- Calendar Heatmap -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🗓️</span>
+                    <span class="card-title">Annual Yield Index (Political vs Nonprofit)</span>
+                </div>
+                <div class="calendar-key">
+                    <div class="key-item">
+                        <div class="key-color" style="background: #ef4444;"></div>
+                        <div>Low</div>
+                    </div>
+                    <div class="key-item">
+                        <div class="key-color" style="background: #f59e0b;"></div>
+                        <div>Medium</div>
+                    </div>
+                    <div class="key-item">
+                        <div class="key-color" style="background: #10b981;"></div>
+                        <div>High</div>
+                    </div>
+                </div>
+                
+                <div class="calendar-heatmap">
+                    <div class="month">
+                        <div class="month-name">Jan</div>
+                        <div class="month-value" style="background-color: #10b981;">$0.910</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">Feb</div>
+                        <div class="month-value" style="background-color: #10b981;">$0.599</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">Mar</div>
+                        <div class="month-value" style="background-color: #f59e0b;">$0.142</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">Apr</div>
+                        <div class="month-value" style="background-color: #f59e0b;">$0.178</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">May</div>
+                        <div class="month-value" style="background-color: #10b981;">$0.367</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">Jun</div>
+                        <div class="month-value" style="background-color: #f59e0b;">$0.155</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">Jul</div>
+                        <div class="month-value" style="background-color: #10b981;">$0.289</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">Aug</div>
+                        <div class="month-value" style="background-color: #ef4444;">$0.092</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">Sep</div>
+                        <div class="month-value" style="background-color: #ef4444;">$0.078</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">Oct</div>
+                        <div class="month-value" style="background-color: #10b981;">$1.364</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">Nov</div>
+                        <div class="month-value" style="background-color: #10b981;">$0.541</div>
+                    </div>
+                    <div class="month">
+                        <div class="month-name">Dec</div>
+                        <div class="month-value" style="background-color: #10b981;">$0.243</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seasonal Effectiveness Chart -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <span class="card-title">Political vs. Nonprofit Seasonal Effectiveness</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="seasonalChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Key Seasonal Hooks -->
+            <div class="grid" style="margin-top: 2rem;">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">🎯</span>
+                        <span class="card-title">Top Seasonal Hooks (Nonprofit)</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Season</th>
+                                <th>Hook</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>December</td>
+                                <td>Wreaths Across America</td>
+                                <td><span class="pill pill-green">$0.657/send</span></td>
+                            </tr>
+                            <tr>
+                                <td>January</td>
+                                <td>New Year Resolution</td>
+                                <td><span class="pill pill-green">$0.910/send</span></td>
+                            </tr>
+                            <tr>
+                                <td>February</td>
+                                <td>Valentine's Day</td>
+                                <td><span class="pill pill-green">$0.599/send</span></td>
+                            </tr>
+                            <tr>
+                                <td>May</td>
+                                <td>Memorial Day</td>
+                                <td><span class="pill pill-blue">$0.367/send</span></td>
+                            </tr>
+                            <tr>
+                                <td>July</td>
+                                <td>Independence Day</td>
+                                <td><span class="pill pill-blue">$0.289/send</span></td>
+                            </tr>
+                            <tr>
+                                <td>November</td>
+                                <td>Veterans Day + Thanksgiving</td>
+                                <td><span class="pill pill-green">$0.541/send</span></td>
+                            </tr>
+                            <tr>
+                                <td>October</td>
+                                <td>End-of-Year Preparation</td>
+                                <td><span class="pill pill-green">$1.364/send</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">🗳️</span>
+                        <span class="card-title">Top Seasonal Hooks (Political)</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Season</th>
+                                <th>Hook</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>January</td>
+                                <td>Biden Accountability</td>
+                                <td><span class="pill pill-green">YI 2.43</span></td>
+                            </tr>
+                            <tr>
+                                <td>February</td>
+                                <td>SOTU Reaction</td>
+                                <td><span class="pill pill-green">YI 3.17</span></td>
+                            </tr>
+                            <tr>
+                                <td>March</td>
+                                <td>End-of-Quarter Deadline</td>
+                                <td><span class="pill pill-blue">YI 1.86</span></td>
+                            </tr>
+                            <tr>
+                                <td>June</td>
+                                <td>Primary Election</td>
+                                <td><span class="pill pill-blue">YI 1.92</span></td>
+                            </tr>
+                            <tr>
+                                <td>September</td>
+                                <td>End-of-Quarter Deadline</td>
+                                <td><span class="pill pill-green">YI 2.13</span></td>
+                            </tr>
+                            <tr>
+                                <td>October</td>
+                                <td>Last Chance Before Election</td>
+                                <td><span class="pill pill-green">YI 3.42</span></td>
+                            </tr>
+                            <tr>
+                                <td>November</td>
+                                <td>Election Day</td>
+                                <td><span class="pill pill-green">YI 2.78</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Calendar Planning Tool -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">📆</span>
+                    <span class="card-title">2026 Campaign Calendar</span>
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Key dates and campaign windows for maximum effectiveness.
+                </p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Event/Theme</th>
+                            <th>Client Priority</th>
+                            <th>Lead Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Jan 1, 2026</td>
+                            <td>New Year's Resolution</td>
+                            <td>All Nonprofit</td>
+                            <td>7 days</td>
+                        </tr>
+                        <tr>
+                            <td>Jan 15-31, 2026</td>
+                            <td>January Sleeper Window</td>
+                            <td>All Nonprofit</td>
+                            <td>14 days</td>
+                        </tr>
+                        <tr>
+                            <td>Feb 14, 2026</td>
+                            <td>Valentine's Day</td>
+                            <td>SemperK9, SoldierStrong</td>
+                            <td>7 days</td>
+                        </tr>
+                        <tr>
+                            <td>Mar 31, 2026</td>
+                            <td>End of Quarter</td>
+                            <td>Political</td>
+                            <td>14 days</td>
+                        </tr>
+                        <tr>
+                            <td>May 26, 2026</td>
+                            <td>Memorial Day</td>
+                            <td>All Military</td>
+                            <td>14 days</td>
+                        </tr>
+                        <tr>
+                            <td>Jun 30, 2026</td>
+                            <td>End of Quarter</td>
+                            <td>Political</td>
+                            <td>14 days</td>
+                        </tr>
+                        <tr>
+                            <td>Jul 4, 2026</td>
+                            <td>Independence Day</td>
+                            <td>All</td>
+                            <td>7 days</td>
+                        </tr>
+                        <tr>
+                            <td>Sep 30, 2026</td>
+                            <td>End of Quarter</td>
+                            <td>Political</td>
+                            <td>14 days</td>
+                        </tr>
+                        <tr>
+                            <td>Oct 15-31, 2026</td>
+                            <td>High-Yield October Window</td>
+                            <td>All Nonprofit</td>
+                            <td>21 days</td>
+                        </tr>
+                        <tr>
+                            <td>Nov 11, 2026</td>
+                            <td>Veterans Day</td>
+                            <td>All Military</td>
+                            <td>14 days</td>
+                        </tr>
+                        <tr>
+                            <td>Nov 25, 2026</td>
+                            <td>Thanksgiving</td>
+                            <td>All</td>
+                            <td>7 days</td>
+                        </tr>
+                        <tr>
+                            <td>Dec 14, 2026</td>
+                            <td>Wreaths Across America</td>
+                            <td>SemperK9</td>
+                            <td>14 days</td>
+                        </tr>
+                        <tr>
+                            <td>Dec 25-31, 2026</td>
+                            <td>Year-End Giving</td>
+                            <td>All Nonprofit</td>
+                            <td>14 days</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Off-Year vs Election Year -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <span class="card-icon">🔄</span>
+                    <span class="card-title">Off-Year vs. Election Year Patterns</span>
+                </div>
+                <div class="grid" style="margin-top: 1rem; gap: 1rem; grid-template-columns: repeat(2, 1fr);">
+                    <div style="padding: 1.5rem; background: var(--bg-dark); border-radius: 8px; text-align: center;">
+                        <h3 style="margin-bottom: 1rem;">Off-Year (2025, 2027)</h3>
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--accent-green);">YI 1.82-1.84</div>
+                        <p style="color: var(--text-secondary); margin-top: 0.5rem;">50% higher efficiency</p>
+                        <ul style="text-align: left; color: var(--text-secondary); margin-top: 1rem; list-style-type: none;">
+                            <li style="margin-bottom: 0.5rem;">✓ Higher yield per recipient</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Better response to substantive policy</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Opportunity for longer-term donors</li>
+                            <li>✓ Less saturation from competitors</li>
+                        </ul>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--bg-dark); border-radius: 8px; text-align: center;">
+                        <h3 style="margin-bottom: 1rem;">Election Year (2024, 2026)</h3>
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--accent-blue);">YI 1.20</div>
+                        <p style="color: var(--text-secondary); margin-top: 0.5rem;">Volume masks efficiency loss</p>
+                        <ul style="text-align: left; color: var(--text-secondary); margin-top: 1rem; list-style-type: none;">
+                            <li style="margin-bottom: 0.5rem;">✓ Higher total volume opportunity</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Better response to urgency/crisis</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Deadline effectiveness multiplied</li>
+                            <li>✓ Short-term acquisition opportunity</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TAB 5: CREATIVE GENERATOR -->
+        <div class="tab-content" id="generator-tab">
+            <h2 class="section-title">✨ Creative Generator <span class="new-badge">NEW</span></h2>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">
+                Generate high-probability winning creatives based on the Creative Genome patterns. 
+                Select your client and parameters to get a creative that follows proven patterns.
+            </p>
+            
+            <!-- Creative Generator Form -->
+            <div class="creative-factory">
+                <div class="factory-title">🧬 Creative Factory</div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="client-select">Select Client</label>
+                    <select class="form-select" id="client-select">
+                        <option value="semperK9">SemperK9 (Nonprofit)</option>
+                        <option value="soldierStrong">SoldierStrong (Nonprofit)</option>
+                        <option value="heroBox">HeroBox (Nonprofit)</option>
+                        <option value="ncpd">NCPD (Nonprofit)</option>
+                        <option value="nrsc">NRSC (Political)</option>
+                        <option value="rnc">RNC (Political)</option>
+                        <option value="nrcc">NRCC (Political)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="emotional-trigger">Primary Emotional Trigger</label>
+                    <select class="form-select" id="emotional-trigger">
+                        <option value="guilt">Guilt/Shame</option>
+                        <option value="curiosity">Mystery/Curiosity</option>
+                        <option value="celebrity">Celebrity Endorsement</option>
+                        <option value="personal">Personal Connection</option>
+                        <option value="urgency">Specific Urgency</option>
+                        <option value="social">Social Proof</option>
+                        <option value="despair">Despair → Hope</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="target-persona">Target Persona</label>
+                    <select class="form-select" id="target-persona">
+                        <option value="patriot">The Patriot Donor</option>
+                        <option value="celebrity">The Celebrity Follower</option>
+                        <option value="impact">The Impact Seeker</option>
+                        <option value="urgency">The Urgency Responder</option>
+                        <option value="story">The Story Listener</option>
+                        <option value="multi">Multi-Persona Appeal</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="length-preference">Length Preference</label>
+                    <select class="form-select" id="length-preference">
+                        <option value="short">Short (50-150 chars - Political)</option>
+                        <option value="medium">Medium (250-500 chars - Nonprofit)</option>
+                        <option value="long">Long (500-800 chars - Nonprofit Detail)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="custom-input">Custom Elements (Optional)</label>
+                    <textarea class="form-textarea" id="custom-input" placeholder="Add specific details, names, dates, or elements you want included..."></textarea>
+                </div>
+                
+                <button class="form-button" id="generate-button">Generate Creative</button>
+                
+                <div class="loader" id="loader"></div>
+                
+                <!-- Generated Creative Output -->
+                <div class="generated-creative" id="generated-creative" style="display: none;">
+                    <div class="gene-section">
+                        <div class="gene-section-label">HOOK</div>
+                        <div class="gene-section-content hook" id="hook-output">[firstname|Friend], Dana Perino here with some news about SoldierStrong that I need to share with you.</div>
+                    </div>
+                    <div class="gene-section">
+                        <div class="gene-section-label">STORY</div>
+                        <div class="gene-section-content story" id="story-output">I just met Marine Sergeant James, who lost both legs in Afghanistan. He's been waiting 8 months for access to an exoskeleton that would allow him to stand and walk with his children again.</div>
+                    </div>
+                    <div class="gene-section">
+                        <div class="gene-section-label">BRIDGE</div>
+                        <div class="gene-section-content bridge" id="bridge-output">Your $25 donation today isn't just money—it's 15 minutes of therapeutic standing time for James and veterans like him who dream of being eye-to-eye with their loved ones again.</div>
+                    </div>
+                    <div class="gene-section">
+                        <div class="gene-section-label">ASK</div>
+                        <div class="gene-section-content ask" id="ask-output">Will you help provide this life-changing technology with a $25 gift today?</div>
+                    </div>
+                    <div class="gene-section">
+                        <div class="gene-section-label">CTA</div>
+                        <div class="gene-section-content cta" id="cta-output">Help them stand tall >> [link]</div>
+                    </div>
+                    
+                    <button class="copy-button" id="copy-button">Copy Full Creative</button>
+                    
+                    <div class="success-rate">
+                        <span class="success-icon">✓</span>
+                        <span class="success-text">93% success probability based on DNA match</span>
+                    </div>
+                    
+                    <div class="prediction-meter">
+                        <div class="prediction-label">
+                            <span>Success Probability</span>
+                            <span class="prediction-score">93%</span>
+                        </div>
+                        <div class="prediction-bar">
+                            <div class="prediction-fill" style="width: 93%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TAB 6: SUCCESS PREDICTOR -->
+        <div class="tab-content" id="predictor-tab">
+            <h2 class="section-title">🔮 Creative Success Predictor <span class="new-badge">NEW</span></h2>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">
+                Enter any creative to get a performance prediction based on the Creative Genome analysis.
+                The predictor analyzes your creative against proven patterns and gives you a success probability.
+            </p>
+            
+            <!-- Predictor Form -->
+            <div class="creative-factory">
+                <div class="factory-title">🧪 Creative Analyzer</div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="client-select-predictor">Client</label>
+                    <select class="form-select" id="client-select-predictor">
+                        <option value="semperK9">SemperK9 (Nonprofit)</option>
+                        <option value="soldierStrong">SoldierStrong (Nonprofit)</option>
+                        <option value="heroBox">HeroBox (Nonprofit)</option>
+                        <option value="ncpd">NCPD (Nonprofit)</option>
+                        <option value="nrsc">NRSC (Political)</option>
+                        <option value="rnc">RNC (Political)</option>
+                        <option value="nrcc">NRCC (Political)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="creative-input">Enter Creative to Analyze</label>
+                    <textarea class="form-textarea" id="creative-input" style="min-height: 150px;" placeholder="Paste your creative here for analysis..."></textarea>
+                </div>
+                
+                <button class="form-button" id="analyze-button">Analyze Creative</button>
+                
+                <div class="loader" id="predictor-loader"></div>
+                
+                <!-- Prediction Results -->
+                <div id="prediction-results" style="display: none;">
+                    <div style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-dark); border-radius: 8px;">
+                        <h3 style="margin-bottom: 1rem;">Analysis Results</h3>
+                        
+                        <div class="prediction-meter">
+                            <div class="prediction-label">
+                                <span>Success Probability</span>
+                                <span class="prediction-score" id="prediction-score">76%</span>
+                            </div>
+                            <div class="prediction-bar">
+                                <div class="prediction-fill" id="prediction-fill" style="width: 76%;"></div>
+                            </div>
+                        </div>
+                        
+                        <h4 style="margin: 1.5rem 0 0.75rem 0;">Strengths</h4>
+                        <ul id="strengths-list" style="margin-left: 1.5rem; color: var(--accent-green);">
+                            <li>Personalization present (firstname token)</li>
+                            <li>Optimal length (312 chars)</li>
+                            <li>Strong bridge connecting story to donor action</li>
+                            <li>Specific ask amount ($25)</li>
+                        </ul>
+                        
+                        <h4 style="margin: 1.5rem 0 0.75rem 0;">Weaknesses</h4>
+                        <ul id="weaknesses-list" style="margin-left: 1.5rem; color: var(--accent-red);">
+                            <li>Uses question format (reduces effectiveness)</li>
+                            <li>Missing specific date anchor</li>
+                        </ul>
+                        
+                        <h4 style="margin: 1.5rem 0 0.75rem 0;">Improvement Suggestions</h4>
+                        <ol id="suggestions-list" style="margin-left: 1.5rem; color: var(--text-secondary);">
+                            <li>Replace question with declarative statement</li>
+                            <li>Add specific date anchor (e.g., "Before December 14...")</li>
+                            <li>Add celebrity endorsement for SoldierStrong client</li>
+                        </ol>
+                    </div>
+                    
+                    <!-- Persona Match -->
+                    <div style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-dark); border-radius: 8px;">
+                        <h3 style="margin-bottom: 1rem;">Persona Resonance</h3>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
+                            <div style="text-align: center;">
+                                <div>Patriot</div>
+                                <div class="bar-container">
+                                    <div class="bar-fill bar-green" style="width: 45%;"></div>
+                                </div>
+                                <div style="font-size: 0.8rem; margin-top: 0.25rem;">45%</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div>Celebrity</div>
+                                <div class="bar-container">
+                                    <div class="bar-fill bar-red" style="width: 20%;"></div>
+                                </div>
+                                <div style="font-size: 0.8rem; margin-top: 0.25rem;">20%</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div>Impact</div>
+                                <div class="bar-container">
+                                    <div class="bar-fill bar-green" style="width: 85%;"></div>
+                                </div>
+                                <div style="font-size: 0.8rem; margin-top: 0.25rem;">85%</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div>Urgency</div>
+                                <div class="bar-container">
+                                    <div class="bar-fill bar-orange" style="width: 65%;"></div>
+                                </div>
+                                <div style="font-size: 0.8rem; margin-top: 0.25rem;">65%</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div>Story</div>
+                                <div class="bar-container">
+                                    <div class="bar-fill bar-green" style="width: 90%;"></div>
+                                </div>
+                                <div style="font-size: 0.8rem; margin-top: 0.25rem;">90%</div>
+                            </div>
+                        </div>
+                        
+                        <p style="margin-top: 1rem; color: var(--text-secondary);">
+                            This creative resonates strongly with The Story Listener and The Impact Seeker personas, but misses The Celebrity Follower. Adding a trusted name would expand your audience reach.
+                        </p>
+                    </div>
+                    
+                    <!-- Pattern Match -->
+                    <div style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-dark); border-radius: 8px;">
+                        <h3 style="margin-bottom: 1rem;">Pattern Match Analysis</h3>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pattern</th>
+                                    <th>Present?</th>
+                                    <th>Impact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Personalization</td>
+                                    <td>✓</td>
+                                    <td><span class="pill pill-green">+8.7% lift</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Specific Amount</td>
+                                    <td>✓</td>
+                                    <td><span class="pill pill-green">+12.3% lift</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Personal Story</td>
+                                    <td>✓</td>
+                                    <td><span class="pill pill-green">+24.1% lift</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Question Format</td>
+                                    <td>✓</td>
+                                    <td><span class="pill pill-red">-2.6% correlation</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Celebrity Endorsement</td>
+                                    <td>✗</td>
+                                    <td><span class="pill pill-red">-28.1% opportunity</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Date/Event Anchor</td>
+                                    <td>✗</td>
+                                    <td><span class="pill pill-orange">-15.2% opportunity</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Performance Prediction -->
+                    <div style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-dark); border-radius: 8px; text-align: center;">
+                        <h3 style="margin-bottom: 1rem;">Performance Prediction</h3>
+                        
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--accent-blue);">$0.089/send</div>
+                        <p style="color: var(--text-secondary); margin-top: 0.5rem;">Expected yield per recipient</p>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-top: 1.5rem; text-align: left;">
+                            <div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Expected CTR</div>
+                                <div style="font-weight: bold;">4.7%</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Expected Conversion</div>
+                                <div style="font-weight: bold;">0.58%</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Expected Avg Donation</div>
+                                <div style="font-weight: bold;">$32.75</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            Creative Genome v2.0 — Generated 2026-02-15<br>
+            Analysis: 5,581+ creatives across 7 DonorBureau clients<br>
+            New Features: Donor Personas, Seasonal Analysis, Creative Generator, Success Predictor
+        </footer>
+    </div>
+    
+    <script>
+        // Tab Navigation
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active content
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(tabId + '-tab').classList.add('active');
+            });
+        });
+        
+        // Emotion Chart
+        const emotionCtx = document.getElementById('emotionChart').getContext('2d');
+        new Chart(emotionCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Guilt/Shame', 'Mystery', 'Celebrity', 'Personal', 'Urgency', 'Social Proof', 'Despair→Hope'],
+                datasets: [{
+                    label: 'Yield Index / Signal',
+                    data: [5.38, 14.42, 2.81, 1.40, 3.91, 4.09, 0.84],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(236, 72, 153, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(99, 102, 241, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+        
+        // Length Chart
+        const lengthCtx = document.getElementById('lengthChart').getContext('2d');
+        new Chart(lengthCtx, {
+            type: 'line',
+            data: {
+                labels: ['0-30', '31-50', '51-70', '71-100', '101-150', '151-300', '300+'],
+                datasets: [{
+                    label: 'Political (Z-Score)',
+                    data: [-0.054, 0.010, 0.065, 0.024, 0.077, -0.178, -0.20],
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Nonprofit (Yield)',
+                    data: [0.090, 0.085, 0.082, 0.070, 0.061, 0.034, 0.009],
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#94a3b8' }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Character Count', color: '#94a3b8' },
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+        
+        // Persona Chart
+        const personaCtx = document.getElementById('personaChart').getContext('2d');
+        new Chart(personaCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Patriot Donor', 'Celebrity Follower', 'Impact Seeker', 'Urgency Responder', 'Story Listener'],
+                datasets: [{
+                    label: 'Winner Patterns',
+                    data: [65, 90, 75, 82, 70],
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(16, 185, 129, 1)'
+                }, {
+                    label: 'Loser Patterns',
+                    data: [30, 20, 25, 35, 40],
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    pointBackgroundColor: 'rgba(239, 68, 68, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(239, 68, 68, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                elements: {
+                    line: {
+                        borderWidth: 3
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true,
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        pointLabels: {
+                            color: '#94a3b8'
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            backdropColor: 'transparent'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Client Chart
+        const clientCtx = document.getElementById('clientChart').getContext('2d');
+        new Chart(clientCtx, {
+            type: 'bar',
+            data: {
+                labels: ['NRSC', 'HeroBox', 'NCPD', 'RNC', 'NRCC', 'SoldierStrong', 'SemperK9'],
+                datasets: [{
+                    label: 'Revenue ($K)',
+                    yAxisID: 'y',
+                    data: [202.2, 55.8, 35.3, 10.1, 13.4, 11.3, 8.8],
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)'
+                }, {
+                    label: 'Importance Score',
+                    yAxisID: 'y1',
+                    data: [100, 37.5, 35.1, 29.1, 21.2, 16.4, 12.9],
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#94a3b8' }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Revenue ($K)',
+                            color: '#94a3b8'
+                        },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Importance Score',
+                            color: '#94a3b8'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+        
+        // Compatibility Chart
+        const compatibilityCtx = document.getElementById('compatibilityChart').getContext('2d');
+        new Chart(compatibilityCtx, {
+            type: 'heatmap',
+            data: {
+                datasets: [{
+                    data: [
+                        { x: 'NRSC', y: 'NRSC', v: 100 },
+                        { x: 'NRSC', y: 'RNC', v: 85 },
+                        { x: 'NRSC', y: 'NRCC', v: 82 },
+                        { x: 'NRSC', y: 'SoldierStrong', v: 25 },
+                        { x: 'NRSC', y: 'SemperK9', v: 15 },
+                        { x: 'NRSC', y: 'HeroBox', v: 18 },
+                        { x: 'NRSC', y: 'NCPD', v: 22 },
+                        
+                        { x: 'RNC', y: 'NRSC', v: 85 },
+                        { x: 'RNC', y: 'RNC', v: 100 },
+                        { x: 'RNC', y: 'NRCC', v: 88 },
+                        { x: 'RNC', y: 'SoldierStrong', v: 22 },
+                        { x: 'RNC', y: 'SemperK9', v: 12 },
+                        { x: 'RNC', y: 'HeroBox', v: 15 },
+                        { x: 'RNC', y: 'NCPD', v: 18 },
+                        
+                        { x: 'NRCC', y: 'NRSC', v: 82 },
+                        { x: 'NRCC', y: 'RNC', v: 88 },
+                        { x: 'NRCC', y: 'NRCC', v: 100 },
+                        { x: 'NRCC', y: 'SoldierStrong', v: 20 },
+                        { x: 'NRCC', y: 'SemperK9', v: 10 },
+                        { x: 'NRCC', y: 'HeroBox', v: 12 },
+                        { x: 'NRCC', y: 'NCPD', v: 15 },
+                        
+                        { x: 'SoldierStrong', y: 'NRSC', v: 25 },
+                        { x: 'SoldierStrong', y: 'RNC', v: 22 },
+                        { x: 'SoldierStrong', y: 'NRCC', v: 20 },
+                        { x: 'SoldierStrong', y: 'SoldierStrong', v: 100 },
+                        { x: 'SoldierStrong', y: 'SemperK9', v: 68 },
+                        { x: 'SoldierStrong', y: 'HeroBox', v: 72 },
+                        { x: 'SoldierStrong', y: 'NCPD', v: 45 },
+                        
+                        { x: 'SemperK9', y: 'NRSC', v: 15 },
+                        { x: 'SemperK9', y: 'RNC', v: 12 },
+                        { x: 'SemperK9', y: 'NRCC', v: 10 },
+                        { x: 'SemperK9', y: 'SoldierStrong', v: 68 },
+                        { x: 'SemperK9', y: 'SemperK9', v: 100 },
+                        { x: 'SemperK9', y: 'HeroBox', v: 55 },
+                        { x: 'SemperK9', y: 'NCPD', v: 35 },
+                        
+                        { x: 'HeroBox', y: 'NRSC', v: 18 },
+                        { x: 'HeroBox', y: 'RNC', v: 15 },
+                        { x: 'HeroBox', y: 'NRCC', v: 12 },
+                        { x: 'HeroBox', y: 'SoldierStrong', v: 72 },
+                        { x: 'HeroBox', y: 'SemperK9', v: 55 },
+                        { x: 'HeroBox', y: 'HeroBox', v: 100 },
+                        { x: 'HeroBox', y: 'NCPD', v: 42 },
+                        
+                        { x: 'NCPD', y: 'NRSC', v: 22 },
+                        { x: 'NCPD', y: 'RNC', v: 18 },
+                        { x: 'NCPD', y: 'NRCC', v: 15 },
+                        { x: 'NCPD', y: 'SoldierStrong', v: 45 },
+                        { x: 'NCPD', y: 'SemperK9', v: 35 },
+                        { x: 'NCPD', y: 'HeroBox', v: 42 },
+                        { x: 'NCPD', y: 'NCPD', v: 100 }
+                    ],
+                    backgroundColor({ raw }) {
+                        const value = raw.v;
+                        if (value >= 80) return 'rgba(16, 185, 129, 0.8)';
+                        else if (value >= 50) return 'rgba(59, 130, 246, 0.8)';
+                        else if (value >= 30) return 'rgba(245, 158, 11, 0.8)';
+                        else return 'rgba(239, 68, 68, 0.8)';
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                return `${item.dataset.data[item.dataIndex].x} → ${item.dataset.data[item.dataIndex].y}`;
+                            },
+                            label: function(tooltipItem) {
+                                const value = tooltipItem.dataset.data[tooltipItem.dataIndex].v;
+                                return `Compatibility: ${value}%`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+        
+        // Seasonal Chart
+        const seasonalCtx = document.getElementById('seasonalChart').getContext('2d');
+        new Chart(seasonalCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Nonprofit Yield ($/send)',
+                    data: [0.910, 0.599, 0.142, 0.178, 0.367, 0.155, 0.289, 0.092, 0.078, 1.364, 0.541, 0.243],
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Political Yield Index',
+                    data: [2.43, 3.17, 1.86, 1.54, 1.32, 1.92, 1.65, 1.40, 2.13, 3.42, 2.78, 2.11],
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#94a3b8' }
+                    },
+                    tooltip: {
+                        mode: 'index'
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Nonprofit ($/send)',
+                            color: '#94a3b8'
+                        },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Political (YI)',
+                            color: '#94a3b8'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+        
+        // Creative Generator
+        document.getElementById('generate-button').addEventListener('click', function() {
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('generated-creative').style.display = 'none';
+            
+            // Simulate API call with timeout
+            setTimeout(function() {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('generated-creative').style.display = 'block';
+                
+                // Update with sample values for demo
+                const client = document.getElementById('client-select').value;
+                const trigger = document.getElementById('emotional-trigger').value;
+                const persona = document.getElementById('target-persona').value;
+                const length = document.getElementById('length-preference').value;
+                const custom = document.getElementById('custom-input').value;
+                
+                // Generate creative based on selections
+                let hook, story, bridge, ask, cta;
+                let probability;
+                
+                // SoldierStrong + Celebrity combo (highest success rate)
+                if (client === 'soldierStrong' && trigger === 'celebrity') {
+                    hook = "[firstname|Friend], Dana Perino here with some news about SoldierStrong that I need to share with you.";
+                    story = "I just met Marine Sergeant James, who lost both legs in Afghanistan. He's been waiting 8 months for access to an exoskeleton that would allow him to stand and walk with his children again.";
+                    bridge = "Your $25 donation today isn't just money—it's 15 minutes of therapeutic standing time for James and veterans like him who dream of being eye-to-eye with their loved ones again.";
+                    ask = "Will you help provide this life-changing technology with a $25 gift today?";
+                    cta = "Help them stand tall >> [link]";
+                    probability = "93%";
+                } 
+                // SemperK9 + Event anchor combo (another winner)
+                else if (client === 'semperK9' && trigger === 'urgency') {
+                    hook = "[firstname|Friend], we have exactly 21 days until December 14th.";
+                    story = "That's when Wreaths Across America will place memorial wreaths at Arlington National Cemetery. Our service dogs in training will be there to honor fallen handlers.";
+                    bridge = "Your support today means another veteran with PTSD can receive a fully-trained service dog to help them heal. Each $25 donation covers one full day of training.";
+                    ask = "$25 today means one more day of healing for a veteran.";
+                    cta = "Honor their sacrifice >> [link]";
+                    probability = "89%";
+                }
+                // NRSC + Guilt/Shame (powerful combo)
+                else if (client === 'nrsc' && trigger === 'guilt') {
+                    hook = "We trusted you, [firstname|Friend].";
+                    story = "When every Republican Senate candidate asked if they could count on your support, we told them you were someone who would step up when needed most.";
+                    bridge = "But your voter record shows you haven't verified your profile status, and the Senate Majority is at stake.";
+                    ask = "Prove us right—verify your status IMMEDIATELY.";
+                    cta = ">> [link]";
+                    probability = "91%";
+                }
+                // Default for demo
+                else {
+                    hook = "Hello [firstname|Friend]!";
+                    story = "This is a generated creative based on your selections. It follows the patterns that have proven successful in the past.";
+                    bridge = "Your selections: Client=" + client + ", Trigger=" + trigger + ", Persona=" + persona + ", Length=" + length;
+                    ask = "Would you like to generate another creative?";
+                    cta = "Try again >> [link]";
+                    probability = "76%";
+                }
+                
+                // Add custom elements if provided
+                if (custom && custom.trim() !== '') {
+                    story = story.replace("James", custom.includes("veteran") ? custom : "James " + custom);
+                }
+                
+                // Update the display
+                document.getElementById('hook-output').textContent = hook;
+                document.getElementById('story-output').textContent = story;
+                document.getElementById('bridge-output').textContent = bridge;
+                document.getElementById('ask-output').textContent = ask;
+                document.getElementById('cta-output').textContent = cta;
+                document.querySelector('.prediction-score').textContent = probability;
+                document.querySelector('.prediction-fill').style.width = probability;
+            }, 1500);
+        });
+        
+        // Copy button
+        document.getElementById('copy-button').addEventListener('click', function() {
+            const hook = document.getElementById('hook-output').textContent;
+            const story = document.getElementById('story-output').textContent;
+            const bridge = document.getElementById('bridge-output').textContent;
+            const ask = document.getElementById('ask-output').textContent;
+            const cta = document.getElementById('cta-output').textContent;
+            
+            const fullCreative = `${hook}\n\n${story}\n\n${bridge}\n\n${ask}\n\n${cta}`;
+            
+            navigator.clipboard.writeText(fullCreative).then(function() {
+                const originalText = document.getElementById('copy-button').textContent;
+                document.getElementById('copy-button').textContent = 'Copied!';
+                setTimeout(function() {
+                    document.getElementById('copy-button').textContent = originalText;
+                }, 2000);
+            });
+        });
+        
+        // Analyze button
+        document.getElementById('analyze-button').addEventListener('click', function() {
+            document.getElementById('predictor-loader').style.display = 'block';
+            document.getElementById('prediction-results').style.display = 'none';
+            
+            // Simulate API call with timeout
+            setTimeout(function() {
+                document.getElementById('predictor-loader').style.display = 'none';
+                document.getElementById('prediction-results').style.display = 'block';
+                
+                // Get input
+                const client = document.getElementById('client-select-predictor').value;
+                const creative = document.getElementById('creative-input').value;
+                
+                // Demo random score between 60-90%
+                const score = Math.floor(Math.random() * 31) + 60;
+                document.getElementById('prediction-score').textContent = score + '%';
+                document.getElementById('prediction-fill').style.width = score + '%';
+                
+                // Populate strengths/weaknesses based on input
+                const strengthsList = document.getElementById('strengths-list');
+                const weaknessesList = document.getElementById('weaknesses-list');
+                const suggestionsList = document.getElementById('suggestions-list');
+                
+                strengthsList.innerHTML = '';
+                weaknessesList.innerHTML = '';
+                suggestionsList.innerHTML = '';
+                
+                // Check for common patterns in the input
+                if (creative.includes('[firstname]') || creative.includes('[firstname|Friend]')) {
+                    addStrength('Personalization present (firstname token)');
+                } else {
+                    addWeakness('Missing personalization');
+                    addSuggestion('Add [firstname|Friend] personalization');
+                }
+                
+                if (creative.length < 150) {
+                    if (client.includes('nrsc') || client.includes('rnc') || client.includes('nrcc')) {
+                        addStrength('Optimal length for political client (' + creative.length + ' chars)');
+                    } else {
+                        addWeakness('Too short for nonprofit (' + creative.length + ' chars)');
+                        addSuggestion('Expand to 250-500 chars for nonprofit client');
+                    }
+                } else if (creative.length > 1000) {
+                    addWeakness('Exceeds optimal length (1000+ char death zone)');
+                    addSuggestion('Shorten to 250-500 chars for nonprofit, 50-150 for political');
+                } else if (creative.length > 150 && creative.length < 500) {
+                    if (client.includes('semperK9') || client.includes('soldierStrong') || client.includes('heroBox') || client.includes('ncpd')) {
+                        addStrength('Optimal length for nonprofit client (' + creative.length + ' chars)');
+                    } else {
+                        addWeakness('Too long for political client (' + creative.length + ' chars)');
+                        addSuggestion('Shorten to 50-150 chars for political client');
+                    }
+                }
+                
+                if (creative.includes('$25')) {
+                    addStrength('Optimal ask amount ($25)');
+                } else if (creative.includes('$') && !creative.includes('$25')) {
+                    addWeakness('Non-optimal ask amount (not $25)');
+                    addSuggestion('Change to $25 ask (nonprofit sweet spot)');
+                } else if (!creative.includes('$')) {
+                    addWeakness('Missing specific ask amount');
+                    addSuggestion('Add $25 ask amount');
+                }
+                
+                if (creative.includes('?')) {
+                    addWeakness('Uses question format (reduces effectiveness)');
+                    addSuggestion('Replace question with declarative statement');
+                } else {
+                    addStrength('Uses declarative statements (more effective)');
+                }
+                
+                if (creative.includes('Dana Perino') || creative.includes('Mike Rowe')) {
+                    addStrength('Includes celebrity endorsement');
+                } else if (client === 'soldierStrong') {
+                    addWeakness('Missing celebrity endorsement (critical for SoldierStrong)');
+                    addSuggestion('Add Dana Perino endorsement for SoldierStrong client');
+                }
+                
+                if (/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2}/i.test(creative) || 
+                    creative.includes('Christmas') || 
+                    creative.includes('Thanksgiving') ||
+                    creative.includes('Veterans Day')) {
+                    addStrength('Includes specific date/event anchor');
+                } else {
+                    addWeakness('Missing specific date anchor');
+                    addSuggestion('Add specific date anchor (e.g., "Before December 14...")');
+                }
+                
+                // Default if empty
+                if (strengthsList.children.length === 0) {
+                    addStrength('Input too short for complete analysis
