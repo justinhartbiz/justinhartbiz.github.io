@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wabi-Sabi | Horizon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <style>
+        :root {
+            --void-black: #030305;
+            --horizon-gold: #FFD28E;
+            --horizon-red: #D66D50;
+            --telemetry-blue: #7F9CBB;
+        }
+        
+        body {
+            background-color: var(--void-black);
+            color: white;
+            font-family: 'Playfair Display', serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Starfield */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle var(--duration) ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: var(--intensity); }
+        }
+        
+        /* Glass panels */
+        .glass-panel {
+            background-color: rgba(3, 3, 5, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .accent-gold {
+            color: var(--horizon-gold);
+        }
+        
+        .accent-red {
+            color: var(--horizon-red);
+        }
+        
+        .accent-blue {
+            color: var(--telemetry-blue);
+        }
+        
+        .border-gold {
+            border-color: var(--horizon-gold);
+        }
+        
+        .border-red {
+            border-color: var(--horizon-red);
+        }
+        
+        .border-blue {
+            border-color: var(--telemetry-blue);
+        }
+        
+        /* Interactive gallery */
+        .gallery-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gallery-item:hover {
+            transform: scale(1.02);
+        }
+        
+        .gallery-item img {
+            transition: all 0.5s ease;
+        }
+        
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+        
+        .gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(3, 3, 5, 0.8), transparent);
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-item:hover .gallery-overlay {
+            transform: translateY(0);
+        }
+        
+        /* Rating slider */
+        .rating-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .rating-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--horizon-gold);
+            cursor: pointer;
+        }
+        
+        .rating-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--horizon-gold);
+            cursor: pointer;
+            border: none;
+        }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 15px;
+            width: 1px;
+            background-color: var(--telemetry-blue);
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 30px;
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            left: -30px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: var(--telemetry-blue);
+            top: 6px;
+        }
+        
+        /* Quiz elements */
+        .quiz-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background-color: rgba(127, 156, 187, 0.2);
+        }
+        
+        .quiz-option.correct {
+            background-color: rgba(80, 200, 120, 0.3);
+            border-color: rgba(80, 200, 120, 0.6);
+        }
+        
+        .quiz-option.incorrect {
+            background-color: rgba(214, 109, 80, 0.3);
+            border-color: rgba(214, 109, 80, 0.6);
+        }
+        
+        /* Principles cards */
+        .principle-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .principle-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 65%, var(--horizon-gold) 100%);
+            opacity: 0.1;
+            transition: opacity 0.3s ease;
+        }
+        
+        .principle-card:hover::after {
+            opacity: 0.2;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: rgba(3, 3, 5, 0.95);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9em;
+            border: 1px solid var(--horizon-gold);
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Progress indicators */
+        .progress-bar {
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--horizon-gold);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Visual comparison */
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+        }
+        
+        .comparison-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        
+        .comparison-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(3, 3, 5, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        
+        /* Rating results visualization */
+        .results-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .axis-label {
+            position: absolute;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .data-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--horizon-gold);
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+        
+        .data-point.highlight {
+            width: 14px;
+            height: 14px;
+            background-color: var(--horizon-red);
+        }
+        
+        .data-label {
+            position: absolute;
+            font-size: 10px;
+            color: white;
+            transform: translateX(-50%);
+            text-align: center;
+            width: 80px;
+            top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .data-point:hover {
+            width: 14px;
+            height: 14px;
+            background-color: var(--horizon-red);
+        }
+        
+        .data-point:hover + .data-label {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Starfield Background -->
+    <div class="starfield" id="starfield"></div>
+    
+    <!-- Navigation -->
+    <nav class="glass-panel sticky top-0 z-50 p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <span class="text-2xl font-bold accent-gold">HORIZON</span>
+                <span class="mono text-xs ml-3 accent-blue">/ WABI-SABI</span>
+            </div>
+            <div class="hidden md:flex space-x-6 mono text-sm">
+                <a href="#overview" class="hover:accent-gold transition-colors">Overview</a>
+                <a href="#principles" class="hover:accent-gold transition-colors">Principles</a>
+                <a href="#comparison" class="hover:accent-gold transition-colors">East & West</a>
+                <a href="#gallery" class="hover:accent-gold transition-colors">Gallery</a>
+                <a href="#quiz" class="hover:accent-gold transition-colors">Knowledge Check</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="container mx-auto px-4 py-16 flex flex-col items-center text-center">
+        <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">The Beauty of <span class="accent-gold">Imperfection</span></h1>
+        <p class="text-xl max-w-3xl mb-10 opacity-80">Exploring wabi-sabi — the profound Japanese aesthetic that finds beauty in impermanence, imperfection, and the incomplete.</p>
+        <div class="glass-panel p-6 md:p-10 w-full max-w-4xl">
+            <div class="aspect-video overflow-hidden rounded-md mb-4">
+                <img src="https://images.unsplash.com/photo-1579275542618-a1dfed5f54ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Cracked pottery with gold repair (kintsugi)" class="w-full h-full object-cover">
+            </div>
+            <div class="flex justify-between items-center">
+                <p class="mono text-xs accent-blue">TELEMETRY DATA // LAST UPDATED 2026-02-16</p>
+                <div class="flex space-x-3">
+                    <div class="mono text-xs px-2 py-1 rounded-full border border-gold accent-gold">侘寂</div>
+                    <div class="mono text-xs px-2 py-1 rounded-full border border-red accent-red">IMPERMANENCE</div>
+                    <div class="mono text-xs px-2 py-1 rounded-full border border-blue accent-blue">AUTHENTICITY</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Overview Section -->
+    <section id="overview" class="container mx-auto px-4 py-16">
+        <div class="glass-panel p-8">
+            <h2 class="text-3xl font-bold mb-6 accent-gold">Understanding Wabi-Sabi</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <p class="mb-4">Wabi-sabi (侘寂) is a Japanese aesthetic worldview centered on the acceptance of transience and imperfection. The aesthetic is sometimes described as one of appreciating beauty that is "imperfect, impermanent, and incomplete".</p>
+                    <p class="mb-4">It is a concept derived from Buddhist teachings, particularly the three marks of existence: impermanence (mujō), suffering (ku) and emptiness or absence of self-nature (kū).</p>
+                    <p class="mb-4">Wabi-sabi nurtures all that is authentic by acknowledging three simple realities: nothing lasts, nothing is finished, and nothing is perfect.</p>
+                    <p class="accent-blue italic">"Wabi-sabi is the art of finding beauty in imperfection and profundity in earthiness, of revering authenticity above all."</p>
+                </div>
+                <div>
+                    <div class="glass-panel p-6 border-l-4 border-gold mb-4">
+                        <h3 class="text-lg font-bold mb-2 accent-gold">Etymology</h3>
+                        <div class="mono text-sm">
+                            <p class="mb-2"><span class="accent-gold font-bold">Wabi (侘)</span> originally referred to the loneliness of living in nature, away from society; later it connoted simplicity, freshness, quietness, and things that are not artificial.</p>
+                            <p><span class="accent-gold font-bold">Sabi (寂)</span> originally meant "withered" or "lean"; it refers to the beauty or serenity that comes with age, when the life of an object and its impermanence are evidenced in its patina and wear.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-6 border-l-4 border-red">
+                        <h3 class="text-lg font-bold mb-2 accent-red">Historical Context</h3>
+                        <p class="mono text-sm">Wabi-sabi emerged in 15th century Japan partly as a reaction to the dominant aesthetic of lavishness, ornamentation, and rich materials. It was heavily influenced by Zen Buddhism, with its emphasis on finding enlightenment through simplicity and direct experience of reality.</p>
+                        <p class="mono text-sm mt-2">The tea ceremony became a prime expression of wabi-sabi principles, elevating simple, humble objects and celebrating their inherent imperfections.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Principles Section -->
+    <section id="principles" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 accent-red text-center">Core <span class="accent-gold">Principles</span></h2>
+        
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
+            <div class="principle-card glass-panel p-6 border-l-4 border-gold" onclick="showPrinciple('impermanence')">
+                <h3 class="text-2xl font-bold mb-3 accent-gold">Impermanence</h3>
+                <p class="mono text-sm">Nothing lasts forever. All things are in constant, never-ending change.</p>
+                <div class="mt-4 text-right mono text-xs accent-blue">Click to explore</div>
+            </div>
+            
+            <div class="principle-card glass-panel p-6 border-l-4 border-red" onclick="showPrinciple('imperfection')">
+                <h3 class="text-2xl font-bold mb-3 accent-red">Imperfection</h3>
+                <p class="mono text-sm">Nothing is without flaws. Perfection is an illusion and an unattainable goal.</p>
+                <div class="mt-4 text-right mono text-xs accent-blue">Click to explore</div>
+            </div>
+            
+            <div class="principle-card glass-panel p-6 border-l-4 border-blue" onclick="showPrinciple('incompleteness')">
+                <h3 class="text-2xl font-bold mb-3 accent-blue">Incompleteness</h3>
+                <p class="mono text-sm">Nothing is ever finished. All things are in a constant state of becoming or dissolving.</p>
+                <div class="mt-4 text-right mono text-xs accent-blue">Click to explore</div>
+            </div>
+        </div>
+        
+        <!-- Principle Detail Panel (hidden by default) -->
+        <div id="principlePanel" class="glass-panel p-8 mb-12 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold" id="principleTitle">Impermanence</h3>
+                <button class="text-sm mono" onclick="hidePrinciple()">Close ×</button>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div id="principleContent">
+                    <!-- Content populated by JavaScript -->
+                </div>
+                <div id="principleImage" class="rounded-lg overflow-hidden">
+                    <!-- Image populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-panel p-8">
+            <h3 class="text-2xl font-bold mb-6 accent-gold">Material Expressions</h3>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="glass-panel p-4">
+                    <h4 class="text-lg font-bold mb-2 accent-blue">Kintsugi (金継ぎ)</h4>
+                    <p class="mono text-sm mb-4">The art of repairing broken pottery with gold, silver, or platinum lacquer. Rather than hiding the breakage, kintsugi celebrates it as part of the object's history.</p>
+                    <div class="aspect-square overflow-hidden rounded-md">
+                        <img src="https://images.unsplash.com/photo-1579541582801-7fe6fda259e3?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Kintsugi repair" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                
+                <div class="glass-panel p-4">
+                    <h4 class="text-lg font-bold mb-2 accent-red">Raku (楽焼)</h4>
+                    <p class="mono text-sm mb-4">A pottery firing technique that embraces unpredictability. Each piece emerges from the kiln with unique, unrepeatable patterns and textures.</p>
+                    <div class="aspect-square overflow-hidden rounded-md">
+                        <img src="https://images.unsplash.com/photo-1565193566173-7a0bff4e5390?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Raku pottery" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                
+                <div class="glass-panel p-4">
+                    <h4 class="text-lg font-bold mb-2 accent-gold">Shou Sugi Ban (焼杉板)</h4>
+                    <p class="mono text-sm mb-4">A traditional Japanese technique of preserving wood by charring its surface. The burnt, cracked texture becomes a feature, not a flaw.</p>
+                    <div class="aspect-square overflow-hidden rounded-md">
+                        <img src="https://images.unsplash.com/photo-1583318766854-be7e85f5e9cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Shou Sugi Ban wood" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- East vs West Comparison -->
+    <section id="comparison" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 accent-blue text-center">Eastern & Western <span class="accent-gold">Aesthetics</span></h2>
+        
+        <div class="glass-panel p-8 mb-12">
+            <h3 class="text-2xl font-bold mb-6">Contrasting Perspectives</h3>
+            <p class="mono text-sm mb-8">Wabi-sabi stands in stark contrast to many Western aesthetic ideals, which often emphasize symmetry, permanence, grandeur, and flawlessness. Explore the fundamental differences below.</p>
+            
+            <div class="comparison-container mb-8">
+                <div class="comparison-item p-4 glass-panel border-l-4 border-gold">
+                    <div class="comparison-label accent-gold">Wabi-Sabi (Eastern)</div>
+                    <ul class="space-y-3 mt-8 mono text-sm">
+                        <li class="flex items-start">
+                            <span class="text-horizon-gold mr-2">•</span>
+                            <span><strong>Asymmetry</strong> — Natural, organic forms</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-gold mr-2">•</span>
+                            <span><strong>Roughness</strong> — Textured, irregular surfaces</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-gold mr-2">•</span>
+                            <span><strong>Simplicity</strong> — Minimal, unadorned</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-gold mr-2">•</span>
+                            <span><strong>Modesty</strong> — Understated, subtle beauty</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-gold mr-2">•</span>
+                            <span><strong>Intimacy</strong> — Personal, inviting connection</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-gold mr-2">•</span>
+                            <span><strong>Austerity</strong> — Only what is necessary</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-gold mr-2">•</span>
+                            <span><strong>Natural</strong> — As things are in their true state</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-item p-4 glass-panel border-l-4 border-red">
+                    <div class="comparison-label accent-red">Western Perfectionism</div>
+                    <ul class="space-y-3 mt-8 mono text-sm">
+                        <li class="flex items-start">
+                            <span class="text-horizon-red mr-2">•</span>
+                            <span><strong>Symmetry</strong> — Balanced, geometrically perfect</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-red mr-2">•</span>
+                            <span><strong>Smoothness</strong> — Polished, flawless surfaces</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-red mr-2">•</span>
+                            <span><strong>Complexity</strong> — Ornate, elaborate details</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-red mr-2">•</span>
+                            <span><strong>Grandeur</strong> — Bold, impressive, attention-seeking</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-red mr-2">•</span>
+                            <span><strong>Monumentality</strong> — Imposing, distant admiration</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-red mr-2">•</span>
+                            <span><strong>Abundance</strong> — More is better, maximalism</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-red mr-2">•</span>
+                            <span><strong>Artificial</strong> — Engineered to be "better" than nature</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="glass-panel p-6 border-l-4 border-blue">
+                <h4 class="text-lg font-bold mb-2 accent-blue">Historical Influence</h4>
+                <p class="mono text-sm">Western aesthetics have been shaped by Greek and Roman ideals of perfection, symmetry, and order. The Renaissance further emphasized mathematical precision and idealized forms. In contrast, Japanese aesthetics have been influenced by Zen Buddhism, Taoism, and Shintoism, with their emphasis on nature, transience, and finding beauty in simplicity.</p>
+                <p class="mono text-sm mt-2">Interestingly, wabi-sabi has increasingly influenced Western design in recent decades, as people seek authenticity and sustainability in a mass-produced world.</p>
+            </div>
+        </div>
+        
+        <div class="glass-panel p-8">
+            <h3 class="text-2xl font-bold mb-6 accent-gold">Timeline: The Evolution of Wabi-Sabi</h3>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <h4 class="text-lg font-bold accent-gold">14th-15th Century</h4>
+                    <p class="mono text-sm">The concept begins to emerge in Japanese tea ceremonies as a reaction against the ornate, imported Chinese goods that dominated elite taste. Zen Buddhist monks influence the development toward simplicity and naturalness.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <h4 class="text-lg font-bold accent-red">16th Century</h4>
+                    <p class="mono text-sm">Tea master Sen no Rikyū codifies many wabi-sabi principles in the tea ceremony, emphasizing rustic simplicity, naturalness, and subtle profundity. He purposely uses simple, local, handmade items rather than perfect imported ones.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <h4 class="text-lg font-bold accent-blue">17th-19th Century</h4>
+                    <p class="mono text-sm">Wabi-sabi aesthetics influence Japanese arts more broadly, including poetry, garden design, flower arrangement, and architecture. The rustic tea hut becomes an architectural ideal.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <h4 class="text-lg font-bold accent-gold">20th Century</h4>
+                    <p class="mono text-sm">Western interest in Japanese culture brings wabi-sabi concepts to global attention. Influential modern designers and architects begin incorporating these principles, though often without fully understanding their philosophical depth.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <h4 class="text-lg font-bold accent-red">Present Day</h4>
+                    <p class="mono text-sm">Wabi-sabi has found renewed relevance in contemporary society, resonating with movements toward mindfulness, sustainability, and authenticity. It offers an alternative to throwaway culture and the pursuit of impossible perfection.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Interactive Gallery -->
+    <section id="gallery" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 accent-gold text-center">Rate the <span class="accent-blue">Wabi-Sabi</span></h2>
+        
+        <div class="glass-panel p-8">
+            <h3 class="text-2xl font-bold mb-6">Aesthetic Exploration</h3>
+            <p class="mono text-sm mb-8">Study each image below and rate it on the wabi-sabi scale. Does it exhibit the qualities of impermanence, imperfection, and incompleteness? Or does it lean toward Western perfectionism?</p>
+            
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div id="galleryItem" class="glass-panel overflow-hidden rounded-lg">
+                    <img id="galleryImage" src="https://images.unsplash.com/photo-1577083552792-a0d669d47429?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <h4 id="galleryTitle" class="text-lg font-bold mb-2 accent-gold">Ancient Weathered Door</h4>
+                        <p id="galleryDescription" class="mono text-sm mb-4">A centuries-old wooden door, showing cracks and wear from countless seasons of sun and rain.</p>
+                        
+                        <div class="mb-2">
+                            <label class="mono text-sm flex justify-between mb-2">
+                                <span>Western Perfectionism</span>
+                                <span>Wabi-Sabi</span>
+                            </label>
+                            <input type="range" id="wabiSabiSlider" class="rating-slider w-full" min="1" max="10" value="7">
+                        </div>
+                        
+                        <div class="flex justify-between mono text-xs">
+                            <span>1</span>
+                            <span>2</span>
+                            <span>3</span>
+                            <span>4</span>
+                            <span>5</span>
+                            <span>6</span>
+                            <span>7</span>
+                            <span>8</span>
+                            <span>9</span>
+                            <span>10</span>
+                        </div>
+                        
+                        <button class="mt-6 bg-telemetry-blue text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors mono w-full" onclick="submitRating()">Submit Rating</button>
+                    </div>
+                </div>
+                
+                <div class="glass-panel p-6">
+                    <h4 class="text-lg font-bold mb-4 accent-blue">Your Ratings vs Community</h4>
+                    <p class="mono text-sm mb-6">This chart shows how your ratings compare with others. Objects higher on the chart are rated as more wabi-sabi.</p>
+                    
+                    <div id="resultsContainer" class="results-container bg-opacity-10 bg-white rounded-lg relative">
+                        <!-- Axis labels -->
+                        <span class="axis-label" style="bottom: 5px; left: 50%; transform: translateX(-50%)">Western — Wabi-Sabi Spectrum — Eastern</span>
+                        <span class="axis-label" style="left: 5px; top: 50%; transform: rotate(-90deg) translateX(-50%); transform-origin: left">Rated Strength</span>
+                        
+                        <!-- Horizontal grid lines -->
+                        <div class="absolute w-full h-px bg-white bg-opacity-10" style="top: 25%"></div>
+                        <div class="absolute w-full h-px bg-white bg-opacity-10" style="top: 50%"></div>
+                        <div class="absolute w-full h-px bg-white bg-opacity-10" style="top: 75%"></div>
+                        
+                        <!-- Vertical grid lines -->
+                        <div class="absolute h-full w-px bg-white bg-opacity-10" style="left: 25%"></div>
+                        <div class="absolute h-full w-px bg-white bg-opacity-10" style="left: 50%"></div>
+                        <div class="absolute h-full w-px bg-white bg-opacity-10" style="left: 75%"></div>
+                        
+                        <!-- Data points will be added dynamically -->
+                    </div>
+                    
+                    <div id="ratingFeedback" class="mt-6 mono text-sm hidden">
+                        <div class="glass-panel p-4 border-l-4 border-gold">
+                            <p id="feedbackText">Your rating: <span id="userRating">7</span>/10</p>
+                            <p id="feedbackDescription" class="mt-2"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-panel p-6 border-l-4 border-red">
+                <h4 class="text-lg font-bold mb-2 accent-red">Wabi-Sabi in Daily Life</h4>
+                <p class="mono text-sm">Beyond art and design, wabi-sabi offers a philosophy for everyday living. It encourages us to:</p>
+                <ul class="space-y-2 mono text-sm mt-4 grid md:grid-cols-2 gap-4">
+                    <li class="glass-panel p-3">
+                        <div class="flex items-start">
+                            <span class="text-horizon-gold mr-2">→</span>
+                            <span>Accept the natural cycle of growth and decay</span>
+                        </div>
+                    </li>
+                    <li class="glass-panel p-3">
+                        <div class="flex items-start">
+                            <span class="text-horizon-gold mr-2">→</span>
+                            <span>Find beauty in things modest and humble</span>
+                        </div>
+                    </li>
+                    <li class="glass-panel p-3">
+                        <div class="flex items-start">
+                            <span class="text-horizon-gold mr-2">→</span>
+                            <span>Value authenticity over synthetic perfection</span>
+                        </div>
+                    </li>
+                    <li class="glass-panel p-3">
+                        <div class="flex items-start">
+                            <span class="text-horizon-gold mr-2">→</span>
+                            <span>Appreciate age and the stories it tells through wear</span>
+                        </div>
+                    </li>
+                    <li class="glass-panel p-3">
+                        <div class="flex items-start">
+                            <span class="text-horizon-gold mr-2">→</span>
+                            <span>Embrace your own imperfections as marks of humanity</span>
+                        </div>
+                    </li>
+                    <li class="glass-panel p-3">
+                        <div class="flex items-start">
+                            <span class="text-horizon-gold mr-2">→</span>
+                            <span>Practice mindfulness and presence in each moment</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Knowledge Check Quiz -->
+    <section id="quiz" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 text-center">Knowledge <span class="accent-blue">Check</span></h2>
+        
+        <div class="glass-panel p-8">
+            <div id="quiz-container">
+                <h3 class="text-2xl font-bold mb-6 accent-gold">Test Your Understanding</h3>
+                <div class="quiz-question mb-8">
+                    <p class="text-xl mb-4">1. Which of the following best captures the essence of wabi-sabi?</p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>The pursuit of flawless craftsmanship</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>The symmetrical balance of design elements</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="true" onclick="checkAnswer(this)">
+                            <p>Finding beauty in impermanence and imperfection</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Creating objects that will last forever unchanged</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <p class="text-xl mb-4">2. Which Japanese art form exemplifies wabi-sabi through the repair of broken objects?</p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="quiz-option glass-panel p-4" data-correct="true" onclick="checkAnswer(this)">
+                            <p>Kintsugi</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Ikebana</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Origami</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Karate</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <p class="text-xl mb-4">3. How does wabi-sabi differ from typical Western aesthetic ideals?</p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>It emphasizes bright colors over muted tones</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>It prioritizes mathematical precision and symmetry</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>It focuses exclusively on modern, industrial materials</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="true" onclick="checkAnswer(this)">
+                            <p>It values natural aging, asymmetry, and roughness</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="quiz-results" class="hidden text-center">
+                    <h3 class="text-2xl font-bold mb-4 accent-gold">Your Results</h3>
+                    <p class="text-xl mb-2">You got <span id="correct-count">0</span> out of 3 questions correct!</p>
+                    <p class="mb-6" id="quiz-feedback"></p>
+                    <button class="bg-telemetry-blue text-white px-6 py-3 rounded-md hover:bg-blue-600 transition-colors mono" onclick="resetQuiz()">Try Again</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="glass-panel p-6 mt-16">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <span class="text-xl font-bold accent-gold">HORIZON</span>
+                    <span class="mono text-xs ml-2 accent-blue">/ WONDER-DRIVEN EDUCATION</span>
+                </div>
+                <div class="mono text-xs">
+                    <p>© 2026 HORIZON PROJECT · <span class="accent-blue">A JUSTIN HART INITIATIVE</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Gallery items data
+        const galleryItems = [
+            {
+                image: "https://images.unsplash.com/photo-1577083552792-a0d669d47429?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                title: "Ancient Weathered Door",
+                description: "A centuries-old wooden door, showing cracks and wear from countless seasons of sun and rain.",
+                wabiSabiScore: 8.5,
+                communityRating: 8.2
+            },
+            {
+                image: "https://images.unsplash.com/photo-1511358146320-eb018ab3e22e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                title: "Modern Glass Skyscraper",
+                description: "A sleek, perfectly geometric high-rise with flawless glass panels reflecting the sky.",
+                wabiSabiScore: 1.8,
+                communityRating: 2.1
+            },
+            {
+                image: "https://images.unsplash.com/photo-1578926375605-eaf7559b1458?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                title: "Cracked Clay Bowl",
+                description: "A handmade bowl with visible finger marks and an irregular rim that tells the story of its creation.",
+                wabiSabiScore: 9.2,
+                communityRating: 8.9
+            },
+            {
+                image: "https://images.unsplash.com/photo-1518406432532-9cbef5697723?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                title: "Mass-Produced Plastic Chair",
+                description: "An identical copy of thousands of others, manufactured to precise specifications for consistency.",
+                wabiSabiScore: 1.5,
+                communityRating: 1.3
+            },
+            {
+                image: "https://images.unsplash.com/photo-1588695814794-fde5386680ec?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                title: "Moss-Covered Stone Lantern",
+                description: "A garden lantern gradually being reclaimed by nature, with moss and lichen creating new patterns.",
+                wabiSabiScore: 9.7,
+                communityRating: 9.5
+            }
+        ];
+        
+        // Create starfield
+        document.addEventListener('DOMContentLoaded', function() {
+            createStarfield();
+            initGallery();
+            renderRatingChart();
+        });
+        
+        function createStarfield() {
+            const starfield = document.getElementById('starfield');
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random size
+                const size = Math.random() * 3;
+                
+                // Animation variables
+                const duration = 3 + Math.random() * 7;
+                const delay = Math.random() * 5;
+                const intensity = 0.2 + Math.random() * 0.8;
+                
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.setProperty('--duration', `${duration}s`);
+                star.style.setProperty('--delay', `${delay}s`);
+                star.style.setProperty('--intensity', intensity);
+                
+                starfield.appendChild(star);
+            }
+        }
+        
+        // Principles exploration
+        function showPrinciple(principle) {
+            const panel = document.getElementById('principlePanel');
+            const title = document.getElementById('principleTitle');
+            const content = document.getElementById('principleContent');
+            const image = document.getElementById('principleImage');
+            
+            panel.classList.remove('hidden');
+            
+            // Set content based on principle
+            switch(principle) {
+                case 'impermanence':
+                    title.textContent = 'Impermanence (Mujō)';
+                    title.className = 'text-2xl font-bold accent-gold';
+                    content.innerHTML = `
+                        <p class="mb-4">Impermanence (無常, mujō) is the Buddhist concept that all existence is transient, including physical objects, living beings, and even thoughts and emotions. Nothing remains unchanged forever.</p>
+                        
+                        <p class="mb-4">In wabi-sabi, this impermanence is not just accepted but celebrated. The changing nature of things—leaves turning brown, wood weathering, metal patinating—reveals their true beauty and character.</p>
+                        
+                        <div class="glass-panel p-4 border-l-4 border-gold mt-6">
+                            <h4 class="font-bold mb-2 accent-gold">Expressions in Art & Design</h4>
+                            <ul class="space-y-2 mono text-sm">
+                                <li>Seasonal motifs in art that acknowledge cycles of change</li>
+                                <li>Natural materials that age visibly rather than synthetic ones that attempt to defy time</li>
+                                <li>Gardens designed to be beautiful in all seasons, including decay</li>
+                                <li>Architecture that accommodates weathering as part of its aesthetic evolution</li>
+                            </ul>
+                        </div>
+                        
+                        <p class="mt-6 mono text-sm accent-blue">"In all things, there is nothing constant. That which has been united must divide, and that which has been divided must unite."</p>
+                    `;
+                    image.innerHTML = `<img src="https://images.unsplash.com/photo-1517841900229-3d1958118ae2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="Cherry blossoms - symbols of impermanence">`;
+                    break;
+                    
+                case 'imperfection':
+                    title.textContent = 'Imperfection (Fukanzen)';
+                    title.className = 'text-2xl font-bold accent-red';
+                    content.innerHTML = `
+                        <p class="mb-4">Imperfection (不完全, fukanzen) recognizes that flaws, irregularities, and asymmetries are not defects to be corrected but essential qualities that make something unique and authentic.</p>
+                        
+                        <p class="mb-4">In Western aesthetics, perfection is often the goal—smooth surfaces, exact symmetry, and flawless execution. Wabi-sabi inverts this, finding beauty specifically in the imperfect, uneven, and irregular.</p>
+                        
+                        <div class="glass-panel p-4 border-l-4 border-red mt-6">
+                            <h4 class="font-bold mb-2 accent-red">Expressions in Art & Design</h4>
+                            <ul class="space-y-2 mono text-sm">
+                                <li>Handmade pottery with visible fingerprints and uneven glazes</li>
+                                <li>Asymmetrical compositions that feel more organic than rigid geometrical designs</li>
+                                <li>Rough textures and uneven surfaces that invite touch and exploration</li>
+                                <li>Kintsugi - the art of repairing broken pottery with gold, celebrating rather than hiding breaks</li>
+                            </ul>
+                        </div>
+                        
+                        <p class="mt-6 mono text-sm accent-blue">"The beauty of things imperfect, impermanent, and incomplete... the beauty of things unconventional."</p>
+                    `;
+                    image.innerHTML = `<img src="https://images.unsplash.com/photo-1565193566173-7a0bff4e5390?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="Handmade pottery with irregular shapes">`;
+                    break;
+                    
+                case 'incompleteness':
+                    title.textContent = 'Incompleteness (Kanketsu)';
+                    title.className = 'text-2xl font-bold accent-blue';
+                    content.innerHTML = `
+                        <p class="mb-4">Incompleteness (完結, kanketsu) embraces the unfinished and the suggestion of possibility. Something deliberately left incomplete engages the imagination and allows for growth and evolution.</p>
+                        
+                        <p class="mb-4">This principle is deeply tied to Zen Buddhism, which values suggestion over statement and emptiness (ma, 間) as a positive space rather than an absence to be filled.</p>
+                        
+                        <div class="glass-panel p-4 border-l-4 border-blue mt-6">
+                            <h4 class="font-bold mb-2 accent-blue">Expressions in Art & Design</h4>
+                            <ul class="space-y-2 mono text-sm">
+                                <li>Zen gardens with large empty spaces that suggest infinity</li>
+                                <li>Paintings with areas intentionally left blank</li>
+                                <li>Poetry that hints at meaning rather than explicitly stating it</li>
+                                <li>Architectural spaces defined as much by what isn't there as by what is</li>
+                            </ul>
+                        </div>
+                        
+                        <p class="mt-6 mono text-sm accent-blue">"In the melody, the silence between notes contributes as much to the beauty as the notes themselves."</p>
+                    `;
+                    image.innerHTML = `<img src="https://images.unsplash.com/photo-1536768139911-e290a59011e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="Zen garden with empty space">`;
+                    break;
+            }
+        }
+        
+        function hidePrinciple() {
+            document.getElementById('principlePanel').classList.add('hidden');
+        }
+        
+        // Gallery functionality
+        let currentGalleryIndex = 0;
+        let userRatings = [];
+        
+        function initGallery() {
+            updateGalleryItem();
+        }
+        
+        function updateGalleryItem() {
+            const item = galleryItems[currentGalleryIndex];
+            document.getElementById('galleryImage').src = item.image;
+            document.getElementById('galleryTitle').textContent = item.title;
+            document.getElementById('galleryDescription').textContent = item.description;
+            document.getElementById('wabiSabiSlider').value = Math.round(item.wabiSabiScore);
+            
+            // Hide feedback if showing a new item
+            document.getElementById('ratingFeedback').classList.add('hidden');
+        }
+        
+        function submitRating() {
+            const rating = parseInt(document.getElementById('wabiSabiSlider').value);
+            const item = galleryItems[currentGalleryIndex];
+            
+            // Save user rating
+            userRatings.push({
+                itemIndex: currentGalleryIndex,
+                title: item.title,
+                userRating: rating,
+                communityRating: item.communityRating
+            });
+            
+            // Show feedback
+            document.getElementById('userRating').textContent = rating;
+            document.getElementById('ratingFeedback').classList.remove('hidden');
+            
+            // Provide feedback based on rating
+            const feedbackDescription = document.getElementById('feedbackDescription');
+            const difference = Math.abs(rating - item.communityRating);
+            
+            if (difference <= 1) {
+                feedbackDescription.textContent = `Your rating aligns closely with the community. You have a good sense of wabi-sabi aesthetics!`;
+            } else if (difference <= 2) {
+                feedbackDescription.textContent = `Your rating differs somewhat from the average. Beauty is subjective, and your perspective is valuable.`;
+            } else {
+                feedbackDescription.textContent = `Your rating differs significantly from the community. Consider what aspects influenced your perception.`;
+            }
+            
+            // Update chart
+            renderRatingChart();
+            
+            // Move to next item if available
+            setTimeout(() => {
+                currentGalleryIndex = (currentGalleryIndex + 1) % galleryItems.length;
+                updateGalleryItem();
+            }, 3000);
+        }
+        
+        function renderRatingChart() {
+            const container = document.getElementById('resultsContainer');
+            
+            // Clear existing points
+            const existingPoints = container.querySelectorAll('.data-point, .data-label');
+            existingPoints.forEach(point => point.remove());
+            
+            // Add community data points
+            galleryItems.forEach((item, index) => {
+                // Position based on wabi-sabi score (x) and fixed y positions
+                const x = (item.wabiSabiScore / 10) * 100;
+                const y = 75 - (index * 15); // Spread points vertically
+                
+                const point = document.createElement('div');
+                point.className = 'data-point';
+                point.style.left = `${x}%`;
+                point.style.top = `${y}%`;
+                container.appendChild(point);
+                
+                const label = document.createElement('div');
+                label.className = 'data-label';
+                label.textContent = item.title;
+                label.style.left = `${x}%`;
+                label.style.top = `${y}%`;
+                container.appendChild(label);
+            });
+            
+            // Add user ratings if any
+            userRatings.forEach(rating => {
+                const x = (rating.userRating / 10) * 100;
+                const y = 75 - (rating.itemIndex * 15); // Match vertical position with community rating
+                
+                const point = document.createElement('div');
+                point.className = 'data-point highlight';
+                point.style.left = `${x}%`;
+                point.style.top = `${y}%`;
+                container.appendChild(point);
+                
+                const label = document.createElement('div');
+                label.className = 'data-label';
+                label.textContent = `Your rating: ${rating.userRating}`;
+                label.style.left = `${x}%`;
+                label.style.top = `${y}%`;
+                container.appendChild(label);
+            });
+        }
+        
+        // Quiz functionality
+        let correctAnswers = 0;
+        let totalAnswered = 0;
+        
+        function checkAnswer(element) {
+            // Prevent multiple clicks
+            if (element.classList.contains('correct') || element.classList.contains('incorrect')) {
+                return;
+            }
+            
+            const isCorrect = element.getAttribute('data-correct') === 'true';
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                correctAnswers++;
+            } else {
+                element.classList.add('incorrect');
+                
+                // Also highlight the correct answer
+                const parentQuestion = element.parentNode;
+                const correctOption = parentQuestion.querySelector('[data-correct="true"]');
+                correctOption.classList.add('correct');
+            }
+            
+            totalAnswered++;
+            
+            // Disable other options in this question
+            const siblings = element.parentNode.querySelectorAll('.quiz-option');
+            siblings.forEach(sib => {
+                if (sib !== element && !sib.classList.contains('correct')) {
+                    sib.style.pointerEvents = 'none';
+                    sib.style.opacity = '0.6';
+                }
+            });
+            
+            // Check if all questions are answered
+            if (totalAnswered === 3) {
+                showResults();
+            }
+        }
+        
+        function showResults() {
+            document.getElementById('correct-count').textContent = correctAnswers;
+            
+            const feedback = document.getElementById('quiz-feedback');
+            if (correctAnswers === 3) {
+                feedback.textContent = "Perfect score! You understand the principles of wabi-sabi.";
+                feedback.className = "accent-gold";
+            } else if (correctAnswers === 2) {
+                feedback.textContent = "Great job! You have a good grasp of wabi-sabi aesthetics.";
+                feedback.className = "accent-blue";
+            } else {
+                feedback.textContent = "Keep exploring! Wabi-sabi is a subtle and nuanced concept worth understanding.";
+                feedback.className = "accent-red";
+            }
+            
+            document.getElementById('quiz-results').classList.remove('hidden');
+        }
+        
+        function resetQuiz() {
+            correctAnswers = 0;
+            totalAnswered = 0;
+            
+            // Reset all options
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'incorrect');
+                opt.style.pointerEvents = 'auto';
+                opt.style.opacity = '1';
+            });
+            
+            // Hide results
+            document.getElementById('quiz-results').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Ocean Bioluminescence | Horizon Expander</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --void-black: #030305;
+            --horizon-gold: #FFD28E;
+            --horizon-red: #D66D50;
+            --telemetry-blue: #7F9CBB;
+        }
+        body {
+            background-color: var(--void-black);
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 1px);
+            background-size: 50px 50px, 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: white;
+            font-family: 'Playfair Display', serif;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glass-panel {
+            background: rgba(10, 10, 15, 0.75);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        h1, h2, h3 {
+            color: var(--horizon-gold);
+        }
+        .telemetry {
+            color: var(--telemetry-blue);
+        }
+        .horizon-red {
+            color: var(--horizon-red);
+        }
+        .sparkle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 4s infinite;
+            opacity: 0;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+        #ocean-container {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #070b34 0%, #003366 100%);
+        }
+        .creature {
+            position: absolute;
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(-15px) translateX(0); }
+            50% { transform: translateY(15px) translateX(15px); }
+        }
+        .bioluminescent {
+            box-shadow: 0 0 10px 5px rgba(0, 255, 255, 0.7);
+            animation: pulse 3s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px 2px rgba(0, 255, 255, 0.3); }
+            100% { box-shadow: 0 0 20px 10px rgba(0, 255, 255, 0.8); }
+        }
+        .depth-marker {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            border-top: 1px dashed rgba(255,255,255,0.3);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="stars-container" class="fixed w-full h-full top-0 left-0 -z-10"></div>
+
+    <header class="container mx-auto py-8 px-4">
+        <div class="flex items-center mb-8">
+            <a href="../index.html" class="flex items-center text-white hover:text-horizon-gold transition">
+                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i>
+                <span class="mono text-sm">RETURN TO MISSION CONTROL</span>
+            </a>
+        </div>
+        <div class="glass-panel p-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 mono text-xs opacity-50 telemetry">
+                EXPEDITION 01 // ABYSSAL ZONE
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-2">DEEP OCEAN BIOLUMINESCENCE</h1>
+            <p class="mono telemetry text-xl mb-4">ILLUMINATING THE DARKEST PLACE ON EARTH</p>
+            <p class="max-w-3xl text-lg mb-6">In the pitch-black abyss of the deep ocean, where sunlight never reaches, an extraordinary phenomenon occurs: living creatures produce their own light. This biological light, called bioluminescence, is one of nature's most enchanting spectacles and serves numerous vital functions in the deep sea ecosystem.</p>
+            <div class="flex items-center">
+                <div class="h-4 w-4 rounded-full bg-horizon-red animate-pulse mr-3"></div>
+                <p class="mono text-sm">DIVE DEPTH: 11,000 METERS / PRESSURE: 1,100 ATMOSPHERES</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 pb-16">
+        <div class="glass-panel p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">THE PHENOMENON OF LIVING LIGHT</h2>
+            <p class="mb-4">Bioluminescence is the production and emission of light by living organisms through a chemical reaction. In the deep ocean, where sunlight cannot penetrate, approximately 90% of creatures possess this remarkable ability.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
+                <div class="bg-opacity-20 bg-black p-4 rounded-lg border border-telemetry-blue">
+                    <h3 class="text-telemetry-blue font-mono text-lg mb-2">CHEMICAL REACTION</h3>
+                    <p>The light is produced when a substance called luciferin reacts with oxygen. This reaction is catalyzed by an enzyme called luciferase, resulting in a cold light with minimal heat production.</p>
+                </div>
+                <div class="bg-opacity-20 bg-black p-4 rounded-lg border border-telemetry-blue">
+                    <h3 class="text-telemetry-blue font-mono text-lg mb-2">EVOLUTIONARY PURPOSE</h3>
+                    <p>Deep-sea creatures use bioluminescence for finding prey, attracting mates, camouflage, and warning or evading predators in an environment where visibility is extremely limited.</p>
+                </div>
+                <div class="bg-opacity-20 bg-black p-4 rounded-lg border border-telemetry-blue">
+                    <h3 class="text-telemetry-blue font-mono text-lg mb-2">LIGHT SPECTRUM</h3>
+                    <p>Most deep-sea bioluminescence appears blue-green to human eyes. This color penetrates seawater more effectively than other colors, maximizing visibility in the deep ocean.</p>
+                </div>
+            </div>
+            
+            <h3 class="text-xl font-semibold mb-3 telemetry">LIGHT SPECTRUM ANALYSIS</h3>
+            <p class="mb-4">Different species emit light at different wavelengths, creating a varied spectrum of bioluminescence in the deep ocean:</p>
+            <div class="h-64 mb-8">
+                <canvas id="spectrumChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Interactive Ocean Zones Section -->
+        <div class="glass-panel p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">INTERACTIVE OCEAN ZONES</h2>
+            <p class="mb-6">Explore how bioluminescence changes across the ocean's depth zones. Each zone represents a unique environment with specific adaptations for organisms living there. Click on zones to learn more.</p>
+            
+            <div id="ocean-container" class="h-[600px] w-full relative mb-6 rounded-lg">
+                <!-- Depth markers will be added by JS -->
+                <!-- Creatures will be added by JS -->
+            </div>
+            
+            <div id="zone-info" class="bg-opacity-20 bg-black p-4 rounded-lg border border-horizon-gold">
+                <h3 class="text-horizon-gold font-mono text-lg mb-2">SELECT A ZONE TO EXPLORE</h3>
+                <p>Click on any ocean zone in the visualization above to learn about the bioluminescent adaptations found there.</p>
+            </div>
+        </div>
+
+        <!-- Create Your Own Bioluminescent Organism -->
+        <div class="glass-panel p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">DESIGN YOUR BIOLUMINESCENT ORGANISM</h2>
+            <p class="mb-6">Create a custom deep-sea creature and determine its bioluminescent features. Explore how different adaptations would help it survive in the deep ocean environment.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <div class="mb-4">
+                        <label class="block mono text-sm mb-2 telemetry">ORGANISM TYPE</label>
+                        <select id="organism-type" class="bg-black bg-opacity-50 border border-telemetry-blue rounded w-full p-2 text-white">
+                            <option value="jellyfish">Jellyfish</option>
+                            <option value="squid">Squid</option>
+                            <option value="anglerfish">Anglerfish</option>
+                            <option value="shrimp">Deep Sea Shrimp</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block mono text-sm mb-2 telemetry">HABITAT DEPTH (METERS)</label>
+                        <input type="range" id="depth-range" min="200" max="11000" value="2000" class="w-full">
+                        <output id="depth-value" class="mono text-sm block mt-2">2000m</output>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block mono text-sm mb-2 telemetry">BIOLUMINESCENT FEATURES</label>
+                        <div class="flex flex-wrap gap-2">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" id="feature-lure" class="mr-2">
+                                <span>Luring Light</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" id="feature-camouflage" class="mr-2">
+                                <span>Ventral Camouflage</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" id="feature-flash" class="mr-2">
+                                <span>Defense Flash</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" id="feature-pattern" class="mr-2">
+                                <span>Communication Pattern</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block mono text-sm mb-2 telemetry">LIGHT COLOR</label>
+                        <div class="flex gap-3">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="light-color" value="blue" checked class="sr-only">
+                                <div class="w-8 h-8 rounded-full" style="background-color: #00c3ff; box-shadow: 0 0 10px #00c3ff;"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="light-color" value="green" class="sr-only">
+                                <div class="w-8 h-8 rounded-full" style="background-color: #00ff9d; box-shadow: 0 0 10px #00ff9d;"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="light-color" value="red" class="sr-only">
+                                <div class="w-8 h-8 rounded-full" style="background-color: #ff5a5a; box-shadow: 0 0 10px #ff5a5a;"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="light-color" value="purple" class="sr-only">
+                                <div class="w-8 h-8 rounded-full" style="background-color: #c44aff; box-shadow: 0 0 10px #c44aff;"></div>
+                            </label>
+                        </div>
+                    </div>
+                    <button id="generate-organism" class="bg-horizon-gold text-void-black font-bold py-2 px-4 rounded">GENERATE ORGANISM</button>
+                </div>
+                <div class="bg-black bg-opacity-30 rounded-lg p-4 h-96 flex items-center justify-center overflow-hidden relative" id="organism-display">
+                    <p class="mono text-center">Design your creature and click GENERATE</p>
+                </div>
+            </div>
+
+            <div id="organism-analysis" class="mt-6 hidden">
+                <h3 class="text-xl font-semibold mb-3 telemetry">SURVIVAL ANALYSIS</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div class="bg-opacity-20 bg-black p-3 rounded-lg">
+                        <h4 class="text-telemetry-blue font-mono text-sm">PREDATOR AVOIDANCE</h4>
+                        <div class="flex items-center mt-2">
+                            <div class="bg-gray-700 h-2 rounded-full w-full">
+                                <div id="predator-rating" class="bg-horizon-gold h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <span id="predator-value" class="ml-2 mono">0%</span>
+                        </div>
+                    </div>
+                    <div class="bg-opacity-20 bg-black p-3 rounded-lg">
+                        <h4 class="text-telemetry-blue font-mono text-sm">PREY ATTRACTION</h4>
+                        <div class="flex items-center mt-2">
+                            <div class="bg-gray-700 h-2 rounded-full w-full">
+                                <div id="prey-rating" class="bg-horizon-gold h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <span id="prey-value" class="ml-2 mono">0%</span>
+                        </div>
+                    </div>
+                    <div class="bg-opacity-20 bg-black p-3 rounded-lg">
+                        <h4 class="text-telemetry-blue font-mono text-sm">MATE FINDING</h4>
+                        <div class="flex items-center mt-2">
+                            <div class="bg-gray-700 h-2 rounded-full w-full">
+                                <div id="mate-rating" class="bg-horizon-gold h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <span id="mate-value" class="ml-2 mono">0%</span>
+                        </div>
+                    </div>
+                    <div class="bg-opacity-20 bg-black p-3 rounded-lg">
+                        <h4 class="text-telemetry-blue font-mono text-sm">ENERGY EFFICIENCY</h4>
+                        <div class="flex items-center mt-2">
+                            <div class="bg-gray-700 h-2 rounded-full w-full">
+                                <div id="energy-rating" class="bg-horizon-gold h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <span id="energy-value" class="ml-2 mono">0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-opacity-20 bg-black p-4 rounded-lg border border-telemetry-blue">
+                    <h4 class="text-telemetry-blue font-mono text-lg mb-2">HABITAT COMPATIBILITY</h4>
+                    <p id="habitat-analysis"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Did You Know Section -->
+        <div class="glass-panel p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">ABYSSAL REVELATIONS</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-opacity-20 bg-black p-4 rounded-lg">
+                    <h3 class="text-horizon-gold font-mono text-lg mb-2">HUMAN APPLICATIONS</h3>
+                    <p>The chemistry of bioluminescence has inspired medical imaging technologies, cancer research, and even the development of bioluminescent trees that could one day replace street lights.</p>
+                </div>
+                <div class="bg-opacity-20 bg-black p-4 rounded-lg">
+                    <h3 class="text-horizon-gold font-mono text-lg mb-2">THE MOST EXTREME</h3>
+                    <p>The cookiecutter shark uses bioluminescence as part of a sophisticated hunting strategy. Its belly glows except for a dark collar, creating the illusion of a much smaller creature when viewed from below.</p>
+                </div>
+                <div class="bg-opacity-20 bg-black p-4 rounded-lg">
+                    <h3 class="text-horizon-gold font-mono text-lg mb-2">UNDISCOVERED DEPTHS</h3>
+                    <p>Scientists estimate that we've explored less than 5% of the ocean. With every deep-sea expedition, new bioluminescent species are discovered, some with completely novel mechanisms for producing light.</p>
+                </div>
+                <div class="bg-opacity-20 bg-black p-4 rounded-lg">
+                    <h3 class="text-horizon-gold font-mono text-lg mb-2">BACTERIAL SYMBIOSIS</h3>
+                    <p>Many deep-sea creatures don't produce their own light. Instead, they host colonies of bioluminescent bacteria in specialized organs, creating a mutually beneficial relationship.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Knowledge Check -->
+        <div class="glass-panel p-6">
+            <h2 class="text-2xl font-semibold mb-4">KNOWLEDGE BEACON</h2>
+            <p class="mb-4">Test your understanding of deep ocean bioluminescence with this quick quiz:</p>
+            <div id="quiz-container">
+                <div id="question-1" class="mb-6">
+                    <p class="mono text-telemetry-blue mb-2">QUESTION 01</p>
+                    <p class="font-semibold mb-3">What is the primary chemical responsible for light production in bioluminescent reactions?</p>
+                    <div class="space-y-2">
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q1" value="a" class="mr-2">
+                            <span>Phosphorus</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q1" value="b" class="mr-2">
+                            <span>Luciferin</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q1" value="c" class="mr-2">
+                            <span>Luminol</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q1" value="d" class="mr-2">
+                            <span>Chlorophyll</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="question-2" class="mb-6">
+                    <p class="mono text-telemetry-blue mb-2">QUESTION 02</p>
+                    <p class="font-semibold mb-3">At what approximate depth does bioluminescence become the primary source of light in the ocean?</p>
+                    <div class="space-y-2">
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q2" value="a" class="mr-2">
+                            <span>50 meters</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q2" value="b" class="mr-2">
+                            <span>200 meters</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q2" value="c" class="mr-2">
+                            <span>1000 meters</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q2" value="d" class="mr-2">
+                            <span>5000 meters</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="question-3" class="mb-6">
+                    <p class="mono text-telemetry-blue mb-2">QUESTION 03</p>
+                    <p class="font-semibold mb-3">Which of these is NOT a common use of bioluminescence for deep sea creatures?</p>
+                    <div class="space-y-2">
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q3" value="a" class="mr-2">
+                            <span>Attracting prey</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q3" value="b" class="mr-2">
+                            <span>Photosynthesis</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q3" value="c" class="mr-2">
+                            <span>Confusing predators</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q3" value="d" class="mr-2">
+                            <span>Finding mates</span>
+                        </label>
+                    </div>
+                </div>
+                <button id="check-answers" class="bg-horizon-gold text-void-black font-bold py-2 px-4 rounded">CHECK ANSWERS</button>
+                <div id="quiz-results" class="mt-4 hidden"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="container mx-auto px-4 pb-8">
+        <div class="glass-panel p-4 text-center">
+            <p class="mono text-xs opacity-70">HORIZON EXPANDER // EXPEDITION 01: DEEP OCEAN BIOLUMINESCENCE</p>
+            <a href="../index.html" class="inline-block mt-2 text-horizon-gold hover:underline text-sm">Return to Mission Control</a>
+        </div>
+    </footer>
+
+    <script>
+        // Create twinkling stars
+        const starsContainer = document.getElementById('stars-container');
+        const numberOfStars = 150;
+        
+        for (let i = 0; i < numberOfStars; i++) {
+            const star = document.createElement('div');
+            star.classList.add('sparkle');
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 4}s`;
+            starsContainer.appendChild(star);
+        }
+
+        // Light spectrum chart
+        const ctx = document.getElementById('spectrumChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(255, 210, 142, 0.8)');
+        gradient.addColorStop(1, 'rgba(255, 210, 142, 0)');
+
+        const spectrumChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['400nm', '450nm', '500nm', '550nm', '600nm', '650nm', '700nm'],
+                datasets: [{
+                    label: 'Anglerfish',
+                    data: [2, 15, 60, 75, 30, 5, 1],
+                    borderColor: '#00c3ff',
+                    backgroundColor: 'rgba(0, 195, 255, 0.2)',
+                    tension: 0.4,
+                    pointBackgroundColor: '#00c3ff',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }, {
+                    label: 'Jellyfish',
+                    data: [5, 30, 80, 60, 20, 3, 1],
+                    borderColor: '#00ff9d',
+                    backgroundColor: 'rgba(0, 255, 157, 0.2)',
+                    tension: 0.4,
+                    pointBackgroundColor: '#00ff9d',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }, {
+                    label: 'Deep Sea Shrimp',
+                    data: [1, 10, 40, 85, 50, 15, 5],
+                    borderColor: '#c44aff',
+                    backgroundColor: 'rgba(196, 74, 255, 0.2)',
+                    tension: 0.4,
+                    pointBackgroundColor: '#c44aff',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Light Intensity',
+                            color: '#7F9CBB',
+                            font: {
+                                family: 'JetBrains Mono',
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#7F9CBB',
+                            font: {
+                                family: 'JetBrains Mono'
+                            }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Wavelength',
+                            color: '#7F9CBB',
+                            font: {
+                                family: 'JetBrains Mono',
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#7F9CBB',
+                            font: {
+                                family: 'JetBrains Mono'
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white',
+                            font: {
+                                family: 'JetBrains Mono'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: {
+                            family: 'JetBrains Mono'
+                        },
+                        bodyFont: {
+                            family: 'JetBrains Mono'
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw}% relative intensity`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Ocean zones interactive
+        const oceanContainer = document.getElementById('ocean-container');
+        const zoneInfo = document.getElementById('zone-info');
+        const zones = [
+            { 
+                name: 'Epipelagic Zone (0-200m)', 
+                top: 0, 
+                desc: 'Sunlight penetrates this zone, so bioluminescence is primarily used for camouflage. Some organisms use counterillumination to match the light coming from above, hiding their silhouettes from predators below.',
+                creatures: 3,
+                color: 'rgba(0, 195, 255, 0.7)'
+            },
+            { 
+                name: 'Mesopelagic Zone (200-1000m)', 
+                top: 100, 
+                desc: 'Known as the "Twilight Zone," only faint blue light reaches here. About 90% of organisms are bioluminescent. Many use light to find mates or form defensive strategies like the burglar alarm, where prey being attacked produces bright flashes to attract even larger predators.',
+                creatures: 8,
+                color: 'rgba(0, 215, 255, 0.7)'
+            },
+            { 
+                name: 'Bathypelagic Zone (1000-4000m)', 
+                top: 200, 
+                desc: 'The "Midnight Zone" is in perpetual darkness. Bioluminescence here is often used for hunting. Anglerfish famously use a glowing lure containing symbiotic bacteria to attract prey close to their massive jaws.',
+                creatures: 10,
+                color: 'rgba(0, 125, 255, 0.7)'
+            },
+            { 
+                name: 'Abyssopelagic Zone (4000-6000m)', 
+                top: 300, 
+                desc: 'In the "Abyss," pressure exceeds 400 atmospheres. Bioluminescent creatures here often produce light in complex patterns for species recognition, ensuring they find compatible mates in the vast darkness.',
+                creatures: 6,
+                color: 'rgba(25, 25, 112, 0.7)'
+            },
+            { 
+                name: 'Hadopelagic Zone (6000-11000m)', 
+                top: 400, 
+                desc: 'The deepest oceanic zone, found in trenches. Specialized bioluminescent creatures here have adapted to extreme pressure. The sea cucumber Enypniastes emits a blue-green light when disturbed, leaving behind glowing decoy body parts to confuse predators.',
+                creatures: 4,
+                color: 'rgba(25, 5, 55, 0.7)'
+            }
+        ];
+
+        // Create depth zones
+        zones.forEach(zone => {
+            const zoneElement = document.createElement('div');
+            zoneElement.style.top = `${zone.top}px`;
+            zoneElement.style.height = `${zone.top === 400 ? 200 : 100}px`;
+            zoneElement.style.width = '100%';
+            zoneElement.style.position = 'absolute';
+            zoneElement.style.backgroundColor = zone.color;
+            zoneElement.style.cursor = 'pointer';
+            zoneElement.style.transition = 'opacity 0.3s';
+            zoneElement.style.opacity = '0.3';
+            zoneElement.dataset.zone = zone.name;
+            
+            zoneElement.addEventListener('click', () => {
+                zoneInfo.innerHTML = `
+                    <h3 class="text-horizon-gold font-mono text-lg mb-2">${zone.name}</h3>
+                    <p>${zone.desc}</p>
+                `;
+                // Reset all zones
+                document.querySelectorAll('[data-zone]').forEach(el => {
+                    el.style.opacity = '0.3';
+                });
+                // Highlight selected zone
+                zoneElement.style.opacity = '0.7';
+            });
+
+            oceanContainer.appendChild(zoneElement);
+            
+            // Add depth marker
+            const marker = document.createElement('div');
+            marker.classList.add('depth-marker');
+            marker.style.top = `${zone.top}px`;
+            marker.innerText = zone.name.split(' ')[0] + ' ' + zone.name.split(' ')[1];
+            oceanContainer.appendChild(marker);
+            
+            // Add creatures to this zone
+            for (let i = 0; i < zone.creatures; i++) {
+                createCreature(zone.top, (zone.top === 400 ? 200 : 100));
+            }
+        });
+
+        // Create a creature with random properties
+        function createCreature(zoneTop, zoneHeight) {
+            const creature = document.createElement('div');
+            creature.classList.add('creature');
+            
+            const size = Math.random() * 15 + 5; // 5-20px
+            creature.style.width = `${size}px`;
+            creature.style.height = `${size}px`;
+            
+            // Position within the zone
+            creature.style.top = `${zoneTop + Math.random() * zoneHeight}px`;
+            creature.style.left = `${Math.random() * 90 + 5}%`;
+            
+            // Make most creatures bioluminescent
+            if (Math.random() > 0.3) {
+                creature.classList.add('bioluminescent');
+                
+                // Random colors
+                const hue = Math.floor(Math.random() * 60) + 160; // blue to purple range
+                creature.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
+                creature.style.boxShadow = `0 0 10px 5px hsla(${hue}, 100%, 50%, 0.7)`;
+                
+                // Different animation speeds
+                creature.style.animationDuration = `${Math.random() * 10 + 5}s`;
+            } else {
+                creature.style.backgroundColor = 'rgba(200, 200, 200, 0.3)';
+            }
+            
+            oceanContainer.appendChild(creature);
+        }
+
+        // Organism Designer
+        const generateBtn = document.getElementById('generate-organism');
+        const organismDisplay = document.getElementById('organism-display');
+        const organismAnalysis = document.getElementById('organism-analysis');
+        const depthRange = document.getElementById('depth-range');
+        const depthValue = document.getElementById('depth-value');
+
+        // Update depth value display
+        depthRange.addEventListener('input', () => {
+            depthValue.textContent = `${depthRange.value}m`;
+        });
+
+        // Generate organism
+        generateBtn.addEventListener('click', () => {
+            const organismType = document.getElementById('organism-type').value;
+            const depth = parseInt(depthRange.value);
+            const features = {
+                lure: document.getElementById('feature-lure').checked,
+                camouflage: document.getElementById('feature-camouflage').checked,
+                flash: document.getElementById('feature-flash').checked,
+                pattern: document.getElementById('feature-pattern').checked
+            };
+            
+            // Get selected color
+            const colorInput = document.querySelector('input[name="light-color"]:checked');
+            const color = colorInput.value;
+            
+            // Clear previous
+            organismDisplay.innerHTML = '';
+            
+            // Create the organism
+            const organism = document.createElement('div');
+            organism.style.position = 'relative';
+            organism.style.transition = 'all 0.5s';
+            
+            let sizeMultiplier = 1;
+            if (depth > 6000) sizeMultiplier = 0.7;
+            else if (depth > 3000) sizeMultiplier = 0.85;
+            
+            // Different visuals based on organism type
+            switch(organismType) {
+                case 'jellyfish':
+                    organism.innerHTML = `
+                        <div style="width: ${120 * sizeMultiplier}px; height: ${150 * sizeMultiplier}px; position: relative;">
+                            <div style="width: 100%; height: 40%; background-color: rgba(255,255,255,0.2); border-radius: 50% 50% 0 0;"></div>
+                            <div style="width: 100%; height: 60%; position: relative; overflow: hidden;">
+                                ${Array(8).fill().map((_, i) => 
+                                    `<div style="position: absolute; left: ${10 + i*10}%; width: 5%; height: 100%; background-color: rgba(255,255,255,0.15); animation: float ${2 + i%3}s infinite alternate;"></div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'squid':
+                    organism.innerHTML = `
+                        <div style="width: ${100 * sizeMultiplier}px; height: ${180 * sizeMultiplier}px; position: relative;">
+                            <div style="width: 100%; height: 30%; background-color: rgba(255,255,255,0.2); border-radius: 50% 50% 0 0;"></div>
+                            <div style="width: 70%; height: 40%; margin: 0 auto; background-color: rgba(255,255,255,0.2);"></div>
+                            <div style="width: 100%; height: 30%; position: relative; display: flex; justify-content: space-around;">
+                                ${Array(5).fill().map(() => 
+                                    `<div style="width: 10%; height: 100%; background-color: rgba(255,255,255,0.15); animation: float ${2 + Math.random()*2}s infinite alternate;"></div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'anglerfish':
+                    organism.innerHTML = `
+                        <div style="width: ${150 * sizeMultiplier}px; height: ${100 * sizeMultiplier}px; position: relative;">
+                            <div style="width: 70%; height: 70%; background-color: rgba(255,255,255,0.2); border-radius: 30% 50% 40% 40%; position: relative;">
+                                <div style="width: 15%; height: 15%; background-color: rgba(255,255,255,0.3); border-radius: 50%; position: absolute; top: 30%; left: 20%;"></div>
+                                <div style="width: 40%; height: 10%; background-color: rgba(255,255,255,0.3); border-radius: 0 0 40% 40%; position: absolute; bottom: 0; left: 40%;"></div>
+                                ${features.lure ? `<div style="width: 5%; height: 30%; background-color: rgba(255,255,255,0.2); position: absolute; top: -25%; left: 30%; z-index: -1;"></div><div style="width: 10px; height: 10px; border-radius: 50%; background-color: ${getColorValue(color)}; box-shadow: 0 0 10px 5px ${getColorValue(color)}; position: absolute; top: -30%; left: 28%; animation: pulse 2s infinite;"></div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'shrimp':
+                    organism.innerHTML = `
+                        <div style="width: ${120 * sizeMultiplier}px; height: ${70 * sizeMultiplier}px; position: relative;">
+                            <div style="width: 30%; height: 40%; background-color: rgba(255,255,255,0.2); border-radius: 50%; position: absolute; left: 0; top: 30%;"></div>
+                            <div style="width: 60%; height: 30%; background-color: rgba(255,255,255,0.2); border-radius: 10% 30% 30% 10%; position: absolute; left: 25%; top: 35%;"></div>
+                            <div style="width: 70%; height: 5%; position: absolute; left: 20%; top: 70%; display: flex; justify-content: space-around;">
+                                ${Array(6).fill().map(() => 
+                                    `<div style="width: 2%; height: 100%; background-color: rgba(255,255,255,0.15); animation: float ${1 + Math.random()}s infinite alternate;"></div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            // Add bioluminescent features
+            const lumElements = [];
+            
+            if (features.camouflage) {
+                const ventral = document.createElement('div');
+                ventral.style.position = 'absolute';
+                ventral.style.bottom = '0';
+                ventral.style.left = '10%';
+                ventral.style.width = '80%';
+                ventral.style.height = '20%';
+                ventral.style.backgroundColor = getColorValue(color);
+                ventral.style.opacity = '0.7';
+                ventral.style.borderRadius = '50%';
+                ventral.style.boxShadow = `0 0 15px 5px ${getColorValue(color)}`;
+                ventral.style.animation = 'pulse 3s infinite alternate';
+                organism.appendChild(ventral);
+                lumElements.push(ventral);
+            }
+            
+            if (features.pattern) {
+                for (let i = 0; i < 5; i++) {
+                    const spot = document.createElement('div');
+                    spot.style.position = 'absolute';
+                    spot.style.width = '8px';
+                    spot.style.height = '8px';
+                    spot.style.backgroundColor = getColorValue(color);
+                    spot.style.borderRadius = '50%';
+                    spot.style.boxShadow = `0 0 8px 3px ${getColorValue(color)}`;
+                    
+                    // Different pattern based on organism type
+                    if (organismType === 'squid') {
+                        spot.style.left = `${10 + i*20}%`;
+                        spot.style.top = '40%';
+                    } else if (organismType === 'jellyfish') {
+                        spot.style.left = `${20 + i*15}%`;
+                        spot.style.top = '25%';
+                    } else {
+                        spot.style.left = `${30 + i*10}%`;
+                        spot.style.top = `${40 + (i%3)*15}%`;
+                    }
+                    
+                    spot.style.animation = `pulse ${2 + i*0.5}s infinite alternate`;
+                    organism.appendChild(spot);
+                    lumElements.push(spot);
+                }
+            }
+            
+            if (features.flash) {
+                organism.addEventListener('click', () => {
+                    // Create defensive flash
+                    const flash = document.createElement('div');
+                    flash.style.position = 'absolute';
+                    flash.style.width = '200%';
+                    flash.style.height = '200%';
+                    flash.style.top = '-50%';
+                    flash.style.left = '-50%';
+                    flash.style.backgroundColor = getColorValue(color);
+                    flash.style.borderRadius = '50%';
+                    flash.style.opacity = '0';
+                    flash.style.animation = 'flash 1s forwards';
+                    flash.style.zIndex = '10';
+                    organism.appendChild(flash);
+                    
+                    // Create keyframes for the flash
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes flash {
+                            0% { opacity: 0; }
+                            10% { opacity: 0.8; }
+                            100% { opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        organism.removeChild(flash);
+                        document.head.removeChild(style);
+                    }, 1000);
+                });
+                
+                // Add hint
+                const hint = document.createElement('p');
+                hint.textContent = 'Click to trigger defense flash';
+                hint.style.position = 'absolute';
+                hint.style.bottom = '10px';
+                hint.style.left = '0';
+                hint.style.width = '100%';
+                hint.style.textAlign = 'center';
+                hint.style.fontSize = '12px';
+                hint.classList.add('mono');
+                organismDisplay.appendChild(hint);
+            }
+            
+            organismDisplay.appendChild(organism);
+            
+            // Calculate and display survival metrics
+            const predatorAvoidance = calculatePredatorAvoidance(depth, features, color);
+            const preyAttraction = calculatePreyAttraction(depth, features, organismType, color);
+            const mateFinding = calculateMateFinding(depth, features, color);
+            const energyEfficiency = calculateEnergyEfficiency(depth, features, color);
+            
+            // Update UI
+            document.getElementById('predator-rating').style.width = `${predatorAvoidance}%`;
+            document.getElementById('predator-value').textContent = `${predatorAvoidance}%`;
+            document.getElementById('prey-rating').style.width = `${preyAttraction}%`;
+            document.getElementById('prey-value').textContent = `${preyAttraction}%`;
+            document.getElementById('mate-rating').style.width = `${mateFinding}%`;
+            document.getElementById('mate-value').textContent = `${mateFinding}%`;
+            document.getElementById('energy-rating').style.width = `${energyEfficiency}%`;
+            document.getElementById('energy-value').textContent = `${energyEfficiency}%`;
+            
+            // Update habitat analysis
+            const habitatAnalysis = document.getElementById('habitat-analysis');
+            if (depth < 200) {
+                habitatAnalysis.innerHTML = 'Your organism is in the <strong class="text-horizon-gold">Epipelagic Zone</strong>. Bioluminescence is less common here as sunlight is abundant. Camouflage and defense mechanisms may be more valuable than light production.';
+            } else if (depth < 1000) {
+                habitatAnalysis.innerHTML = 'Your organism inhabits the <strong class="text-horizon-gold">Mesopelagic (Twilight) Zone</strong>. This is the sweet spot for bioluminescence, with about 90% of creatures producing light. Your adaptations for communication and camouflage are especially valuable here.';
+            } else if (depth < 4000) {
+                habitatAnalysis.innerHTML = 'Welcome to the <strong class="text-horizon-gold">Bathypelagic (Midnight) Zone</strong>. In this perpetual darkness, your bioluminescent lure and patterns are critical for finding food and mates. The pressure here requires additional adaptations.';
+            } else if (depth < 6000) {
+                habitatAnalysis.innerHTML = 'Your organism lives in the <strong class="text-horizon-gold">Abyssopelagic Zone</strong>. Few creatures venture this deep, where pressure exceeds 400 atmospheres. Energy efficiency becomes crucial at these depths, where food is scarce.';
+            } else {
+                habitatAnalysis.innerHTML = 'Extreme conditions in the <strong class="text-horizon-gold">Hadopelagic Zone</strong> (deep ocean trenches) require special adaptations. Your organism must withstand crushing pressure and extreme cold. The bioluminescent features help in this rarified environment where encounters with other organisms are infrequent.';
+            }
+            
+            organismAnalysis.classList.remove('hidden');
+        });
+
+        function getColorValue(color) {
+            switch(color) {
+                case 'blue': return '#00c3ff';
+                case 'green': return '#00ff9d';
+                case 'red': return '#ff5a5a';
+                case 'purple': return '#c44aff';
+                default: return '#00c3ff';
+            }
+        }
+
+        function calculatePredatorAvoidance(depth, features, color) {
+            let score = 50; // Base score
+            
+            // Depth considerations
+            if (depth < 200) score -= 10; // Surface waters have more visual predators
+            else if (depth > 6000) score += 15; // Fewer predators in extreme depths
+            
+            // Feature bonuses
+            if (features.camouflage) score += 25;
+            if (features.flash) score += 20;
+            
+            // Color considerations
+            if (depth < 1000 && color === 'blue') score += 10; // Blue matches twilight zone ambient light
+            if (depth > 4000 && color === 'red') score += 15; // Red light doesn't penetrate deep water
+            
+            return Math.min(Math.max(score, 10), 100); // Cap between 10-100%
+        }
+
+        function calculatePreyAttraction(depth, features, type, color) {
+            let score = 40; // Base score
+            
+            // Type considerations
+            if (type === 'anglerfish' && features.lure) score += 35;
+            else if (features.lure) score += 20;
+            
+            // Pattern can confuse or attract
+            if (features.pattern) score += 15;
+            
+            // Depth considerations
+            if (depth > 2000 && depth < 5000) score += 10; // Prime hunting depth
+            
+            // Color considerations for prey attraction
+            if (color === 'blue' || color === 'green') score += 5;
+            
+            return Math.min(Math.max(score, 10), 100);
+        }
+
+        function calculateMateFinding(depth, features, color) {
+            let score = 45; // Base score
+            
+            // Features
+            if (features.pattern) score += 30; // Patterns are crucial for species recognition
+            if (features.flash) score += 10; // Flashes can signal to potential mates
+            
+            // Depth considerations
+            if (depth > 1000 && depth < 4000) score -= 5; // Harder to find mates in the midnight zone
+            if (depth > 6000) score -= 15; // Very difficult in hadal zone
+            
+            // Specific patterns
+            if (features.pattern && features.flash) score += 10; // Complex signaling
+            
+            return Math.min(Math.max(score, 10), 100);
+        }
+
+        function calculateEnergyEfficiency(depth, features, color) {
+            let score = 70; // Base score
+            
+            // Features drain energy
+            let featureCount = 0;
+            if (features.lure) { score -= 15; featureCount++; }
+            if (features.camouflage) { score -= 10; featureCount++; }
+            if (features.flash) { score -= 20; featureCount++; }
+            if (features.pattern) { score -= 15; featureCount++; }
+            
+            // Depth considerations
+            if (depth > 4000) score -= 15; // Higher energy cost in extreme environments
+            
+            // Adaptation penalty for multiple features in deep water
+            if (depth > 4000 && featureCount > 2) score -= 15;
+            
+            return Math.min(Math.max(score, 10), 100);
+        }
+
+        // Quiz logic
+        const checkBtn = document.getElementById('check-answers');
+        const resultsDiv = document.getElementById('quiz-results');
+        
+        checkBtn.addEventListener('click', () => {
+            const q1Answer = document.querySelector('input[name="q1"]:checked')?.value;
+            const q2Answer = document.querySelector('input[name="q2"]:checked')?.value;
+            const q3Answer = document.querySelector('input[name="q3"]:checked')?.value;
+            
+            if (!q1Answer || !q2Answer || !q3Answer) {
+                resultsDiv.innerHTML = '<p class="text-horizon-red">Please answer all questions.</p>';
+                resultsDiv.classList.remove('hidden');
+                return;
+            }
+            
+            let correctCount = 0;
+            let feedback = '<p class="mono text-telemetry-blue mb-2">ANALYSIS COMPLETE:</p>';
+            
+            // Check answers
+            if (q1Answer === 'b') {
+                feedback += '<p>✓ Question 1: Correct! Luciferin is the light-emitting compound in bioluminescent reactions.</p>';
+                correctCount++;
+            } else {
+                feedback += '<p>✗ Question 1: Incorrect. Luciferin is the correct answer.</p>';
+            }
+            
+            if (q2Answer === 'b') {
+                feedback += '<p>✓ Question 2: Correct! Around 200 meters is the depth where sunlight becomes too dim and bioluminescence takes over.</p>';
+                correctCount++;
+            } else {
+                feedback += '<p>✗ Question 2: Incorrect. The correct answer is 200 meters, marking the beginning of the "twilight zone."</p>';
+            }
+            
+            if (q3Answer === 'b') {
+                feedback += '<p>✓ Question 3: Correct! Photosynthesis requires sunlight, which doesn\'t penetrate to the deep ocean.</p>';
+                correctCount++;
+            } else {
+                feedback += '<p>✗ Question 3: Incorrect. Photosynthesis is the correct answer, as it requires sunlight which doesn\'t reach the deep ocean.</p>';
+            }
+            
+            feedback += `<p class="mt-4 text-lg ${correctCount === 3 ? 'text-horizon-gold' : 'text-horizon-red'}">Total score: ${correctCount}/3</p>`;
+            
+            resultsDiv.innerHTML = feedback;
+            resultsDiv.classList.remove('hidden');
+        });
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synaesthesia: When Senses Merge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <style>
+        :root {
+            --void-black: #030305;
+            --horizon-gold: #FFD28E;
+            --horizon-red: #D66D50;
+            --telemetry-blue: #7F9CBB;
+            --glass-bg: rgba(15, 15, 20, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        body {
+            background-color: var(--void-black);
+            color: white;
+            font-family: 'Playfair Display', serif;
+            background-image: radial-gradient(circle at 50% 50%, transparent 90%, var(--void-black)),
+                             url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="100%" height="100%" fill="%23030305"/><g fill="white"><circle cx="10" cy="10" r="1" opacity="0.4"/><circle cx="40" cy="30" r="0.5" opacity="0.3"/><circle cx="70" cy="15" r="0.8" opacity="0.5"/><circle cx="120" cy="50" r="0.4" opacity="0.2"/><circle cx="150" cy="30" r="0.6" opacity="0.3"/><circle cx="180" cy="90" r="1" opacity="0.5"/><circle cx="22" cy="95" r="0.7" opacity="0.4"/><circle cx="57" cy="170" r="0.5" opacity="0.2"/><circle cx="95" cy="140" r="0.8" opacity="0.4"/><circle cx="130" cy="180" r="0.6" opacity="0.3"/><circle cx="170" cy="170" r="0.7" opacity="0.4"/><circle cx="25" cy="65" r="0.5" opacity="0.3"/><circle cx="178" cy="40" r="0.5" opacity="0.3"/><circle cx="190" cy="120" r="0.6" opacity="0.4"/><circle cx="80" cy="70" r="0.3" opacity="0.2"/><circle cx="166" cy="143" r="0.5" opacity="0.3"/></g></svg>');
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        code, .monospace {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .horizon-gold {
+            color: var(--horizon-gold);
+        }
+
+        .horizon-red {
+            color: var(--horizon-red);
+        }
+
+        .telemetry-blue {
+            color: var(--telemetry-blue);
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-square {
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-square:hover {
+            transform: scale(1.05);
+        }
+        
+        .synesthete-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .synesthete-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        #colorSoundVisualizer {
+            position: relative;
+            height: 100px;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 6px;
+        }
+
+        .visualizer-bar {
+            position: absolute;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--horizon-gold);
+            transition: height 0.05s ease;
+        }
+        
+        .quiz-option {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background-color: rgba(127, 156, 187, 0.2);
+        }
+        
+        .quiz-option.correct {
+            background-color: rgba(100, 220, 120, 0.2);
+            border-color: rgba(100, 220, 120, 0.6);
+        }
+        
+        .quiz-option.incorrect {
+            background-color: rgba(220, 100, 100, 0.2);
+            border-color: rgba(220, 100, 100, 0.6);
+        }
+        
+        .grapheme-container div {
+            transition: all 0.3s ease;
+        }
+        
+        .grapheme-container div:hover {
+            transform: scale(1.2);
+        }
+
+        /* Staggered fade-in animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="glass-panel sticky top-0 z-50 p-4 mb-6">
+        <div class="container mx-auto flex items-center justify-between">
+            <h1 class="text-xl md:text-2xl font-bold horizon-gold flex items-center">
+                <i data-lucide="brain" class="mr-2"></i>
+                Synaesthesia Explorer
+            </h1>
+            <div class="flex items-center space-x-4">
+                <a href="#what-is-synaesthesia" class="hidden md:inline-block telemetry-blue hover:text-white transition">What Is It?</a>
+                <a href="#famous-synesthetes" class="hidden md:inline-block telemetry-blue hover:text-white transition">Famous Cases</a>
+                <a href="#experience-it" class="hidden md:inline-block telemetry-blue hover:text-white transition">Experience It</a>
+                <a href="#test-yourself" class="hidden md:inline-block telemetry-blue hover:text-white transition">Test Yourself</a>
+                <button class="md:hidden" id="menuToggle">
+                    <i data-lucide="menu" class="telemetry-blue"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden container mx-auto mt-4 flex flex-col space-y-2">
+            <a href="#what-is-synaesthesia" class="telemetry-blue hover:text-white transition py-2">What Is It?</a>
+            <a href="#famous-synesthetes" class="telemetry-blue hover:text-white transition py-2">Famous Cases</a>
+            <a href="#experience-it" class="telemetry-blue hover:text-white transition py-2">Experience It</a>
+            <a href="#test-yourself" class="telemetry-blue hover:text-white transition py-2">Test Yourself</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="container mx-auto px-4 py-12 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-4 fade-in">
+            <span class="horizon-gold">Synaesthesia</span>: 
+            <span class="telemetry-blue">When Senses Merge</span>
+        </h1>
+        <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto fade-in" style="animation-delay: 0.2s">
+            Explore the fascinating world where sounds have colors, numbers have personalities, and tastes can trigger shapes
+        </p>
+        <div class="flex justify-center space-x-4 mb-12 fade-in" style="animation-delay: 0.4s">
+            <a href="#experience-it" class="btn bg-gradient-to-r from-[#D66D50] to-[#FFD28E] text-white font-bold py-3 px-6 rounded-lg">
+                Experience It
+            </a>
+            <a href="#what-is-synaesthesia" class="btn bg-transparent border border-[#7F9CBB] text-[#7F9CBB] font-bold py-3 px-6 rounded-lg">
+                Learn More
+            </a>
+        </div>
+    </section>
+
+    <!-- What is Synaesthesia -->
+    <section id="what-is-synaesthesia" class="container mx-auto px-4 py-12">
+        <div class="glass-panel p-6 md:p-8 max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-6 horizon-gold">What is Synaesthesia?</h2>
+            <p class="mb-4">
+                Synaesthesia (also spelled synesthesia) is a perceptual phenomenon in which stimulation of one sensory or cognitive pathway leads to involuntary experiences in a second sensory or cognitive pathway.
+            </p>
+            <p class="mb-6">
+                In simpler terms, it's when one sense automatically triggers another sense. For example, when seeing the letter "A," a synesthete might also perceive it as the color red, or when hearing a C-sharp musical note, they might see a flash of blue.
+            </p>
+            
+            <h3 class="text-2xl font-bold mb-4 telemetry-blue">Common Types of Synaesthesia</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="glass-panel p-4 hover:border-[#FFD28E] transition-all duration-300">
+                    <h4 class="font-bold horizon-gold mb-2">Grapheme-Color</h4>
+                    <p>Letters or numbers are perceived as inherently colored</p>
+                </div>
+                <div class="glass-panel p-4 hover:border-[#FFD28E] transition-all duration-300">
+                    <h4 class="font-bold horizon-gold mb-2">Chromesthesia</h4>
+                    <p>Sounds evoke an experience of color</p>
+                </div>
+                <div class="glass-panel p-4 hover:border-[#FFD28E] transition-all duration-300">
+                    <h4 class="font-bold horizon-gold mb-2">Spatial Sequence</h4>
+                    <p>Numbers, months or days of the week elicit precise locations in space</p>
+                </div>
+                <div class="glass-panel p-4 hover:border-[#FFD28E] transition-all duration-300">
+                    <h4 class="font-bold horizon-gold mb-2">Lexical-Gustatory</h4>
+                    <p>Words or phonemes evoke taste sensations</p>
+                </div>
+            </div>
+            
+            <h3 class="text-2xl font-bold mb-4 telemetry-blue">Is it Common?</h3>
+            <p class="mb-4">
+                Studies suggest that synaesthesia occurs in about 4% of the population, though many synesthetes may not realize their perceptions are unusual. It tends to run in families, suggesting a genetic component.
+            </p>
+            <p>
+                For those who experience it, synaesthesia is not a disorder but simply a different way of perceiving the world—one that can enhance memory, creativity, and cognitive abilities.
+            </p>
+        </div>
+    </section>
+
+    <!-- Famous Synesthetes -->
+    <section id="famous-synesthetes" class="container mx-auto px-4 py-12">
+        <h2 class="text-3xl font-bold mb-8 text-center horizon-gold">Famous Synesthetes</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <!-- Vladimir Nabokov -->
+            <div class="synesthete-card glass-panel p-6">
+                <div class="flex justify-center mb-4">
+                    <div class="w-24 h-24 rounded-full bg-gradient-to-r from-[#7F9CBB] to-[#FFD28E] flex items-center justify-center text-4xl font-bold">
+                        VN
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-center telemetry-blue">Vladimir Nabokov</h3>
+                <p class="mb-4 text-sm">
+                    The author of "Lolita" experienced grapheme-color synaesthesia, where letters appeared colored to him. He described "a" as weathered wood, while "q" appeared "browner than 'k'."
+                </p>
+                <p class="text-sm">
+                    <span class="horizon-gold">"I present a fine case of colored hearing. Perhaps 'hearing' is not quite accurate, since the color sensation seems to be produced by the very act of my orally forming a given letter while I imagine its outline."</span>
+                </p>
+            </div>
+            
+            <!-- Pharrell Williams -->
+            <div class="synesthete-card glass-panel p-6">
+                <div class="flex justify-center mb-4">
+                    <div class="w-24 h-24 rounded-full bg-gradient-to-r from-[#D66D50] to-[#FFD28E] flex items-center justify-center text-4xl font-bold">
+                        PW
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-center telemetry-blue">Pharrell Williams</h3>
+                <p class="mb-4 text-sm">
+                    The musician and producer experiences colors when he hears music, which influences his creative process. He describes his hit song "Happy" as appearing yellow and orange.
+                </p>
+                <p class="text-sm">
+                    <span class="horizon-gold">"It's the only way that I can identify what something sounds like. I know when something is in key because it either matches the same color or it doesn't."</span>
+                </p>
+            </div>
+            
+            <!-- Wassily Kandinsky -->
+            <div class="synesthete-card glass-panel p-6">
+                <div class="flex justify-center mb-4">
+                    <div class="w-24 h-24 rounded-full bg-gradient-to-r from-[#7F9CBB] to-[#D66D50] flex items-center justify-center text-4xl font-bold">
+                        WK
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-center telemetry-blue">Wassily Kandinsky</h3>
+                <p class="mb-4 text-sm">
+                    This pioneering abstract artist perceived colors as sounds and sounds as colors. His paintings often attempt to capture the visual experience of music.
+                </p>
+                <p class="text-sm">
+                    <span class="horizon-gold">"Color is the keyboard, the eyes are the hammers, the soul is the piano with its many strings. The artist is the hand that, by touching this or that key, sets the soul vibrating automatically."</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience It Section -->
+    <section id="experience-it" class="container mx-auto px-4 py-12">
+        <div class="glass-panel p-6 md:p-8 max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-6 horizon-gold">Experience Synaesthesia</h2>
+            <p class="mb-8">
+                While non-synesthetes cannot truly experience synaesthesia as those born with it do, these interactive demos can help simulate aspects of different types of synesthetic experiences.
+            </p>
+            
+            <!-- Color to Sound Synaesthesia -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold mb-4 telemetry-blue">Color to Sound: <span class="text-white opacity-75">Click on the colors to "hear" them</span></h3>
+                
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div class="color-square rounded-lg" style="background-color: #e74c3c;" data-note="C4" data-color="#e74c3c"></div>
+                    <div class="color-square rounded-lg" style="background-color: #f39c12;" data-note="D4" data-color="#f39c12"></div>
+                    <div class="color-square rounded-lg" style="background-color: #f1c40f;" data-note="E4" data-color="#f1c40f"></div>
+                    <div class="color-square rounded-lg" style="background-color: #2ecc71;" data-note="F4" data-color="#2ecc71"></div>
+                    <div class="color-square rounded-lg" style="background-color: #3498db;" data-note="G4" data-color="#3498db"></div>
+                    <div class="color-square rounded-lg" style="background-color: #9b59b6;" data-note="A4" data-color="#9b59b6"></div>
+                    <div class="color-square rounded-lg" style="background-color: #e74c3c;" data-note="B4" data-color="#e74c3c"></div>
+                    <div class="color-square rounded-lg" style="background-color: #1abc9c;" data-note="C5" data-color="#1abc9c"></div>
+                    <div class="color-square rounded-lg" style="background-color: #d35400;" data-note="D5" data-color="#d35400"></div>
+                    <div class="color-square rounded-lg" style="background-color: #8e44ad;" data-note="E5" data-color="#8e44ad"></div>
+                </div>
+                
+                <div id="colorSoundVisualizer" class="bg-gray-900"></div>
+                
+                <p class="mt-4 text-sm italic">
+                    For chromesthesia synesthetes, each musical note or sound triggers a consistent color perception.
+                    The connections are automatic and remain stable over time.
+                </p>
+            </div>
+            
+            <!-- Grapheme-Color Synaesthesia -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold mb-4 telemetry-blue">Grapheme-Color: <span class="text-white opacity-75">Hover over letters to reveal colors</span></h3>
+                
+                <div class="grapheme-container grid grid-cols-5 sm:grid-cols-10 gap-4 mb-4 text-center monospace">
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#e74c3c">A</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#3498db">B</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#f1c40f">C</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#2ecc71">D</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#e74c3c">E</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#9b59b6">F</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#2ecc71">G</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#f39c12">H</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#3498db">I</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#9b59b6">J</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#f1c40f">K</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#3498db">L</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#e74c3c">M</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#2ecc71">N</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#f39c12">O</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#9b59b6">P</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#1abc9c">Q</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#e74c3c">R</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#f1c40f">S</div>
+                    <div class="glass-panel p-3 text-xl font-bold" data-color="#3498db">T</div>
+                </div>
+                
+                <p class="text-sm italic">
+                    This is based on actual data from synesthete studies. For people with grapheme-color synaesthesia, 
+                    each letter and number consistently evokes a specific color. The associations form early in life and remain stable.
+                </p>
+            </div>
+            
+            <!-- Sound to Color Synaesthesia -->
+            <div>
+                <h3 class="text-2xl font-bold mb-4 telemetry-blue">Sound to Color: <span class="text-white opacity-75">Play music to see colors</span></h3>
+                
+                <div class="flex flex-col md:flex-row mb-6 gap-4">
+                    <button id="playPiano" class="btn glass-panel px-6 py-3 horizon-gold border border-[#FFD28E] hover:bg-[#FFD28E] hover:text-[#030305] transition-all">
+                        <i data-lucide="music" class="inline mr-2"></i> Piano Melody
+                    </button>
+                    <button id="playDrums" class="btn glass-panel px-6 py-3 horizon-red border border-[#D66D50] hover:bg-[#D66D50] hover:text-[#030305] transition-all">
+                        <i data-lucide="drum" class="inline mr-2"></i> Drum Pattern
+                    </button>
+                    <button id="playBass" class="btn glass-panel px-6 py-3 telemetry-blue border border-[#7F9CBB] hover:bg-[#7F9CBB] hover:text-[#030305] transition-all">
+                        <i data-lucide="waveform" class="inline mr-2"></i> Bass Line
+                    </button>
+                </div>
+                
+                <div id="soundColorVisualizer" class="h-48 rounded-lg glass-panel flex items-center justify-center">
+                    <p id="visualizerPlaceholder" class="text-center text-gray-400">Click a button above to see sound visualized as color</p>
+                </div>
+                
+                <p class="mt-4 text-sm italic">
+                    This simulation shows how a synesthete might experience different instruments and rhythms as colors and patterns.
+                    In reality, synesthetic perceptions are more automatic and detailed than these simulations can capture.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Test Yourself -->
+    <section id="test-yourself" class="container mx-auto px-4 py-12 mb-20">
+        <div class="glass-panel p-6 md:p-8 max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-6 horizon-gold">Do You Have Synaesthetic Tendencies?</h2>
+            <p class="mb-8">
+                While true synaesthesia is a neurological condition, many people have mild cross-modal associations. 
+                Take this quick quiz to see if you might have synesthetic tendencies:
+            </p>
+            
+            <div id="quizContainer">
+                <div class="quiz-question mb-8">
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">1. Do specific musical notes or songs consistently evoke colors in your mind?</h3>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="4">Always - I see specific colors for different notes or songs</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="3">Often - certain songs definitely have colors to me</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="2">Sometimes - music can make me think of colors, but not consistently</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="1">Rarely - I might associate a song with a color for other reasons</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="0">Never - music and colors are completely separate for me</div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">2. Do numbers or letters seem to have personalities or genders to you?</h3>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="4">Definitely - each number has a distinct personality I've always perceived</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="3">Yes - many numbers have specific characteristics to me</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="2">Somewhat - I've assigned personalities to some numbers</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="1">Not really - I might anthropomorphize numbers in certain contexts</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="0">Not at all - numbers are just abstract concepts to me</div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">3. Do you physically experience time periods (weekdays, months, years) as arranged in a specific spatial pattern?</h3>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="4">Yes - I've always seen time organized in a specific spatial layout</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="3">Mostly - I visualize time in space quite clearly</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="2">Sometimes - I have a vague spatial model for time</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="1">Rarely - I might visualize a calendar when thinking about time</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="0">Never - I don't experience time spatially at all</div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">4. Do certain words have distinctive tastes or smells to you?</h3>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="4">Absolutely - specific words trigger distinct tastes or smells</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="3">Often - some words have clear taste/smell associations</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="2">Occasionally - certain words might evoke taste/smell memories</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="1">Rarely - only words that describe foods trigger taste sensations</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="0">Never - words don't have taste or smell qualities to me</div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">5. When you listen to music, can you "see" the music as shapes, colors, or movements?</h3>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="4">Yes - I automatically see visual elements when hearing music</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="3">Usually - music often produces visual imagery for me</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="2">Sometimes - certain music can create visual impressions</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="1">Rarely - I might visualize things related to the music's theme</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-score="0">Never - I don't visualize anything when listening to music</div>
+                </div>
+                
+                <button id="submitQuiz" class="btn bg-gradient-to-r from-[#D66D50] to-[#FFD28E] text-white font-bold py-3 px-6 rounded-lg">
+                    Submit Quiz
+                </button>
+            </div>
+            
+            <div id="quizResults" class="hidden mt-8">
+                <h3 class="text-2xl font-bold mb-4 horizon-gold">Your Synaesthesia Score: <span id="quizScore">0</span>/20</h3>
+                <div id="quizInterpretation" class="glass-panel p-6 border-t-4"></div>
+                
+                <div class="mt-8">
+                    <h4 class="text-xl font-bold mb-4 telemetry-blue">Learn More:</h4>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li>
+                            <a href="https://www.synesthesiatest.org/" target="_blank" class="text-[#FFD28E] hover:underline">Take a formal synaesthesia battery test</a>
+                        </li>
+                        <li>
+                            <a href="https://www.synesthesiaassociation.org/" target="_blank" class="text-[#FFD28E] hover:underline">American Synesthesia Association</a>
+                        </li>
+                        <li>
+                            <a href="https://www.amazon.com/Wednesday-Blue-Extraordinary-Synesthesia-Perceives/dp/0553371304" target="_blank" class="text-[#FFD28E] hover:underline">Wednesday Is Indigo Blue: Discovering the Brain of Synesthesia (book)</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="glass-panel p-6 text-center">
+        <p class="telemetry-blue">&copy; <span id="currentYear"></span> Horizon Project</p>
+        <p class="text-sm mt-2">Designed with <i data-lucide="heart" class="inline w-4 h-4 horizon-red"></i> by Justin Hart</p>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            
+            // Setup navigation menu toggle
+            const menuToggle = document.getElementById('menuToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            menuToggle?.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Create visualizer bars
+            const visualizer = document.getElementById('colorSoundVisualizer');
+            for (let i = 0; i < 128; i++) {
+                const bar = document.createElement('div');
+                bar.classList.add('visualizer-bar');
+                bar.style.left = (i * 6) + 'px';
+                bar.style.height = '0px';
+                visualizer.appendChild(bar);
+            }
+            
+            // Setup Tone.js
+            let synth = new Tone.PolySynth(Tone.Synth).toDestination();
+            let isInitialized = false;
+            
+            // Ensure Tone.js is initialized on first user interaction
+            function initAudio() {
+                if (!isInitialized) {
+                    Tone.start();
+                    isInitialized = true;
+                }
+            }
+            
+            // Color squares click handler
+            const colorSquares = document.querySelectorAll('.color-square');
+            colorSquares.forEach(square => {
+                square.addEventListener('click', () => {
+                    initAudio();
+                    
+                    const note = square.dataset.note;
+                    const color = square.dataset.color;
+                    
+                    // Play the note
+                    synth.triggerAttackRelease(note, "8n");
+                    
+                    // Animate visualizer
+                    const bars = document.querySelectorAll('.visualizer-bar');
+                    bars.forEach((bar, i) => {
+                        const height = Math.random() * 100;
+                        bar.style.height = height + 'px';
+                        bar.style.backgroundColor = color;
+                        
+                        // Reset after delay
+                        setTimeout(() => {
+                            bar.style.height = '0px';
+                        }, 500 + (i * 5));
+                    });
+                });
+            });
+            
+            // Grapheme-color hover effect
+            const graphemeElements = document.querySelectorAll('.grapheme-container div');
+            graphemeElements.forEach(element => {
+                const originalBg = element.style.backgroundColor;
+                const color = element.dataset.color;
+                
+                element.addEventListener('mouseenter', () => {
+                    element.style.backgroundColor = color;
+                    element.style.color = '#030305';
+                });
+                
+                element.addEventListener('mouseleave', () => {
+                    element.style.backgroundColor = originalBg;
+                    element.style.color = '';
+                });
+            });
+            
+            // Sound to color visualizer
+            const soundColorVisualizer = document.getElementById('soundColorVisualizer');
+            const visualizerPlaceholder = document.getElementById('visualizerPlaceholder');
+            
+            // Piano button
+            document.getElementById('playPiano').addEventListener('click', () => {
+                initAudio();
+                visualizerPlaceholder.style.display = 'none';
+                
+                // Display colorful piano visualization
+                soundColorVisualizer.style.background = 'linear-gradient(45deg, #FFD28E, #D66D50, #7F9CBB)';
+                soundColorVisualizer.style.backgroundSize = '400% 400%';
+                soundColorVisualizer.style.animation = 'gradient 3s ease infinite';
+                
+                // Add keyframes if not present
+                if (!document.querySelector('style#gradient-animation')) {
+                    const style = document.createElement('style');
+                    style.id = 'gradient-animation';
+                    style.textContent = `
+                        @keyframes gradient {
+                            0% { background-position: 0% 50%; }
+                            50% { background-position: 100% 50%; }
+                            100% { background-position: 0% 50%; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                // Play piano sequence
+                const now = Tone.now();
+                synth.triggerAttackRelease("C4", "8n", now);
+                synth.triggerAttackRelease("E4", "8n", now + 0.5);
+                synth.triggerAttackRelease("G4", "8n", now + 1);
+                synth.triggerAttackRelease("B4", "8n", now + 1.5);
+                synth.triggerAttackRelease("C5", "4n", now + 2);
+                
+                // Reset after animation
+                setTimeout(() => {
+                    soundColorVisualizer.style.background = '';
+                    soundColorVisualizer.style.animation = '';
+                    visualizerPlaceholder.style.display = 'block';
+                }, 4000);
+            });
+            
+            // Drums button
+            document.getElementById('playDrums').addEventListener('click', () => {
+                initAudio();
+                visualizerPlaceholder.style.display = 'none';
+                
+                // Create pulsing red circles for drums
+                soundColorVisualizer.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    const circle = document.createElement('div');
+                    circle.style.position = 'absolute';
+                    circle.style.width = '50px';
+                    circle.style.height = '50px';
+                    circle.style.borderRadius = '50%';
+                    circle.style.backgroundColor = '#D66D50';
+                    circle.style.opacity = '0.8';
+                    circle.style.left = `${Math.random() * 80 + 10}%`;
+                    circle.style.top = `${Math.random() * 80 + 10}%`;
+                    circle.style.transform = 'scale(0)';
+                    circle.style.transition = 'transform 0.2s ease-out';
+                    
+                    soundColorVisualizer.appendChild(circle);
+                }
+                
+                // Play drum sounds and animate circles
+                const circles = soundColorVisualizer.querySelectorAll('div');
+                let count = 0;
+                
+                const drumInterval = setInterval(() => {
+                    if (count >= 8) {
+                        clearInterval(drumInterval);
+                        soundColorVisualizer.innerHTML = '';
+                        visualizerPlaceholder.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Play drum sound (simulated with noise)
+                    const noise = new Tone.NoiseSynth().toDestination();
+                    noise.triggerAttackRelease("16n");
+                    
+                    // Animate a random circle
+                    const randomIndex = Math.floor(Math.random() * circles.length);
+                    circles[randomIndex].style.transform = 'scale(1.5)';
+                    
+                    setTimeout(() => {
+                        circles[randomIndex].style.transform = 'scale(0)';
+                    }, 200);
+                    
+                    count++;
+                }, 300);
+            });
+            
+            // Bass button
+            document.getElementById('playBass').addEventListener('click', () => {
+                initAudio();
+                visualizerPlaceholder.style.display = 'none';
+                
+                // Create bass waveform visualization
+                soundColorVisualizer.innerHTML = `
+                    <div id="waveform" style="width: 100%; height: 100%; position: relative;">
+                        <svg width="100%" height="100%" viewBox="0 0 1000 200" preserveAspectRatio="none">
+                            <path d="" fill="none" stroke="#7F9CBB" stroke-width="3"></path>
+                        </svg>
+                    </div>
+                `;
+                
+                const path = soundColorVisualizer.querySelector('path');
+                
+                // Generate waveform path
+                function updateWaveform(time) {
+                    let pathD = `M 0 100`;
+                    
+                    for (let i = 0; i <= 1000; i += 5) {
+                        const y = 100 + Math.sin(i * 0.02 + time * 5) * 30 + 
+                                 Math.sin(i * 0.01 + time * 3) * 20;
+                        pathD += ` L ${i} ${y}`;
+                    }
+                    
+                    path.setAttribute('d', pathD);
+                }
+                
+                // Create a low bass sound
+                const bassSynth = new Tone.Synth({
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.05, decay: 0.2, sustain: 0.8, release: 1 }
+                }).toDestination();
+                
+                // Play bass line
+                const now = Tone.now();
+                bassSynth.triggerAttackRelease("C2", "8n", now);
+                bassSynth.triggerAttackRelease("C2", "8n", now + 0.5);
+                bassSynth.triggerAttackRelease("G1", "8n", now + 1);
+                bassSynth.triggerAttackRelease("G1", "8n", now + 1.5);
+                bassSynth.triggerAttackRelease("A1", "8n", now + 2);
+                bassSynth.triggerAttackRelease("A1", "8n", now + 2.5);
+                bassSynth.triggerAttackRelease("C2", "4n", now + 3);
+                
+                // Animate waveform
+                let startTime = Date.now();
+                const waveformAnimation = setInterval(() => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    updateWaveform(elapsed);
+                    
+                    if (elapsed > 5) {
+                        clearInterval(waveformAnimation);
+                        soundColorVisualizer.innerHTML = '';
+                        visualizerPlaceholder.style.display = 'block';
+                    }
+                }, 50);
+            });
+            
+            // Handle the quiz
+            const submitQuizButton = document.getElementById('submitQuiz');
+            const quizResults = document.getElementById('quizResults');
+            const quizContainer = document.getElementById('quizContainer');
+            const quizScore = document.getElementById('quizScore');
+            const quizInterpretation = document.getElementById('quizInterpretation');
+            
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    // Remove selected class from siblings
+                    const parent = option.parentElement;
+                    parent.querySelectorAll('.quiz-option').forEach(sibling => {
+                        sibling.classList.remove('bg-opacity-30', 'bg-[#7F9CBB]', 'border-[#7F9CBB]');
+                    });
+                    
+                    // Add selected class to this option
+                    option.classList.add('bg-opacity-30', 'bg-[#7F9CBB]', 'border-[#7F9CBB]');
+                });
+            });
+            
+            submitQuizButton.addEventListener('click', () => {
+                let totalScore = 0;
+                let answeredQuestions = 0;
+                
+                document.querySelectorAll('.quiz-question').forEach(question => {
+                    const selectedOption = question.querySelector('.bg-[#7F9CBB]');
+                    if (selectedOption) {
+                        totalScore += parseInt(selectedOption.dataset.score);
+                        answeredQuestions++;
+                    }
+                });
+                
+                if (answeredQuestions < 5) {
+                    alert("Please answer all questions before submitting.");
+                    return;
+                }
+                
+                // Show results
+                quizScore.textContent = totalScore;
+                
+                // Interpret score
+                let interpretation = '';
+                let interpretationColor = '';
+                
+                if (totalScore >= 16) {
+                    interpretation = "Your score suggests strong synesthetic tendencies. While this quiz isn't a medical diagnosis, your cross-sensory associations are similar to those reported by synesthetes. Consider taking a formal synesthesia test for confirmation.";
+                    interpretationColor = "border-[#2ecc71]";
+                } else if (totalScore >= 10) {
+                    interpretation = "You show moderate synesthetic tendencies. Many creative people have cross-sensory associations similar to yours. While you may not have clinical synesthesia, you likely have a vivid sensory imagination.";
+                    interpretationColor = "border-[#f1c40f]";
+                } else {
+                    interpretation = "Your score indicates fewer synesthetic tendencies. You likely experience senses more separately than synesthetes do, which is how most people perceive the world. Your brain might make occasional cross-sensory connections, but they're probably more metaphorical than automatic.";
+                    interpretationColor = "border-[#3498db]";
+                }
+                
+                quizInterpretation.innerHTML = `<p>${interpretation}</p>`;
+                quizInterpretation.classList.add(interpretationColor);
+                
+                quizContainer.style.display = 'none';
+                quizResults.classList.remove('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

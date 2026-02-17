@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cephalopod Intelligence | Horizon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <style>
+        :root {
+            --void-black: #030305;
+            --horizon-gold: #FFD28E;
+            --horizon-red: #D66D50;
+            --telemetry-blue: #7F9CBB;
+        }
+        
+        body {
+            background-color: var(--void-black);
+            color: white;
+            font-family: 'Playfair Display', serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Starfield */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle var(--duration) ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: var(--intensity); }
+        }
+        
+        /* Glass panels */
+        .glass-panel {
+            background-color: rgba(3, 3, 5, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .accent-gold {
+            color: var(--horizon-gold);
+        }
+        
+        .accent-red {
+            color: var(--horizon-red);
+        }
+        
+        .accent-blue {
+            color: var(--telemetry-blue);
+        }
+        
+        .border-gold {
+            border-color: var(--horizon-gold);
+        }
+        
+        .border-red {
+            border-color: var(--horizon-red);
+        }
+        
+        .border-blue {
+            border-color: var(--telemetry-blue);
+        }
+        
+        .quiz-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background-color: rgba(127, 156, 187, 0.2);
+        }
+        
+        .quiz-option.correct {
+            background-color: rgba(80, 200, 120, 0.3);
+            border-color: rgba(80, 200, 120, 0.6);
+        }
+        
+        .quiz-option.incorrect {
+            background-color: rgba(214, 109, 80, 0.3);
+            border-color: rgba(214, 109, 80, 0.6);
+        }
+        
+        /* Canvas elements */
+        #camouflageCanvas {
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .background-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .background-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .background-option.selected {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 2px var(--horizon-gold);
+        }
+        
+        /* Progress indicators */
+        .progress-bar {
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--telemetry-blue);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: rgba(3, 3, 5, 0.95);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--horizon-gold);
+            font-size: 0.9em;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Facts section */
+        .fact-card {
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+            height: 200px;
+        }
+        
+        .fact-card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .fact-front, .fact-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .fact-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Starfield Background -->
+    <div class="starfield" id="starfield"></div>
+    
+    <!-- Navigation -->
+    <nav class="glass-panel sticky top-0 z-50 p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <span class="text-2xl font-bold accent-gold">HORIZON</span>
+                <span class="mono text-xs ml-3 accent-blue">/ CEPHALOPOD INTELLIGENCE</span>
+            </div>
+            <div class="hidden md:flex space-x-6 mono text-sm">
+                <a href="#overview" class="hover:accent-gold transition-colors">Overview</a>
+                <a href="#distributed-brain" class="hover:accent-gold transition-colors">Distributed Brain</a>
+                <a href="#camouflage" class="hover:accent-gold transition-colors">Camouflage</a>
+                <a href="#problem-solving" class="hover:accent-gold transition-colors">Problem Solving</a>
+                <a href="#quiz" class="hover:accent-gold transition-colors">Knowledge Check</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="container mx-auto px-4 py-16 flex flex-col items-center text-center">
+        <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">The Alien <span class="accent-gold">Intelligence</span> Among Us</h1>
+        <p class="text-xl max-w-3xl mb-10 opacity-80">Exploring the remarkable minds of octopuses and squid — creatures with brains so different from our own, they're the closest thing to alien intelligence on Earth.</p>
+        <div class="glass-panel p-6 md:p-10 w-full max-w-4xl">
+            <div class="aspect-video overflow-hidden rounded-md mb-4">
+                <img src="https://images.unsplash.com/photo-1545671913-b89ac1b4ac10?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Octopus" class="w-full h-full object-cover">
+            </div>
+            <div class="flex justify-between items-center">
+                <p class="mono text-xs accent-blue">TELEMETRY DATA // LAST UPDATED 2026-02-16</p>
+                <div class="flex space-x-3">
+                    <div class="mono text-xs px-2 py-1 rounded-full border border-gold accent-gold">500+ MILLION YEARS OF EVOLUTION</div>
+                    <div class="mono text-xs px-2 py-1 rounded-full border border-red accent-red">9 BRAINS</div>
+                    <div class="mono text-xs px-2 py-1 rounded-full border border-blue accent-blue">DISTRIBUTED INTELLIGENCE</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Overview Section -->
+    <section id="overview" class="container mx-auto px-4 py-16">
+        <div class="glass-panel p-8">
+            <h2 class="text-3xl font-bold mb-6 accent-gold">Intelligence Beyond Recognition</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <p class="mb-4">Cephalopods—octopuses, squid, and cuttlefish—represent a form of intelligence that evolved completely separately from our own. Their last common ancestor with vertebrates lived over 500 million years ago.</p>
+                    <p class="mb-4">With large brains, problem-solving abilities, and complex behaviors, they challenge our understanding of how intelligence evolves and what forms it can take.</p>
+                    <p class="accent-blue italic">"If we want to understand how alien intelligence might function, the best place to look is right here on Earth: the remarkable minds of cephalopods."</p>
+                </div>
+                <div>
+                    <div class="glass-panel p-4 mb-4 border-l-4 border-blue">
+                        <h3 class="text-lg font-bold mb-2 accent-blue">Key Intelligence Markers</h3>
+                        <ul class="space-y-2 mono text-sm">
+                            <li class="flex items-start">
+                                <span class="text-green-400 mr-2">✓</span>
+                                <span>Tool use and manipulation</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-400 mr-2">✓</span>
+                                <span>Complex problem solving</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-400 mr-2">✓</span>
+                                <span>Short and long-term memory</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-400 mr-2">✓</span>
+                                <span>Observational learning</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-400 mr-2">✓</span>
+                                <span>Distinct personality traits</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="glass-panel p-4 border-l-4 border-red">
+                        <h3 class="text-lg font-bold mb-2 accent-red">The Alien Factor</h3>
+                        <p class="mono text-sm">Unlike mammals with centralized brains, cephalopods evolved a radically different neural architecture. Up to two-thirds of their neurons are distributed throughout their arms, creating a form of embodied intelligence that's fundamentally different from our own.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Distributed Brain Section -->
+    <section id="distributed-brain" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 accent-red text-center">The Distributed <span class="accent-gold">Brain</span></h2>
+        
+        <div class="glass-panel p-8 mb-12">
+            <div class="grid md:grid-cols-5 gap-6">
+                <div class="md:col-span-3">
+                    <h3 class="text-2xl font-bold mb-4">9 Brains, 1 Creature</h3>
+                    <p class="mb-4">Unlike humans, whose intelligence is centralized in a single brain, octopuses have a radically different neural architecture:</p>
+                    <ul class="space-y-3 mb-6">
+                        <li class="flex items-start">
+                            <span class="text-telemetry-blue mr-2">•</span>
+                            <span><strong class="accent-blue">Central Brain:</strong> Coordinates overall activities and stores memories (~40% of neurons)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-gold mr-2">•</span>
+                            <span><strong class="accent-gold">Arm Brains:</strong> Each of the 8 arms has its own neural network that can operate independently (~60% of neurons)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-red mr-2">•</span>
+                            <span><strong class="accent-red">Optic Lobes:</strong> Process visual information with complexity similar to some vertebrate brains</span>
+                        </li>
+                    </ul>
+                    <p class="mono text-sm">The arms can perform complex tasks without central brain input, including sensing, movement, and even problem-solving. This distributed system allows octopuses to control their complex bodies with remarkable precision.</p>
+                </div>
+                <div class="md:col-span-2 flex flex-col justify-center">
+                    <div class="glass-panel p-4 border-l-4 border-gold mb-4">
+                        <h4 class="text-lg font-bold mb-2 accent-gold">Neural Stats</h4>
+                        <div class="space-y-2 mono text-sm">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Total Neurons</span>
+                                    <span class="accent-gold">500 million</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-horizon-gold" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Arm Neurons</span>
+                                    <span class="accent-gold">300 million</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-horizon-gold" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Central Brain</span>
+                                    <span class="accent-gold">200 million</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-horizon-gold" style="width: 40%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-4 border-l-4 border-red">
+                        <h4 class="accent-red font-bold mb-2">Did You Know?</h4>
+                        <p class="mono text-sm">An octopus arm severed from the body will continue to respond to stimuli and can even attempt to pass food to where the mouth would be. The arm doesn't "know" it's been separated.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Interactive Fact Cards -->
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="fact-card glass-panel" onclick="this.classList.toggle('flipped')">
+                <div class="fact-front p-6 flex flex-col justify-between">
+                    <h4 class="text-xl font-bold accent-gold">Autonomous Arms</h4>
+                    <p class="mono text-sm opacity-80">Click to reveal fascinating fact</p>
+                </div>
+                <div class="fact-back p-6">
+                    <p>Each octopus arm contains ~40 million neurons and can solve simple problems independently, like navigating a maze to find food even when disconnected from the central brain.</p>
+                </div>
+            </div>
+            <div class="fact-card glass-panel" onclick="this.classList.toggle('flipped')">
+                <div class="fact-front p-6 flex flex-col justify-between">
+                    <h4 class="text-xl font-bold accent-blue">Sucker Sensors</h4>
+                    <p class="mono text-sm opacity-80">Click to reveal fascinating fact</p>
+                </div>
+                <div class="fact-back p-6">
+                    <p>Each sucker on an octopus arm can sense touch, taste, and temperature independently. With up to 2,000 suckers, an octopus has an extraordinarily detailed sensory map of its environment.</p>
+                </div>
+            </div>
+            <div class="fact-card glass-panel" onclick="this.classList.toggle('flipped')">
+                <div class="fact-front p-6 flex flex-col justify-between">
+                    <h4 class="text-xl font-bold accent-red">Embodied Intelligence</h4>
+                    <p class="mono text-sm opacity-80">Click to reveal fascinating fact</p>
+                </div>
+                <div class="fact-back p-6">
+                    <p>Octopus intelligence is fundamentally embodied – they think with their entire body. Their distributed nervous system blurs the line between body and brain, unlike our clear separation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Camouflage Section -->
+    <section id="camouflage" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 accent-blue text-center">Masters of <span class="accent-gold">Disguise</span></h2>
+        
+        <div class="glass-panel p-8 mb-12">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 accent-gold">Instant Transformation</h3>
+                    <p class="mb-4">Cephalopods possess the most advanced camouflage abilities in the animal kingdom, capable of changing their appearance in less than a second.</p>
+                    <p class="mb-4">Their skin contains specialized cells called chromatophores (color), iridophores (iridescence), and papillae (texture) that allow them to match almost any background with astonishing precision.</p>
+                    <p class="mb-6">What makes this even more remarkable is that octopuses and most cephalopods are <span class="accent-red font-bold">colorblind</span>—they can match colors they cannot see, suggesting they may detect color through their skin itself.</p>
+                    <div class="glass-panel p-4 border-l-4 border-blue">
+                        <h4 class="text-lg font-bold mb-2 accent-blue">Neural Control</h4>
+                        <p class="mono text-sm">The pattern and color changes are controlled by a combination of the central brain and distributed neural networks, allowing for both conscious displays and automatic camouflage responses.</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold mb-4 accent-red">Camouflage Simulator</h3>
+                        <p class="mono text-sm mb-4">Select a background to see how a cephalopod would adapt its appearance to match.</p>
+                        
+                        <!-- Camouflage simulator -->
+                        <div class="glass-panel p-4">
+                            <canvas id="camouflageCanvas" class="w-full" height="200"></canvas>
+                            <div class="flex justify-center mt-4 space-x-3">
+                                <div class="background-option bg-blue-700" data-background="blue" onclick="changeBackground('blue')"></div>
+                                <div class="background-option bg-green-700" data-background="green" onclick="changeBackground('green')"></div>
+                                <div class="background-option bg-red-700" data-background="red" onclick="changeBackground('red')"></div>
+                                <div class="background-option bg-yellow-600" data-background="yellow" onclick="changeBackground('yellow')"></div>
+                                <div class="background-option bg-purple-700" data-background="purple" onclick="changeBackground('purple')"></div>
+                                <div class="background-option" style="background: linear-gradient(45deg, blue, green)" data-background="gradient" onclick="changeBackground('gradient')"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-4 border-l-4 border-gold">
+                        <h4 class="accent-gold font-bold mb-2">Camouflage Capabilities</h4>
+                        <ul class="space-y-2 mono text-sm">
+                            <li class="flex items-center justify-between">
+                                <span>Color Matching</span>
+                                <div class="flex">
+                                    <span class="text-horizon-gold">●●●●●</span>
+                                </div>
+                            </li>
+                            <li class="flex items-center justify-between">
+                                <span>Texture Mimicry</span>
+                                <div class="flex">
+                                    <span class="text-horizon-gold">●●●●</span><span class="opacity-30">●</span>
+                                </div>
+                            </li>
+                            <li class="flex items-center justify-between">
+                                <span>Pattern Formation</span>
+                                <div class="flex">
+                                    <span class="text-horizon-gold">●●●●●</span>
+                                </div>
+                            </li>
+                            <li class="flex items-center justify-between">
+                                <span>Transformation Speed</span>
+                                <div class="flex">
+                                    <span class="text-horizon-gold">●●●●●</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Problem Solving Section -->
+    <section id="problem-solving" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 accent-gold text-center">Ingenious <span class="accent-red">Problem Solvers</span></h2>
+        
+        <div class="glass-panel p-8 mb-12">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-4">Cognitive Flexibility</h3>
+                    <p class="mb-4">Cephalopods demonstrate remarkable problem-solving abilities, using both learned techniques and creative improvisation:</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mb-6">
+                        <div class="glass-panel p-4">
+                            <h4 class="text-lg font-bold mb-2 accent-blue">Tool Use</h4>
+                            <p class="mono text-sm">Octopuses collect and use tools like coconut shells for shelter, becoming the first invertebrates documented to use tools. They've been observed carrying these protective shelters across the ocean floor.</p>
+                        </div>
+                        <div class="glass-panel p-4">
+                            <h4 class="text-lg font-bold mb-2 accent-red">Puzzle Solving</h4>
+                            <p class="mono text-sm">Octopuses can solve complex puzzles like opening childproof pill bottles, navigating mazes, and unlatching multiple locks in sequence to access food rewards.</p>
+                        </div>
+                        <div class="glass-panel p-4">
+                            <h4 class="text-lg font-bold mb-2 accent-gold">Observational Learning</h4>
+                            <p class="mono text-sm">Studies show octopuses can learn by watching other octopuses perform tasks, demonstrating social learning despite their typically solitary lifestyle.</p>
+                        </div>
+                        <div class="glass-panel p-4">
+                            <h4 class="text-lg font-bold mb-2 accent-blue">Memory</h4>
+                            <p class="mono text-sm">Cephalopods have both short and long-term memory, recognizing individual humans even when wearing different clothes, and remembering solutions to problems for months.</p>
+                        </div>
+                    </div>
+                    
+                    <p class="mono text-sm accent-red">What makes cephalopod problem-solving unique is their ability to improvise solutions using their distributed intelligence—each arm can work semi-independently to explore different approaches simultaneously.</p>
+                </div>
+                <div>
+                    <div class="glass-panel p-6 border-l-4 border-gold h-full flex flex-col justify-center">
+                        <h3 class="text-xl font-bold mb-4 accent-gold">The Escape Artists</h3>
+                        <p class="mb-4">Octopuses are notorious for escaping from aquarium tanks, with documented cases of:</p>
+                        <ul class="space-y-3 mono text-sm">
+                            <li class="flex items-start">
+                                <span class="text-horizon-red mr-2">→</span>
+                                <span>Disassembling water pumps and filters</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-horizon-red mr-2">→</span>
+                                <span>Squeezing through holes barely an inch wide</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-horizon-red mr-2">→</span>
+                                <span>Opening aquarium lids by pushing from below</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-horizon-red mr-2">→</span>
+                                <span>Releasing water valves to lower tank levels</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-horizon-red mr-2">→</span>
+                                <span>Crossing dry floor to reach other tanks</span>
+                            </li>
+                        </ul>
+                        <div class="mt-4">
+                            <p class="italic text-sm">"We've literally had to childproof the aquarium. If a child couldn't get into it, an octopus probably can't either."</p>
+                            <p class="text-right text-xs accent-blue">— Marine biologist at Monterey Bay Aquarium</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Knowledge Check Quiz -->
+    <section id="quiz" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 text-center">Knowledge <span class="accent-blue">Check</span></h2>
+        
+        <div class="glass-panel p-8">
+            <div id="quiz-container">
+                <h3 class="text-2xl font-bold mb-6 accent-gold">Test Your Understanding</h3>
+                <div class="quiz-question mb-8">
+                    <p class="text-xl mb-4">1. Approximately what percentage of an octopus's neurons are located in its arms?</p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>About 10-20%</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>About 30-40%</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="true" onclick="checkAnswer(this)">
+                            <p>About 60-70%</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>About 90-95%</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <p class="text-xl mb-4">2. Which of the following is most remarkable about cephalopod camouflage?</p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>They can only change to a few basic colors</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>The changes are very slow, taking several minutes</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>They can only camouflage against simple backgrounds</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="true" onclick="checkAnswer(this)">
+                            <p>They can match colors despite being colorblind</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <p class="text-xl mb-4">3. What tool have octopuses been documented using in the wild?</p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="quiz-option glass-panel p-4" data-correct="true" onclick="checkAnswer(this)">
+                            <p>Coconut shells as portable shelters</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Rocks to crack open shellfish</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Seaweed as fishing lines</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Sticks to poke at predators</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="quiz-results" class="hidden text-center">
+                    <h3 class="text-2xl font-bold mb-4 accent-gold">Your Results</h3>
+                    <p class="text-xl mb-2">You got <span id="correct-count">0</span> out of 3 questions correct!</p>
+                    <p class="mb-6" id="quiz-feedback"></p>
+                    <button class="bg-telemetry-blue text-white px-6 py-3 rounded-md hover:bg-blue-600 transition-colors mono" onclick="resetQuiz()">Try Again</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="glass-panel p-6 mt-16">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <span class="text-xl font-bold accent-gold">HORIZON</span>
+                    <span class="mono text-xs ml-2 accent-blue">/ WONDER-DRIVEN EDUCATION</span>
+                </div>
+                <div class="mono text-xs">
+                    <p>© 2026 HORIZON PROJECT · <span class="accent-blue">A JUSTIN HART INITIATIVE</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Create starfield
+        document.addEventListener('DOMContentLoaded', function() {
+            createStarfield();
+            initCamouflageSimulator();
+        });
+        
+        function createStarfield() {
+            const starfield = document.getElementById('starfield');
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random size
+                const size = Math.random() * 3;
+                
+                // Animation variables
+                const duration = 3 + Math.random() * 7;
+                const delay = Math.random() * 5;
+                const intensity = 0.2 + Math.random() * 0.8;
+                
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.setProperty('--duration', `${duration}s`);
+                star.style.setProperty('--delay', `${delay}s`);
+                star.style.setProperty('--intensity', intensity);
+                
+                starfield.appendChild(star);
+            }
+        }
+        
+        // Camouflage simulator
+        function initCamouflageSimulator() {
+            const canvas = document.getElementById('camouflageCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            
+            // Initial background
+            changeBackground('blue');
+        }
+        
+        function changeBackground(color) {
+            const canvas = document.getElementById('camouflageCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Reset and clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Update selected background indicator
+            document.querySelectorAll('.background-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector(`[data-background="${color}"]`).classList.add('selected');
+            
+            // Draw background
+            if (color === 'gradient') {
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                gradient.addColorStop(0, 'blue');
+                gradient.addColorStop(1, 'green');
+                ctx.fillStyle = gradient;
+            } else {
+                ctx.fillStyle = color;
+            }
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw octopus outline
+            setTimeout(() => {
+                drawOctopus(ctx, width, height, color);
+            }, 500); // Short delay to simulate adaptation
+        }
+        
+        function drawOctopus(ctx, width, height, color) {
+            // Center position
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            // Head
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY - 30, 40, 50, 0, 0, Math.PI * 2);
+            
+            // Match color but slightly different to be visible
+            if (color === 'gradient') {
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                gradient.addColorStop(0, 'rgb(70, 70, 220)');
+                gradient.addColorStop(1, 'rgb(70, 180, 70)');
+                ctx.fillStyle = gradient;
+            } else {
+                let r, g, b;
+                switch(color) {
+                    case 'blue': r = 70; g = 70; b = 220; break;
+                    case 'green': r = 70; g = 180; b = 70; break;
+                    case 'red': r = 220; g = 70; b = 70; break;
+                    case 'yellow': r = 220; g = 220; b = 70; break;
+                    case 'purple': r = 180; g = 70; b = 220; break;
+                    default: r = 100; g = 100; b = 100;
+                }
+                // Slightly different shade to be visible
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            }
+            
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.ellipse(centerX - 15, centerY - 40, 8, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(centerX + 15, centerY - 40, 8, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.ellipse(centerX - 15, centerY - 40, 4, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(centerX + 15, centerY - 40, 4, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Tentacles
+            const tentacleCount = 8;
+            const baseAngle = Math.PI / tentacleCount;
+            
+            for (let i = 0; i < tentacleCount; i++) {
+                const angle = baseAngle * i + Math.PI / 8;
+                drawTentacle(ctx, centerX, centerY, angle, color);
+            }
+            
+            // Add some texture/pattern based on background
+            addTexture(ctx, width, height, color);
+        }
+        
+        function drawTentacle(ctx, x, y, angle, color) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            
+            const length = 80 + Math.random() * 20;
+            const controlPointDistance = length * 0.8;
+            const endX = x + Math.cos(angle) * length;
+            const endY = y + Math.sin(angle) * length;
+            const cp1x = x + Math.cos(angle + 0.2) * controlPointDistance / 2;
+            const cp1y = y + Math.sin(angle + 0.2) * controlPointDistance / 2;
+            const cp2x = endX - Math.cos(angle - 0.2) * controlPointDistance / 2;
+            const cp2y = endY - Math.sin(angle - 0.2) * controlPointDistance / 2;
+            
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+            
+            if (color === 'gradient') {
+                ctx.strokeStyle = 'rgba(70, 120, 180, 0.8)';
+            } else {
+                let r, g, b;
+                switch(color) {
+                    case 'blue': r = 70; g = 70; b = 220; break;
+                    case 'green': r = 70; g = 180; b = 70; break;
+                    case 'red': r = 220; g = 70; b = 70; break;
+                    case 'yellow': r = 220; g = 220; b = 70; break;
+                    case 'purple': r = 180; g = 70; b = 220; break;
+                    default: r = 100; g = 100; b = 100;
+                }
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.8)`;
+            }
+            
+            ctx.lineWidth = 8;
+            ctx.stroke();
+        }
+        
+        function addTexture(ctx, width, height, color) {
+            // Add color-matched patterns/textures
+            ctx.globalAlpha = 0.3;
+            
+            // Different patterns based on background
+            const patternCount = 15;
+            
+            for (let i = 0; i < patternCount; i++) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                const size = 5 + Math.random() * 10;
+                
+                ctx.beginPath();
+                
+                if (color === 'gradient') {
+                    // Create gradient spots
+                    const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+                    gradient.addColorStop(0, 'rgba(100, 180, 220, 0.7)');
+                    gradient.addColorStop(1, 'rgba(70, 220, 170, 0)');
+                    ctx.fillStyle = gradient;
+                } else {
+                    let r, g, b;
+                    switch(color) {
+                        case 'blue': 
+                            r = 100; g = 130; b = 255;
+                            // Star-like pattern
+                            ctx.moveTo(x, y - size);
+                            for (let j = 0; j < 5; j++) {
+                                const angle = j * Math.PI * 2 / 5 - Math.PI / 2;
+                                ctx.lineTo(
+                                    x + Math.cos(angle) * size,
+                                    y + Math.sin(angle) * size
+                                );
+                                ctx.lineTo(
+                                    x + Math.cos(angle + Math.PI/5) * size/2,
+                                    y + Math.sin(angle + Math.PI/5) * size/2
+                                );
+                            }
+                            break;
+                            
+                        case 'green': 
+                            r = 100; g = 220; b = 100;
+                            // Circle pattern
+                            ctx.arc(x, y, size, 0, Math.PI * 2);
+                            break;
+                            
+                        case 'red': 
+                            r = 255; g = 100; b = 100;
+                            // Diamond pattern
+                            ctx.moveTo(x, y - size);
+                            ctx.lineTo(x + size, y);
+                            ctx.lineTo(x, y + size);
+                            ctx.lineTo(x - size, y);
+                            break;
+                            
+                        case 'yellow': 
+                            r = 255; g = 255; b = 100;
+                            // Square pattern with rotation
+                            ctx.save();
+                            ctx.translate(x, y);
+                            ctx.rotate(Math.PI / 4);
+                            ctx.rect(-size/2, -size/2, size, size);
+                            ctx.restore();
+                            break;
+                            
+                        case 'purple': 
+                            r = 220; g = 100; b = 220;
+                            // Hexagon pattern
+                            for (let j = 0; j < 6; j++) {
+                                const angle = j * Math.PI * 2 / 6;
+                                const px = x + Math.cos(angle) * size;
+                                const py = y + Math.sin(angle) * size;
+                                if (j === 0) ctx.moveTo(px, py);
+                                else ctx.lineTo(px, py);
+                            }
+                            break;
+                            
+                        default: r = 150; g = 150; b = 150;
+                    }
+                    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.5)`;
+                }
+                
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            ctx.globalAlpha = 1.0;
+        }
+        
+        // Quiz functionality
+        let correctAnswers = 0;
+        let totalAnswered = 0;
+        
+        function checkAnswer(element) {
+            // Prevent multiple clicks
+            if (element.classList.contains('correct') || element.classList.contains('incorrect')) {
+                return;
+            }
+            
+            const isCorrect = element.getAttribute('data-correct') === 'true';
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                correctAnswers++;
+            } else {
+                element.classList.add('incorrect');
+                
+                // Also highlight the correct answer
+                const parentQuestion = element.parentNode;
+                const correctOption = parentQuestion.querySelector('[data-correct="true"]');
+                correctOption.classList.add('correct');
+            }
+            
+            totalAnswered++;
+            
+            // Disable other options in this question
+            const siblings = element.parentNode.querySelectorAll('.quiz-option');
+            siblings.forEach(sib => {
+                if (sib !== element && !sib.classList.contains('correct')) {
+                    sib.style.pointerEvents = 'none';
+                    sib.style.opacity = '0.6';
+                }
+            });
+            
+            // Check if all questions are answered
+            if (totalAnswered === 3) {
+                showResults();
+            }
+        }
+        
+        function showResults() {
+            document.getElementById('correct-count').textContent = correctAnswers;
+            
+            const feedback = document.getElementById('quiz-feedback');
+            if (correctAnswers === 3) {
+                feedback.textContent = "Perfect score! You're an expert on cephalopod intelligence.";
+                feedback.className = "accent-gold";
+            } else if (correctAnswers === 2) {
+                feedback.textContent = "Great job! You have a good understanding of these remarkable creatures.";
+                feedback.className = "accent-blue";
+            } else {
+                feedback.textContent = "Keep exploring! There's so much more to learn about cephalopod intelligence.";
+                feedback.className = "accent-red";
+            }
+            
+            document.getElementById('quiz-results').classList.remove('hidden');
+        }
+        
+        function resetQuiz() {
+            correctAnswers = 0;
+            totalAnswered = 0;
+            
+            // Reset all options
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'incorrect');
+                opt.style.pointerEvents = 'auto';
+                opt.style.opacity = '1';
+            });
+            
+            // Hide results
+            document.getElementById('quiz-results').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mantis Shrimp Vision | Horizon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <style>
+        :root {
+            --void-black: #030305;
+            --horizon-gold: #FFD28E;
+            --horizon-red: #D66D50;
+            --telemetry-blue: #7F9CBB;
+        }
+        
+        body {
+            background-color: var(--void-black);
+            color: white;
+            font-family: 'Playfair Display', serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Starfield */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle var(--duration) ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: var(--intensity); }
+        }
+        
+        /* Glass panels */
+        .glass-panel {
+            background-color: rgba(3, 3, 5, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .accent-gold {
+            color: var(--horizon-gold);
+        }
+        
+        .accent-red {
+            color: var(--horizon-red);
+        }
+        
+        .accent-blue {
+            color: var(--telemetry-blue);
+        }
+        
+        .bg-gold {
+            background-color: var(--horizon-gold);
+        }
+        
+        .bg-red {
+            background-color: var(--horizon-red);
+        }
+        
+        .bg-blue {
+            background-color: var(--telemetry-blue);
+        }
+        
+        .border-gold {
+            border-color: var(--horizon-gold);
+        }
+        
+        .border-red {
+            border-color: var(--horizon-red);
+        }
+        
+        .border-blue {
+            border-color: var(--telemetry-blue);
+        }
+        
+        /* Canvas elements */
+        .vision-canvas {
+            width: 100%;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .spectrum-marker {
+            position: absolute;
+            height: 24px;
+            width: 2px;
+            background-color: white;
+            top: -12px;
+            transform: translateX(-50%);
+        }
+        
+        /* Animal vision selector */
+        .vision-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .vision-option:hover {
+            transform: translateY(-5px);
+        }
+        
+        .vision-option.selected {
+            border-color: var(--horizon-gold);
+            border-width: 2px;
+            transform: translateY(-5px);
+        }
+        
+        /* Interactive elements */
+        .interactive-element {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .interactive-element:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Quiz elements */
+        .quiz-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background-color: rgba(127, 156, 187, 0.2);
+        }
+        
+        .quiz-option.correct {
+            background-color: rgba(80, 200, 120, 0.3);
+            border-color: rgba(80, 200, 120, 0.6);
+        }
+        
+        .quiz-option.incorrect {
+            background-color: rgba(214, 109, 80, 0.3);
+            border-color: rgba(214, 109, 80, 0.6);
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: rgba(3, 3, 5, 0.95);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9em;
+            border: 1px solid var(--horizon-gold);
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Spectrum visualization */
+        .spectrum-container {
+            position: relative;
+            height: 60px;
+            margin: 30px 0;
+            background: linear-gradient(to right, 
+                #6900C6, /* Ultraviolet */
+                #0000FF, /* Blue */
+                #00FFFF, /* Cyan */
+                #00FF00, /* Green */
+                #FFFF00, /* Yellow */
+                #FF0000, /* Red */
+                #8B0000  /* Infrared */
+            );
+            border-radius: 8px;
+        }
+        
+        .animal-marker {
+            position: absolute;
+            transform: translateX(-50%);
+            top: -25px;
+        }
+        
+        .spectrum-label {
+            position: absolute;
+            transform: translateX(-50%);
+            bottom: -25px;
+            font-size: 0.8em;
+            color: white;
+        }
+        
+        /* Polarization visualization */
+        .polarization-demo {
+            height: 100px;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.1),
+                rgba(255, 255, 255, 0.1) 10px,
+                rgba(255, 255, 255, 0.2) 10px,
+                rgba(255, 255, 255, 0.2) 20px
+            );
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .polarization-filter {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                var(--angle),
+                rgba(0, 0, 0, 0.7),
+                rgba(0, 0, 0, 0.7) 2px,
+                rgba(0, 0, 0, 0) 2px,
+                rgba(0, 0, 0, 0) 4px
+            );
+            border-radius: 8px;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Comparison images */
+        .comparison-slider {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .comparison-slider img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .comparison-slider .overlay-image {
+            width: 50%;
+            overflow: hidden;
+        }
+        
+        .slider-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--horizon-gold);
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: ew-resize;
+            z-index: 10;
+        }
+        
+        .slider-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--horizon-gold);
+            cursor: ew-resize;
+            z-index: 11;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--void-black);
+            font-weight: bold;
+        }
+        
+        .slide-label {
+            position: absolute;
+            top: 10px;
+            color: white;
+            background-color: rgba(3, 3, 5, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            z-index: 5;
+        }
+        
+        .left-label {
+            left: 10px;
+        }
+        
+        .right-label {
+            right: 10px;
+        }
+        
+        /* Progress indicators */
+        .progress-bar {
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Starfield Background -->
+    <div class="starfield" id="starfield"></div>
+    
+    <!-- Navigation -->
+    <nav class="glass-panel sticky top-0 z-50 p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <span class="text-2xl font-bold accent-gold">HORIZON</span>
+                <span class="mono text-xs ml-3 accent-blue">/ MANTIS SHRIMP VISION</span>
+            </div>
+            <div class="hidden md:flex space-x-6 mono text-sm">
+                <a href="#overview" class="hover:accent-gold transition-colors">Overview</a>
+                <a href="#spectrum" class="hover:accent-gold transition-colors">Spectrum</a>
+                <a href="#polarization" class="hover:accent-gold transition-colors">Polarization</a>
+                <a href="#simulator" class="hover:accent-gold transition-colors">Vision Simulator</a>
+                <a href="#quiz" class="hover:accent-gold transition-colors">Knowledge Check</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="container mx-auto px-4 py-16 flex flex-col items-center text-center">
+        <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">Beyond Human <span class="accent-gold">Perception</span></h1>
+        <p class="text-xl max-w-3xl mb-10 opacity-80">Exploring the extraordinary vision of the mantis shrimp — a creature that sees a world of colors, polarization, and dimensions invisible to the human eye.</p>
+        <div class="glass-panel p-6 md:p-10 w-full max-w-4xl">
+            <div class="aspect-video overflow-hidden rounded-md mb-4">
+                <img src="https://images.unsplash.com/photo-1580541631950-7282082b03fe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Mantis Shrimp" class="w-full h-full object-cover">
+            </div>
+            <div class="flex justify-between items-center">
+                <p class="mono text-xs accent-blue">TELEMETRY DATA // LAST UPDATED 2026-02-16</p>
+                <div class="flex space-x-3">
+                    <div class="mono text-xs px-2 py-1 rounded-full border border-gold accent-gold">16 COLOR RECEPTORS</div>
+                    <div class="mono text-xs px-2 py-1 rounded-full border border-red accent-red">POLARIZED VISION</div>
+                    <div class="mono text-xs px-2 py-1 rounded-full border border-blue accent-blue">TRINOCULAR SIGHT</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Overview Section -->
+    <section id="overview" class="container mx-auto px-4 py-16">
+        <div class="glass-panel p-8">
+            <h2 class="text-3xl font-bold mb-6 accent-gold">A Visual System Without Parallel</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <p class="mb-4">The mantis shrimp possesses what may be the most complex visual system in the animal kingdom. While humans have 3 types of color-detecting cells (red, green, and blue), mantis shrimp have up to 16 different types of photoreceptors.</p>
+                    <p class="mb-4">These remarkable creatures can see ultraviolet light, infrared radiation, and circular polarized light—a visual capability unmatched by any other known animal.</p>
+                    <p class="accent-blue italic">"To try to imagine mantis shrimp vision, we would need to simultaneously see more colors than we can even fathom, detect invisible polarized light patterns, and perceive both the ultraviolet and infrared—all while each eye moves independently."</p>
+                </div>
+                <div>
+                    <div class="glass-panel p-6 border-l-4 border-red mb-4">
+                        <h3 class="text-lg font-bold mb-2 accent-red">Trinocular Vision</h3>
+                        <p class="mono text-sm">Each of the mantis shrimp's eyes is divided into three regions, giving it trinocular vision with a single eye. This allows for precise depth perception without needing to triangulate between two eyes, making them lethal hunters.</p>
+                    </div>
+                    <div class="glass-panel p-6 border-l-4 border-blue">
+                        <h3 class="text-lg font-bold mb-2 accent-blue">Evolutionary Purpose</h3>
+                        <p class="mono text-sm">This extraordinary visual system helps mantis shrimp:</p>
+                        <ul class="space-y-2 mono text-sm mt-2">
+                            <li class="flex items-start">
+                                <span class="text-green-400 mr-2">→</span>
+                                <span>Detect prey by their polarization signatures</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-400 mr-2">→</span>
+                                <span>Communicate through complex body patterns invisible to predators</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-400 mr-2">→</span>
+                                <span>Navigate using underwater polarization patterns</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Color Spectrum Section -->
+    <section id="spectrum" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 accent-blue text-center">The Extended <span class="accent-gold">Spectrum</span></h2>
+        
+        <div class="glass-panel p-8 mb-12">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-4">16 Types of Photoreceptors</h3>
+                    <p class="mb-4">Humans perceive color through three types of cone cells that detect red, green, and blue light. By combining these signals, our brains create all the colors we can see.</p>
+                    <p class="mb-4">Mantis shrimp, however, have up to 16 different types of photoreceptors, including ones sensitive to ultraviolet and infrared light that are completely invisible to humans.</p>
+                    <p class="mb-6">Surprisingly, mantis shrimp don't process color the same way we do. Instead of comparing inputs like our brains do, they likely use a more direct recognition system—seeing colors as distinct categories rather than blends.</p>
+                    
+                    <!-- Spectrum Visualization -->
+                    <div class="my-8 relative">
+                        <h4 class="text-lg font-bold mb-6 accent-gold">Visual Spectrum Comparison</h4>
+                        <div class="spectrum-container" id="spectrumVis">
+                            <!-- Spectrum markers are added via JavaScript -->
+                            <span class="spectrum-label" style="left: 0%">300nm</span>
+                            <span class="spectrum-label" style="left: 16.7%">400nm</span>
+                            <span class="spectrum-label" style="left: 33.3%">500nm</span>
+                            <span class="spectrum-label" style="left: 50%">600nm</span>
+                            <span class="spectrum-label" style="left: 66.7%">700nm</span>
+                            <span class="spectrum-label" style="left: 83.3%">800nm</span>
+                            <span class="spectrum-label" style="left: 100%">900nm</span>
+                        </div>
+                        
+                        <div class="flex justify-between mt-8">
+                            <div class="text-center flex items-center mono text-sm">
+                                <div class="w-4 h-4 rounded-full bg-horizon-gold mr-2"></div>
+                                <span>Human Vision (3 receptors)</span>
+                            </div>
+                            <div class="text-center flex items-center mono text-sm">
+                                <div class="w-4 h-4 rounded-full bg-horizon-red mr-2"></div>
+                                <span>Mantis Shrimp (16 receptors)</span>
+                            </div>
+                            <div class="text-center flex items-center mono text-sm">
+                                <div class="w-4 h-4 rounded-full bg-telemetry-blue mr-2"></div>
+                                <span>Butterfly (5 receptors)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-panel p-6 border-l-4 border-gold mb-4">
+                        <h3 class="text-lg font-bold mb-2 accent-gold">The Invisible Made Visible</h3>
+                        <p class="mono text-sm mb-4">Mantis shrimp can see:</p>
+                        <ul class="space-y-3 mono text-sm">
+                            <li class="flex items-start">
+                                <span class="text-purple-400 mr-2">●</span>
+                                <span><strong>Ultraviolet:</strong> Light below 380nm that humans cannot perceive</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-400 mr-2">●</span>
+                                <span><strong>Infrared:</strong> Heat signatures and light beyond 750nm</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-yellow-400 mr-2">●</span>
+                                <span><strong>Fine Color Distinctions:</strong> Subtle differences within what we'd consider a single color</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="glass-panel p-6 border-l-4 border-red">
+                        <h4 class="accent-red font-bold mb-2">Did You Know?</h4>
+                        <p class="mono text-sm">If humans had mantis shrimp-like vision, our TV screens would need to produce at least 9 more primary colors to display images that look "real" to us.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Interactive Color Cards -->
+        <div class="glass-panel p-8">
+            <h3 class="text-2xl font-bold mb-6 accent-gold">Colors Beyond Imagination</h3>
+            <p class="mb-6">Click the cards below to explore colors that exist outside human perception, but that mantis shrimp can see.</p>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="interactive-element glass-panel p-4 border-l-4 border-purple-500" id="ultravioletCard" onclick="showColorInfo('ultraviolet')">
+                    <h4 class="text-lg font-bold mb-2" style="color: #A45EE5">Ultraviolet Spectrum</h4>
+                    <p class="mono text-sm">Invisible to humans but critical for mantis shrimp communication.</p>
+                    <div class="mt-2 text-right mono text-xs accent-blue">Click to explore</div>
+                </div>
+                
+                <div class="interactive-element glass-panel p-4 border-l-4 border-pink-500" id="polarizedCard" onclick="showColorInfo('polarized')">
+                    <h4 class="text-lg font-bold mb-2" style="color: #E55E8A">Polarized Light</h4>
+                    <p class="mono text-sm">Light waves aligned on a single plane, creating patterns invisible to us.</p>
+                    <div class="mt-2 text-right mono text-xs accent-blue">Click to explore</div>
+                </div>
+                
+                <div class="interactive-element glass-panel p-4 border-l-4 border-red-500" id="infraredCard" onclick="showColorInfo('infrared')">
+                    <h4 class="text-lg font-bold mb-2" style="color: #E55E5E">Infrared Range</h4>
+                    <p class="mono text-sm">Heat signatures and longer wavelengths beyond human vision.</p>
+                    <div class="mt-2 text-right mono text-xs accent-blue">Click to explore</div>
+                </div>
+            </div>
+            
+            <!-- Color Information Panel (hidden by default) -->
+            <div id="colorInfoPanel" class="glass-panel p-6 mt-6 hidden">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-xl font-bold" id="colorInfoTitle">Ultraviolet Spectrum</h3>
+                    <button class="text-sm mono" onclick="hideColorInfo()">Close ×</button>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div id="colorInfoContent">
+                        <!-- Content populated by JavaScript -->
+                    </div>
+                    <div id="colorInfoImage" class="rounded-lg overflow-hidden">
+                        <!-- Image populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Polarization Section -->
+    <section id="polarization" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 accent-red text-center">Polarized <span class="accent-gold">Perception</span></h2>
+        
+        <div class="glass-panel p-8 mb-12">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 accent-gold">Seeing Hidden Dimensions</h3>
+                    <p class="mb-4">One of the most extraordinary aspects of mantis shrimp vision is their ability to see polarized light—light waves that oscillate on a single plane.</p>
+                    <p class="mb-4">Even more remarkable, mantis shrimp can detect circular polarized light, a capability shared by no other known animal. This is like adding an entirely new dimension to their visual world.</p>
+                    <p class="mb-6">This ability allows mantis shrimp to:</p>
+                    
+                    <ul class="space-y-3 mb-6">
+                        <li class="flex items-start">
+                            <span class="text-horizon-gold mr-2">•</span>
+                            <span><strong class="accent-gold">Detect Transparent Prey:</strong> Many transparent sea creatures are visible through polarization</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-blue mr-2">•</span>
+                            <span><strong class="accent-blue">Navigate:</strong> Use underwater polarization patterns as a natural compass</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-horizon-red mr-2">•</span>
+                            <span><strong class="accent-red">Communicate:</strong> Share messages through polarized signals invisible to predators</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 accent-blue">Polarization Demo</h3>
+                    <p class="mono text-sm mb-4">Drag the slider below to adjust the polarization filter and see how it affects the pattern visibility. This simulates how mantis shrimp can see through camouflage using polarized vision.</p>
+                    
+                    <!-- Polarization interactive demo -->
+                    <div class="glass-panel p-4">
+                        <div class="polarization-demo" id="polarizationDemo">
+                            <div class="polarization-filter" id="polarizationFilter"></div>
+                            <!-- Hidden target that becomes visible with correct polarization -->
+                            <div class="hidden-target" style="position: absolute; width: 60px; height: 60px; top: 20px; left: 20px; border-radius: 50%; border: 2px dashed rgba(255,210,142,0.3); opacity: 0; transition: opacity 0.3s" id="hiddenTarget"></div>
+                        </div>
+                        <div class="mt-4">
+                            <input type="range" id="polarizationSlider" class="w-full" min="0" max="180" value="0">
+                            <div class="flex justify-between mono text-xs mt-1">
+                                <span>0°</span>
+                                <span>Polarization Filter Angle</span>
+                                <span>180°</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-4 border-l-4 border-gold mt-4">
+                        <h4 class="accent-gold font-bold mb-2">Scientific Applications</h4>
+                        <p class="mono text-sm">The mantis shrimp's polarization vision has inspired advanced camera systems that can:</p>
+                        <ul class="space-y-2 mono text-sm mt-2">
+                            <li class="flex items-start">
+                                <span class="text-horizon-gold mr-2">→</span>
+                                <span>Detect early-stage cancerous cells</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-horizon-gold mr-2">→</span>
+                                <span>Improve underwater navigation for autonomous vehicles</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-horizon-gold mr-2">→</span>
+                                <span>Enhance satellite imaging capabilities</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Vision Simulator Section -->
+    <section id="simulator" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 accent-gold text-center">Vision <span class="accent-blue">Simulator</span></h2>
+        
+        <div class="glass-panel p-8">
+            <h3 class="text-2xl font-bold mb-6">See Through Different Eyes</h3>
+            <p class="mono text-sm mb-6">This simulation demonstrates how the same scene might appear to different species. Drag the slider to compare views.</p>
+            
+            <div class="mb-8">
+                <!-- Animal vision selector -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="vision-option glass-panel p-4 text-center selected" data-vision="human" onclick="changeVision('human')">
+                        <div class="text-lg font-bold mb-2 accent-gold">Human</div>
+                        <p class="mono text-xs">3 photoreceptors</p>
+                    </div>
+                    <div class="vision-option glass-panel p-4 text-center" data-vision="mantisShrimp" onclick="changeVision('mantisShrimp')">
+                        <div class="text-lg font-bold mb-2 accent-red">Mantis Shrimp</div>
+                        <p class="mono text-xs">16 photoreceptors</p>
+                    </div>
+                    <div class="vision-option glass-panel p-4 text-center" data-vision="bee" onclick="changeVision('bee')">
+                        <div class="text-lg font-bold mb-2 accent-blue">Bee</div>
+                        <p class="mono text-xs">UV sensitive</p>
+                    </div>
+                    <div class="vision-option glass-panel p-4 text-center" data-vision="snake" onclick="changeVision('snake')">
+                        <div class="text-lg font-bold mb-2" style="color: #B8B8B8">Snake</div>
+                        <p class="mono text-xs">Infrared sensing</p>
+                    </div>
+                </div>
+                
+                <!-- Comparison slider -->
+                <div class="comparison-slider glass-panel" id="comparisonSlider">
+                    <img src="https://images.unsplash.com/photo-1567425928496-1ab66c650131?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="base-image" alt="Coral reef scene" id="baseImage">
+                    <div class="overlay-image" id="overlayContainer">
+                        <img src="https://images.unsplash.com/photo-1567425928496-1ab66c650131?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Coral reef with filter" id="filteredImage">
+                    </div>
+                    <div class="slider-handle" id="sliderHandle">
+                        <div class="slider-button">↔</div>
+                    </div>
+                    <div class="slide-label left-label" id="leftLabel">Human Vision</div>
+                    <div class="slide-label right-label" id="rightLabel">Human Vision</div>
+                </div>
+                
+                <div class="mt-4">
+                    <div class="flex justify-between mono text-sm">
+                        <div id="leftDescription">Trichromatic vision (RGB)</div>
+                        <div id="rightDescription">Trichromatic vision (RGB)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vision explanation -->
+            <div class="glass-panel p-6 border-l-4 border-gold mt-8" id="visionExplanation">
+                <h4 class="text-lg font-bold mb-2 accent-gold">Human Vision (Trichromatic)</h4>
+                <p class="mono text-sm">Humans have three types of cone cells that detect red, green, and blue wavelengths. Our brains combine these signals to create the colors we perceive. We see a limited range of the electromagnetic spectrum, roughly from 380nm (violet) to 700nm (red).</p>
+                <div class="mt-4">
+                    <div class="progress-bar mt-2">
+                        <div class="progress-fill bg-horizon-gold" style="width: 30%"></div>
+                    </div>
+                    <div class="flex justify-between mono text-xs mt-1">
+                        <span>Limited Range</span>
+                        <span>Color Perception Capacity</span>
+                        <span>Full Range</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Knowledge Check Quiz -->
+    <section id="quiz" class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold mb-10 text-center">Knowledge <span class="accent-blue">Check</span></h2>
+        
+        <div class="glass-panel p-8">
+            <div id="quiz-container">
+                <h3 class="text-2xl font-bold mb-6 accent-gold">Test Your Understanding</h3>
+                <div class="quiz-question mb-8">
+                    <p class="text-xl mb-4">1. How many types of photoreceptors do mantis shrimp have?</p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>3 (same as humans)</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>5-7</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="true" onclick="checkAnswer(this)">
+                            <p>12-16</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Over 30</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <p class="text-xl mb-4">2. Which of these can mantis shrimp detect that humans cannot?</p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Magnetic fields</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="true" onclick="checkAnswer(this)">
+                            <p>Circular polarized light</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Sound waves</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>Radio frequencies</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <p class="text-xl mb-4">3. What is unusual about how mantis shrimp process color information?</p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>They can only see in black and white</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>They process color in their eyes, not their brain</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="false" onclick="checkAnswer(this)">
+                            <p>They can only see one color at a time</p>
+                        </div>
+                        <div class="quiz-option glass-panel p-4" data-correct="true" onclick="checkAnswer(this)">
+                            <p>They likely recognize colors directly rather than comparing inputs</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="quiz-results" class="hidden text-center">
+                    <h3 class="text-2xl font-bold mb-4 accent-gold">Your Results</h3>
+                    <p class="text-xl mb-2">You got <span id="correct-count">0</span> out of 3 questions correct!</p>
+                    <p class="mb-6" id="quiz-feedback"></p>
+                    <button class="bg-telemetry-blue text-white px-6 py-3 rounded-md hover:bg-blue-600 transition-colors mono" onclick="resetQuiz()">Try Again</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="glass-panel p-6 mt-16">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <span class="text-xl font-bold accent-gold">HORIZON</span>
+                    <span class="mono text-xs ml-2 accent-blue">/ WONDER-DRIVEN EDUCATION</span>
+                </div>
+                <div class="mono text-xs">
+                    <p>© 2026 HORIZON PROJECT · <span class="accent-blue">A JUSTIN HART INITIATIVE</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Create starfield
+        document.addEventListener('DOMContentLoaded', function() {
+            createStarfield();
+            initSpectrumVisualization();
+            initPolarizationDemo();
+            initComparisonSlider();
+        });
+        
+        function createStarfield() {
+            const starfield = document.getElementById('starfield');
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random size
+                const size = Math.random() * 3;
+                
+                // Animation variables
+                const duration = 3 + Math.random() * 7;
+                const delay = Math.random() * 5;
+                const intensity = 0.2 + Math.random() * 0.8;
+                
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.setProperty('--duration', `${duration}s`);
+                star.style.setProperty('--delay', `${delay}s`);
+                star.style.setProperty('--intensity', intensity);
+                
+                starfield.appendChild(star);
+            }
+        }
+        
+        // Spectrum Visualization
+        function initSpectrumVisualization() {
+            const spectrumContainer = document.getElementById('spectrumVis');
+            
+            // Human markers (400-700nm range) - represented as percentage positions on our spectrum
+            const humanPositions = [
+                { pos: 16.7, label: "Blue" },
+                { pos: 33.3, label: "Green" },
+                { pos: 58.3, label: "Red" }
+            ];
+            
+            // Mantis Shrimp markers (300-900nm)
+            const shrimpPositions = [
+                { pos: 0, label: "UV-1" },
+                { pos: 5, label: "UV-2" },
+                { pos: 10, label: "UV-3" },
+                { pos: 15, label: "UV-4" },
+                { pos: 20, label: "Blue-1" },
+                { pos: 25, label: "Blue-2" },
+                { pos: 30, label: "Green-1" },
+                { pos: 35, label: "Green-2" },
+                { pos: 40, label: "Yellow-1" },
+                { pos: 45, label: "Yellow-2" },
+                { pos: 50, label: "Orange-1" },
+                { pos: 55, label: "Orange-2" },
+                { pos: 60, label: "Red-1" },
+                { pos: 65, label: "Red-2" },
+                { pos: 75, label: "IR-1" },
+                { pos: 85, label: "IR-2" }
+            ];
+            
+            // Butterfly markers
+            const butterflyPositions = [
+                { pos: 12, label: "UV" },
+                { pos: 23, label: "Blue" },
+                { pos: 35, label: "Green" },
+                { pos: 48, label: "Yellow" },
+                { pos: 60, label: "Red" }
+            ];
+            
+            // Add markers for each species
+            humanPositions.forEach(marker => {
+                const element = document.createElement('div');
+                element.className = 'animal-marker';
+                element.style.left = `${marker.pos}%`;
+                element.innerHTML = `<div class="w-3 h-8 bg-horizon-gold"></div>`;
+                spectrumContainer.appendChild(element);
+            });
+            
+            shrimpPositions.forEach(marker => {
+                const element = document.createElement('div');
+                element.className = 'animal-marker';
+                element.style.left = `${marker.pos}%`;
+                element.innerHTML = `<div class="w-2 h-8 bg-horizon-red"></div>`;
+                spectrumContainer.appendChild(element);
+            });
+            
+            butterflyPositions.forEach(marker => {
+                const element = document.createElement('div');
+                element.className = 'animal-marker';
+                element.style.left = `${marker.pos}%`;
+                element.innerHTML = `<div class="w-2 h-8 bg-telemetry-blue"></div>`;
+                spectrumContainer.appendChild(element);
+            });
+        }
+        
+        // Color Info Cards
+        function showColorInfo(colorType) {
+            const panel = document.getElementById('colorInfoPanel');
+            const title = document.getElementById('colorInfoTitle');
+            const content = document.getElementById('colorInfoContent');
+            const image = document.getElementById('colorInfoImage');
+            
+            panel.classList.remove('hidden');
+            
+            // Define content based on type
+            switch(colorType) {
+                case 'ultraviolet':
+                    title.textContent = 'Ultraviolet Vision';
+                    title.className = 'text-xl font-bold';
+                    title.style.color = '#A45EE5';
+                    content.innerHTML = `
+                        <p class="mb-4">Mantis shrimp can see ultraviolet light, which is completely invisible to humans. In the UV spectrum, many ocean creatures have distinct patterns that would otherwise be camouflaged.</p>
+                        <p class="mb-4">UV vision helps the mantis shrimp:</p>
+                        <ul class="space-y-2 mono text-sm">
+                            <li>Detect transparent prey that absorb or reflect UV light</li>
+                            <li>Identify specific markings on potential mates</li>
+                            <li>Navigate using the sun's UV patterns underwater</li>
+                        </ul>
+                        <p class="mt-4 mono text-sm">Scientists have discovered that many marine animals have UV reflective patterns, suggesting a whole hidden communication network invisible to most predators but clear to those with UV vision.</p>
+                    `;
+                    image.innerHTML = `<div class="h-full bg-gradient-to-br from-purple-900 via-indigo-800 to-purple-700 flex items-center justify-center"><span class="text-2xl font-bold">UV PATTERNS</span></div>`;
+                    break;
+                    
+                case 'polarized':
+                    title.textContent = 'Polarized Light Perception';
+                    title.className = 'text-xl font-bold';
+                    title.style.color = '#E55E8A';
+                    content.innerHTML = `
+                        <p class="mb-4">Light normally vibrates in all directions. Polarized light waves oscillate on a single plane. While humans can barely detect this with special equipment, mantis shrimp have specialized receptors to see it naturally.</p>
+                        <p class="mb-4">Even more remarkably, they can see <span class="font-bold">circular polarized light</span>—light that spirals like a corkscrew as it travels.</p>
+                        <p class="mono text-sm">The mantis shrimp's body reflects circular polarized light patterns, creating a secret communication channel. Their specialized eye cells contain built-in polarization filters that work similarly to polarized sunglasses, but far more advanced.</p>
+                        <p class="mt-4 mono text-sm">This ability is so unique that it's inspiring new technology for cancer detection and underwater navigation.</p>
+                    `;
+                    image.innerHTML = `<div class="polarization-demo h-full"><div class="polarization-filter" style="--angle: 45deg; opacity: 0.5"></div></div>`;
+                    break;
+                    
+                case 'infrared':
+                    title.textContent = 'Infrared Sensitivity';
+                    title.className = 'text-xl font-bold';
+                    title.style.color = '#E55E5E';
+                    content.innerHTML = `
+                        <p class="mb-4">At the other end of the spectrum from ultraviolet, mantis shrimp can detect infrared radiation—essentially seeing heat and longer wavelengths invisible to humans.</p>
+                        <p class="mb-4">This gives them several advantages:</p>
+                        <ul class="space-y-2 mono text-sm">
+                            <li>Detecting prey by body heat, even when hidden</li>
+                            <li>Sensing environmental temperature gradients</li>
+                            <li>Potentially navigating using thermal landmarks</li>
+                        </ul>
+                        <p class="mt-4 mono text-sm">Infrared vision would make warm-blooded animals glow against the cooler ocean background, making them easy to spot even in murky water or at night.</p>
+                    `;
+                    image.innerHTML = `<div class="h-full bg-gradient-to-br from-red-900 via-red-700 to-orange-600 flex items-center justify-center"><span class="text-2xl font-bold">THERMAL VISION</span></div>`;
+                    break;
+            }
+        }
+        
+        function hideColorInfo() {
+            document.getElementById('colorInfoPanel').classList.add('hidden');
+        }
+        
+        // Polarization Demo
+        function initPolarizationDemo() {
+            const slider = document.getElementById('polarizationSlider');
+            const filter = document.getElementById('polarizationFilter');
+            const target = document.getElementById('hiddenTarget');
+            
+            slider.addEventListener('input', function() {
+                const angle = this.value;
+                filter.style.setProperty('--angle', `${angle}deg`);
+                
+                // Show hidden target when polarization is correct (around 90°)
+                const angleDiff = Math.abs(angle - 90);
+                if (angleDiff < 20) {
+                    const opacity = 1 - angleDiff / 20;
+                    target.style.opacity = opacity;
+                } else {
+                    target.style.opacity = 0;
+                }
+            });
+        }
+        
+        // Vision Comparison Slider
+        function initComparisonSlider() {
+            const slider = document.getElementById('comparisonSlider');
+            const handle = document.getElementById('sliderHandle');
+            const overlayContainer = document.getElementById('overlayContainer');
+            const baseImage = document.getElementById('baseImage');
+            const filteredImage = document.getElementById('filteredImage');
+            
+            let isDragging = false;
+            
+            // Set initial position
+            updateSliderPosition(50);
+            
+            // Mouse events
+            handle.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+            
+            // Touch events
+            handle.addEventListener('touchstart', startDrag);
+            document.addEventListener('touchmove', drag);
+            document.addEventListener('touchend', endDrag);
+            
+            // Click on slider
+            slider.addEventListener('click', function(e) {
+                if (e.target !== handle && e.target.parentNode !== handle) {
+                    const rect = slider.getBoundingClientRect();
+                    const position = ((e.clientX - rect.left) / rect.width) * 100;
+                    updateSliderPosition(position);
+                }
+            });
+            
+            function startDrag(e) {
+                e.preventDefault();
+                isDragging = true;
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                const rect = slider.getBoundingClientRect();
+                let clientX;
+                
+                if (e.type === 'touchmove') {
+                    clientX = e.touches[0].clientX;
+                } else {
+                    clientX = e.clientX;
+                }
+                
+                const position = ((clientX - rect.left) / rect.width) * 100;
+                updateSliderPosition(position);
+            }
+            
+            function endDrag() {
+                isDragging = false;
+            }
+            
+            function updateSliderPosition(position) {
+                // Constrain to 0-100%
+                position = Math.max(0, Math.min(100, position));
+                
+                // Update slider handle position
+                handle.style.left = `${position}%`;
+                
+                // Update overlay width
+                overlayContainer.style.width = `${position}%`;
+            }
+        }
+        
+        // Vision Simulator
+        function changeVision(visionType) {
+            // Update selected button
+            document.querySelectorAll('.vision-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector(`[data-vision="${visionType}"]`).classList.add('selected');
+            
+            const filteredImage = document.getElementById('filteredImage');
+            const rightLabel = document.getElementById('rightLabel');
+            const rightDescription = document.getElementById('rightDescription');
+            const explanation = document.getElementById('visionExplanation');
+            
+            // Define filter properties based on vision type
+            let filter = 'none';
+            let title = '';
+            let description = '';
+            let explanationHTML = '';
+            let progressWidth = '30%';
+            
+            switch(visionType) {
+                case 'human':
+                    title = 'Human Vision';
+                    description = 'Trichromatic vision (RGB)';
+                    filter = 'none';
+                    progressWidth = '30%';
+                    explanationHTML = `
+                        <h4 class="text-lg font-bold mb-2 accent-gold">Human Vision (Trichromatic)</h4>
+                        <p class="mono text-sm">Humans have three types of cone cells that detect red, green, and blue wavelengths. Our brains combine these signals to create the colors we perceive. We see a limited range of the electromagnetic spectrum, roughly from 380nm (violet) to 700nm (red).</p>
+                    `;
+                    break;
+                    
+                case 'mantisShrimp':
+                    title = 'Mantis Shrimp Vision';
+                    description = '16 photoreceptors, UV + IR sensitivity';
+                    // Enhance saturation and add color shift to simulate expanded spectrum
+                    filter = 'saturate(180%) hue-rotate(15deg) brightness(110%)';
+                    progressWidth = '90%';
+                    explanationHTML = `
+                        <h4 class="text-lg font-bold mb-2 accent-red">Mantis Shrimp Vision</h4>
+                        <p class="mono text-sm">With 16 types of photoreceptors, mantis shrimp see an expanded spectrum from ultraviolet to infrared. They can detect polarized light and distinguish between subtle color variations that appear identical to humans. This simulation approximates their enhanced color perception, though true mantis shrimp vision would include dimensions we cannot imagine.</p>
+                    `;
+                    break;
+                    
+                case 'bee':
+                    title = 'Bee Vision';
+                    description = 'UV sensitive, can't see red';
+                    // Shift colors toward blue/UV spectrum, reduce red
+                    filter = 'grayscale(30%) hue-rotate(60deg) brightness(120%)';
+                    progressWidth = '50%';
+                    explanationHTML = `
+                        <h4 class="text-lg font-bold mb-2 accent-blue">Bee Vision (UV Sensitive)</h4>
+                        <p class="mono text-sm">Bees see in the ultraviolet spectrum but cannot perceive red light. Many flowers have evolved UV patterns called "nectar guides" that are invisible to humans but act as landing strips guiding bees to nectar. Their vision is optimized for finding flowers and navigating by polarized sunlight patterns.</p>
+                    `;
+                    break;
+                    
+                case 'snake':
+                    title = 'Snake Vision';
+                    description = 'Infrared heat detection';
+                    // Add red tint to simulate thermal vision
+                    filter = 'grayscale(70%) sepia(50%) hue-rotate(320deg) saturate(200%)';
+                    progressWidth = '40%';
+                    explanationHTML = `
+                        <h4 class="text-lg font-bold mb-2" style="color: #B8B8B8">Snake Infrared Vision</h4>
+                        <p class="mono text-sm">Pit vipers and certain other snakes have infrared-sensing organs that detect heat. They essentially "see" in thermal vision, allowing them to hunt warm-blooded prey in complete darkness. This simulation approximates how a snake might perceive thermal differences, with warmer areas appearing more intensely colored.</p>
+                    `;
+                    break;
+            }
+            
+            // Update UI elements
+            filteredImage.style.filter = filter;
+            rightLabel.textContent = title;
+            rightDescription.textContent = description;
+            explanation.innerHTML = explanationHTML;
+            explanation.querySelector('.progress-fill').style.width = progressWidth;
+        }
+        
+        // Quiz functionality
+        let correctAnswers = 0;
+        let totalAnswered = 0;
+        
+        function checkAnswer(element) {
+            // Prevent multiple clicks
+            if (element.classList.contains('correct') || element.classList.contains('incorrect')) {
+                return;
+            }
+            
+            const isCorrect = element.getAttribute('data-correct') === 'true';
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                correctAnswers++;
+            } else {
+                element.classList.add('incorrect');
+                
+                // Also highlight the correct answer
+                const parentQuestion = element.parentNode;
+                const correctOption = parentQuestion.querySelector('[data-correct="true"]');
+                correctOption.classList.add('correct');
+            }
+            
+            totalAnswered++;
+            
+            // Disable other options in this question
+            const siblings = element.parentNode.querySelectorAll('.quiz-option');
+            siblings.forEach(sib => {
+                if (sib !== element && !sib.classList.contains('correct')) {
+                    sib.style.pointerEvents = 'none';
+                    sib.style.opacity = '0.6';
+                }
+            });
+            
+            // Check if all questions are answered
+            if (totalAnswered === 3) {
+                showResults();
+            }
+        }
+        
+        function showResults() {
+            document.getElementById('correct-count').textContent = correctAnswers;
+            
+            const feedback = document.getElementById('quiz-feedback');
+            if (correctAnswers === 3) {
+                feedback.textContent = "Perfect score! You understand the extraordinary vision of the mantis shrimp.";
+                feedback.className = "accent-gold";
+            } else if (correctAnswers === 2) {
+                feedback.textContent = "Great job! You have a good understanding of mantis shrimp vision.";
+                feedback.className = "accent-blue";
+            } else {
+                feedback.textContent = "Keep exploring! The visual world of the mantis shrimp has many fascinating dimensions.";
+                feedback.className = "accent-red";
+            }
+            
+            document.getElementById('quiz-results').classList.remove('hidden');
+        }
+        
+        function resetQuiz() {
+            correctAnswers = 0;
+            totalAnswered = 0;
+            
+            // Reset all options
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'incorrect');
+                opt.style.pointerEvents = 'auto';
+                opt.style.opacity = '1';
+            });
+            
+            // Hide results
+            document.getElementById('quiz-results').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

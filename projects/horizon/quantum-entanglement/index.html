@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Entanglement | Horizon Expander</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --void-black: #030305;
+            --horizon-gold: #FFD28E;
+            --horizon-red: #D66D50;
+            --telemetry-blue: #7F9CBB;
+        }
+        body {
+            background-color: var(--void-black);
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 1px);
+            background-size: 50px 50px, 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: white;
+            font-family: 'Playfair Display', serif;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glass-panel {
+            background: rgba(10, 10, 15, 0.75);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        h1, h2, h3 {
+            color: var(--horizon-gold);
+        }
+        .telemetry {
+            color: var(--telemetry-blue);
+        }
+        .horizon-red {
+            color: var(--horizon-red);
+        }
+        .sparkle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 4s infinite;
+            opacity: 0;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+        .quantum-particle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            transition: background-color 0.5s;
+        }
+        .entangled {
+            box-shadow: 0 0 15px var(--horizon-gold);
+        }
+        .measured {
+            transition: all 0.3s ease-in-out;
+        }
+        .connection-line {
+            position: absolute;
+            height: 2px;
+            background-color: var(--horizon-gold);
+            transform-origin: left center;
+            opacity: 0.7;
+            z-index: -1;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border: 1px solid rgba(127, 156, 187, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #bell-test {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #alice-choice, #bob-choice {
+            position: relative;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .angle-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            border: 2px solid var(--telemetry-blue);
+            transition: all 0.2s;
+        }
+        .angle-button:hover {
+            transform: scale(1.1);
+            border-color: var(--horizon-gold);
+        }
+        .angle-button.selected {
+            background-color: var(--horizon-gold);
+            color: var(--void-black);
+            border-color: var(--horizon-gold);
+        }
+        .slider-container {
+            width: 100%;
+            padding: 20px;
+        }
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 10px;
+            background: rgba(127, 156, 187, 0.3);
+            outline: none;
+            border-radius: 5px;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--horizon-gold);
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--horizon-gold);
+            cursor: pointer;
+        }
+        #probability-chart {
+            width: 100%;
+            height: 300px;
+            position: relative;
+        }
+        #bell-results {
+            height: 150px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            padding: 10px;
+        }
+        .result-line {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .result-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: inline-block;
+        }
+        .match {
+            background-color: var(--horizon-gold);
+        }
+        .mismatch {
+            background-color: var(--horizon-red);
+        }
+        .teleport-source, .teleport-target {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .teleport-source {
+            border: 2px solid var(--telemetry-blue);
+        }
+        .teleport-target {
+            border: 2px solid var(--horizon-gold);
+        }
+        #quantum-qubit {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, var(--telemetry-blue), transparent);
+            border-radius: 50%;
+            position: absolute;
+            animation: pulse 2s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.2); opacity: 1; }
+        }
+        .arrow {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+        }
+        .transfer-beam {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(to right, var(--telemetry-blue), var(--horizon-gold));
+            transform-origin: left center;
+            opacity: 0;
+            transition: opacity 1s;
+            z-index: 10;
+        }
+        #entanglement-simulator canvas {
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="stars-container" class="fixed w-full h-full top-0 left-0 -z-10"></div>
+
+    <header class="container mx-auto py-8 px-4">
+        <div class="flex items-center mb-8">
+            <a href="../index.html" class="flex items-center text-white hover:text-horizon-gold transition">
+                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i>
+                <span class="mono text-sm">RETURN TO MISSION CONTROL</span>
+            </a>
+        </div>
+        <div class="glass-panel p-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 mono text-xs opacity-50 telemetry">
+                EXPEDITION 03 // SPOOKY ACTION
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-2">QUANTUM ENTANGLEMENT</h1>
+            <p class="mono telemetry text-xl mb-4">REALITY AT ITS MOST MYSTERIOUS</p>
+            <p class="max-w-3xl text-lg mb-6">Welcome to the strange world of quantum entanglement—a phenomenon so bizarre that Einstein called it "spooky action at a distance." Here, particles become inextricably linked, instantly affecting each other regardless of the distance between them, challenging our most fundamental ideas about reality.</p>
+            <div class="flex items-center">
+                <div class="h-4 w-4 rounded-full bg-horizon-red animate-pulse mr-3"></div>
+                <p class="mono text-sm">CAUTION: CONVENTIONAL INTUITION BREAKDOWN IMMINENT</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 pb-16">
+        <!-- Introduction to Quantum Entanglement -->
+        <div class="glass-panel p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">THE QUANTUM BOND</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 telemetry">WHAT IS ENTANGLEMENT?</h3>
+                    <p class="mb-4">Quantum entanglement occurs when two or more particles become connected in such a way that the quantum state of each particle cannot be described independently of the others. When you measure one particle, you instantly know something about its entangled partner—even if it's on the other side of the universe.</p>
+                    <p>This defies our classical understanding of physics, where information can't travel faster than light. Yet experiments consistently confirm this bizarre reality.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 telemetry">EINSTEIN'S "SPOOKY ACTION"</h3>
+                    <p class="mb-4">Einstein was deeply troubled by quantum entanglement, as it seemed to violate his theory of relativity which states that nothing, including information, can travel faster than light.</p>
+                    <p>He proposed that quantum mechanics was incomplete and that "hidden variables" must exist to explain these correlations without requiring faster-than-light communication.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 telemetry">EXPERIMENTAL CONFIRMATION</h3>
+                    <p class="mb-4">In the 1960s, physicist John Bell devised a test to determine whether Einstein's hidden variables could explain entanglement. Decades of increasingly sophisticated experiments have conclusively shown that entanglement is real.</p>
+                    <p>In 2015, scientists closed all possible loopholes in Bell test experiments, confirming beyond doubt that quantum entanglement is a fundamental aspect of reality.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Entanglement Simulator -->
+        <div class="glass-panel p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">INTERACTIVE ENTANGLEMENT</h2>
+            <p class="mb-6">Experience quantum entanglement firsthand with this interactive simulator. Create entangled particle pairs and observe how measuring one instantly affects its partner, regardless of distance.</p>
+            
+            <div class="canvas-container mb-4" id="entanglement-container">
+                <div id="controls" class="absolute bottom-4 left-4 z-10 flex gap-4">
+                    <button id="create-pair" class="bg-horizon-gold text-void-black font-bold py-2 px-4 rounded">CREATE ENTANGLED PAIR</button>
+                    <button id="measure-left" class="bg-transparent border border-telemetry-blue text-white font-bold py-2 px-4 rounded" disabled>MEASURE LEFT</button>
+                    <button id="measure-right" class="bg-transparent border border-telemetry-blue text-white font-bold py-2 px-4 rounded" disabled>MEASURE RIGHT</button>
+                    <button id="reset" class="bg-transparent border border-horizon-red text-white font-bold py-2 px-4 rounded">RESET</button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                    <h3 class="text-telemetry-blue font-mono text-lg mb-2">SIMULATOR GUIDE</h3>
+                    <p class="mb-3">This simulation demonstrates the key principle of quantum entanglement: when you measure one entangled particle, its partner instantly "knows" and assumes a correlated state.</p>
+                    <p class="mb-3">Create an entangled pair, then measure either the left or right particle. Notice how the other particle's state is determined instantly, regardless of distance.</p>
+                    <p class="mb-3">In quantum mechanics, particles exist in a superposition of states until measured. Entangled particles remain in superposition, but their states are correlated—when one is measured, both superpositions collapse simultaneously.</p>
+                </div>
+                
+                <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                    <h3 class="text-telemetry-blue font-mono text-lg mb-2">QUANTUM TELEMETRY</h3>
+                    <div id="entanglement-log" class="h-48 overflow-y-auto mono text-sm">
+                        <p class="text-telemetry-blue">ENTANGLEMENT LOG:</p>
+                        <p>• System initialized. Ready to create entangled particles.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bell's Inequality Test -->
+        <div class="glass-panel p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">BELL'S INEQUALITY EXPERIMENT</h2>
+            <p class="mb-6">John Bell proposed a way to test whether quantum entanglement requires faster-than-light communication or if Einstein's "hidden variables" could explain it. Try this interactive version of the Bell test to see why quantum mechanics defies our classical intuition.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h3 class="text-telemetry-blue font-mono text-lg mb-3">EXPERIMENT CONTROLS</h3>
+                    <p class="mb-4">In this experiment, Alice and Bob each receive one particle from an entangled pair. They independently choose measurement angles and record results.</p>
+                    
+                    <div class="mb-4">
+                        <p class="mono text-sm mb-2 telemetry">ALICE'S MEASUREMENT ANGLE</p>
+                        <div id="alice-choice">
+                            <div class="angle-button" data-angle="0">0°</div>
+                            <div class="angle-button" data-angle="45">45°</div>
+                            <div class="angle-button" data-angle="90">90°</div>
+                            <div class="angle-button" data-angle="135">135°</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="mono text-sm mb-2 telemetry">BOB'S MEASUREMENT ANGLE</p>
+                        <div id="bob-choice">
+                            <div class="angle-button" data-angle="0">0°</div>
+                            <div class="angle-button" data-angle="45">45°</div>
+                            <div class="angle-button" data-angle="90">90°</div>
+                            <div class="angle-button" data-angle="135">135°</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4 mt-6">
+                        <button id="run-bell-test" class="bg-horizon-gold text-void-black font-bold py-2 px-4 rounded">RUN TEST</button>
+                        <button id="run-bell-many" class="bg-transparent border border-telemetry-blue text-white font-bold py-2 px-4 rounded">RUN 100 TRIALS</button>
+                    </div>
+                </div>
+                
+                <div id="bell-test" class="bg-black bg-opacity-30 rounded-lg">
+                    <div class="p-4">
+                        <h3 class="text-telemetry-blue font-mono text-lg mb-2">QUANTUM CORRELATION</h3>
+                        <p id="correlation-value" class="mb-4 mono text-xl">Correlation: --</p>
+                        
+                        <div id="bell-results" class="bg-black bg-opacity-50 rounded-lg">
+                            <p class="text-telemetry-blue">TEST RESULTS:</p>
+                            <!-- Results will be added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 bg-black bg-opacity-30 p-4 rounded-lg">
+                <h3 class="text-telemetry-blue font-mono text-lg mb-3">THEORY VS. REALITY</h3>
+                <p class="mb-4">Bell's Inequality shows that quantum mechanics and classical physics predict different results for these correlation measurements:</p>
+                
+                <div class="h-80">
+                    <canvas id="probability-chart"></canvas>
+                </div>
+                
+                <p class="mt-4">The difference between these curves is crucial. Experiments consistently follow the quantum prediction, confirming that our reality is inherently non-local and cannot be explained by hidden variables that respect the speed of light.</p>
+            </div>
+        </div>
+
+        <!-- Quantum Teleportation -->
+        <div class="glass-panel p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">QUANTUM TELEPORTATION</h2>
+            <p class="mb-6">Quantum teleportation uses entanglement to transfer quantum states between particles without physically moving them. This isn't Star Trek's teleportation—it moves information, not matter—but it's a fundamental protocol for quantum computing and communication.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                    <h3 class="text-telemetry-blue font-mono text-lg mb-3">TELEPORTATION PROCESS</h3>
+                    <p class="mb-4">The process begins with an entangled pair of particles. One particle is sent to the receiver, while the source particle remains with the sender along with the qubit to be teleported.</p>
+                    
+                    <div class="flex flex-col items-center">
+                        <div class="slider-container">
+                            <label class="block mono text-sm mb-2 telemetry">QUANTUM STATE TO TELEPORT</label>
+                            <input type="range" min="0" max="100" value="50" class="slider" id="qubit-state">
+                            <div class="flex justify-between mt-1 mono text-xs">
+                                <span>|0⟩</span>
+                                <span>|1⟩</span>
+                            </div>
+                        </div>
+                        
+                        <button id="perform-teleport" class="bg-horizon-gold text-void-black font-bold py-2 px-4 rounded mt-4">TELEPORT QUANTUM STATE</button>
+                    </div>
+                </div>
+                
+                <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                    <h3 class="text-telemetry-blue font-mono text-lg mb-3">VISUALIZATION</h3>
+                    <div class="flex justify-between items-center relative">
+                        <div class="teleport-source" id="teleport-source">
+                            <div id="quantum-qubit"></div>
+                        </div>
+                        
+                        <div class="flex-1 relative h-20">
+                            <div id="transfer-beam" class="transfer-beam"></div>
+                        </div>
+                        
+                        <div class="teleport-target" id="teleport-target">
+                            <!-- Target for teleportation -->
+                        </div>
+                    </div>
+                    
+                    <div id="teleport-status" class="mt-4 p-2 rounded bg-black bg-opacity-50 mono text-sm">
+                        Ready to teleport quantum state. Adjust the slider to set the state to be teleported.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                <h3 class="text-telemetry-blue font-mono text-lg mb-3">HOW IT WORKS</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-black bg-opacity-50 p-3 rounded-lg">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">STEP 1: PREPARATION</h4>
+                        <p class="text-sm">Alice and Bob each have one particle from an entangled pair. Alice also has a third particle whose quantum state she wants to teleport to Bob.</p>
+                    </div>
+                    <div class="bg-black bg-opacity-50 p-3 rounded-lg">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">STEP 2: MEASUREMENT</h4>
+                        <p class="text-sm">Alice performs a special joint measurement on her entangled particle and the particle to be teleported, resulting in one of four possible outcomes.</p>
+                    </div>
+                    <div class="bg-black bg-opacity-50 p-3 rounded-lg">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">STEP 3: CLASSICAL COMMUNICATION</h4>
+                        <p class="text-sm">Alice sends her measurement result to Bob through a classical channel (like a phone call). This step is limited by the speed of light.</p>
+                    </div>
+                    <div class="bg-black bg-opacity-50 p-3 rounded-lg">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">STEP 4: QUANTUM CORRECTION</h4>
+                        <p class="text-sm">Based on Alice's message, Bob applies one of four possible corrections to his entangled particle, transforming it into the exact state of Alice's original qubit.</p>
+                    </div>
+                    <div class="bg-black bg-opacity-50 p-3 rounded-lg">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">KEY POINT: NO FTL COMMUNICATION</h4>
+                        <p class="text-sm">No information travels faster than light. The classical message is essential, and Bob's particle is useless until he receives it.</p>
+                    </div>
+                    <div class="bg-black bg-opacity-50 p-3 rounded-lg">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">REAL-WORLD APPLICATIONS</h4>
+                        <p class="text-sm">Quantum teleportation is fundamental to quantum computing networks, quantum repeaters, and secure quantum communication protocols.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications and Implications -->
+        <div class="glass-panel p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">ENTANGLEMENT AT WORK</h2>
+            <p class="mb-6">Quantum entanglement isn't just a fascinating physics curiosity—it's enabling revolutionary technologies that are changing our world.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 telemetry">PRACTICAL APPLICATIONS</h3>
+                    
+                    <div class="bg-black bg-opacity-30 p-4 rounded-lg mb-4">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">QUANTUM COMPUTING</h4>
+                        <p class="mb-2">Quantum computers use entanglement to perform certain calculations exponentially faster than classical computers. This includes factoring large numbers, searching databases, and simulating quantum systems.</p>
+                        <p class="text-sm">Companies like IBM, Google, and D-Wave are building increasingly powerful quantum computers using entangled qubits.</p>
+                    </div>
+                    
+                    <div class="bg-black bg-opacity-30 p-4 rounded-lg mb-4">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">UNHACKABLE COMMUNICATION</h4>
+                        <p class="mb-2">Quantum key distribution (QKD) uses entanglement to create encryption keys that are theoretically impossible to intercept without detection.</p>
+                        <p class="text-sm">China's Micius satellite has demonstrated QKD over thousands of kilometers, and commercial QKD systems are already being deployed for highly secure networks.</p>
+                    </div>
+                    
+                    <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">QUANTUM SENSING</h4>
+                        <p class="mb-2">Entangled particles can be used to build sensors with unprecedented precision, enabling better atomic clocks, gravitational wave detectors, and medical imaging technologies.</p>
+                        <p class="text-sm">Researchers are developing quantum sensors that could detect hidden underground structures or create more precise GPS systems.</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 telemetry">PHILOSOPHICAL IMPLICATIONS</h3>
+                    
+                    <div class="bg-black bg-opacity-30 p-4 rounded-lg mb-4">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">LOCALITY & REALISM</h4>
+                        <p class="mb-2">Bell's experiments prove our universe is non-local (actions in one location can instantaneously affect distant locations) or non-realistic (properties don't exist until measured), or both.</p>
+                        <p class="text-sm">This challenges our fundamental intuition about how reality works at the deepest level.</p>
+                    </div>
+                    
+                    <div class="bg-black bg-opacity-30 p-4 rounded-lg mb-4">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">QUANTUM HOLISM</h4>
+                        <p class="mb-2">Entanglement suggests the universe is fundamentally interconnected. Particles that have interacted remain connected regardless of distance, implying a deeper unity to reality.</p>
+                        <p class="text-sm">This has sparked discussions among physicists and philosophers about the nature of consciousness and reality itself.</p>
+                    </div>
+                    
+                    <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                        <h4 class="text-horizon-gold font-mono text-sm mb-2">FUTURE QUESTIONS</h4>
+                        <p class="mb-2">What happens when quantum effects scale to macroscopic systems? Could entanglement be related to gravity? How does the quantum world transition to the classical world we experience?</p>
+                        <p class="text-sm">These questions are at the frontier of physics research, potentially leading to new theories that could unify quantum mechanics with general relativity.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Knowledge Check -->
+        <div class="glass-panel p-6">
+            <h2 class="text-2xl font-semibold mb-4">KNOWLEDGE VERIFICATION</h2>
+            <p class="mb-4">Test your understanding of quantum entanglement with this quick quiz:</p>
+            
+            <div id="quiz-container">
+                <div id="question-1" class="mb-6">
+                    <p class="mono text-telemetry-blue mb-2">QUESTION 01</p>
+                    <p class="font-semibold mb-3">What happens when one particle in an entangled pair is measured?</p>
+                    <div class="space-y-2">
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q1" value="a" class="mr-2">
+                            <span>It sends a signal to the other particle</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q1" value="b" class="mr-2">
+                            <span>The other particle's state is instantly determined</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q1" value="c" class="mr-2">
+                            <span>The other particle is physically teleported</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q1" value="d" class="mr-2">
+                            <span>Nothing happens to the other particle</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="question-2" class="mb-6">
+                    <p class="mono text-telemetry-blue mb-2">QUESTION 02</p>
+                    <p class="font-semibold mb-3">What was Einstein's concern about quantum entanglement?</p>
+                    <div class="space-y-2">
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q2" value="a" class="mr-2">
+                            <span>It would make time travel possible</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q2" value="b" class="mr-2">
+                            <span>It seemed to allow information to travel faster than light</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q2" value="c" class="mr-2">
+                            <span>It would make quantum computing impossible</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q2" value="d" class="mr-2">
+                            <span>It violated his theory of general relativity</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="question-3" class="mb-6">
+                    <p class="mono text-telemetry-blue mb-2">QUESTION 03</p>
+                    <p class="font-semibold mb-3">In quantum teleportation, what is actually transferred?</p>
+                    <div class="space-y-2">
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q3" value="a" class="mr-2">
+                            <span>Physical particles</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q3" value="b" class="mr-2">
+                            <span>Energy</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q3" value="c" class="mr-2">
+                            <span>Quantum information/state</span>
+                        </label>
+                        <label class="block p-2 border border-telemetry-blue rounded cursor-pointer hover:bg-opacity-20 hover:bg-telemetry-blue">
+                            <input type="radio" name="q3" value="d" class="mr-2">
+                            <span>Entanglement itself</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button id="check-answers" class="bg-horizon-gold text-void-black font-bold py-2 px-4 rounded">CHECK ANSWERS</button>
+                <div id="quiz-results" class="mt-4 hidden"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="container mx-auto px-4 pb-8">
+        <div class="glass-panel p-4 text-center">
+            <p class="mono text-xs opacity-70">HORIZON EXPANDER // EXPEDITION 03: QUANTUM ENTANGLEMENT</p>
+            <a href="../index.html" class="inline-block mt-2 text-horizon-gold hover:underline text-sm">Return to Mission Control</a>
+        </div>
+    </footer>
+
+    <script>
+        // Create twinkling stars
+        const starsContainer = document.getElementById('stars-container');
+        const numberOfStars = 150;
+        
+        for (let i = 0; i < numberOfStars; i++) {
+            const star = document.createElement('div');
+            star.classList.add('sparkle');
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 4}s`;
+            starsContainer.appendChild(star);
+        }
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Entanglement Simulator
+        const entanglementContainer = document.getElementById('entanglement-container');
+        const entanglementLog = document.getElementById('entanglement-log');
+        let leftParticle = null;
+        let rightParticle = null;
+        let entanglementLine = null;
+        
+        function addLogEntry(message) {
+            const entry = document.createElement('p');
+            entry.textContent = `• ${message}`;
+            entanglementLog.insertBefore(entry, entanglementLog.childNodes[1]);
+            
+            // Limit to 10 entries
+            if (entanglementLog.childNodes.length > 11) {
+                entanglementLog.removeChild(entanglementLog.lastChild);
+            }
+        }
+        
+        function createEntangledPair() {
+            // Clear previous particles
+            if (leftParticle) leftParticle.remove();
+            if (rightParticle) rightParticle.remove();
+            if (entanglementLine) entanglementLine.remove();
+            
+            // Create new particles
+            leftParticle = document.createElement('div');
+            leftParticle.classList.add('quantum-particle', 'entangled');
+            leftParticle.style.left = '25%';
+            leftParticle.style.top = '50%';
+            leftParticle.style.backgroundColor = 'rgba(127, 156, 187, 0.8)';
+            leftParticle.setAttribute('data-measured', 'false');
+            leftParticle.setAttribute('data-position', 'left');
+            entanglementContainer.appendChild(leftParticle);
+            
+            rightParticle = document.createElement('div');
+            rightParticle.classList.add('quantum-particle', 'entangled');
+            rightParticle.style.left = '75%';
+            rightParticle.style.top = '50%';
+            rightParticle.style.backgroundColor = 'rgba(127, 156, 187, 0.8)';
+            rightParticle.setAttribute('data-measured', 'false');
+            rightParticle.setAttribute('data-position', 'right');
+            entanglementContainer.appendChild(rightParticle);
+            
+            // Create connection line
+            entanglementLine = document.createElement('div');
+            entanglementLine.classList.add('connection-line');
+            entanglementLine.style.top = '50%';
+            entanglementLine.style.left = '25%';
+            entanglementLine.style.width = '50%';
+            entanglementContainer.appendChild(entanglementLine);
+            
+            // Enable measure buttons
+            document.getElementById('measure-left').disabled = false;
+            document.getElementById('measure-right').disabled = false;
+            
+            addLogEntry('Entangled pair created. Both particles are in superposition.');
+        }
+        
+        function measureParticle(position) {
+            // Determine which particle was measured
+            const measuredParticle = position === 'left' ? leftParticle : rightParticle;
+            const otherParticle = position === 'left' ? rightParticle : leftParticle;
+            
+            if (measuredParticle.getAttribute('data-measured') === 'true') {
+                addLogEntry(`${position.charAt(0).toUpperCase() + position.slice(1)} particle already measured.`);
+                return;
+            }
+            
+            // Randomly determine outcome (up or down spin)
+            const outcome = Math.random() < 0.5 ? 'up' : 'down';
+            const otherOutcome = outcome === 'up' ? 'down' : 'up';
+            
+            // Update measured particle
+            measuredParticle.setAttribute('data-measured', 'true');
+            measuredParticle.setAttribute('data-state', outcome);
+            measuredParticle.classList.add('measured');
+            measuredParticle.style.backgroundColor = outcome === 'up' ? 'var(--horizon-gold)' : 'var(--horizon-red)';
+            
+            addLogEntry(`${position.charAt(0).toUpperCase() + position.slice(1)} particle measured: ${outcome} spin.`);
+            
+            // Update other particle (it's entangled, so outcome is always opposite)
+            otherParticle.setAttribute('data-measured', 'true');
+            otherParticle.setAttribute('data-state', otherOutcome);
+            otherParticle.classList.add('measured');
+            
+            // Slight delay to simulate "spooky action at a distance"
+            setTimeout(() => {
+                otherParticle.style.backgroundColor = otherOutcome === 'up' ? 'var(--horizon-gold)' : 'var(--horizon-red)';
+                addLogEntry(`${position === 'left' ? 'Right' : 'Left'} particle instantly collapsed to: ${otherOutcome} spin.`);
+            }, 500);
+            
+            // Disable measure buttons
+            document.getElementById('measure-left').disabled = true;
+            document.getElementById('measure-right').disabled = true;
+        }
+        
+        // Setup event listeners
+        document.getElementById('create-pair').addEventListener('click', createEntangledPair);
+        document.getElementById('measure-left').addEventListener('click', () => measureParticle('left'));
+        document.getElementById('measure-right').addEventListener('click', () => measureParticle('right'));
+        document.getElementById('reset').addEventListener('click', () => {
+            // Clear particles
+            if (leftParticle) leftParticle.remove();
+            if (rightParticle) rightParticle.remove();
+            if (entanglementLine) entanglementLine.remove();
+            leftParticle = null;
+            rightParticle = null;
+            entanglementLine = null;
+            
+            // Disable measure buttons
+            document.getElementById('measure-left').disabled = true;
+            document.getElementById('measure-right').disabled = true;
+            
+            addLogEntry('System reset. Ready to create new entangled pairs.');
+        });
+
+        // Bell's Inequality Test
+        let aliceAngle = 0;
+        let bobAngle = 0;
+        let bellResults = [];
+        
+        // Setup angle buttons
+        document.querySelectorAll('#alice-choice .angle-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Deselect all buttons
+                document.querySelectorAll('#alice-choice .angle-button').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                // Select this button
+                this.classList.add('selected');
+                aliceAngle = parseInt(this.getAttribute('data-angle'));
+            });
+        });
+        
+        document.querySelectorAll('#bob-choice .angle-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Deselect all buttons
+                document.querySelectorAll('#bob-choice .angle-button').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                // Select this button
+                this.classList.add('selected');
+                bobAngle = parseInt(this.getAttribute('data-angle'));
+            });
+        });
+        
+        // Select default angles
+        document.querySelector('#alice-choice .angle-button[data-angle="0"]').click();
+        document.querySelector('#bob-choice .angle-button[data-angle="0"]').click();
+        
+        function runBellTest(iterations = 1) {
+            const resultsContainer = document.getElementById('bell-results');
+            let matches = 0;
+            
+            // Calculate the angle between Alice and Bob's measurements
+            const angleDifference = Math.abs(aliceAngle - bobAngle);
+            
+            // Clear previous results if single test
+            if (iterations === 1) {
+                resultsContainer.innerHTML = '<p class="text-telemetry-blue">TEST RESULTS:</p>';
+                bellResults = [];
+            }
+            
+            // Run the specified number of iterations
+            for (let i = 0; i < iterations; i++) {
+                // Perform the quantum measurement
+                // In quantum mechanics, the probability of matching results follows
+                // cos²(θ/2) where θ is the angle difference
+                const radians = angleDifference * Math.PI / 180;
+                const matchProbability = Math.pow(Math.cos(radians / 2), 2);
+                
+                // Determine if measurements match
+                const doMatch = Math.random() < matchProbability;
+                
+                if (doMatch) matches++;
+                
+                // Log result if single test or final batch update
+                if (iterations === 1 || (i === iterations - 1 && i % 10 === 9)) {
+                    const resultLine = document.createElement('div');
+                    resultLine.className = 'result-line';
+                    resultLine.innerHTML = `
+                        <span class="result-indicator ${doMatch ? 'match' : 'mismatch'}"></span>
+                        <span>Alice: ${aliceAngle}° | Bob: ${bobAngle}° | Result: ${doMatch ? 'MATCH' : 'DIFFERENT'}</span>
+                    `;
+                    resultsContainer.appendChild(resultLine);
+                }
+                
+                // Record result
+                bellResults.push({
+                    aliceAngle,
+                    bobAngle,
+                    angleDifference,
+                    matched: doMatch
+                });
+            }
+            
+            // Update correlation value
+            const correlation = matches / iterations;
+            document.getElementById('correlation-value').textContent = `Correlation: ${correlation.toFixed(3)}`;
+            
+            return correlation;
+        }
+        
+        document.getElementById('run-bell-test').addEventListener('click', function() {
+            runBellTest(1);
+        });
+        
+        document.getElementById('run-bell-many').addEventListener('click', function() {
+            runBellTest(100);
+        });
+        
+        // Probability Chart
+        function initProbabilityChart() {
+            const ctx = document.getElementById('probability-chart').getContext('2d');
+            
+            // Generate data points
+            const labels = [];
+            const quantumData = [];
+            const classicalData = [];
+            
+            for (let angle = 0; angle <= 180; angle += 5) {
+                labels.push(angle);
+                
+                // Quantum prediction: cos²(θ/2)
+                const radians = angle * Math.PI / 180;
+                quantumData.push(Math.pow(Math.cos(radians / 2), 2));
+                
+                // Classical prediction (hidden variables): linear decrease from 1 to 0
+                classicalData.push(angle <= 90 ? 1 - (angle / 90) : 0);
+            }
+            
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Quantum Prediction',
+                        data: quantumData,
+                        borderColor: 'var(--horizon-gold)',
+                        backgroundColor: 'rgba(255, 210, 142, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: 'var(--horizon-gold)'
+                    }, {
+                        label: 'Classical Prediction (Hidden Variables)',
+                        data: classicalData,
+                        borderColor: 'var(--horizon-red)',
+                        backgroundColor: 'rgba(214, 109, 80, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: 'var(--horizon-red)',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            title: {
+                                display: true,
+                                text: 'Probability of Matching Results',
+                                color: 'var(--telemetry-blue)',
+                                font: {
+                                    family: 'JetBrains Mono',
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'var(--telemetry-blue)',
+                                font: {
+                                    family: 'JetBrains Mono'
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Angle Difference Between Measurements (degrees)',
+                                color: 'var(--telemetry-blue)',
+                                font: {
+                                    family: 'JetBrains Mono',
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'var(--telemetry-blue)',
+                                font: {
+                                    family: 'JetBrains Mono'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white',
+                                font: {
+                                    family: 'JetBrains Mono'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                family: 'JetBrains Mono'
+                            },
+                            bodyFont: {
+                                family: 'JetBrains Mono'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Update chart with data points when bell tests are run
+            setInterval(() => {
+                if (bellResults.length > 0) {
+                    const angleGroups = {};
+                    
+                    // Group results by angle difference
+                    bellResults.forEach(result => {
+                        if (!angleGroups[result.angleDifference]) {
+                            angleGroups[result.angleDifference] = {
+                                total: 0,
+                                matches: 0
+                            };
+                        }
+                        
+                        angleGroups[result.angleDifference].total++;
+                        if (result.matched) angleGroups[result.angleDifference].matches++;
+                    });
+                    
+                    // Create data points from grouped results
+                    const experimentalData = [];
+                    
+                    labels.forEach(angle => {
+                        if (angleGroups[angle]) {
+                            const probability = angleGroups[angle].matches / angleGroups[angle].total;
+                            experimentalData.push(probability);
+                        } else {
+                            experimentalData.push(null);
+                        }
+                    });
+                    
+                    // Only add experimental data if we have results
+                    if (chart.data.datasets.length === 2 && Object.keys(angleGroups).length > 0) {
+                        chart.data.datasets.push({
+                            label: 'Your Experimental Results',
+                            data: experimentalData,
+                            borderColor: 'white',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            borderWidth: 0,
+                            pointBackgroundColor: 'white',
+                            pointHoverBackgroundColor: 'white',
+                            fill: false
+                        });
+                    } else if (chart.data.datasets.length === 3) {
+                        chart.data.datasets[2].data = experimentalData;
+                    }
+                    
+                    chart.update();
+                }
+            }, 2000);
+        }
+        
+        // Quantum Teleportation
+        let teleportationInProgress = false;
+        
+        document.getElementById('perform-teleport').addEventListener('click', function() {
+            if (teleportationInProgress) return;
+            teleportationInProgress = true;
+            
+            const qubitState = document.getElementById('qubit-state').value;
+            const teleportStatus = document.getElementById('teleport-status');
+            const sourceElement = document.getElementById('teleport-source');
+            const targetElement = document.getElementById('teleport-target');
+            const qubitElement = document.getElementById('quantum-qubit');
+            const transferBeam = document.getElementById('transfer-beam');
+            
+            // Set up transfer beam dimensions
+            transferBeam.style.width = '100%';
+            transferBeam.style.left = '0';
+            transferBeam.style.top = '75px';
+            
+            // Display initial state
+            teleportStatus.innerHTML = `<p>Step 1: Preparing quantum state |ψ⟩ = ${(qubitState/100).toFixed(2)}|0⟩ + ${(1-qubitState/100).toFixed(2)}|1⟩</p>`;
+            qubitElement.style.backgroundColor = `rgba(${127 + (qubitState/100)*128}, ${156 + (qubitState/100)*99}, ${187 + (qubitState/100)*68}, 0.8)`;
+            
+            // Prepare entangled pair
+            setTimeout(() => {
+                teleportStatus.innerHTML += `<p>Step 2: Creating entangled pair between sender and receiver</p>`;
+                
+                // Create entangled particle visualization in target
+                const targetQubit = document.createElement('div');
+                targetQubit.id = 'target-qubit';
+                targetQubit.style.width = '40px';
+                targetQubit.style.height = '40px';
+                targetQubit.style.backgroundColor = 'rgba(127, 156, 187, 0.5)';
+                targetQubit.style.borderRadius = '50%';
+                targetQubit.style.position = 'absolute';
+                targetElement.appendChild(targetQubit);
+                
+                // Show entanglement connection
+                transferBeam.style.opacity = '0.5';
+                
+            }, 1000);
+            
+            // Perform Bell measurement
+            setTimeout(() => {
+                teleportStatus.innerHTML += `<p>Step 3: Performing Bell measurement on source qubit and entangled particle</p>`;
+                
+                // Visual effect for measurement
+                qubitElement.style.animation = 'none';
+                qubitElement.style.opacity = '1';
+                qubitElement.style.transform = 'scale(1.5)';
+                qubitElement.style.boxShadow = '0 0 20px var(--telemetry-blue)';
+                
+            }, 3000);
+            
+            // Send classical bits
+            setTimeout(() => {
+                teleportStatus.innerHTML += `<p>Step 4: Sending classical measurement results to receiver</p>`;
+                
+                // Animate classical information transfer
+                const classicalBits = document.createElement('div');
+                classicalBits.style.position = 'absolute';
+                classicalBits.style.top = '65px';
+                classicalBits.style.left = '20%';
+                classicalBits.style.backgroundColor = 'white';
+                classicalBits.style.width = '10px';
+                classicalBits.style.height = '10px';
+                classicalBits.style.borderRadius = '50%';
+                classicalBits.style.transition = 'left 2s linear';
+                document.querySelector('.flex-1').appendChild(classicalBits);
+                
+                // Move classical bits
+                setTimeout(() => {
+                    classicalBits.style.left = '80%';
+                }, 100);
+                
+                // Remove after animation
+                setTimeout(() => {
+                    classicalBits.remove();
+                }, 2500);
+                
+            }, 5000);
+            
+            // Apply correction and complete teleportation
+            setTimeout(() => {
+                teleportStatus.innerHTML += `<p>Step 5: Receiver applies correction based on classical information</p>`;
+                
+                // Apply correction animation
+                const targetQubit = document.getElementById('target-qubit');
+                targetQubit.style.backgroundColor = `rgba(${127 + (qubitState/100)*128}, ${156 + (qubitState/100)*99}, ${187 + (qubitState/100)*68}, 0.8)`;
+                targetQubit.style.boxShadow = '0 0 20px var(--horizon-gold)';
+                
+                // Final state
+                setTimeout(() => {
+                    teleportStatus.innerHTML += `<p>Teleportation complete! Quantum state successfully transferred.</p>`;
+                    transferBeam.style.opacity = '0';
+                    qubitElement.style.opacity = '0.3';
+                    qubitElement.style.transform = 'scale(1)';
+                    qubitElement.style.boxShadow = 'none';
+                    teleportationInProgress = false;
+                }, 1500);
+                
+            }, 7500);
+        });
+        
+        // 3D Quantum Entanglement Visualization
+        function initEntanglementVisualization() {
+            const container = document.getElementById('entanglement-simulator');
+            
+            // Create Three.js scene
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            // Set camera position
+            camera.position.z = 5;
+            
+            // Create particles
+            const particleGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+            
+            // Material for particles in superposition
+            const superpositionMaterial = new THREE.MeshBasicMaterial({
+                color: 0x7F9CBB,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            // Materials for measured states
+            const upMaterial = new THREE.MeshBasicMaterial({
+                color: 0xFFD28E,
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            const downMaterial = new THREE.MeshBasicMaterial({
+                color: 0xD66D50,
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            // Create particles
+            const particle1 = new THREE.Mesh(particleGeometry, superpositionMaterial.clone());
+            particle1.position.x = -2;
+            scene.add(particle1);
+            
+            const particle2 = new THREE.Mesh(particleGeometry, superpositionMaterial.clone());
+            particle2.position.x = 2;
+            scene.add(particle2);
+            
+            // Create entanglement line
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0xFFD28E,
+                transparent: true,
+                opacity: 0.5
+            });
+            
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(-2, 0, 0),
+                new THREE.Vector3(2, 0, 0)
+            ]);
+            
+            const line = new THREE.Line(lineGeometry, lineMaterial);
+            scene.add(line);
+            
+            // Animation
+            let isMeasured = false;
+            let particleState = null;
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Rotate particles
+                particle1.rotation.y += 0.01;
+                particle2.rotation.y += 0.01;
+                
+                if (!isMeasured) {
+                    // Pulsating effect for superposition
+                    const scale = 0.9 + 0.2 * Math.sin(Date.now() * 0.002);
+                    particle1.scale.set(scale, scale, scale);
+                    particle2.scale.set(scale, scale, scale);
+                    
+                    // Pulsating line for entanglement
+                    line.material.opacity = 0.3 + 0.4 * Math.sin(Date.now() * 0.002);
+                }
+                
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+            
+            // Expose measurement function
+            window.measureSimulatedParticle = function(position) {
+                if (isMeasured) return;
+                
+                isMeasured = true;
+                particleState = Math.random() < 0.5 ? 'up' : 'down';
+                
+                // Update materials
+                const measuredParticle = position === 'left' ? particle1 : particle2;
+                const otherParticle = position === 'left' ? particle2 : particle1;
+                
+                measuredParticle.material = particleState === 'up' ? upMaterial : downMaterial;
+                
+                // Delayed update of other particle
+                setTimeout(() => {
+                    otherParticle.material = particleState === 'up' ? downMaterial : upMaterial;
+                    line.material.opacity = 0.2;
+                }, 500);
+            };
+            
+            // Expose reset function
+            window.resetSimulation = function() {
+                isMeasured = false;
+                particleState = null;
+                
+                particle1.material = superpositionMaterial.clone();
+                particle2.material = superpositionMaterial.clone();
+            };
+        }
+        
+        // Quiz logic
+        const checkBtn = document.getElementById('check-answers');
+        const resultsDiv = document.getElementById('quiz-results');
+        
+        checkBtn.addEventListener('click', () => {
+            const q1Answer = document.querySelector('input[name="q1"]:checked')?.value;
+            const q2Answer = document.querySelector('input[name="q2"]:checked')?.value;
+            const q3Answer = document.querySelector('input[name="q3"]:checked')?.value;
+            
+            if (!q1Answer || !q2Answer || !q3Answer) {
+                resultsDiv.innerHTML = '<p class="text-horizon-red">Please answer all questions.</p>';
+                resultsDiv.classList.remove('hidden');
+                return;
+            }
+            
+            let correctCount = 0;
+            let feedback = '<p class="mono text-telemetry-blue mb-2">ASSESSMENT RESULTS:</p>';
+            
+            // Check answers
+            if (q1Answer === 'b') {
+                feedback += '<p>✓ Question 1: Correct! When one entangled particle is measured, the state of its partner is instantly determined, regardless of distance.</p>';
+                correctCount++;
+            } else {
+                feedback += '<p>✗ Question 1: Incorrect. No signal is sent, but the other particle\'s state is instantly determined.</p>';
+            }
+            
+            if (q2Answer === 'b') {
+                feedback += '<p>✓ Question 2: Correct! Einstein was concerned that quantum entanglement appeared to allow information to travel faster than light, which would violate his theory of relativity.</p>';
+                correctCount++;
+            } else {
+                feedback += '<p>✗ Question 2: Incorrect. Einstein called entanglement "spooky action at a distance" because it seemed to allow faster-than-light communication.</p>';
+            }
+            
+            if (q3Answer === 'c') {
+                feedback += '<p>✓ Question 3: Correct! In quantum teleportation, only the quantum state or information is transferred, not the physical particle itself.</p>';
+                correctCount++;
+            } else {
+                feedback += '<p>✗ Question 3: Incorrect. Quantum teleportation transfers quantum information/state, not physical matter or energy.</p>';
+            }
+            
+            feedback += `<p class="mt-4 text-lg ${correctCount === 3 ? 'text-horizon-gold' : 'text-horizon-red'}">Total score: ${correctCount}/3</p>`;
+            
+            resultsDiv.innerHTML = feedback;
+            resultsDiv.classList.remove('hidden');
+        });
+        
+        // Initialize everything when document is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Select initial angles for Bell test
+            document.querySelector('#alice-choice .angle-button[data-angle="0"]').click();
+            document.querySelector('#bob-choice .angle-button[data-angle="0"]').click();
+            
+            // Initialize probability chart
+            initProbabilityChart();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ancient Acoustics: The Sound of History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <style>
+        :root {
+            --void-black: #030305;
+            --horizon-gold: #FFD28E;
+            --horizon-red: #D66D50;
+            --telemetry-blue: #7F9CBB;
+            --glass-bg: rgba(15, 15, 20, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        body {
+            background-color: var(--void-black);
+            color: white;
+            font-family: 'Playfair Display', serif;
+            background-image: radial-gradient(circle at 50% 50%, transparent 90%, var(--void-black)),
+                             url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="100%" height="100%" fill="%23030305"/><g fill="white"><circle cx="10" cy="10" r="1" opacity="0.4"/><circle cx="40" cy="30" r="0.5" opacity="0.3"/><circle cx="70" cy="15" r="0.8" opacity="0.5"/><circle cx="120" cy="50" r="0.4" opacity="0.2"/><circle cx="150" cy="30" r="0.6" opacity="0.3"/><circle cx="180" cy="90" r="1" opacity="0.5"/><circle cx="22" cy="95" r="0.7" opacity="0.4"/><circle cx="57" cy="170" r="0.5" opacity="0.2"/><circle cx="95" cy="140" r="0.8" opacity="0.4"/><circle cx="130" cy="180" r="0.6" opacity="0.3"/><circle cx="170" cy="170" r="0.7" opacity="0.4"/><circle cx="25" cy="65" r="0.5" opacity="0.3"/><circle cx="178" cy="40" r="0.5" opacity="0.3"/><circle cx="190" cy="120" r="0.6" opacity="0.4"/><circle cx="80" cy="70" r="0.3" opacity="0.2"/><circle cx="166" cy="143" r="0.5" opacity="0.3"/></g></svg>');
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        code, .monospace {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .horizon-gold {
+            color: var(--horizon-gold);
+        }
+
+        .horizon-red {
+            color: var(--horizon-red);
+        }
+
+        .telemetry-blue {
+            color: var(--telemetry-blue);
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        #audioVisualizer {
+            width: 100%;
+            height: 150px;
+            border-radius: 6px;
+        }
+
+        canvas {
+            border-radius: 6px;
+        }
+
+        .site-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .site-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .quiz-option {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background-color: rgba(127, 156, 187, 0.2);
+        }
+        
+        .quiz-option.correct {
+            background-color: rgba(100, 220, 120, 0.2);
+            border-color: rgba(100, 220, 120, 0.6);
+        }
+        
+        .quiz-option.incorrect {
+            background-color: rgba(220, 100, 100, 0.2);
+            border-color: rgba(220, 100, 100, 0.6);
+        }
+
+        /* Staggered fade-in animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .acoustic-property {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .acoustic-property:hover {
+            background-color: rgba(127, 156, 187, 0.2);
+            transform: translateY(-2px);
+        }
+
+        #frequencyGenerator {
+            position: relative;
+            width: 100%;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        #frequencySlider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, var(--telemetry-blue), var(--horizon-gold), var(--horizon-red));
+            outline: none;
+            border-radius: 2px;
+        }
+
+        #frequencySlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--horizon-gold);
+            cursor: pointer;
+            border: 2px solid var(--void-black);
+            box-shadow: 0 0 5px rgba(255, 210, 142, 0.7);
+        }
+
+        #frequencySlider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--horizon-gold);
+            cursor: pointer;
+            border: 2px solid var(--void-black);
+            box-shadow: 0 0 5px rgba(255, 210, 142, 0.7);
+        }
+
+        /* 3D model viewer styles */
+        .model-viewer-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .model-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+        }
+
+        .model-controls button {
+            background-color: rgba(15, 15, 20, 0.7);
+            color: white;
+            border: 1px solid var(--horizon-gold);
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .model-controls button:hover {
+            background-color: var(--horizon-gold);
+            color: var(--void-black);
+        }
+
+        /* Interactive timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--horizon-gold), var(--telemetry-blue));
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--horizon-red);
+            border: 2px solid var(--void-black);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="glass-panel sticky top-0 z-50 p-4 mb-6">
+        <div class="container mx-auto flex items-center justify-between">
+            <h1 class="text-xl md:text-2xl font-bold horizon-gold flex items-center">
+                <i data-lucide="radio" class="mr-2"></i>
+                Ancient Acoustics
+            </h1>
+            <div class="flex items-center space-x-4">
+                <a href="#introduction" class="hidden md:inline-block telemetry-blue hover:text-white transition">Introduction</a>
+                <a href="#historic-sites" class="hidden md:inline-block telemetry-blue hover:text-white transition">Historic Sites</a>
+                <a href="#acoustic-analysis" class="hidden md:inline-block telemetry-blue hover:text-white transition">Acoustic Analysis</a>
+                <a href="#sound-explorer" class="hidden md:inline-block telemetry-blue hover:text-white transition">Sound Explorer</a>
+                <a href="#quiz" class="hidden md:inline-block telemetry-blue hover:text-white transition">Test Yourself</a>
+                <button class="md:hidden" id="menuToggle">
+                    <i data-lucide="menu" class="telemetry-blue"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden container mx-auto mt-4 flex flex-col space-y-2">
+            <a href="#introduction" class="telemetry-blue hover:text-white transition py-2">Introduction</a>
+            <a href="#historic-sites" class="telemetry-blue hover:text-white transition py-2">Historic Sites</a>
+            <a href="#acoustic-analysis" class="telemetry-blue hover:text-white transition py-2">Acoustic Analysis</a>
+            <a href="#sound-explorer" class="telemetry-blue hover:text-white transition py-2">Sound Explorer</a>
+            <a href="#quiz" class="telemetry-blue hover:text-white transition py-2">Test Yourself</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="container mx-auto px-4 py-12 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-4 fade-in">
+            <span class="horizon-gold">Ancient</span> 
+            <span class="telemetry-blue">Acoustics</span>
+        </h1>
+        <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto fade-in" style="animation-delay: 0.2s">
+            Exploring how historic structures shaped sound, and what our ancestors heard
+        </p>
+        <div class="flex justify-center space-x-4 mb-12 fade-in" style="animation-delay: 0.4s">
+            <a href="#sound-explorer" class="btn bg-gradient-to-r from-[#D66D50] to-[#FFD28E] text-white font-bold py-3 px-6 rounded-lg">
+                Explore Sounds
+            </a>
+            <a href="#historic-sites" class="btn bg-transparent border border-[#7F9CBB] text-[#7F9CBB] font-bold py-3 px-6 rounded-lg">
+                View Historic Sites
+            </a>
+        </div>
+    </section>
+
+    <!-- Introduction Section -->
+    <section id="introduction" class="container mx-auto px-4 py-12">
+        <div class="glass-panel p-6 md:p-8 max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-6 horizon-gold">Sound Archaeology: Hearing the Past</h2>
+            
+            <p class="mb-6">
+                Archaeoacoustics—the study of sound in archaeological contexts—reveals how our ancestors designed spaces to harness and manipulate sound. From megalithic chambers to medieval cathedrals, human structures have shaped sound for ritual, communication, and aesthetic purposes for thousands of years.
+            </p>
+            
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold mb-4 telemetry-blue">Why Study Ancient Acoustics?</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="glass-panel p-4">
+                        <h4 class="font-bold horizon-gold mb-2">Cultural Understanding</h4>
+                        <p>Sound was integral to ancient ceremonies, performances, and daily life—studying acoustics gives us insight into past cultures.</p>
+                    </div>
+                    <div class="glass-panel p-4">
+                        <h4 class="font-bold horizon-gold mb-2">Intentional Design</h4>
+                        <p>Many ancient sites show evidence of deliberate acoustic engineering, challenging our assumptions about ancient knowledge.</p>
+                    </div>
+                    <div class="glass-panel p-4">
+                        <h4 class="font-bold horizon-gold mb-2">Lost Knowledge</h4>
+                        <p>Acoustic properties represent a form of intangible heritage that conventional archaeology may miss entirely.</p>
+                    </div>
+                    <div class="glass-panel p-4">
+                        <h4 class="font-bold horizon-gold mb-2">Modern Applications</h4>
+                        <p>Ancient acoustic solutions can inform contemporary architectural and acoustic design challenges.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="timeline mb-6">
+                <h3 class="text-2xl font-bold mb-6 telemetry-blue">A Brief Timeline of Acoustic Architecture</h3>
+                
+                <div class="timeline-item">
+                    <h4 class="font-bold horizon-gold">Prehistoric (10,000+ BCE)</h4>
+                    <p>Cave paintings often found in chambers with specific acoustic properties. Paleolithic flutes and whistles show early sound design.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <h4 class="font-bold horizon-gold">Megalithic Period (5000-2000 BCE)</h4>
+                    <p>Structures like Newgrange and Stonehenge feature spaces that amplify or focus sound in specific ways.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <h4 class="font-bold horizon-gold">Classical Antiquity (800 BCE-500 CE)</h4>
+                    <p>Greek theaters designed for perfect acoustics. Roman innovations in acoustic pots and architectural sound design.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <h4 class="font-bold horizon-gold">Medieval Period (500-1500 CE)</h4>
+                    <p>Gothic cathedrals engineered for specific reverberation times to enhance Gregorian chant and organ music.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <h4 class="font-bold horizon-gold">Renaissance & Baroque (1400-1750 CE)</h4>
+                    <p>Theaters and concert halls designed with increasingly sophisticated acoustic knowledge.</p>
+                </div>
+            </div>
+            
+            <div id="audioVisualizer" class="glass-panel">
+                <canvas id="introCanvas"></canvas>
+            </div>
+            
+            <p class="text-sm text-center mt-2 italic">
+                Listen to this reconstruction of how a Neolithic stone chamber might have sounded
+            </p>
+            
+            <div class="flex justify-center mt-4">
+                <button id="playNeolithicSound" class="btn glass-panel px-6 py-2 horizon-gold border border-[#FFD28E] hover:bg-[#FFD28E] hover:text-[#030305] transition-all">
+                    <i data-lucide="play" class="inline mr-2"></i> Play Neolithic Chamber Sound
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Historic Sites Section -->
+    <section id="historic-sites" class="container mx-auto px-4 py-12">
+        <h2 class="text-3xl font-bold mb-8 text-center horizon-gold">Notable Acoustic Sites</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <!-- Stonehenge -->
+            <div class="site-card glass-panel overflow-hidden" id="stonehenge-card" data-site="stonehenge">
+                <div class="h-48 bg-gradient-to-b from-[#1a1a2e] to-transparent relative overflow-hidden">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <svg viewBox="0 0 100 50" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+                            <!-- Simplified Stonehenge silhouette -->
+                            <rect x="20" y="30" width="5" height="20" fill="#7F9CBB" />
+                            <rect x="25" y="25" width="10" height="5" fill="#7F9CBB" />
+                            <rect x="35" y="30" width="5" height="20" fill="#7F9CBB" />
+                            <rect x="45" y="30" width="5" height="20" fill="#7F9CBB" />
+                            <rect x="50" y="25" width="10" height="5" fill="#7F9CBB" />
+                            <rect x="60" y="30" width="5" height="20" fill="#7F9CBB" />
+                            <rect x="70" y="30" width="5" height="20" fill="#7F9CBB" />
+                            <rect x="75" y="25" width="10" height="5" fill="#7F9CBB" />
+                            <rect x="85" y="30" width="5" height="20" fill="#7F9CBB" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-2 telemetry-blue">Stonehenge</h3>
+                    <p class="mb-4 text-sm">
+                        The megalithic monument in England displays unusual acoustic properties. The stone circle creates a space where sounds reflect in distinctive patterns, with some researchers suggesting it may have been designed as a resonance chamber.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs horizon-gold">3000-2000 BCE</span>
+                        <button class="site-learn-more text-xs telemetry-blue hover:text-white">
+                            Learn More
+                            <i data-lucide="chevron-right" class="inline w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chichen Itza -->
+            <div class="site-card glass-panel overflow-hidden" id="chichen-itza-card" data-site="chichen-itza">
+                <div class="h-48 bg-gradient-to-b from-[#1a1a2e] to-transparent relative overflow-hidden">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <svg viewBox="0 0 100 60" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+                            <!-- Simplified El Castillo pyramid -->
+                            <polygon points="10,50 50,10 90,50" fill="#D66D50" />
+                            <polygon points="20,50 50,20 80,50" fill="#FFD28E" />
+                            <rect x="45" y="50" width="10" height="10" fill="#D66D50" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-2 telemetry-blue">Chichen Itza</h3>
+                    <p class="mb-4 text-sm">
+                        The Maya pyramid El Castillo produces a chirping echo resembling the quetzal bird when you clap at its base. The Temple of Kukulkan also creates a raindrop sound effect with footsteps on the stairs.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs horizon-gold">600-1200 CE</span>
+                        <button class="site-learn-more text-xs telemetry-blue hover:text-white">
+                            Learn More
+                            <i data-lucide="chevron-right" class="inline w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chartres Cathedral -->
+            <div class="site-card glass-panel overflow-hidden" id="chartres-card" data-site="chartres">
+                <div class="h-48 bg-gradient-to-b from-[#1a1a2e] to-transparent relative overflow-hidden">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <svg viewBox="0 0 100 80" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+                            <!-- Simplified Gothic cathedral -->
+                            <rect x="30" y="40" width="40" height="40" fill="#7F9CBB" />
+                            <polygon points="30,40 50,10 70,40" fill="#7F9CBB" />
+                            <rect x="45" y="60" width="10" height="20" fill="#030305" />
+                            <circle cx="50" cy="30" r="10" fill="#030305" stroke="#7F9CBB" stroke-width="2" />
+                            <rect x="48" y="5" width="4" height="5" fill="#7F9CBB" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-2 telemetry-blue">Chartres Cathedral</h3>
+                    <p class="mb-4 text-sm">
+                        This Gothic masterpiece features carefully designed acoustics with a reverberation time of about 8 seconds. The space was engineered to enhance Gregorian chant and create an otherworldly auditory experience.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs horizon-gold">1194-1220 CE</span>
+                        <button class="site-learn-more text-xs telemetry-blue hover:text-white">
+                            Learn More
+                            <i data-lucide="chevron-right" class="inline w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="site-details" class="max-w-5xl mx-auto mt-10 hidden">
+            <div class="glass-panel p-6">
+                <button id="back-to-sites" class="mb-6 flex items-center text-telemetry-blue hover:text-white">
+                    <i data-lucide="arrow-left" class="inline mr-2"></i> Back to all sites
+                </button>
+                
+                <div id="stonehenge-details" class="site-detail-content hidden">
+                    <h3 class="text-2xl font-bold mb-4 horizon-gold">Stonehenge: Neolithic Sound Engineering</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <p class="mb-4">
+                                Recent acoustic studies at Stonehenge have revealed fascinating properties that suggest the site may have been designed with sound in mind. The arrangement of the stones creates a space that:
+                            </p>
+                            
+                            <ul class="list-disc list-inside space-y-2 mb-4">
+                                <li>Amplifies human voice within the inner circle</li>
+                                <li>Creates distinct echoes and reverberations</li>
+                                <li>Filters certain frequency ranges</li>
+                                <li>Produces standing waves at specific frequencies</li>
+                            </ul>
+                            
+                            <p>
+                                The bluestones, transported from Wales, have been shown to have unusual acoustic properties—many of them "ring" like bells when struck, producing clear tones.
+                            </p>
+                        </div>
+                        
+                        <div class="model-viewer-container glass-panel">
+                            <div id="stonehenge-model" class="h-full flex items-center justify-center">
+                                <svg viewBox="0 0 200 150" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+                                    <!-- More detailed Stonehenge -->
+                                    <circle cx="100" cy="75" r="60" fill="none" stroke="#7F9CBB" stroke-width="1" stroke-dasharray="2" />
+                                    <circle cx="100" cy="75" r="45" fill="none" stroke="#7F9CBB" stroke-width="1" stroke-dasharray="2" />
+                                    
+                                    <!-- Outer circle stones -->
+                                    <rect x="40" y="75" width="5" height="30" fill="#7F9CBB" />
+                                    <rect x="45" y="70" width="10" height="5" fill="#7F9CBB" />
+                                    <rect x="55" y="75" width="5" height="30" fill="#7F9CBB" />
+                                    
+                                    <rect x="70" y="75" width="5" height="30" fill="#7F9CBB" />
+                                    <rect x="75" y="70" width="10" height="5" fill="#7F9CBB" />
+                                    <rect x="85" y="75" width="5" height="30" fill="#7F9CBB" />
+                                    
+                                    <rect x="140" y="75" width="5" height="30" fill="#7F9CBB" />
+                                    <rect x="145" y="70" width="10" height="5" fill="#7F9CBB" />
+                                    <rect x="155" y="75" width="5" height="30" fill="#7F9CBB" />
+                                    
+                                    <!-- Inner horseshoe -->
+                                    <rect x="85" y="40" width="8" height="25" fill="#7F9CBB" />
+                                    <rect x="107" y="40" width="8" height="25" fill="#7F9CBB" />
+                                    
+                                    <rect x="75" y="110" width="8" height="25" fill="#7F9CBB" />
+                                    <rect x="117" y="110" width="8" height="25" fill="#7F9CBB" />
+                                    
+                                    <rect x="60" y="90" width="8" height="25" fill="#7F9CBB" />
+                                    <rect x="132" y="90" width="8" height="25" fill="#7F9CBB" />
+                                    
+                                    <!-- Altar stone -->
+                                    <rect x="90" y="75" width="20" height="5" fill="#D66D50" />
+                                </svg>
+                            </div>
+                            <div class="model-controls">
+                                <button id="play-stonehenge-sound">Play Acoustic Demo</button>
+                                <button id="stop-stonehenge-sound">Stop</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4 class="text-xl font-bold mb-4 telemetry-blue">Acoustic Research Findings</h4>
+                    
+                    <div class="acoustic-property glass-panel p-4 mb-4" data-freq="110">
+                        <h5 class="font-bold horizon-gold mb-1">Low-Frequency Resonance: 110 Hz</h5>
+                        <p>The inner circle resonates strongly at 110 Hz—close to adult male speech frequencies. This frequency has been shown to affect brain activity in a way that might induce trance-like states.</p>
+                    </div>
+                    
+                    <div class="acoustic-property glass-panel p-4 mb-4" data-freq="220">
+                        <h5 class="font-bold horizon-gold mb-1">Reflection Patterns: 220 Hz</h5>
+                        <p>Sound waves at 220 Hz create standing waves between oppositely placed stones, potentially enhancing ritual chanting and percussion.</p>
+                    </div>
+                    
+                    <div class="acoustic-property glass-panel p-4 mb-6" data-freq="440">
+                        <h5 class="font-bold horizon-gold mb-1">Bluestone Ringing: ~440 Hz</h5>
+                        <p>Many bluestones ring at frequencies near 440 Hz when struck gently, suggesting they might have been selected partly for their acoustic qualities.</p>
+                    </div>
+                    
+                    <blockquote class="border-l-4 border-[#FFD28E] pl-4 italic mb-6">
+                        "The sonic properties of Stonehenge strongly suggest it was designed as a space to enhance ritual sounds, creating an immersive auditory experience unlike anything else in Neolithic Britain."
+                        <footer class="text-right text-sm">— Dr. Rupert Till, University of Huddersfield</footer>
+                    </blockquote>
+                </div>
+                
+                <div id="chichen-itza-details" class="site-detail-content hidden">
+                    <h3 class="text-2xl font-bold mb-4 horizon-gold">Chichen Itza: Maya Acoustic Engineering</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <p class="mb-4">
+                                The ancient Maya created several remarkable acoustic phenomena at their ceremonial center of Chichen Itza. The most famous is the handclap echo at the El Castillo pyramid, which produces a chirping sound remarkably similar to the quetzal bird—a sacred animal in Maya culture.
+                            </p>
+                            
+                            <p class="mb-4">
+                                These acoustic features were not accidents but deliberately engineered effects that:
+                            </p>
+                            
+                            <ul class="list-disc list-inside space-y-2 mb-4">
+                                <li>Connected architectural spaces to natural sounds</li>
+                                <li>Reinforced religious and cosmological beliefs</li>
+                                <li>Created theatrical effects for ceremonies</li>
+                                <li>Demonstrated the ruler's command over supernatural forces</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="model-viewer-container glass-panel">
+                            <div id="chichen-itza-model" class="h-full flex items-center justify-center">
+                                <svg viewBox="0 0 200 150" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+                                    <!-- El Castillo pyramid -->
+                                    <polygon points="50,120 100,30 150,120" fill="#D66D50" />
+                                    
+                                    <!-- Steps -->
+                                    <polygon points="60,120 100,40 140,120" fill="#FFD28E" />
+                                    <polygon points="70,120 100,50 130,120" fill="#D66D50" />
+                                    <polygon points="80,120 100,60 120,120" fill="#FFD28E" />
+                                    <polygon points="90,120 100,70 110,120" fill="#D66D50" />
+                                    
+                                    <!-- Temple on top -->
+                                    <rect x="90" y="30" width="20" height="10" fill="#7F9CBB" />
+                                    
+                                    <!-- Plaza -->
+                                    <rect x="40" y="120" width="120" height="5" fill="#7F9CBB" opacity="0.5" />
+                                </svg>
+                            </div>
+                            <div class="model-controls">
+                                <button id="play-chichen-itza-sound">Play Quetzal Echo</button>
+                                <button id="play-rain-sound">Play Rain Effect</button>
+                                <button id="stop-chichen-itza-sound">Stop</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4 class="text-xl font-bold mb-4 telemetry-blue">Key Acoustic Features</h4>
+                    
+                    <div class="acoustic-property glass-panel p-4 mb-4" data-freq="1800">
+                        <h5 class="font-bold horizon-gold mb-1">Quetzal Echo: ~1800 Hz</h5>
+                        <p>A handclap at the base of El Castillo produces a chirping echo through frequency-specific reflections. The stepped design acts as a sonic diffraction grating, delaying different frequencies.</p>
+                    </div>
+                    
+                    <div class="acoustic-property glass-panel p-4 mb-4" data-freq="500">
+                        <h5 class="font-bold horizon-gold mb-1">Raindrop Sound: ~500 Hz</h5>
+                        <p>Footsteps on the pyramid's stairs create an echo that sounds remarkably like raindrops falling into water—possibly invoking Chaac, the Maya rain deity.</p>
+                    </div>
+                    
+                    <div class="acoustic-property glass-panel p-4 mb-6" data-freq="85">
+                        <h5 class="font-bold horizon-gold mb-1">Ball Court Whisper: 85-95 Hz</h5>
+                        <p>The Great Ball Court has extraordinary acoustics where a whisper can be heard 150 meters away—amplifying the voices of rulers or priests during ceremonies.</p>
+                    </div>
+                    
+                    <blockquote class="border-l-4 border-[#FFD28E] pl-4 italic mb-6">
+                        "The Maya didn't separate art, architecture, and acoustics—these were unified aspects of creating sacred spaces that mirrored their understanding of the cosmos."
+                        <footer class="text-right text-sm">— Dr. David Lubman, Acoustical Consultant</footer>
+                    </blockquote>
+                </div>
+                
+                <div id="chartres-details" class="site-detail-content hidden">
+                    <h3 class="text-2xl font-bold mb-4 horizon-gold">Chartres Cathedral: Gothic Acoustic Architecture</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <p class="mb-4">
+                                Chartres Cathedral represents the pinnacle of medieval acoustic design. Its soaring vaulted ceilings, stone surfaces, and calculated proportions create a reverberant space perfectly suited to Gregorian chant and religious ceremonies.
+                            </p>
+                            
+                            <p class="mb-4">
+                                The cathedral's acoustic properties:
+                            </p>
+                            
+                            <ul class="list-disc list-inside space-y-2 mb-4">
+                                <li>Reverberation time of 8-9 seconds (compared to 1-2 seconds in modern buildings)</li>
+                                <li>Even sound distribution throughout the nave</li>
+                                <li>Enhancement of male voices in the choir range</li>
+                                <li>Diffusion patterns that create a sense of sound coming from all directions</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="model-viewer-container glass-panel">
+                            <div id="chartres-model" class="h-full flex items-center justify-center">
+                                <svg viewBox="0 0 200 150" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+                                    <!-- Cathedral base -->
+                                    <rect x="50" y="70" width="100" height="70" fill="#7F9CBB" opacity="0.7" />
+                                    
+                                    <!-- Nave -->
+                                    <rect x="70" y="70" width="60" height="70" fill="#030305" />
+                                    
+                                    <!-- Apse -->
+                                    <path d="M130,70 L130,140 A60,60 0 0,0 130,70" fill="#7F9CBB" opacity="0.5" />
+                                    
+                                    <!-- Roof -->
+                                    <polygon points="70,70 100,20 130,70" fill="#7F9CBB" opacity="0.8" />
+                                    
+                                    <!-- Rose window -->
+                                    <circle cx="100" cy="45" r="15" fill="#030305" />
+                                    <circle cx="100" cy="45" r="12" fill="none" stroke="#FFD28E" stroke-width="1" />
+                                    <circle cx="100" cy="45" r="8" fill="none" stroke="#FFD28E" stroke-width="1" />
+                                    <circle cx="100" cy="45" r="4" fill="none" stroke="#FFD28E" stroke-width="1" />
+                                    
+                                    <!-- Door -->
+                                    <rect x="95" y="110" width="10" height="30" fill="#030305" stroke="#7F9CBB" stroke-width="1" />
+                                    
+                                    <!-- Spire -->
+                                    <polygon points="97,20 100,5 103,20" fill="#7F9CBB" />
+                                </svg>
+                            </div>
+                            <div class="model-controls">
+                                <button id="play-gregorian-chant">Play Gregorian Chant</button>
+                                <button id="play-organ">Play Organ</button>
+                                <button id="stop-chartres-sound">Stop</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4 class="text-xl font-bold mb-4 telemetry-blue">Acoustic Engineering Features</h4>
+                    
+                    <div class="acoustic-property glass-panel p-4 mb-4" data-freq="250">
+                        <h5 class="font-bold horizon-gold mb-1">Male Voice Range: 100-250 Hz</h5>
+                        <p>The cathedral's proportions enhance frequencies in the male vocal range, particularly around 150-250 Hz, making Gregorian chant remarkably clear despite the long reverberation.</p>
+                    </div>
+                    
+                    <div class="acoustic-property glass-panel p-4 mb-4" data-freq="700">
+                        <h5 class="font-bold horizon-gold mb-1">Acoustic Sweet Spot: 700 Hz</h5>
+                        <p>Sound waves at around 700 Hz create a focusing effect near the choir, allowing priests to hear each other clearly while their collective voices projected into the nave.</p>
+                    </div>
+                    
+                    <div class="acoustic-property glass-panel p-4 mb-6" data-freq="50">
+                        <h5 class="font-bold horizon-gold mb-1">Organ Fundamentals: 30-60 Hz</h5>
+                        <p>The lowest pipes of the organ produce fundamental frequencies that make the entire cathedral vibrate subtly, creating a physical sensation of divine presence.</p>
+                    </div>
+                    
+                    <blockquote class="border-l-4 border-[#FFD28E] pl-4 italic mb-6">
+                        "Medieval master builders understood acoustic principles intuitively or empirically long before the science of acoustics was formalized. The Gothic cathedral is as much an acoustic achievement as an architectural one."
+                        <footer class="text-right text-sm">— Dr. Sharon Gerstel, UCLA</footer>
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Acoustic Analysis Section -->
+    <section id="acoustic-analysis" class="container mx-auto px-4 py-12">
+        <div class="glass-panel p-6 md:p-8 max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-6 horizon-gold">Acoustic Analysis: How We Study Ancient Sounds</h2>
+            
+            <p class="mb-6">
+                Archaeoacoustics uses a range of techniques to investigate, measure, and reconstruct the acoustic properties of historic sites—bringing ancient soundscapes back to life.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="glass-panel p-4 hover:border-[#FFD28E] transition-all duration-300">
+                    <h3 class="font-bold horizon-gold mb-2">Acoustic Measurement</h3>
+                    <p class="mb-2">Modern equipment captures impulse responses, reverberation times, and frequency responses of spaces.</p>
+                    <p class="text-sm italic">Equipment: Specialized microphones, speakers, sound level meters, and impulse sources like starter pistols or balloon pops.</p>
+                </div>
+                
+                <div class="glass-panel p-4 hover:border-[#FFD28E] transition-all duration-300">
+                    <h3 class="font-bold horizon-gold mb-2">Computer Modeling</h3>
+                    <p class="mb-2">3D acoustic models simulate how sound would behave in reconstructed spaces, even when sites are partially ruined.</p>
+                    <p class="text-sm italic">Software: Ray-tracing algorithms, finite element analysis, and auralization technology.</p>
+                </div>
+                
+                <div class="glass-panel p-4 hover:border-[#FFD28E] transition-all duration-300">
+                    <h3 class="font-bold horizon-gold mb-2">Experimental Archaeology</h3>
+                    <p class="mb-2">Researchers recreate ancient instruments and performance practices to test acoustic theories.</p>
+                    <p class="text-sm italic">Examples: Reconstructing bone flutes, lithophone instruments, or attempting to reproduce ceremonial sounds.</p>
+                </div>
+                
+                <div class="glass-panel p-4 hover:border-[#FFD28E] transition-all duration-300">
+                    <h3 class="font-bold horizon-gold mb-2">Psychoacoustic Studies</h3>
+                    <p class="mb-2">Examines how acoustic environments might have affected human perception and experience.</p>
+                    <p class="text-sm italic">Focus: Altered states of consciousness, emotional responses, and auditory illusions in ritual contexts.</p>
+                </div>
+            </div>
+            
+            <h3 class="text-2xl font-bold mb-4 telemetry-blue">Frequency Analysis: The Acoustic Fingerprint</h3>
+            
+            <p class="mb-4">
+                Every space has a unique acoustic "fingerprint"—the way it responds to different sound frequencies. By examining these patterns, researchers can identify intentional acoustic features and their likely uses.
+            </p>
+            
+            <div id="frequencyAnalyzer" class="glass-panel p-4 mb-6">
+                <canvas id="frequencyCanvas" height="200"></canvas>
+            </div>
+            
+            <div class="flex flex-col space-y-4 mb-6">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="monospace text-sm">Space Type:</span>
+                        <select id="spaceTypeSelect" class="bg-[#030305] border border-[#7F9CBB] rounded px-3 py-1 text-sm">
+                            <option value="cave">Paleolithic Cave</option>
+                            <option value="stone-chamber">Neolithic Stone Chamber</option>
+                            <option value="greek-theater">Greek Theater</option>
+                            <option value="gothic-cathedral">Gothic Cathedral</option>
+                        </select>
+                    </div>
+                    <div id="spaceDescription" class="text-sm italic mb-4">
+                        Paleolithic caves often exhibit resonances between 95-120 Hz, frequencies that can induce mild trance states and correspond to locations of cave paintings.
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="monospace text-sm">Test Frequency:</span>
+                        <span id="frequencyValue" class="monospace text-sm">110 Hz</span>
+                    </div>
+                    <div id="frequencyGenerator">
+                        <input type="range" id="frequencySlider" min="50" max="1000" value="110" class="w-full">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-center mb-4">
+                <button id="playFrequency" class="btn glass-panel px-6 py-2 horizon-gold border border-[#FFD28E] hover:bg-[#FFD28E] hover:text-[#030305] transition-all mr-4">
+                    <i data-lucide="play" class="inline mr-2"></i> Play Tone
+                </button>
+                <button id="stopFrequency" class="btn glass-panel px-6 py-2 horizon-red border border-[#D66D50] hover:bg-[#D66D50] hover:text-[#030305] transition-all">
+                    <i data-lucide="square" class="inline mr-2"></i> Stop
+                </button>
+            </div>
+            
+            <h4 class="text-xl font-bold mb-4 telemetry-blue">Key Frequency Ranges in Ancient Architecture</h4>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th class="text-left horizon-gold p-2">Frequency Range</th>
+                            <th class="text-left horizon-gold p-2">Example Sites</th>
+                            <th class="text-left horizon-gold p-2">Significance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="glass-panel">
+                        <tr class="border-b border-[#7F9CBB] border-opacity-30">
+                            <td class="p-2">90-120 Hz</td>
+                            <td class="p-2">Stonehenge, Newgrange</td>
+                            <td class="p-2">Male voice fundamental frequency; shown to affect brain activity</td>
+                        </tr>
+                        <tr class="border-b border-[#7F9CBB] border-opacity-30">
+                            <td class="p-2">200-300 Hz</td>
+                            <td class="p-2">Epidaurus Theater, Roman amphitheaters</td>
+                            <td class="p-2">Speech intelligibility range; enhanced in classical theaters</td>
+                        </tr>
+                        <tr class="border-b border-[#7F9CBB] border-opacity-30">
+                            <td class="p-2">500-700 Hz</td>
+                            <td class="p-2">Gothic cathedrals</td>
+                            <td class="p-2">Choral music enhancement; creates "enveloping" sensation</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2">1500-2000 Hz</td>
+                            <td class="p-2">Chichen Itza, Cave of the Dead</td>
+                            <td class="p-2">Animal mimicry (birds, jaguars); speech articulation</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sound Explorer Section -->
+    <section id="sound-explorer" class="container mx-auto px-4 py-12">
+        <div class="glass-panel p-6 md:p-8 max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-6 horizon-gold">Ancient Acoustics Explorer</h2>
+            <p class="mb-8">
+                Experience how different historic spaces shaped sound. This interactive tool applies acoustic models based on archaeological data to simulate the sound characteristics of various ancient environments.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">Choose a Space</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="acoustic-space glass-panel p-4 cursor-pointer hover:border-[#FFD28E]" data-space="cave">
+                            <h4 class="font-bold horizon-gold mb-1">Paleolithic Cave</h4>
+                            <p class="text-sm">Deep, narrow chambers with hard stone surfaces. Long reverberation with distinctive low-frequency resonances.</p>
+                        </div>
+                        
+                        <div class="acoustic-space glass-panel p-4 cursor-pointer hover:border-[#FFD28E]" data-space="megalithic">
+                            <h4 class="font-bold horizon-gold mb-1">Megalithic Chamber</h4>
+                            <p class="text-sm">Enclosed stone spaces like Newgrange or Maeshowe. Focused reflections with strong standing waves.</p>
+                        </div>
+                        
+                        <div class="acoustic-space glass-panel p-4 cursor-pointer hover:border-[#FFD28E]" data-space="greek-theater">
+                            <h4 class="font-bold horizon-gold mb-1">Greek Theater</h4>
+                            <p class="text-sm">Open-air theaters with remarkable speech clarity. Epidaurus allows whispers to be heard in the back row.</p>
+                        </div>
+                        
+                        <div class="acoustic-space glass-panel p-4 cursor-pointer hover:border-[#FFD28E]" data-space="cathedral">
+                            <h4 class="font-bold horizon-gold mb-1">Gothic Cathedral</h4>
+                            <p class="text-sm">Towering stone spaces with extremely long reverberation. Creates a "heavenly" acoustic atmosphere.</p>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-bold mt-6 mb-4 telemetry-blue">Choose a Sound</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <button class="sound-button glass-panel p-3 text-center hover:border-[#FFD28E]" data-sound="voice">
+                            <i data-lucide="mic" class="block mx-auto mb-2"></i>
+                            Voice
+                        </button>
+                        
+                        <button class="sound-button glass-panel p-3 text-center hover:border-[#FFD28E]" data-sound="drum">
+                            <i data-lucide="drum" class="block mx-auto mb-2"></i>
+                            Drum
+                        </button>
+                        
+                        <button class="sound-button glass-panel p-3 text-center hover:border-[#FFD28E]" data-sound="flute">
+                            <i data-lucide="music" class="block mx-auto mb-2"></i>
+                            Flute
+                        </button>
+                        
+                        <button class="sound-button glass-panel p-3 text-center hover:border-[#FFD28E]" data-sound="footsteps">
+                            <i data-lucide="footprints" class="block mx-auto mb-2"></i>
+                            Footsteps
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">Sound Visualization</h3>
+                    
+                    <div id="soundExplorerVisualizer" class="glass-panel h-48 mb-4">
+                        <canvas id="explorerCanvas" class="w-full h-full"></canvas>
+                    </div>
+                    
+                    <div class="flex justify-center mb-4">
+                        <button id="playExplorerSound" class="btn glass-panel px-6 py-2 horizon-gold border border-[#FFD28E] hover:bg-[#FFD28E] hover:text-[#030305] transition-all mr-4" disabled>
+                            <i data-lucide="play" class="inline mr-2"></i> Play
+                        </button>
+                        <button id="stopExplorerSound" class="btn glass-panel px-6 py-2 horizon-red border border-[#D66D50] hover:bg-[#D66D50] hover:text-[#030305] transition-all" disabled>
+                            <i data-lucide="square" class="inline mr-2"></i> Stop
+                        </button>
+                    </div>
+                    
+                    <div id="acousticParameters" class="glass-panel p-4">
+                        <h4 class="font-bold horizon-gold mb-2">Acoustic Parameters</h4>
+                        <div class="grid grid-cols-2 gap-4 monospace text-sm">
+                            <div>
+                                <p class="mb-1">Reverberation Time:</p>
+                                <p id="reverbTime" class="telemetry-blue">--</p>
+                            </div>
+                            <div>
+                                <p class="mb-1">Low Frequency Response:</p>
+                                <p id="lowFreqResponse" class="telemetry-blue">--</p>
+                            </div>
+                            <div>
+                                <p class="mb-1">Speech Clarity:</p>
+                                <p id="speechClarity" class="telemetry-blue">--</p>
+                            </div>
+                            <div>
+                                <p class="mb-1">Resonant Frequencies:</p>
+                                <p id="resonantFreqs" class="telemetry-blue">--</p>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <p class="mb-1">Historical Use:</p>
+                            <p id="historicalUse" class="italic">Select a space to see how it was used acoustically in its historical context.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section id="quiz" class="container mx-auto px-4 py-12 mb-20">
+        <div class="glass-panel p-6 md:p-8 max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-6 horizon-gold">Test Your Knowledge</h2>
+            <p class="mb-8">
+                How much have you learned about ancient acoustic design? Take this quiz to find out!
+            </p>
+            
+            <div id="quizContainer">
+                <div class="quiz-question mb-8">
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">1. Which acoustic effect can be heard at Chichen Itza when you clap your hands?</h3>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-correct="true">A chirping echo that resembles the quetzal bird</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">A roaring sound like a jaguar</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">A pure sine wave with no echo</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">A multi-layered echo that sounds like voices</div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">2. What frequency range has been found to resonate particularly strongly in Neolithic stone chambers?</h3>
+                    <div class="quiz-option glass-panel p-4 mb-3">20-40 Hz</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-correct="true">90-120 Hz</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">500-700 Hz</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">1000-1200 Hz</div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">3. The long reverberation time in Gothic cathedrals was particularly well-suited for:</h3>
+                    <div class="quiz-option glass-panel p-4 mb-3">Instrumental folk music</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">Public speeches and announcements</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-correct="true">Gregorian chant and organ music</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">Theatrical performances with multiple actors</div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">4. What is "archaeoacoustics"?</h3>
+                    <div class="quiz-option glass-panel p-4 mb-3">The study of ancient musical instruments</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">The science of restoring damaged audio recordings</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">The practice of using sound waves in archaeological excavation</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-correct="true">The study of acoustic properties and sound experiences at archaeological sites</div>
+                </div>
+                
+                <div class="quiz-question mb-8">
+                    <h3 class="text-xl font-bold mb-4 telemetry-blue">5. Which acoustic feature of Stonehenge suggests intentional acoustic design?</h3>
+                    <div class="quiz-option glass-panel p-4 mb-3">Its location far from any other sound sources</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">The use of materials that completely absorb sound</div>
+                    <div class="quiz-option glass-panel p-4 mb-3" data-correct="true">The bluestones that "ring" when struck and the circle's resonance at human voice frequencies</div>
+                    <div class="quiz-option glass-panel p-4 mb-3">The underground chambers that amplify footsteps</div>
+                </div>
+                
+                <button id="submitQuiz" class="btn bg-gradient-to-r from-[#D66D50] to-[#FFD28E] text-white font-bold py-3 px-6 rounded-lg">
+                    Submit Quiz
+                </button>
+            </div>
+            
+            <div id="quizResults" class="hidden mt-8">
+                <h3 class="text-2xl font-bold mb-4 horizon-gold">Your Score: <span id="quizScore">0</span>/5</h3>
+                <div id="quizFeedback" class="glass-panel p-6 border-t-4"></div>
+                
+                <div class="mt-8">
+                    <h4 class="text-xl font-bold mb-4 telemetry-blue">Learn More:</h4>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li>
+                            <a href="https://www.sonicwonders.org/" target="_blank" class="text-[#FFD28E] hover:underline">Sonic Wonders - Catalog of remarkable acoustic sites worldwide</a>
+                        </li>
+                        <li>
+                            <a href="https://soundslikescience.org" target="_blank" class="text-[#FFD28E] hover:underline">Sounds Like Science - Archaeoacoustics research center</a>
+                        </li>
+                        <li>
+                            <a href="https://www.amazon.com/Spaces-Speak-Are-You-Listening/dp/0262513175" target="_blank" class="text-[#FFD28E] hover:underline">"Spaces Speak, Are You Listening?" - Book on aural architecture</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="glass-panel p-6 text-center">
+        <p class="telemetry-blue">&copy; <span id="currentYear"></span> Horizon Project</p>
+        <p class="text-sm mt-2">Designed with <i data-lucide="heart" class="inline w-4 h-4 horizon-red"></i> by Justin Hart</p>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            
+            // Setup navigation menu toggle
+            const menuToggle = document.getElementById('menuToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            menuToggle?.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Setup Tone.js
+            let isInitialized = false;
+            let synth = null;
+            let oscillator = null;
+            let reverb = null;
+            
+            // Ensure Tone.js is initialized on first user interaction
+            function initAudio() {
+                if (!isInitialized) {
+                    Tone.start();
+                    synth = new Tone.Synth().toDestination();
+                    oscillator = new Tone.Oscillator().toDestination();
+                    reverb = new Tone.Reverb(3).toDestination();
+                    isInitialized = true;
+                }
+            }
+            
+            // Introduction section audio-visual
+            const introCanvas = document.getElementById('introCanvas');
+            const introCtx = introCanvas.getContext('2d');
+            
+            function resizeIntroCanvas() {
+                const container = document.getElementById('audioVisualizer');
+                introCanvas.width = container.clientWidth;
+                introCanvas.height = container.clientHeight;
+            }
+            
+            window.addEventListener('resize', resizeIntroCanvas);
+            resizeIntroCanvas();
+            
+            function drawIntroWaves() {
+                introCtx.clearRect(0, 0, introCanvas.width, introCanvas.height);
+                
+                // Draw background
+                introCtx.fillStyle = 'rgba(3, 3, 5, 0.3)';
+                introCtx.fillRect(0, 0, introCanvas.width, introCanvas.height);
+                
+                // Draw sound waves
+                const time = Date.now() / 1000;
+                const centerY = introCanvas.height / 2;
+                
+                introCtx.beginPath();
+                introCtx.moveTo(0, centerY);
+                
+                for (let x = 0; x < introCanvas.width; x++) {
+                    const frequency = 0.02;
+                    const amplitude = 20;
+                    
+                    // Create a more complex waveform with multiple frequencies
+                    const y = centerY + 
+                              Math.sin(x * frequency + time) * amplitude * 0.5 + 
+                              Math.sin(x * frequency * 0.5 + time * 1.3) * amplitude * 0.3 +
+                              Math.sin(x * frequency * 0.2 + time * 0.7) * amplitude * 0.2;
+                    
+                    introCtx.lineTo(x, y);
+                }
+                
+                introCtx.strokeStyle = '#FFD28E';
+                introCtx.lineWidth = 2;
+                introCtx.stroke();
+                
+                requestAnimationFrame(drawIntroWaves);
+            }
+            
+            drawIntroWaves();
+            
+            // Play Neolithic chamber sound
+            document.getElementById('playNeolithicSound').addEventListener('click', () => {
+                initAudio();
+                
+                // Create a reverb effect with long decay
+                const neolithicReverb = new Tone.Reverb({
+                    decay: 4,
+                    wet: 0.8
+                }).toDestination();
+                
+                // Create a simple synth for the base sound
+                const pluck = new Tone.PluckSynth().connect(neolithicReverb);
+                
+                // Play a sequence of notes
+                const now = Tone.now();
+                pluck.triggerAttack("G3", now);
+                pluck.triggerAttack("C3", now + 1);
+                pluck.triggerAttack("D3", now + 2);
+                pluck.triggerAttack("G2", now + 3.5);
+                
+                // Also play some ambient drone sounds
+                const drone = new Tone.FMSynth({
+                    harmonicity: 1.5,
+                    modulationIndex: 10,
+                    oscillator: {type: "sine"},
+                    envelope: {attack: 1, decay: 0.5, sustain: 0.5, release: 3},
+                    modulation: {type: "triangle"},
+                    modulationEnvelope: {attack: 0.5, decay: 0.5, sustain: 0.2, release: 2}
+                }).connect(neolithicReverb);
+                
+                drone.volume.value = -20;
+                drone.triggerAttackRelease("C2", "4n", now + 0.5);
+                drone.triggerAttackRelease("G2", "4n", now + 1.5);
+                drone.triggerAttackRelease("C2", "4n", now + 2.5);
+                drone.triggerAttackRelease("G1", "2n", now + 3.5);
+            });
+            
+            // Historic Sites interactive elements
+            const siteCards = document.querySelectorAll('.site-card');
+            const siteDetails = document.getElementById('site-details');
+            const detailsContents = document.querySelectorAll('.site-detail-content');
+            const backToSitesBtn = document.getElementById('back-to-sites');
+            
+            siteCards.forEach(card => {
+                const learnMoreBtn = card.querySelector('.site-learn-more');
+                const siteId = card.dataset.site;
+                
+                learnMoreBtn.addEventListener('click', () => {
+                    // Hide all cards, show details
+                    document.querySelector('#historic-sites .grid').style.display = 'none';
+                    siteDetails.classList.remove('hidden');
+                    
+                    // Hide all detail contents, show the right one
+                    detailsContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    document.getElementById(`${siteId}-details`).classList.remove('hidden');
+                    
+                    // Scroll to details
+                    siteDetails.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+            
+            backToSitesBtn.addEventListener('click', () => {
+                siteDetails.classList.add('hidden');
+                document.querySelector('#historic-sites .grid').style.display = 'grid';
+            });
+            
+            // Site-specific audio demos
+            const stonehengeSound = document.getElementById('play-stonehenge-sound');
+            const stopStonehengeSound = document.getElementById('stop-stonehenge-sound');
+            let stonehengePlayer = null;
+            
+            stonehengeSound.addEventListener('click', () => {
+                initAudio();
+                
+                // Create deep reverb
+                const stonehengeFeedbackDelay = new Tone.FeedbackDelay({
+                    delayTime: 0.3,
+                    feedback: 0.4,
+                    wet: 0.2
+                }).toDestination();
+                
+                const stonehengeLowpass = new Tone.Filter({
+                    frequency: 700,
+                    type: "lowpass",
+                    rolloff: -24
+                }).connect(stonehengeFeedbackDelay);
+                
+                // Create a synth for the resonant tones
+                stonehengePlayer = new Tone.Synth({
+                    oscillator: {
+                        type: "sine"
+                    },
+                    envelope: {
+                        attack: 0.5,
+                        decay: 0.3,
+                        sustain: 0.8,
+                        release: 1.5
+                    }
+                }).connect(stonehengeLowpass);
+                
+                // Play the 110Hz resonance tone
+                stonehengePlayer.triggerAttackRelease("A2", "4n");
+                
+                // Schedule other resonant tones
+                setTimeout(() => {
+                    stonehengePlayer.triggerAttackRelease("E2", "4n");
+                }, 1000);
+                
+                setTimeout(() => {
+                    stonehengePlayer.triggerAttackRelease("A1", "2n");
+                }, 2000);
+            });
+            
+            stopStonehengeSound.addEventListener('click', () => {
+                if (stonehengePlayer) {
+                    stonehengePlayer.triggerRelease();
+                }
+            });
+            
+            // Chichen Itza sounds
+            const chichenItzaSound = document.getElementById('play-chichen-itza-sound');
+            const rainSound = document.getElementById('play-rain-sound');
+            const stopChichenSound = document.getElementById('stop-chichen-itza-sound');
+            let chichenPlayer = null;
+            
+            chichenItzaSound.addEventListener('click', () => {
+                initAudio();
+                
+                // Simulate the quetzal chirp echo
+                const chirpReverb = new Tone.Reverb({
+                    decay: 1.5,
+                    wet: 0.5
+                }).toDestination();
+                
+                chichenPlayer = new Tone.Synth({
+                    oscillator: {type: "sine"},
+                    envelope: {attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.1}
+                }).connect(chirpReverb);
+                
+                // Sequence of descending notes to simulate the chirp
+                const now = Tone.now();
+                chichenPlayer.triggerAttackRelease("C7", "32n", now);
+                chichenPlayer.triggerAttackRelease("A6", "32n", now + 0.05);
+                chichenPlayer.triggerAttackRelease("F6", "32n", now + 0.1);
+                chichenPlayer.triggerAttackRelease("D6", "32n", now + 0.15);
+                
+                // Repeat with delay to simulate echo
+                setTimeout(() => {
+                    chichenPlayer.triggerAttackRelease("C7", "32n");
+                    chichenPlayer.triggerAttackRelease("A6", "32n", Tone.now() + 0.05);
+                    chichenPlayer.triggerAttackRelease("F6", "32n", Tone.now() + 0.1);
+                    chichenPlayer.triggerAttackRelease("D6", "32n", Tone.now() + 0.15);
+                }, 700);
+            });
+            
+            rainSound.addEventListener('click', () => {
+                initAudio();
+                
+                // Simulate the raindrop sound effect
+                const rainReverb = new Tone.Reverb({
+                    decay: 1,
+                    wet: 0.4
+                }).toDestination();
+                
+                const rainFilter = new Tone.Filter({
+                    frequency: 1000,
+                    type: "lowpass"
+                }).connect(rainReverb);
+                
+                const rainNoise = new Tone.NoiseSynth({
+                    noise: {
+                        type: "white"
+                    },
+                    envelope: {
+                        attack: 0.001,
+                        decay: 0.2,
+                        sustain: 0,
+                        release: 0.1
+                    }
+                }).connect(rainFilter);
+                
+                // Play a sequence of short noise bursts to simulate raindrops
+                const playDrops = () => {
+                    rainNoise.triggerAttackRelease("16n");
+                    
+                    if (chichenPlayer) {
+                        setTimeout(() => {
+                            rainNoise.triggerAttackRelease("16n");
+                        }, 100 + Math.random() * 100);
+                        
+                        setTimeout(() => {
+                            rainNoise.triggerAttackRelease("16n");
+                        }, 250 + Math.random() * 100);
+                        
+                        setTimeout(playDrops, 400 + Math.random() * 200);
+                    }
+                };
+                
+                chichenPlayer = {}; // Just a flag to indicate we're playing
+                playDrops();
+            });
+            
+            stopChichenSound.addEventListener('click', () => {
+                chichenPlayer = null;
+            });
+            
+            // Chartres Cathedral sounds
+            const gregorianChant = document.getElementById('play-gregorian-chant');
+            const organSound = document.getElementById('play-organ');
+            const stopChartresSound = document.getElementById('stop-chartres-sound');
+            let chartresPlayer = null;
+            
+            gregorianChant.addEventListener('click', () => {
+                initAudio();
+                
+                // Create cathedral-like reverb
+                const cathedralReverb = new Tone.Reverb({
+                    decay: 8,
+                    wet: 0.7
+                }).toDestination();
+                
+                // Voice-like synth
+                chartresPlayer = new Tone.Synth({
+                    oscillator: {type: "sine"},
+                    envelope: {attack: 0.1, decay: 0.2, sustain: 1, release: 2}
+                }).connect(cathedralReverb);
+                
+                // Simulate a gregorian chant melody
+                const now = Tone.now();
+                chartresPlayer.triggerAttackRelease("G3", "2n", now);
+                chartresPlayer.triggerAttackRelease("Bb3", "2n", now + 2);
+                chartresPlayer.triggerAttackRelease("A3", "2n", now + 4);
+                chartresPlayer.triggerAttackRelease("G3", "2n", now + 6);
+                chartresPlayer.triggerAttackRelease("F3", "1n", now + 8);
+            });
+            
+            organSound.addEventListener('click', () => {
+                initAudio();
+                
+                // Create cathedral-like reverb
+                const cathedralReverb = new Tone.Reverb({
+                    decay: 6,
+                    wet: 0.6
+                }).toDestination();
+                
+                // Organ-like synth
+                chartresPlayer = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: {
+                        type: "sawtooth"
+                    },
+                    envelope: {
+                        attack: 0.05,
+                        decay: 0.3,
+                        sustain: 0.8,
+                        release: 1
+                    }
+                }).connect(cathedralReverb);
+                
+                // Play a simple organ chord progression
+                const now = Tone.now();
+                chartresPlayer.triggerAttackRelease(["C3", "E3", "G3"], "2n", now);
+                chartresPlayer.triggerAttackRelease(["F3", "A3", "C4"], "2n", now + 2);
+                chartresPlayer.triggerAttackRelease(["G3", "B3", "D4"], "2n", now + 4);
+                chartresPlayer.triggerAttackRelease(["C3", "E3", "G3", "C4"], "1n", now + 6);
+            });
+            
+            stopChartresSound.addEventListener('click', () => {
+                if (chartresPlayer) {
+                    chartresPlayer.releaseAll();
+                }
+            });
+            
+            // Acoustic properties interactive elements
+            document.querySelectorAll('.acoustic-property').forEach(property => {
+                property.addEventListener('click', () => {
+                    initAudio();
+                    
+                    const freq = parseFloat(property.dataset.freq);
+                    
+                    // Create a tone at the specified frequency
+                    const tone = new Tone.Oscillator({
+                        frequency: freq,
+                        type: "sine"
+                    }).toDestination();
+                    
+                    // Play briefly
+                    tone.start();
+                    setTimeout(() => {
+                        tone.stop();
+                    }, 1000);
+                });
+            });
+            
+            // Frequency Analysis visualization
+            const frequencyCanvas = document.getElementById('frequencyCanvas');
+            const freqCtx = frequencyCanvas.getContext('2d');
+            
+            function resizeFrequencyCanvas() {
+                const container = document.getElementById('frequencyAnalyzer');
+                frequencyCanvas.width = container.clientWidth - 32; // Adjusting for padding
+                frequencyCanvas.height = 200;
+            }
+            
+            window.addEventListener('resize', resizeFrequencyCanvas);
+            resizeFrequencyCanvas();
+            
+            // Space type descriptions
+            const spaceDescriptions = {
+                "cave": "Paleolithic caves often exhibit resonances between 95-120 Hz, frequencies that can induce mild trance states and correspond to locations of cave paintings.",
+                "stone-chamber": "Neolithic stone chambers like those found in passage tombs amplify certain frequencies while dampening others, creating an otherworldly acoustic environment.",
+                "greek-theater": "Greek theaters like Epidaurus have remarkable speech intelligibility even at distances of 60 meters, enhancing consonants between 500-2000 Hz.",
+                "gothic-cathedral": "Gothic cathedrals have reverberation times of 6-8 seconds, creating a wash of sound that blends harmonies while allowing low frequencies to resonate through the space."
+            };
+            
+            // Frequency response curves for different spaces
+            const frequencyResponses = {
+                "cave": [
+                    { freq: 50, response: 0.6 },
+                    { freq: 100, response: 0.9 },
+                    { freq: 150, response: 0.7 },
+                    { freq: 200, response: 0.5 },
+                    { freq: 300, response: 0.4 },
+                    { freq: 500, response: 0.3 },
+                    { freq: 700, response: 0.2 },
+                    { freq: 1000, response: 0.15 }
+                ],
+                "stone-chamber": [
+                    { freq: 50, response: 0.3 },
+                    { freq: 100, response: 0.8 },
+                    { freq: 150, response: 0.9 },
+                    { freq: 200, response: 0.7 },
+                    { freq: 300, response: 0.4 },
+                    { freq: 500, response: 0.2 },
+                    { freq: 700, response: 0.15 },
+                    { freq: 1000, response: 0.1 }
+                ],
+                "greek-theater": [
+                    { freq: 50, response: 0.1 },
+                    { freq: 100, response: 0.2 },
+                    { freq: 150, response: 0.3 },
+                    { freq: 200, response: 0.5 },
+                    { freq: 300, response: 0.7 },
+                    { freq: 500, response: 0.9 },
+                    { freq: 700, response: 0.95 },
+                    { freq: 1000, response: 0.8 }
+                ],
+                "gothic-cathedral": [
+                    { freq: 50, response: 0.8 },
+                    { freq: 100, response: 0.7 },
+                    { freq: 150, response: 0.6 },
+                    { freq: 200, response: 0.8 },
+                    { freq: 300, response: 0.9 },
+                    { freq: 500, response: 0.7 },
+                    { freq: 700, response: 0.5 },
+                    { freq: 1000, response: 0.3 }
+                ]
+            };
+            
+            // Draw frequency response
+            function drawFrequencyResponse(spaceType, highlightFreq = null) {
+                freqCtx.clearRect(0, 0, frequencyCanvas.width, frequencyCanvas.height);
+                
+                // Draw background grid
+                freqCtx.strokeStyle = 'rgba(127, 156, 187, 0.2)';
+                freqCtx.lineWidth = 1;
+                
+                // Vertical grid lines (frequencies)
+                for (let f = 100; f <= 1000; f += 100) {
+                    const x = (f / 1000) * frequencyCanvas.width;
+                    freqCtx.beginPath();
+                    freqCtx.moveTo(x, 0);
+                    freqCtx.lineTo(x, frequencyCanvas.height);
+                    freqCtx.stroke();
+                    
+                    // Frequency labels
+                    freqCtx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                    freqCtx.font = '10px "JetBrains Mono", monospace';
+                    freqCtx.textAlign = 'center';
+                    freqCtx.fillText(`${f} Hz`, x, frequencyCanvas.height - 5);
+                }
+                
+                // Horizontal grid lines (response)
+                for (let r = 0.2; r <= 1; r += 0.2) {
+                    const y = (1 - r) * (frequencyCanvas.height - 30);
+                    freqCtx.beginPath();
+                    freqCtx.moveTo(0, y);
+                    freqCtx.lineTo(frequencyCanvas.width, y);
+                    freqCtx.stroke();
+                }
+                
+                // Draw response curve
+                const response = frequencyResponses[spaceType];
+                freqCtx.beginPath();
+                
+                response.forEach((point, i) => {
+                    const x = (point.freq / 1000) * frequencyCanvas.width;
+                    const y = (1 - point.response) * (frequencyCanvas.height - 30);
+                    
+                    if (i === 0) {
+                        freqCtx.moveTo(x, y);
+                    } else {
+                        freqCtx.lineTo(x, y);
+                    }
+                });
+                
+                freqCtx.strokeStyle = '#FFD28E';
+                freqCtx.lineWidth = 3;
+                freqCtx.stroke();
+                
+                // Fill area under the curve
+                freqCtx.lineTo(response[response.length - 1].freq / 1000 * frequencyCanvas.width, frequencyCanvas.height);
+                freqCtx.lineTo(response[0].freq / 1000 * frequencyCanvas.width, frequencyCanvas.height);
+                freqCtx.closePath();
+                freqCtx.fillStyle = 'rgba(255, 210, 142, 0.1)';
+                freqCtx.fill();
+                
+                // Highlight specific frequency if provided
+                if (highlightFreq) {
+                    // Find response at this frequency (approximate)
+                    let responseAtFreq = 0;
+                    for (let i = 0; i < response.length - 1; i++) {
+                        if (highlightFreq >= response[i].freq && highlightFreq <= response[i+1].freq) {
+                            const t = (highlightFreq - response[i].freq) / (response[i+1].freq - response[i].freq);
+                            responseAtFreq = response[i].response * (1 - t) + response[i+1].response * t;
+                            break;
+                        }
+                    }
+                    
+                    const x = (highlightFreq / 1000) * frequencyCanvas.width;
+                    const y = (1 - responseAtFreq) * (frequencyCanvas.height - 30);
+                    
+                    // Draw vertical line to highlight frequency
+                    freqCtx.beginPath();
+                    freqCtx.moveTo(x, 0);
+                    freqCtx.lineTo(x, frequencyCanvas.height);
+                    freqCtx.strokeStyle = 'rgba(214, 109, 80, 0.5)';
+                    freqCtx.lineWidth = 2;
+                    freqCtx.stroke();
+                    
+                    // Draw point at the response curve
+                    freqCtx.beginPath();
+                    freqCtx.arc(x, y, 6, 0, Math.PI * 2);
+                    freqCtx.fillStyle = '#D66D50';
+                    freqCtx.fill();
+                    
+                    // Show frequency and response value
+                    freqCtx.fillStyle = '#FFD28E';
+                    freqCtx.font = '12px "JetBrains Mono", monospace';
+                    freqCtx.textAlign = 'left';
+                    freqCtx.fillText(`${highlightFreq} Hz: ${Math.round(responseAtFreq * 100)}% response`, 10, 20);
+                }
+            }
+            
+            // Update space description
+            const spaceTypeSelect = document.getElementById('spaceTypeSelect');
+            const spaceDescription = document.getElementById('spaceDescription');
+            
+            spaceTypeSelect.addEventListener('change', () => {
+                const spaceType = spaceTypeSelect.value;
+                spaceDescription.textContent = spaceDescriptions[spaceType];
+                drawFrequencyResponse(spaceType, parseFloat(document.getElementById('frequencySlider').value));
+            });
+            
+            // Frequency slider
+            const frequencySlider = document.getElementById('frequencySlider');
+            const frequencyValue = document.getElementById('frequencyValue');
+            let testTone = null;
+            
+            frequencySlider.addEventListener('input', () => {
+                const freq = parseFloat(frequencySlider.value);
+                frequencyValue.textContent = `${freq} Hz`;
+                drawFrequencyResponse(spaceTypeSelect.value, freq);
+                
+                // Update tone if playing
+                if (testTone && testTone.state === "started") {
+                    testTone.frequency.value = freq;
+                }
+            });
+            
+            // Play/stop frequency buttons
+            document.getElementById('playFrequency').addEventListener('click', () => {
+                initAudio();
+                
+                const freq = parseFloat(frequencySlider.value);
+                
+                if (testTone) {
+                    testTone.dispose();
+                }
+                
+                testTone = new Tone.Oscillator({
+                    frequency: freq,
+                    type: "sine"
+                }).toDestination();
+                
+                testTone.volume.value = -20; // Lower volume
+                testTone.start();
+            });
+            
+            document.getElementById('stopFrequency').addEventListener('click', () => {
+                if (testTone) {
+                    testTone.stop();
+                }
+            });
+            
+            // Initial draw
+            drawFrequencyResponse(spaceTypeSelect.value);
+            
+            // Sound Explorer section
+            const explorerCanvas = document.getElementById('explorerCanvas');
+            const explorerCtx = explorerCanvas.getContext('2d');
+            
+            function resizeExplorerCanvas() {
+                const container = document.getElementById('soundExplorerVisualizer');
+                explorerCanvas.width = container.clientWidth;
+                explorerCanvas.height = container.clientHeight;
+            }
+            
+            window.addEventListener('resize', resizeExplorerCanvas);
+            resizeExplorerCanvas();
+            
+            // Explorer parameters
+            let selectedSpace = null;
+            let selectedSound = null;
+            let explorerPlaying = false;
+            
+            // Acoustic parameters for different spaces
+            const acousticParameters = {
+                "cave": {
+                    reverbTime: "3-4 seconds",
+                    lowFreqResponse: "Strong (resonance at ~110 Hz)",
+                    speechClarity: "Poor (reflective surfaces)",
+                    resonantFreqs: "95-120 Hz",
+                    historicalUse: "Caves with strong acoustic properties were often sites for rituals and contained more cave paintings, suggesting sound played a role in ceremonial practices."
+                },
+                "megalithic": {
+                    reverbTime: "1-2 seconds",
+                    lowFreqResponse: "Very strong (standing waves)",
+                    speechClarity: "Moderate (focused reflections)",
+                    resonantFreqs: "95-130 Hz, 200 Hz",
+                    historicalUse: "Many megalithic chambers enhance male voice frequencies, suggesting they may have been designed for chanting or acoustic rituals tied to ancestor worship."
+                },
+                "greek-theater": {
+                    reverbTime: "0.5-1 seconds",
+                    lowFreqResponse: "Poor (open air)",
+                    speechClarity: "Excellent (frequency-selective surfaces)",
+                    resonantFreqs: "500-2000 Hz (speech range)",
+                    historicalUse: "Greek theaters were acoustically designed to carry actors' voices to audiences of 15,000+ people without amplification, allowing dramatic performances to flourish."
+                },
+                "cathedral": {
+                    reverbTime: "6-8 seconds",
+                    lowFreqResponse: "Excellent (large volume)",
+                    speechClarity: "Poor (long reverberation)",
+                    resonantFreqs: "80-300 Hz, organ fundamentals",
+                    historicalUse: "Gothic cathedral acoustics were optimized for Gregorian chant and organ music, creating a sense of divine presence through sound that surrounds the listener from all directions."
+                }
+            };
+            
+            // Select a space
+            document.querySelectorAll('.acoustic-space').forEach(space => {
+                space.addEventListener('click', () => {
+                    // Remove selected class from all spaces
+                    document.querySelectorAll('.acoustic-space').forEach(s => {
+                        s.classList.remove('border-[#FFD28E]');
+                    });
+                    
+                    // Add selected class to this space
+                    space.classList.add('border-[#FFD28E]');
+                    selectedSpace = space.dataset.space;
+                    
+                    // Update acoustic parameters
+                    const params = acousticParameters[selectedSpace];
+                    document.getElementById('reverbTime').textContent = params.reverbTime;
+                    document.getElementById('lowFreqResponse').textContent = params.lowFreqResponse;
+                    document.getElementById('speechClarity').textContent = params.speechClarity;
+                    document.getElementById('resonantFreqs').textContent = params.resonantFreqs;
+                    document.getElementById('historicalUse').textContent = params.historicalUse;
+                    
+                    updatePlayButton();
+                });
+            });
+            
+            // Select a sound
+            document.querySelectorAll('.sound-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove selected class from all sound buttons
+                    document.querySelectorAll('.sound-button').forEach(b => {
+                        b.classList.remove('border-[#FFD28E]');
+                    });
+                    
+                    // Add selected class to this button
+                    button.classList.add('border-[#FFD28E]');
+                    selectedSound = button.dataset.sound;
+                    
+                    updatePlayButton();
+                });
+            });
+            
+            // Enable/disable play button based on selections
+            function updatePlayButton() {
+                const playButton = document.getElementById('playExplorerSound');
+                const stopButton = document.getElementById('stopExplorerSound');
+                
+                if (selectedSpace && selectedSound) {
+                    playButton.disabled = false;
+                    playButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    stopButton.disabled = false;
+                    stopButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    playButton.disabled = true;
+                    playButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    stopButton.disabled = true;
+                    stopButton.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+            
+            // Initialize explorer visualization
+            function initExplorerVisualization() {
+                const analyzeLoop = () => {
+                    if (explorerPlaying) {
+                        // Draw waveform visualization based on selected space and sound
+                        explorerCtx.clearRect(0, 0, explorerCanvas.width, explorerCanvas.height);
+                        
+                        // Draw a waveform that represents the sound type and space
+                        const time = Date.now() / 1000;
+                        const centerY = explorerCanvas.height / 2;
+                        
+                        explorerCtx.beginPath();
+                        
+                        // Different pattern for each sound type
+                        if (selectedSound === 'voice') {
+                            // Voice-like pattern
+                            for (let x = 0; x < explorerCanvas.width; x++) {
+                                const normalizedX = x / explorerCanvas.width;
+                                const y = centerY + 
+                                          Math.sin(normalizedX * 10 + time * 2) * 20 + 
+                                          Math.sin(normalizedX * 5 + time) * 10;
+                                
+                                explorerCtx.lineTo(x, y);
+                            }
+                        } else if (selectedSound === 'drum') {
+                            // Drum-like pattern
+                            for (let x = 0; x < explorerCanvas.width; x++) {
+                                const normalizedX = x / explorerCanvas.width;
+                                const amplitude = Math.max(0, 30 - (x / 10) % 100);
+                                const y = centerY + Math.sin(normalizedX * 20 + time * 4) * amplitude;
+                                
+                                explorerCtx.lineTo(x, y);
+                            }
+                        } else if (selectedSound === 'flute') {
+                            // Flute-like pattern
+                            for (let x = 0; x < explorerCanvas.width; x++) {
+                                const normalizedX = x / explorerCanvas.width;
+                                const y = centerY + 
+                                          Math.sin(normalizedX * 20 + time * 3) * 25 * Math.sin(time);
+                                
+                                explorerCtx.lineTo(x, y);
+                            }
+                        } else if (selectedSound === 'footsteps') {
+                            // Footsteps pattern
+                            for (let x = 0; x < explorerCanvas.width; x++) {
+                                const normalizedX = x / explorerCanvas.width;
+                                const amplitude = Math.max(0, 40 - (x / 20 + time * 5) % 80);
+                                const y = centerY + (Math.random() * 2 - 1) * amplitude;
+                                
+                                explorerCtx.lineTo(x, y);
+                            }
+                        }
+                        
+                        // Different colors for each space
+                        if (selectedSpace === 'cave') {
+                            explorerCtx.strokeStyle = '#7F9CBB';
+                        } else if (selectedSpace === 'megalithic') {
+                            explorerCtx.strokeStyle = '#FFD28E';
+                        } else if (selectedSpace === 'greek-theater') {
+                            explorerCtx.strokeStyle = '#D66D50';
+                        } else if (selectedSpace === 'cathedral') {
+                            explorerCtx.strokeStyle = 'rgba(255, 210, 142, 0.8)';
+                        }
+                        
+                        explorerCtx.lineWidth = 2;
+                        explorerCtx.stroke();
+                    }
+                    
+                    requestAnimationFrame(analyzeLoop);
+                };
+                
+                analyzeLoop();
+            }
+            
+            initExplorerVisualization();
+            
+            // Play explorer sound
+            let explorerPlayer = null;
+            
+            document.getElementById('playExplorerSound').addEventListener('click', () => {
+                initAudio();
+                explorerPlaying = true;
+                
+                // Create appropriate reverb based on space
+                const reverbTimes = {
+                    "cave": 3.5,
+                    "megalithic": 2,
+                    "greek-theater": 0.8,
+                    "cathedral": 8
+                };
+                
+                const explorerReverb = new Tone.Reverb({
+                    decay: reverbTimes[selectedSpace],
+                    wet: 0.7
+                }).toDestination();
+                
+                // Different sound based on selection
+                if (selectedSound === 'voice') {
+                    explorerPlayer = new Tone.Synth({
+                        oscillator: { type: "sine" },
+                        envelope: { attack: 0.1, decay: 0.2, sustain: 1, release: 2 }
+                    }).connect(explorerReverb);
+                    
+                    // Play a simple melody
+                    const now = Tone.now();
+                    explorerPlayer.triggerAttackRelease("C4", "4n", now);
+                    explorerPlayer.triggerAttackRelease("E4", "4n", now + 1);
+                    explorerPlayer.triggerAttackRelease("G4", "4n", now + 2);
+                    explorerPlayer.triggerAttackRelease("C5", "2n", now + 3);
+                } else if (selectedSound === 'drum') {
+                    explorerPlayer = new Tone.MembraneSynth({
+                        pitchDecay: 0.05,
+                        octaves: 4,
+                        oscillator: { type: "sine" },
+                        envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4, attackCurve: "exponential" }
+                    }).connect(explorerReverb);
+                    
+                    // Play drum pattern
+                    const playDrum = () => {
+                        if (explorerPlaying) {
+                            explorerPlayer.triggerAttackRelease("C2", "8n");
+                            
+                            setTimeout(() => {
+                                if (explorerPlaying) {
+                                    explorerPlayer.triggerAttackRelease("G1", "8n");
+                                }
+                            }, 500);
+                            
+                            setTimeout(playDrum, 1000);
+                        }
+                    };
+                    
+                    playDrum();
+                } else if (selectedSound === 'flute') {
+                    explorerPlayer = new Tone.AMSynth({
+                        harmonicity: 1.5,
+                        detune: 0,
+                        oscillator: { type: "sine" },
+                        envelope: { attack: 0.1, decay: 0.2, sustain: 1, release: 0.8 },
+                        modulation: { type: "sine" },
+                        modulationEnvelope: { attack: 0.5, decay: 0, sustain: 1, release: 0.5 }
+                    }).connect(explorerReverb);
+                    
+                    // Play flute melody
+                    const now = Tone.now();
+                    explorerPlayer.triggerAttackRelease("E5", "8n", now);
+                    explorerPlayer.triggerAttackRelease("G5", "8n", now + 0.5);
+                    explorerPlayer.triggerAttackRelease("A5", "8n", now + 1);
+                    explorerPlayer.triggerAttackRelease("G5", "8n", now + 1.5);
+                    explorerPlayer.triggerAttackRelease("E5", "4n", now + 2);
+                } else if (selectedSound === 'footsteps') {
+                    explorerPlayer = new Tone.NoiseSynth({
+                        noise: { type: "white" },
+                        envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.1 }
+                    }).connect(explorerReverb);
+                    
+                    // Play footstep pattern
+                    const playFootstep = () => {
+                        if (explorerPlaying) {
+                            explorerPlayer.triggerAttackRelease("16n");
+                            
+                            setTimeout(playFootstep, 500 + Math.random() * 200);
+                        }
+                    };
+                    
+                    playFootstep();
+                }
+            });
+            
+            document.getElementById('stopExplorerSound').addEventListener('click', () => {
+                explorerPlaying = false;
+                if (explorerPlayer) {
+                    if (typeof explorerPlayer.releaseAll === 'function') {
+                        explorerPlayer.releaseAll();
+                    } else {
+                        explorerPlayer.triggerRelease();
+                    }
+                }
+            });
+            
+            // Quiz functionality
+            const quizOptions = document.querySelectorAll('.quiz-option');
+            const submitQuizButton = document.getElementById('submitQuiz');
+            const quizResults = document.getElementById('quizResults');
+            const quizContainer = document.getElementById('quizContainer');
+            const quizScore = document.getElementById('quizScore');
+            const quizFeedback = document.getElementById('quizFeedback');
+            
+            quizOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Remove selected class from siblings
+                    const parent = option.parentElement;
+                    parent.querySelectorAll('.quiz-option').forEach(sibling => {
+                        sibling.classList.remove('bg-opacity-30', 'bg-[#7F9CBB]', 'border-[#7F9CBB]');
+                    });
+                    
+                    // Add selected class to this option
+                    option.classList.add('bg-opacity-30', 'bg-[#7F9CBB]', 'border-[#7F9CBB]');
+                });
+            });
+            
+            submitQuizButton.addEventListener('click', () => {
+                let score = 0;
+                let answeredQuestions = 0;
+                
+                document.querySelectorAll('.quiz-question').forEach(question => {
+                    const selectedOption = question.querySelector('.bg-[#7F9CBB]');
+                    if (selectedOption) {
+                        answeredQuestions++;
+                        if (selectedOption.dataset.correct === "true") {
+                            score++;
+                            selectedOption.classList.add('correct');
+                        } else {
+                            selectedOption.classList.add('incorrect');
+                            // Highlight the correct answer
+                            question.querySelector('[data-correct="true"]').classList.add('correct');
+                        }
+                    }
+                });
+                
+                if (answeredQuestions < 5) {
+                    alert("Please answer all questions before submitting.");
+                    return;
+                }
+                
+                // Show results
+                quizScore.textContent = score;
+                
+                // Generate feedback
+                let feedback = '';
+                if (score === 5) {
+                    feedback = "Excellent! You've mastered the principles of archaeoacoustics and have a deep understanding of how ancient spaces shaped sound.";
+                    quizFeedback.classList.add('border-[#2ecc71]');
+                } else if (score >= 3) {
+                    feedback = "Good job! You have a solid understanding of ancient acoustic design, though there are still some interesting details to discover.";
+                    quizFeedback.classList.add('border-[#f1c40f]');
+                } else {
+                    feedback = "Thanks for taking the quiz! Archaeoacoustics is a complex field with many fascinating discoveries. Review the site information to learn more about these ancient sound technologies.";
+                    quizFeedback.classList.add('border-[#3498db]');
+                }
+                
+                quizFeedback.innerHTML = `<p>${feedback}</p>`;
+                
+                // Show results section
+                quizResults.classList.remove('hidden');
+                
+                // Scroll to results
+                quizResults.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>
