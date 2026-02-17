@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLH Estate Sales — Closed Won by Month (OC Focus)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Lato',system-ui,sans-serif;background:#f8f9fa;color:#0D3B66;padding:20px;min-height:100vh}
+h1{font-size:1.5rem;font-weight:700;color:#0D3B66;margin-bottom:4px}
+.sub{color:#6b7c8f;font-size:.85rem;margin-bottom:24px}
+.card{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:20px}
+.card h2{font-size:1.1rem;color:#0D3B66;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #38B6B2}
+.chart-container{position:relative;height:400px;margin:16px 0}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:320px;padding:0 8px;border-bottom:2px solid #e0e5ea}
+.bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.bar-stack{display:flex;flex-direction:column-reverse;align-items:center;width:100%;gap:1px}
+.bar{width:100%;border-radius:3px 3px 0 0;min-height:0;transition:.3s;cursor:pointer;position:relative}
+.bar:hover{opacity:.85;transform:scaleY(1.02);transform-origin:bottom}
+.bar-oc{background:#38B6B2}
+.bar-sd{background:#A47EAF}
+.bar-la{background:#0D3B66}
+.bar-label{font-size:.6rem;color:#6b7c8f;writing-mode:vertical-rl;text-orientation:mixed;margin-top:4px;height:50px;display:flex;align-items:center}
+.bar-total{font-size:.65rem;font-weight:700;color:#0D3B66;margin-bottom:2px}
+.legend{display:flex;gap:20px;justify-content:center;margin:16px 0}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:.8rem}
+.legend-dot{width:12px;height:12px;border-radius:3px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:16px 0}
+.stat{background:#f0f7f7;border-radius:10px;padding:16px;text-align:center;border:1px solid #e0eded}
+.stat-num{font-size:1.8rem;font-weight:700;color:#38B6B2}
+.stat-num.purple{color:#A47EAF}
+.stat-num.navy{color:#0D3B66}
+.stat-label{font-size:.75rem;color:#6b7c8f;margin-top:2px}
+.city-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.city-item{display:flex;justify-content:space-between;padding:6px 10px;background:#f8f9fa;border-radius:6px;font-size:.8rem}
+.city-item .count{font-weight:700;color:#38B6B2}
+.trend-note{background:#fef9e7;border:1px solid #f9e79f;border-radius:8px;padding:12px 16px;font-size:.82rem;color:#7d6608;margin:16px 0}
+.trend-note strong{color:#d4ac0d}
+.tooltip{position:absolute;background:#0D3B66;color:#fff;padding:6px 10px;border-radius:6px;font-size:.72rem;pointer-events:none;white-space:nowrap;z-index:10;display:none}
+</style>
+</head>
+<body>
+
+<h1>🏠 TLH Estate Sales — Closed Won by Month</h1>
+<p class="sub">Record Type: Estate Sale | Closed Won | CA Only | Jan 2024 — Feb 2026</p>
+
+<div class="card">
+<h2>📊 Monthly Closed Wins — OC vs SD vs LA</h2>
+<div class="legend">
+<div class="legend-item"><div class="legend-dot" style="background:#38B6B2"></div>Orange County</div>
+<div class="legend-item"><div class="legend-dot" style="background:#A47EAF"></div>San Diego</div>
+<div class="legend-item"><div class="legend-dot" style="background:#0D3B66"></div>Los Angeles</div>
+</div>
+<div class="bar-chart" id="chart"></div>
+<div id="labels" style="display:flex;gap:4px;padding:0 8px"></div>
+</div>
+
+<div class="stats-grid">
+<div class="stat"><div class="stat-num">83</div><div class="stat-label">OC Closed Won (since Jan 2024)</div></div>
+<div class="stat"><div class="stat-num purple">294</div><div class="stat-label">SD Closed Won</div></div>
+<div class="stat"><div class="stat-num navy">36</div><div class="stat-label">LA Closed Won</div></div>
+<div class="stat"><div class="stat-num" style="color:#d4ac0d">3.2</div><div class="stat-label">OC Monthly Avg</div></div>
+</div>
+
+<div class="trend-note">
+<strong>📈 Aug 2025 spike:</strong> OC hit 12 closed wins in a single month — 3.8x the average. SD dipped to 8 that month. Investigate what drove the August OC surge (seasonal? marketing push? specific ZIP cluster?).
+</div>
+
+<div class="card">
+<h2>🏘️ Top OC Cities — Closed Won Count</h2>
+<div class="city-grid" id="cities"></div>
+</div>
+
+<div class="card">
+<h2>📈 OC Trend Analysis</h2>
+<div style="font-size:.85rem;line-height:1.7;color:#4a5568">
+<p><strong>2024 OC total:</strong> 38 deals (avg 3.2/mo)</p>
+<p><strong>2025 OC total:</strong> 44 deals (avg 3.7/mo) — <span style="color:#38B6B2;font-weight:700">+16% YoY growth</span></p>
+<p><strong>2026 YTD:</strong> 1 deal (Feb partial)</p>
+<p style="margin-top:10px"><strong>Best months:</strong> Aug 2025 (12), Jan 2024 (6), Jul 2024 (5), May 2024 (5), Mar 2024 (5)</p>
+<p><strong>Weakest months:</strong> Apr 2024 (1), Aug 2024 (1), Dec 2024 (1), Dec 2025 (1), Jan 2026 (0)</p>
+<p style="margin-top:10px"><strong>OC vs SD ratio:</strong> OC is 28% of SD volume. SD averages 11.3/mo vs OC's 3.2/mo.</p>
+<p><strong>OC market share of total:</strong> 20% of all closed wins.</p>
+</div>
+</div>
+
+<script>
+const data = [
+{m:'Jan 24',oc:6,sd:16,la:3},{m:'Feb 24',oc:4,sd:17,la:1},{m:'Mar 24',oc:5,sd:18,la:4},
+{m:'Apr 24',oc:1,sd:8,la:1},{m:'May 24',oc:5,sd:8,la:0},{m:'Jun 24',oc:2,sd:20,la:0},
+{m:'Jul 24',oc:5,sd:14,la:0},{m:'Aug 24',oc:1,sd:11,la:0},{m:'Sep 24',oc:3,sd:10,la:1},
+{m:'Oct 24',oc:3,sd:6,la:1},{m:'Nov 24',oc:2,sd:11,la:1},{m:'Dec 24',oc:1,sd:12,la:1},
+{m:'Jan 25',oc:4,sd:6,la:0},{m:'Feb 25',oc:3,sd:7,la:1},{m:'Mar 25',oc:3,sd:10,la:2},
+{m:'Apr 25',oc:3,sd:15,la:0},{m:'May 25',oc:3,sd:5,la:0},{m:'Jun 25',oc:4,sd:14,la:2},
+{m:'Jul 25',oc:3,sd:19,la:2},{m:'Aug 25',oc:12,sd:8,la:0},{m:'Sep 25',oc:3,sd:17,la:0},
+{m:'Oct 25',oc:3,sd:11,la:3},{m:'Nov 25',oc:2,sd:9,la:3},{m:'Dec 25',oc:1,sd:9,la:4},
+{m:'Jan 26',oc:0,sd:6,la:5},{m:'Feb 26',oc:1,sd:7,la:1}
+];
+
+const maxTotal = Math.max(...data.map(d=>d.oc+d.sd+d.la));
+const chart = document.getElementById('chart');
+const labels = document.getElementById('labels');
+
+data.forEach((d,i) => {
+const group = document.createElement('div');
+group.className = 'bar-group';
+const total = d.oc+d.sd+d.la;
+group.innerHTML = `
+<div class="bar-total">${total}</div>
+<div class="bar-stack">
+${d.la>0?`<div class="bar bar-la" style="height:${(d.la/maxTotal)*280}px" title="LA: ${d.la}"></div>`:''}
+${d.sd>0?`<div class="bar bar-sd" style="height:${(d.sd/maxTotal)*280}px" title="SD: ${d.sd}"></div>`:''}
+${d.oc>0?`<div class="bar bar-oc" style="height:${(d.oc/maxTotal)*280}px" title="OC: ${d.oc}"></div>`:''}
+</div>`;
+chart.appendChild(group);
+
+const label = document.createElement('div');
+label.className = 'bar-group';
+label.innerHTML = `<div class="bar-label">${d.m}</div>`;
+labels.appendChild(label);
+});
+
+const cities = [
+['Huntington Beach',7],['Tustin',5],['Fullerton',5],['Yorba Linda',4],['Newport Beach',4],
+['Orange',4],['San Clemente',4],['Costa Mesa',4],['Irvine',4],['Lake Forest',3],
+['Laguna Niguel',3],['Coto de Caza',3],['Santa Ana',3],['Brea',2],['Laguna Beach',2],
+['Placentia',2],['Fountain Valley',2],['Garden Grove',2],['Anaheim',2],['San Juan Capistrano',2]
+];
+const cityGrid = document.getElementById('cities');
+cities.forEach(([city,count]) => {
+cityGrid.innerHTML += `<div class="city-item"><span>${city}</span><span class="count">${count}</span></div>`;
+});
+</script>
+</body>
+</html>
