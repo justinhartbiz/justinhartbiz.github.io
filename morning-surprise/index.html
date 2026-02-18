@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Midterm Money Machine — 2026 Election Cycle Revenue Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --bg: #0a0a0f;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #ffffff;
+      --text-muted: #888;
+      --accent: #ff3366;
+      --accent-green: #00ff88;
+      --accent-gold: #ffd700;
+      --accent-blue: #00d4ff;
+      --glow: 0 0 40px rgba(255, 51, 102, 0.3);
+    }
+    
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .hero {
+      padding: 3rem 2rem;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(255,51,102,0.1) 0%, transparent 50%);
+      position: relative;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse at center, rgba(255,51,102,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    
+    .badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      padding: 0.3rem 0.8rem;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+    
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+    
+    .countdown-container {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    
+    .countdown-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    
+    .countdown-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 3rem;
+      font-weight: 600;
+      color: var(--accent);
+      line-height: 1;
+    }
+    
+    .countdown-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 0.5rem;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      border-color: var(--accent);
+      box-shadow: var(--glow);
+      transform: translateY(-4px);
+    }
+    
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    
+    .stat-value.green { color: var(--accent-green); }
+    .stat-value.gold { color: var(--accent-gold); }
+    .stat-value.blue { color: var(--accent-blue); }
+    .stat-value.accent { color: var(--accent); }
+    
+    .stat-delta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--accent-green);
+      margin-top: 0.25rem;
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    
+    .timeline {
+      position: relative;
+      margin: 3rem 0;
+    }
+    
+    .timeline-track {
+      position: relative;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      margin: 2rem 0;
+      overflow: hidden;
+    }
+    
+    .timeline-progress {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent), var(--accent-gold));
+      border-radius: 4px;
+      width: 0%;
+      transition: width 1s ease;
+    }
+    
+    .timeline-months {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+    }
+    
+    .timeline-month {
+      text-align: center;
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .timeline-month:hover {
+      background: var(--card-bg);
+    }
+    
+    .timeline-month.active {
+      background: var(--accent);
+    }
+    
+    .timeline-month-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .timeline-month-phase {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+    
+    .ideas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .idea-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .idea-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-gold));
+    }
+    
+    .idea-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+    
+    .idea-rank {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 32px;
+      height: 32px;
+      background: rgba(255,51,102,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--accent);
+    }
+    
+    .idea-emoji {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .idea-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .idea-description {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    
+    .idea-metrics {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .idea-metric {
+      background: rgba(255,255,255,0.05);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+    
+    .idea-metric-value {
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+    
+    .idea-metric-label {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      display: block;
+    }
+    
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .action-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+    }
+    
+    .action-card h3 {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .action-list {
+      list-style: none;
+    }
+    
+    .action-list li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    .action-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .action-checkbox {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--accent);
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .action-checkbox:hover {
+      background: rgba(255,51,102,0.2);
+    }
+    
+    .action-checkbox.checked {
+      background: var(--accent);
+    }
+    
+    .revenue-chart {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 2rem 0;
+    }
+    
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 200px;
+      gap: 0.5rem;
+      padding-top: 1rem;
+    }
+    
+    .chart-bar-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+    }
+    
+    .chart-bar {
+      width: 100%;
+      max-width: 50px;
+      background: linear-gradient(180deg, var(--accent), rgba(255,51,102,0.3));
+      border-radius: 4px 4px 0 0;
+      transition: height 0.5s ease;
+      position: relative;
+    }
+    
+    .chart-bar::after {
+      content: attr(data-value);
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent-green);
+      white-space: nowrap;
+    }
+    
+    .chart-bar-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+    
+    .cta-section {
+      text-align: center;
+      padding: 3rem;
+      background: linear-gradient(180deg, transparent 0%, rgba(255,51,102,0.1) 100%);
+      border-radius: 24px;
+      margin: 3rem 0;
+    }
+    
+    .cta-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+    
+    .cta-subtitle {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: all 0.3s;
+      box-shadow: var(--glow);
+    }
+    
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 60px rgba(255, 51, 102, 0.5);
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    
+    @media (max-width: 768px) {
+      .countdown-container {
+        gap: 0.75rem;
+      }
+      
+      .countdown-item {
+        padding: 1rem 1.5rem;
+      }
+      
+      .countdown-number {
+        font-size: 2rem;
+      }
+      
+      .ideas-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .chart-bars {
+        height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="badge">🗳️ 2026 Midterms</div>
+    <h1>Midterm Money Machine</h1>
+    <p class="subtitle">Your 9-month roadmap to monetize the 2026 election cycle with AI-powered political fundraising</p>
+    
+    <div class="countdown-container">
+      <div class="countdown-item">
+        <div class="countdown-number" id="days">260</div>
+        <div class="countdown-label">Days</div>
+      </div>
+      <div class="countdown-item">
+        <div class="countdown-number" id="hours">12</div>
+        <div class="countdown-label">Hours</div>
+      </div>
+      <div class="countdown-item">
+        <div class="countdown-number" id="minutes">30</div>
+        <div class="countdown-label">Minutes</div>
+      </div>
+      <div class="countdown-item">
+        <div class="countdown-number" id="seconds">00</div>
+        <div class="countdown-label">Seconds</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Potential Monthly Revenue</div>
+        <div class="stat-value accent">$279K</div>
+        <div class="stat-delta">↑ All 10 ideas combined</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Fastest to Revenue</div>
+        <div class="stat-value green">14 Days</div>
+        <div class="stat-delta">Campaign Creative Agency</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Target Market Size</div>
+        <div class="stat-value gold">6,000+</div>
+        <div class="stat-delta">State & local races</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Your Edge</div>
+        <div class="stat-value blue">5,581</div>
+        <div class="stat-delta">Battle-tested creatives</div>
+      </div>
+    </div>
+    
+    <h2 class="section-title">Election Cycle Timeline</h2>
+    
+    <div class="timeline">
+      <div class="timeline-track">
+        <div class="timeline-progress" id="timeline-progress"></div>
+      </div>
+      <div class="timeline-months">
+        <div class="timeline-month active" data-month="feb">
+          <div class="timeline-month-name">Feb</div>
+          <div class="timeline-month-phase">Build</div>
+        </div>
+        <div class="timeline-month" data-month="mar">
+          <div class="timeline-month-name">Mar</div>
+          <div class="timeline-month-phase">Build</div>
+        </div>
+        <div class="timeline-month" data-month="apr">
+          <div class="timeline-month-name">Apr</div>
+          <div class="timeline-month-phase">Build</div>
+        </div>
+        <div class="timeline-month" data-month="may">
+          <div class="timeline-month-name">May</div>
+          <div class="timeline-month-phase">Launch</div>
+        </div>
+        <div class="timeline-month" data-month="jun">
+          <div class="timeline-month-name">Jun</div>
+          <div class="timeline-month-phase">Launch</div>
+        </div>
+        <div class="timeline-month" data-month="jul">
+          <div class="timeline-month-name">Jul</div>
+          <div class="timeline-month-phase">Launch</div>
+        </div>
+        <div class="timeline-month" data-month="aug">
+          <div class="timeline-month-name">Aug</div>
+          <div class="timeline-month-phase">Peak</div>
+        </div>
+        <div class="timeline-month" data-month="sep">
+          <div class="timeline-month-name">Sep</div>
+          <div class="timeline-month-phase">Peak</div>
+        </div>
+        <div class="timeline-month" data-month="oct">
+          <div class="timeline-month-name">Oct</div>
+          <div class="timeline-month-phase">Peak</div>
+        </div>
+        <div class="timeline-month" data-month="nov">
+          <div class="timeline-month-name">Nov</div>
+          <div class="timeline-month-phase">🗳️</div>
+        </div>
+      </div>
+    </div>
+    
+    <h2 class="section-title">Revenue Projection by Month</h2>
+    
+    <div class="revenue-chart">
+      <div class="chart-bars">
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="height: 10%;" data-value="$5K"></div>
+          <div class="chart-bar-label">Feb</div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="height: 20%;" data-value="$15K"></div>
+          <div class="chart-bar-label">Mar</div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="height: 35%;" data-value="$35K"></div>
+          <div class="chart-bar-label">Apr</div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="height: 50%;" data-value="$60K"></div>
+          <div class="chart-bar-label">May</div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="height: 55%;" data-value="$75K"></div>
+          <div class="chart-bar-label">Jun</div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="height: 60%;" data-value="$85K"></div>
+          <div class="chart-bar-label">Jul</div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="height: 80%;" data-value="$125K"></div>
+          <div class="chart-bar-label">Aug</div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="height: 95%;" data-value="$175K"></div>
+          <div class="chart-bar-label">Sep</div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="height: 100%;" data-value="$200K"></div>
+          <div class="chart-bar-label">Oct</div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-bar" style="height: 40%;" data-value="$45K"></div>
+          <div class="chart-bar-label">Nov</div>
+        </div>
+      </div>
+    </div>
+    
+    <h2 class="section-title">Top 5 Money-Making Ideas</h2>
+    
+    <div class="ideas-grid">
+      <div class="idea-card">
+        <div class="idea-rank">1</div>
+        <div class="idea-emoji">🗳️</div>
+        <div class="idea-title">Campaign Creative Agency</div>
+        <div class="idea-description">White-label AI copywriting for down-ballot races. 6,000+ campaigns need professional SMS copy but can't afford $15K/mo consultants.</div>
+        <div class="idea-metrics">
+          <div class="idea-metric">
+            <span class="idea-metric-value">$75K</span>
+            <span class="idea-metric-label">Monthly Ceiling</span>
+          </div>
+          <div class="idea-metric">
+            <span class="idea-metric-value">14 days</span>
+            <span class="idea-metric-label">Time to Revenue</span>
+          </div>
+          <div class="idea-metric">
+            <span class="idea-metric-value">$497-$3,997</span>
+            <span class="idea-metric-label">Price Range</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="idea-card">
+        <div class="idea-rank">2</div>
+        <div class="idea-emoji">💰</div>
+        <div class="idea-title">Donor Genome Project</div>
+        <div class="idea-description">Sell access to your persuasion database. 5,581 creatives with performance data = goldmine of "what works" that no one else has.</div>
+        <div class="idea-metrics">
+          <div class="idea-metric">
+            <span class="idea-metric-value">$50K</span>
+            <span class="idea-metric-label">Monthly Ceiling</span>
+          </div>
+          <div class="idea-metric">
+            <span class="idea-metric-value">30 days</span>
+            <span class="idea-metric-label">Time to Revenue</span>
+          </div>
+          <div class="idea-metric">
+            <span class="idea-metric-value">$497/mo</span>
+            <span class="idea-metric-label">Practitioner Tier</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="idea-card">
+        <div class="idea-rank">3</div>
+        <div class="idea-emoji">🎯</div>
+        <div class="idea-title">AI Fundraising Audit</div>
+        <div class="idea-description">Done-in-a-day campaign diagnostics. Campaigns waste 40-60% of SMS budget. A 2-hour audit can identify $10K+ in savings.</div>
+        <div class="idea-metrics">
+          <div class="idea-metric">
+            <span class="idea-metric-value">$24K</span>
+            <span class="idea-metric-label">Monthly Ceiling</span>
+          </div>
+          <div class="idea-metric">
+            <span class="idea-metric-value">7 days</span>
+            <span class="idea-metric-label">Time to Revenue</span>
+          </div>
+          <div class="idea-metric">
+            <span class="idea-metric-value">$1,997-$4,997</span>
+            <span class="idea-metric-label">Per Audit</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="idea-card">
+        <div class="idea-rank">4</div>
+        <div class="idea-emoji">📱</div>
+        <div class="idea-title">SMS Swipe File</div>
+        <div class="idea-description">Monthly subscription to winning political copy. Creators pay $29/mo for swipe files—political operatives will pay 10x.</div>
+        <div class="idea-metrics">
+          <div class="idea-metric">
+            <span class="idea-metric-value">$30K</span>
+            <span class="idea-metric-label">Monthly MRR</span>
+          </div>
+          <div class="idea-metric">
+            <span class="idea-metric-value">14 days</span>
+            <span class="idea-metric-label">Time to Revenue</span>
+          </div>
+          <div class="idea-metric">
+            <span class="idea-metric-value">$97-$797</span>
+            <span class="idea-metric-label">Price Range</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="idea-card">
+        <div class="idea-rank">5</div>
+        <div class="idea-emoji">🤖</div>
+        <div class="idea-title">DonorBureau Automation</div>
+        <div class="idea-description">Productize your AI workflow. You've compressed 5-6 hrs/day to 1-2 hrs. Other DB users want the same.</div>
+        <div class="idea-metrics">
+          <div class="idea-metric">
+            <span class="idea-metric-value">$40K</span>
+            <span class="idea-metric-label">Monthly Ceiling</span>
+          </div>
+          <div class="idea-metric">
+            <span class="idea-metric-value">30 days</span>
+            <span class="idea-metric-label">Time to Revenue</span>
+          </div>
+          <div class="idea-metric">
+            <span class="idea-metric-value">$1,997/mo</span>
+            <span class="idea-metric-label">License</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <h2 class="section-title">This Week's Action Plan</h2>
+    
+    <div class="action-grid">
+      <div class="action-card">
+        <h3>🚀 Quick Wins (Today)</h3>
+        <ul class="action-list">
+          <li>
+            <div class="action-checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span>Post on X: "I've written SMS copy that generated $X million in political donations. Running a 2026 campaign? DM me."</span>
+          </li>
+          <li>
+            <div class="action-checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span>Create Calendly link for "Campaign Creative Audit" ($1,997)</span>
+          </li>
+          <li>
+            <div class="action-checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span>Email 3 friendly campaigns offering free audit for testimonial</span>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="action-card">
+        <h3>📝 Build This Week</h3>
+        <ul class="action-list">
+          <li>
+            <div class="action-checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span>Landing page: justinhart.biz/campaign-creative</span>
+          </li>
+          <li>
+            <div class="action-checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span>Lead magnet: "2026 Midterm SMS Playbook" (5-10 page PDF)</span>
+          </li>
+          <li>
+            <div class="action-checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span>Export top 100 winning creatives into searchable archive</span>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="action-card">
+        <h3>📧 Outreach This Week</h3>
+        <ul class="action-list">
+          <li>
+            <div class="action-checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span>Cold email 10 state GOP committees (they're scrambling right now)</span>
+          </li>
+          <li>
+            <div class="action-checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span>Reach out to 5 down-ballot candidates in CA/TX/FL</span>
+          </li>
+          <li>
+            <div class="action-checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span>Contact political consultants you know from DB world</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="cta-section">
+      <div class="cta-title">The Window Is Open</div>
+      <p class="cta-subtitle">9 months until Election Day. Campaigns are forming, budgets are being set, and they ALL need what you have. Start today.</p>
+      <a href="#" class="cta-button">View Full 10-Idea Breakdown →</a>
+    </div>
+    
+    <div class="footer">
+      Built by <a href="https://justinhart.biz">Railstote 🦉</a> on February 18, 2026<br>
+      Part of the Morning Surprise series
+    </div>
+  </div>
+  
+  <script>
+    // Countdown to Election Day (Nov 3, 2026)
+    const electionDay = new Date('2026-11-03T06:00:00');
+    
+    function updateCountdown() {
+      const now = new Date();
+      const diff = electionDay - now;
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      document.getElementById('days').textContent = days;
+      document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+      document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+      document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+    }
+    
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    
+    // Timeline progress
+    const startDate = new Date('2026-02-01');
+    const now = new Date();
+    const totalDuration = electionDay - startDate;
+    const elapsed = now - startDate;
+    const progress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+    
+    setTimeout(() => {
+      document.getElementById('timeline-progress').style.width = progress + '%';
+    }, 500);
+    
+    // Timeline month clicks
+    document.querySelectorAll('.timeline-month').forEach(month => {
+      month.addEventListener('click', function() {
+        document.querySelectorAll('.timeline-month').forEach(m => m.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+    
+    // Animate chart bars on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const bars = entry.target.querySelectorAll('.chart-bar');
+          bars.forEach((bar, i) => {
+            setTimeout(() => {
+              bar.style.opacity = '1';
+            }, i * 100);
+          });
+        }
+      });
+    }, { threshold: 0.3 });
+    
+    document.querySelectorAll('.revenue-chart').forEach(chart => {
+      observer.observe(chart);
+    });
+  </script>
+</body>
+</html>
