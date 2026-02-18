@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Voynich Manuscript</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #030305;
+            --gold: #FFD28E;
+            --gold-trans: rgba(255, 210, 142, 0.15);
+            --panel-bg: rgba(15, 15, 20, 0.6);
+            --panel-border: rgba(255, 210, 142, 0.3);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #f0f0f0;
+            font-family: 'Playfair Display', serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        canvas#starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-top: 2rem;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 210, 142, 0.5);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--gold);
+            letter-spacing: 0.5px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            border: 1px solid var(--panel-border);
+            padding: 2rem;
+            margin-bottom: 3rem;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* Gallery Styles */
+        .gallery {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gallery-nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .gallery-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            margin: 0 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .gallery-dot.active {
+            background-color: var(--gold);
+        }
+
+        .gallery-container {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+        }
+
+        .manuscript-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f3e6;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            overflow: hidden;
+        }
+
+        .manuscript-page.active {
+            opacity: 1;
+        }
+
+        .voynich-text {
+            color: #542918;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
+            line-height: 2;
+            direction: rtl;
+            display: flex;
+            flex-wrap: wrap;
+            height: 100%;
+            text-shadow: none;
+        }
+
+        .page-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        /* Voter Styles */
+        .theory-voter {
+            margin-top: 2rem;
+        }
+
+        .theories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .theory-card {
+            background: rgba(30, 30, 40, 0.6);
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .theory-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(255, 210, 142, 0.2);
+        }
+
+        .theory-card.selected {
+            border: 2px solid var(--gold);
+        }
+
+        .theory-name {
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .results-container {
+            margin-top: 2rem;
+            height: 250px;
+        }
+
+        .bar-chart {
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 1rem 0;
+        }
+
+        .bar {
+            width: 60px;
+            background: linear-gradient(to top, var(--gold), #FFB948);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: height 0.5s;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Quiz Styles */
+        .quiz-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question {
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .question.active {
+            display: block;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .option {
+            padding: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .option:hover {
+            background-color: rgba(255, 210, 142, 0.1);
+            border-color: var(--gold);
+        }
+
+        .option.selected {
+            background-color: rgba(255, 210, 142, 0.2);
+            border-color: var(--gold);
+        }
+
+        .option.correct {
+            background-color: rgba(100, 255, 100, 0.2);
+            border-color: #6f6;
+        }
+
+        .option.wrong {
+            background-color: rgba(255, 100, 100, 0.2);
+            border-color: #f66;
+        }
+
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .quiz-results {
+            display: none;
+            text-align: center;
+        }
+
+        .quiz-results.active {
+            display: block;
+        }
+
+        .score {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        /* Timeline Styles */
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 100%;
+            background: var(--gold-trans);
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+            border-radius: 2px;
+        }
+
+        .timeline-event {
+            position: relative;
+            margin-bottom: 3rem;
+            width: 100%;
+        }
+
+        .timeline-content {
+            width: 45%;
+            padding: 1.5rem;
+            background: rgba(30, 30, 40, 0.6);
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+            position: relative;
+        }
+
+        .timeline-content::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--gold);
+            top: 20px;
+            border-radius: 50%;
+        }
+
+        .timeline-event:nth-child(odd) .timeline-content {
+            float: left;
+        }
+
+        .timeline-event:nth-child(odd) .timeline-content::after {
+            right: -60px;
+        }
+
+        .timeline-event:nth-child(even) .timeline-content {
+            float: right;
+        }
+
+        .timeline-event:nth-child(even) .timeline-content::after {
+            left: -60px;
+        }
+
+        .timeline-year {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--gold);
+        }
+
+        /* Button Styles */
+        button {
+            background: linear-gradient(to right, rgba(255, 210, 142, 0.1), rgba(255, 180, 90, 0.2));
+            color: var(--gold);
+            border: 1px solid var(--panel-border);
+            padding: 0.7rem 1.5rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: linear-gradient(to right, rgba(255, 210, 142, 0.3), rgba(255, 180, 90, 0.4));
+            box-shadow: 0 0 15px rgba(255, 210, 142, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Clearfix */
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .timeline::before {
+                left: 30px;
+            }
+            
+            .timeline-content {
+                width: calc(100% - 60px);
+                float: right;
+                margin-left: 60px;
+            }
+            
+            .timeline-event:nth-child(odd) .timeline-content::after,
+            .timeline-event:nth-child(even) .timeline-content::after {
+                left: -45px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starfield"></canvas>
+    
+    <div class="container">
+        <header>
+            <h1>The Voynich Manuscript</h1>
+            <p class="subtitle">A 600-year-old mystery that has defeated cryptographers for centuries</p>
+        </header>
+        
+        <section class="glass-panel">
+            <h2>The Enigma</h2>
+            <p>Dating from approximately 1404-1438, the Voynich Manuscript is a handwritten codex that has confounded experts for over a century. Written in an unknown writing system and filled with strange illustrations of plants, astronomical diagrams, and bizarre scenes, the manuscript was discovered in 1912 by Polish book dealer Wilfrid Voynich.</p>
+            <p>Currently housed at Yale University's Beinecke Rare Book and Manuscript Library (cataloged as MS 408), the manuscript has resisted all attempts at decipherment by the world's top cryptographers and linguists. Despite its indecipherable nature, statistical analyses reveal the text exhibits real linguistic properties that distinguish it from random gibberish.</p>
+        </section>
+        
+        <section class="glass-panel gallery">
+            <h2>Manuscript Gallery</h2>
+            <p>Explore some of the mysterious pages from the Voynich Manuscript. Each page contains symbols and illustrations that have puzzled researchers for generations.</p>
+            
+            <div class="gallery-container">
+                <div class="manuscript-page active" id="page1">
+                    <div class="voynich-text" id="text1"></div>
+                    <div class="page-caption">Botanical illustration page with unknown plant species</div>
+                </div>
+                <div class="manuscript-page" id="page2">
+                    <div class="voynich-text" id="text2"></div>
+                    <div class="page-caption">Astronomical diagram with celestial circles</div>
+                </div>
+                <div class="manuscript-page" id="page3">
+                    <div class="voynich-text" id="text3"></div>
+                    <div class="page-caption">Balneological section with small human figures</div>
+                </div>
+                <div class="manuscript-page" id="page4">
+                    <div class="voynich-text" id="text4"></div>
+                    <div class="page-caption">Pharmaceutical page with labeled containers</div>
+                </div>
+                <div class="manuscript-page" id="page5">
+                    <div class="voynich-text" id="text5"></div>
+                    <div class="page-caption">Cosmological diagram with central rosette</div>
+                </div>
+                <div class="manuscript-page" id="page6">
+                    <div class="voynich-text" id="text6"></div>
+                    <div class="page-caption">Text-heavy page with marginal stars</div>
+                </div>
+            </div>
+            
+            <div class="gallery-nav">
+                <div class="gallery-dot active" data-index="0"></div>
+                <div class="gallery-dot" data-index="1"></div>
+                <div class="gallery-dot" data-index="2"></div>
+                <div class="gallery-dot" data-index="3"></div>
+                <div class="gallery-dot" data-index="4"></div>
+                <div class="gallery-dot" data-index="5"></div>
+            </div>
+        </section>
+        
+        <section class="glass-panel theory-voter">
+            <h2>Origin Theories</h2>
+            <p>Many theories have been proposed to explain the Voynich Manuscript. Which do you find most convincing?</p>
+            
+            <div class="theories">
+                <div class="theory-card" data-theory="hoax">
+                    <div class="theory-name">Elaborate Hoax</div>
+                    <p>A deliberate forgery created to deceive collectors</p>
+                </div>
+                <div class="theory-card" data-theory="language">
+                    <div class="theory-name">Lost Language</div>
+                    <p>Written in an unknown natural language now extinct</p>
+                </div>
+                <div class="theory-card" data-theory="cipher">
+                    <div class="theory-name">Complex Cipher</div>
+                    <p>An encryption system beyond modern cryptographic methods</p>
+                </div>
+                <div class="theory-card" data-theory="alien">
+                    <div class="theory-name">Non-Human Origin</div>
+                    <p>Created by or based on communications with non-human entities</p>
+                </div>
+            </div>
+            
+            <div class="results-container">
+                <h3>Community Opinion</h3>
+                <div class="bar-chart">
+                    <div class="bar" data-theory="hoax" style="height: 40px;">
+                        <span class="bar-value">8%</span>
+                        <span class="bar-label">Hoax</span>
+                    </div>
+                    <div class="bar" data-theory="language" style="height: 120px;">
+                        <span class="bar-value">24%</span>
+                        <span class="bar-label">Lost Language</span>
+                    </div>
+                    <div class="bar" data-theory="cipher" style="height: 190px;">
+                        <span class="bar-value">38%</span>
+                        <span class="bar-label">Cipher</span>
+                    </div>
+                    <div class="bar" data-theory="alien" style="height: 150px;">
+                        <span class="bar-value">30%</span>
+                        <span class="bar-label">Non-Human</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="glass-panel quiz-container">
+            <h2>Test Your Knowledge</h2>
+            <p>How much do you know about the Voynich Manuscript? Take this quick quiz to find out!</p>
+            
+            <div class="question active" id="q1">
+                <div class="question-text">1. When was the Voynich Manuscript discovered?</div>
+                <div class="options">
+                    <div class="option" data-correct="false">1843</div>
+                    <div class="option" data-correct="true">1912</div>
+                    <div class="option" data-correct="false">1956</div>
+                    <div class="option" data-correct="false">1998</div>
+                </div>
+            </div>
+            
+            <div class="question" id="q2">
+                <div class="question-text">2. Where is the Voynich Manuscript currently housed?</div>
+                <div class="options">
+                    <div class="option" data-correct="false">British Museum, London</div>
+                    <div class="option" data-correct="false">Vatican Library</div>
+                    <div class="option" data-correct="true">Yale University (Beinecke Library)</div>
+                    <div class="option" data-correct="false">Smithsonian Institution</div>
+                </div>
+            </div>
+            
+            <div class="question" id="q3">
+                <div class="question-text">3. What is the approximate age of the Voynich Manuscript?</div>
+                <div class="options">
+                    <div class="option" data-correct="true">~600 years (early 15th century)</div>
+                    <div class="option" data-correct="false">~300 years (18th century)</div>
+                    <div class="option" data-correct="false">~1000 years (11th century)</div>
+                    <div class="option" data-correct="false">~100 years (early 20th century)</div>
+                </div>
+            </div>
+            
+            <div class="question" id="q4">
+                <div class="question-text">4. Which of these is NOT a section found in the Voynich Manuscript?</div>
+                <div class="options">
+                    <div class="option" data-correct="false">Botanical</div>
+                    <div class="option" data-correct="false">Astronomical</div>
+                    <div class="option" data-correct="true">Mathematical formulas</div>
+                    <div class="option" data-correct="false">Pharmaceutical</div>
+                </div>
+            </div>
+            
+            <div class="question" id="q5">
+                <div class="question-text">5. What evidence suggests the Voynich text is not random gibberish?</div>
+                <div class="options">
+                    <div class="option" data-correct="true">It exhibits statistical patterns found in natural languages</div>
+                    <div class="option" data-correct="false">Parts have been successfully translated</div>
+                    <div class="option" data-correct="false">It contains known alchemical symbols</div>
+                    <div class="option" data-correct="false">Similar writing has been found in other texts</div>
+                </div>
+            </div>
+            
+            <div class="quiz-results">
+                <h3>Quiz Complete!</h3>
+                <div class="score">Your score: <span id="score">0</span>/5</div>
+                <button id="restart-quiz">Try Again</button>
+            </div>
+            
+            <div class="quiz-nav">
+                <button id="prev-question" disabled>Previous</button>
+                <button id="next-question">Next</button>
+            </div>
+        </section>
+        
+        <section class="glass-panel">
+            <h2>Timeline of Decoding Attempts</h2>
+            <p>Over the centuries, many scholars and cryptographers have attempted to decode the manuscript, all without success.</p>
+            
+            <div class="timeline">
+                <div class="timeline-event clearfix">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1921</div>
+                        <h3>William Newbold</h3>
+                        <p>Claimed to have decoded the manuscript as Roger Bacon's scientific writings. His method was later discredited as overly complex pattern-seeking.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-event clearfix">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1944</div>
+                        <h3>Hugh O'Neill</h3>
+                        <p>Identified certain plants as New World species, suggesting the manuscript might post-date Columbus's voyages.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-event clearfix">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1978</div>
+                        <h3>John Stojko</h3>
+                        <p>Proposed the text was written in an Ukrainian dialect using a unique writing system. His translation described battles and political events.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-event clearfix">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1995-2000</div>
+                        <h3>Computer Analysis Era</h3>
+                        <p>Statistical analyses by various researchers identified linguistic patterns consistent with natural languages, challenging hoax theories.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-event clearfix">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2014</div>
+                        <h3>Stephen Bax</h3>
+                        <p>Claimed to have deciphered 14 characters and some words, focusing on labels of illustrated plants. His work has not led to a full translation.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-event clearfix">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2019</div>
+                        <h3>Gerard Cheshire</h3>
+                        <p>Proposed the manuscript was written in proto-Romance language. Most scholars have dismissed this theory as unconvincing.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        // Starfield Background
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size to window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            createStars();
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Stars
+        const stars = [];
+        const starCount = 200;
+        
+        function createStars() {
+            stars.length = 0;
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2,
+                    opacity: Math.random() * 0.8 + 0.2,
+                    speed: Math.random() * 0.2 + 0.1
+                });
+            }
+        }
+        
+        function animateStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#030305';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            stars.forEach(star => {
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            requestAnimationFrame(animateStars);
+        }
+        
+        animateStars();
+        
+        // Generate Voynich-like glyphs
+        const glyphs = [
+            '᐀', 'ᐁ', 'ᐂ', 'ᐃ', 'ᐄ', 'ᐅ', 'ᐆ', 'ᐇ', 'ᐈ', 'ᐉ', 'ᐊ', 'ᐋ', 'ᐌ', 'ᐍ',
+            'ᚠ', 'ᚡ', 'ᚢ', 'ᚣ', 'ᚤ', 'ᚥ', 'ᚦ', 'ᚧ', 'ᚨ', 'ᚩ', 'ᚪ', 'ᚫ', 'ᚬ', 'ᚭ', 'ᚮ',
+            'ꙮ', '꙯', '꙰', '꙱', '꙲', '꙳', 'ꙴ', 'ꙵ', 'ꙶ', 'ꙷ', 'ꙸ', 'ꙹ', 'ꙺ', 'ꙻ',
+            '⁕', '⁖', '⁗', '⁘', '⁙', '⁚', '⁛', '⁜', '⁝', '⁞',
+            'ᛒ', 'ᛓ', 'ᛔ', 'ᛕ', 'ᛖ', 'ᛗ', 'ᛘ', 'ᛙ', 'ᛚ', 'ᛛ', 'ᛜ', 'ᛝ', 'ᛞ'
+        ];
+        
+        function generateVoynichText() {
+            const textContainers = document.querySelectorAll('.voynich-text');
+            
+            textContainers.forEach((container, pageIndex) => {
+                let content = '';
+                
+                // Different layouts for different pages
+                switch(pageIndex) {
+                    case 0: // Botanical page
+                        for (let i = 0; i < 12; i++) {
+                            let line = '';
+                            const lineLength = Math.floor(Math.random() * 15) + 5;
+                            for (let j = 0; j < lineLength; j++) {
+                                line += glyphs[Math.floor(Math.random() * glyphs.length)];
+                                if (j % 5 === 4) line += ' ';
+                            }
+                            content += `<div>${line}</div>`;
+                            if (i % 4 === 3) content += '<br>';
+                        }
+                        break;
+                        
+                    case 1: // Astronomical
+                        // Circular arrangement
+                        content += `<div style="text-align: center; padding: 20px;">${glyphs[Math.floor(Math.random() * glyphs.length)]}</div>`;
+                        for (let i = 0; i < 8; i++) {
+                            const circle = document.createElement('div');
+                            circle.style.width = (200 - i * 20) + 'px';
+                            circle.style.height = (200 - i * 20) + 'px';
+                            circle.style.border = '1px solid #542918';
+                            circle.style.borderRadius = '50%';
+                            circle.style.position = 'absolute';
+                            circle.style.top = '50%';
+                            circle.style.left = '50%';
+                            circle.style.transform = 'translate(-50%, -50%)';
+                            container.appendChild(circle);
+                        }
+                        break;
+                        
+                    default:
+                        // Random text blocks
+                        for (let i = 0; i < 25; i++) {
+                            let line = '';
+                            const lineLength = Math.floor(Math.random() * 20) + 8;
+                            for (let j = 0; j < lineLength; j++) {
+                                line += glyphs[Math.floor(Math.random() * glyphs.length)];
+                                if (Math.random() > 0.8) line += ' ';
+                            }
+                            content += `<div>${line}</div>`;
+                        }
+                }
+                
+                container.innerHTML = content;
+            });
+        }
+        
+        generateVoynichText();
+        
+        // Gallery
+        const galleryDots = document.querySelectorAll('.gallery-dot');
+        const pages = document.querySelectorAll('.manuscript-page');
+        
+        galleryDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const index = dot.getAttribute('data-index');
+                
+                // Update active dot
+                galleryDots.forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                
+                // Update active page
+                pages.forEach(page => page.classList.remove('active'));
+                pages[index].classList.add('active');
+            });
+        });
+        
+        // Theory Voter
+        const theoryCards = document.querySelectorAll('.theory-card');
+        const bars = document.querySelectorAll('.bar');
+        const votes = {
+            hoax: 8,
+            language: 24,
+            cipher: 38,
+            alien: 30
+        };
+        
+        function updateChart() {
+            const total = Object.values(votes).reduce((sum, count) => sum + count, 0);
+            
+            bars.forEach(bar => {
+                const theory = bar.getAttribute('data-theory');
+                const percentage = Math.round((votes[theory] / total) * 100);
+                const height = Math.max(percentage * 5, 10);
+                
+                bar.style.height = `${height}px`;
+                bar.querySelector('.bar-value').textContent = `${percentage}%`;
+            });
+        }
+        
+        theoryCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const theory = card.getAttribute('data-theory');
+                
+                // Visual selection
+                theoryCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                
+                // Update votes
+                votes[theory]++;
+                updateChart();
+            });
+        });
+        
+        // Quiz
+        const questions = document.querySelectorAll('.question');
+        const prevButton = document.getElementById('prev-question');
+        const nextButton = document.getElementById('next-question');
+        const options = document.querySelectorAll('.option');
+        const quizResults = document.querySelector('.quiz-results');
+        const scoreDisplay = document.getElementById('score');
+        const restartButton = document.getElementById('restart-quiz');
+        
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = Array(questions.length).fill(false);
+        
+        function showQuestion(index) {
+            questions.forEach(q => q.classList.remove('active'));
+            questions[index].classList.add('active');
+            
+            prevButton.disabled = index === 0;
+            nextButton.textContent = index === questions.length - 1 ? 'Finish Quiz' : 'Next';
+        }
+        
+        prevButton.addEventListener('click', () => {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion(currentQuestion);
+            }
+        });
+        
+        nextButton.addEventListener('click', () => {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion(currentQuestion);
+            } else {
+                // Show results
+                questions.forEach(q => q.classList.remove('active'));
+                quizResults.classList.add('active');
+                scoreDisplay.textContent = score;
+                
+                // Hide navigation
+                document.querySelector('.quiz-nav').style.display = 'none';
+            }
+        });
+        
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                if (answered[currentQuestion]) return;
+                
+                const isCorrect = option.getAttribute('data-correct') === 'true';
+                
+                // Mark as answered
+                answered[currentQuestion] = true;
+                
+                // Update score
+                if (isCorrect) {
+                    score++;
+                    option.classList.add('correct');
+                } else {
+                    option.classList.add('wrong');
+                    
+                    // Show correct answer
+                    const correctOption = Array.from(option.parentElement.children)
+                        .find(opt => opt.getAttribute('data-correct') === 'true');
+                    correctOption.classList.add('correct');
+                }
+            });
+        });
+        
+        restartButton.addEventListener('click', () => {
+            // Reset quiz
+            score = 0;
+            currentQuestion = 0;
+            answered = Array(questions.length).fill(false);
+            
+            // Reset UI
+            options.forEach(option => {
+                option.classList.remove('selected', 'correct', 'wrong');
+            });
+            
+            quizResults.classList.remove('active');
+            document.querySelector('.quiz-nav').style.display = 'flex';
+            showQuestion(0);
+        });
+    </script>
+</body>
+</html>

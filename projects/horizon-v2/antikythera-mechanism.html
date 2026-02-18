@@ -5,19 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Antikythera Mechanism</title>
     <style>
-        /* Base Styles */
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+        /* Base Styles and Font Declarations */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
         
         :root {
-            --dark-bg: #030305;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --gold: #FFD28E;
-            --gold-light: rgba(255, 210, 142, 0.7);
-            --gold-dim: rgba(255, 210, 142, 0.3);
-            --text-light: rgba(255, 255, 255, 0.9);
-            --text-dim: rgba(255, 255, 255, 0.7);
+            --bg-color: #030305;
+            --text-color: #e0e0e0;
+            --gold-accent: #FFD28E;
+            --panel-bg: rgba(20, 20, 25, 0.7);
+            --panel-border: rgba(255, 210, 142, 0.3);
+            --glass-shine: rgba(255, 255, 255, 0.05);
         }
         
         * {
@@ -27,17 +24,16 @@
         }
         
         body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: 'Playfair Display', serif;
-            background-color: var(--dark-bg);
-            color: var(--text-light);
             line-height: 1.6;
-            position: relative;
             overflow-x: hidden;
-            min-height: 100vh;
+            position: relative;
         }
         
         /* Starfield Background */
-        .stars {
+        #starfield {
             position: fixed;
             top: 0;
             left: 0;
@@ -47,28 +43,29 @@
         }
         
         /* Typography */
-        h1, h2, h3, h4, h5 {
-            font-family: 'Playfair Display', serif;
-            color: var(--gold);
-            margin-bottom: 1rem;
+        h1, h2, h3, h4 {
+            color: var(--gold-accent);
             font-weight: 600;
+            margin-bottom: 1rem;
         }
         
         h1 {
-            font-size: 3rem;
+            font-size: 2.8rem;
             text-align: center;
-            margin: 2rem 0;
-            letter-spacing: 1px;
+            margin-top: 2rem;
+            text-shadow: 0 0 10px rgba(255, 210, 142, 0.3);
         }
         
         h2 {
-            font-size: 2.2rem;
-            margin-top: 1.5rem;
+            font-size: 1.8rem;
+            border-bottom: 1px solid var(--gold-accent);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
         }
         
         h3 {
-            font-size: 1.8rem;
-            margin-top: 1rem;
+            font-size: 1.4rem;
+            margin-top: 1.5rem;
         }
         
         p, li {
@@ -76,1290 +73,1617 @@
             font-size: 1.1rem;
         }
         
-        .mono {
+        code, .mono {
             font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
         }
         
         /* Layout */
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        header {
-            text-align: center;
-            padding: 1rem 0;
-        }
-        
-        section {
-            margin: 3rem 0;
+            padding: 2rem;
         }
         
         /* Glassmorphism Panels */
         .glass-panel {
-            background: var(--glass-bg);
+            background: var(--panel-bg);
+            border-radius: 10px;
+            border: 1px solid var(--panel-border);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
-            padding: 2rem;
-            margin: 2rem 0;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Navigation */
-        nav ul {
-            display: flex;
-            justify-content: center;
-            list-style: none;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        
-        nav a {
-            color: var(--text-light);
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-            border: 1px solid var(--gold-dim);
-        }
-        
-        nav a:hover {
-            background: var(--gold-dim);
-            color: var(--dark-bg);
-        }
-        
-        /* Interactive Elements Common Styles */
-        .interactive {
-            padding: 1.5rem;
-            margin: 2rem 0;
-        }
-        
-        .interactive-title {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--gold);
-        }
-        
-        /* Buttons & Controls */
-        .btn {
-            font-family: 'JetBrains Mono', monospace;
-            background: transparent;
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            margin: 0.5rem;
-        }
-        
-        .btn:hover {
-            background-color: var(--gold);
-            color: var(--dark-bg);
-        }
-        
-        /* Gear Simulator Styles */
-        .gear-simulator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .gear-container {
             position: relative;
-            width: 400px;
-            height: 400px;
-            margin: 1rem auto;
+            overflow: hidden;
         }
         
-        .gear {
-            position: absolute;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            transform-origin: center;
-            transition: transform 0.1s linear;
-        }
-        
-        .crank-handle {
-            cursor: grab;
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            background-color: var(--gold);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: var(--dark-bg);
-            user-select: none;
-            z-index: 10;
-        }
-        
-        /* Date Explorer Styles */
-        .date-explorer {
-            text-align: center;
-        }
-        
-        .calendar-display {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            margin: 1rem 0;
-        }
-        
-        .calendar-day {
-            padding: 0.5rem;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-        }
-        
-        /* Exploded View Styles */
-        .exploded-view {
-            text-align: center;
-        }
-        
-        .exploded-container {
-            position: relative;
-            width: 100%;
-            height: 400px;
-            margin: 1rem 0;
-        }
-        
-        .layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-            transition: all 0.5s ease;
-        }
-        
-        .controls {
-            display: flex;
-            justify-content: center;
-            margin: 1rem 0;
-        }
-        
-        /* Timeline Styles */
-        .timeline {
-            position: relative;
-            max-width: 800px;
-            margin: 2rem auto;
-        }
-        
-        .timeline::after {
+        .glass-panel::after {
             content: '';
             position: absolute;
-            width: 3px;
-            background-color: var(--gold-dim);
             top: 0;
-            bottom: 0;
-            left: 50%;
-            margin-left: -1px;
+            left: -50%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                transparent,
+                var(--glass-shine),
+                transparent
+            );
+            transform: rotate(30deg);
+            pointer-events: none;
+        }
+        
+        /* Interactive Elements Common */
+        button, .button {
+            background: rgba(255, 210, 142, 0.2);
+            color: var(--gold-accent);
+            border: 1px solid var(--gold-accent);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        button:hover, .button:hover {
+            background: rgba(255, 210, 142, 0.3);
+            box-shadow: 0 0 10px rgba(255, 210, 142, 0.5);
+        }
+        
+        .flex {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--panel-border);
+            margin-bottom: 1.5rem;
+        }
+        
+        .tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            opacity: 1;
+            color: var(--gold-accent);
+            border-bottom: 2px solid var(--gold-accent);
+        }
+        
+        /* Gear Simulator */
+        #gear-simulator {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        .gear-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .simulator-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .slider-container {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .slider-container label {
+            margin-right: 1rem;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 2px;
+            background: var(--gold-accent);
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--gold-accent);
+            cursor: pointer;
+        }
+        
+        /* Exploded View */
+        #exploded-view {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            margin-bottom: 2rem;
+        }
+        
+        .exploded-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            max-width: 250px;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            margin: 2rem 0;
+            padding-left: 3rem;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background: var(--gold-accent);
+            opacity: 0.5;
         }
         
         .timeline-item {
-            padding: 10px 40px;
             position: relative;
-            width: 50%;
+            padding-bottom: 2rem;
         }
         
-        .timeline-item::after {
+        .timeline-item::before {
             content: '';
             position: absolute;
-            width: 15px;
-            height: 15px;
-            background-color: var(--gold);
-            top: 15px;
+            left: -3rem;
+            top: 0.5rem;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            z-index: 1;
-        }
-        
-        .timeline-left {
-            left: 0;
-        }
-        
-        .timeline-right {
-            left: 50%;
-        }
-        
-        .timeline-left::after {
-            right: -8px;
-        }
-        
-        .timeline-right::after {
-            left: -7px;
-        }
-        
-        .timeline-content {
-            padding: 1rem;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 8px;
+            background: var(--gold-accent);
         }
         
         .timeline-date {
-            color: var(--gold);
+            color: var(--gold-accent);
             font-weight: bold;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.3rem;
         }
         
-        /* Quiz Styles */
+        /* Date Explorer */
+        #date-explorer {
+            padding: 1.5rem;
+        }
+        
+        .date-inputs {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gold-accent);
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--panel-border);
+            color: var(--text-color);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .prediction-results {
+            border-top: 1px solid var(--panel-border);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        /* Quiz */
         .quiz-container {
-            max-width: 800px;
-            margin: 0 auto;
+            margin-top: 2rem;
         }
         
         .question {
-            margin: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .question h3 {
+            margin-bottom: 1rem;
         }
         
         .options {
-            list-style-type: none;
-            margin: 1rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
         
         .option {
-            padding: 0.7rem 1rem;
-            margin: 0.5rem 0;
-            border: 1px solid var(--glass-border);
-            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 4px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background 0.3s;
         }
         
         .option:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
         }
         
-        .selected {
-            background-color: var(--gold-dim);
-            color: var(--dark-bg);
+        .option input[type="radio"] {
+            margin-right: 1rem;
+            accent-color: var(--gold-accent);
         }
         
-        .correct {
-            background-color: rgba(0, 255, 0, 0.2);
-            border-color: rgba(0, 255, 0, 0.5);
-        }
-        
-        .incorrect {
-            background-color: rgba(255, 0, 0, 0.2);
-            border-color: rgba(255, 0, 0, 0.5);
-        }
-        
-        .result {
+        .quiz-buttons {
+            display: flex;
+            justify-content: space-between;
             margin-top: 2rem;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.2rem;
+        }
+        
+        .result-container {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            display: none;
         }
         
         /* Media Queries */
-        @media (max-width: 800px) {
-            .gear-container {
-                width: 300px;
-                height: 300px;
-            }
-            
-            .timeline::after {
-                left: 31px;
-            }
-            
-            .timeline-item {
-                width: 100%;
-                padding-left: 70px;
-                padding-right: 25px;
-            }
-            
-            .timeline-right, .timeline-left {
-                left: 0;
-            }
-            
-            .timeline-left::after, .timeline-right::after {
-                left: 15px;
-            }
-        }
-        
-        @media (max-width: 500px) {
+        @media (max-width: 768px) {
             h1 {
                 font-size: 2rem;
             }
             
-            h2 {
-                font-size: 1.7rem;
+            .container {
+                padding: 1rem;
             }
             
-            .gear-container {
-                width: 250px;
-                height: 250px;
+            .glass-panel {
+                padding: 1.5rem;
+            }
+            
+            #gear-simulator, #exploded-view {
+                height: 400px;
             }
         }
-
-        /* Footer Styles */
+        
+        /* Footer */
         footer {
             text-align: center;
             padding: 2rem;
             margin-top: 3rem;
+            opacity: 0.7;
             font-size: 0.9rem;
-            color: var(--text-dim);
-        }
-        
-        .attribution {
-            font-style: italic;
-            margin-top: 1rem;
         }
     </style>
 </head>
-
 <body>
-    <canvas class="stars" id="starfield"></canvas>
+    <!-- Starfield Background -->
+    <canvas id="starfield"></canvas>
     
     <div class="container">
         <header>
             <h1>THE ANTIKYTHERA MECHANISM</h1>
-            <p class="subtitle">The World's First Computer — 2,000 Years Ahead of Its Time</p>
+            <div class="glass-panel">
+                <p class="intro">
+                    Discovered in 1901 in a Roman-era shipwreck off the coast of Greece, the Antikythera Mechanism is considered the world's first analog computer. Built between 100-70 BC, this ancient marvel contained over 30 precision bronze gears that could predict astronomical events, track the Olympic Games, and calculate celestial positions with astonishing accuracy. Its technological sophistication wouldn't be seen again for another 1,500 years.
+                </p>
+            </div>
         </header>
         
-        <nav class="glass-panel">
-            <ul>
-                <li><a href="#about">About</a></li>
-                <li><a href="#gear-simulator">Gear Simulator</a></li>
-                <li><a href="#date-explorer">Date Explorer</a></li>
-                <li><a href="#exploded-view">Exploded View</a></li>
-                <li><a href="#timeline">Timeline</a></li>
-                <li><a href="#quiz">Quiz</a></li>
-            </ul>
-        </nav>
-        
-        <section id="about" class="glass-panel">
-            <h2>The 2,000-Year-Old Computer</h2>
-            <p>Discovered in 1901 in a Roman-era shipwreck off the coast of Antikythera, Greece, the Antikythera Mechanism is the world's oldest known analog computer. Built between 100-70 BCE, this remarkable device contained over 30 precision bronze gears that could predict astronomical positions, eclipses, and even track the cycles of the Olympic Games.</p>
+        <section class="glass-panel">
+            <h2>Interactive Gear Simulator</h2>
+            <p>Turn the crank to see how the gears of the Antikythera Mechanism would have worked together. The primary wheel drives all the subsidiary gears in precise mathematical ratios, allowing the device to track celestial cycles.</p>
             
-            <div class="about-highlights">
-                <h3>Key Facts</h3>
-                <ul>
-                    <li><strong>Age:</strong> Approximately 2,100 years old</li>
-                    <li><strong>Origin:</strong> Likely constructed on the island of Rhodes</li>
-                    <li><strong>Size:</strong> About the size of a shoebox</li>
-                    <li><strong>Complexity:</strong> Contained at least 30 precisely-cut bronze gears</li>
-                    <li><strong>Function:</strong> Calculated astronomical positions, predicted eclipses, tracked lunar phases, and displayed the four-year cycle of athletic games</li>
-                    <li><strong>Historical Significance:</strong> Its technological sophistication was not seen again for at least 1,500 years</li>
-                    <li><strong>Modern Discovery:</strong> CT scans in the early 2000s revealed hidden inscriptions and the full complexity of its mechanism</li>
-                </ul>
+            <div class="simulator-controls">
+                <button id="turn-crank">Turn Crank</button>
+                <button id="auto-crank">Auto Rotate</button>
+                <div class="slider-container">
+                    <label>Speed:</label>
+                    <input type="range" id="speed-control" min="1" max="10" value="5">
+                </div>
+                <button id="reset-gears">Reset</button>
+            </div>
+            
+            <div id="gear-simulator">
+                <canvas id="gear-canvas" class="gear-canvas"></canvas>
+            </div>
+            
+            <div class="simulator-info">
+                <p>The Antikythera Mechanism used an ingenious system of at least 30 precision bronze gears. The largest gear, the main drive wheel, was about 13 cm in diameter and had 223 teeth. When rotated, it drove a complex train of gears that tracked various astronomical cycles.</p>
+                <p class="mono">Current position: <span id="position-display">0°</span> | Gear ratio: <span id="ratio-display">1:1</span></p>
             </div>
         </section>
         
-        <section id="gear-simulator" class="glass-panel interactive">
-            <h2 class="interactive-title">Gear Turning Simulator</h2>
-            <p>Rotate the crank to see how the gears of the Antikythera Mechanism would have worked together. This simplified model demonstrates the principles of differential gear movement that allowed the device to track celestial bodies.</p>
+        <section class="glass-panel">
+            <h2>What Could It Predict?</h2>
+            <p>The Antikythera Mechanism could predict various astronomical events with remarkable precision. Enter a date to see what this ancient computer could tell you about the heavens.</p>
             
-            <div class="gear-simulator">
-                <div class="gear-container" id="gear-simulator-container">
-                    <div class="crank-handle" id="crank">TURN</div>
+            <div id="date-explorer">
+                <div class="date-inputs">
+                    <div class="input-group">
+                        <label for="year-input">Year (BCE/CE)</label>
+                        <input type="number" id="year-input" min="-500" max="500" value="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="month-input">Month</label>
+                        <select id="month-input">
+                            <option value="0">January</option>
+                            <option value="1">February</option>
+                            <option value="2">March</option>
+                            <option value="3">April</option>
+                            <option value="4">May</option>
+                            <option value="5">June</option>
+                            <option value="6">July</option>
+                            <option value="7">August</option>
+                            <option value="8">September</option>
+                            <option value="9">October</option>
+                            <option value="10">November</option>
+                            <option value="11">December</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="day-input">Day</label>
+                        <input type="number" id="day-input" min="1" max="31" value="15">
+                    </div>
+                    <button id="calculate-date">Calculate</button>
                 </div>
-                <div class="gear-info">
-                    <p>Current position: <span id="position-display" class="mono">0°</span></p>
-                    <div>
-                        <button class="btn" id="reset-gears">Reset Position</button>
+                
+                <div class="prediction-results">
+                    <h3>Mechanism Predictions</h3>
+                    <div id="prediction-output">
+                        <p>Enter a date and click "Calculate" to see what the Antikythera Mechanism would have predicted.</p>
                     </div>
                 </div>
             </div>
         </section>
         
-        <section id="date-explorer" class="glass-panel interactive">
-            <h2 class="interactive-title">Ancient Date Explorer (circa 150 BCE)</h2>
-            <p>The Antikythera Mechanism could calculate dates of astronomical phenomena and important cultural events. Explore how the ancient calendar would have looked around the time the device was created.</p>
+        <section class="glass-panel">
+            <h2>Exploded View of Gears</h2>
+            <p>Explore the internal structure of the Antikythera Mechanism. Hover over gears to see their function and relationship to other components.</p>
             
-            <div class="date-explorer">
-                <div class="controls">
-                    <button class="btn" id="prev-month">Previous Month</button>
-                    <span id="current-date" class="mono" style="margin: 0 1rem; display: inline-block; min-width: 200px;">Month, 150 BCE</span>
-                    <button class="btn" id="next-month">Next Month</button>
-                </div>
-                
-                <div class="calendar-display" id="calendar-grid">
-                    <!-- Calendar days will be inserted here by JavaScript -->
-                </div>
-                
-                <div class="event-display glass-panel" style="margin-top: 1.5rem;">
-                    <h3>Events & Astronomical Phenomena</h3>
-                    <div id="events-list">
-                        <p>Select a day to see associated events.</p>
-                    </div>
-                </div>
+            <div id="exploded-view">
+                <canvas id="exploded-canvas" class="exploded-canvas"></canvas>
+                <div id="gear-tooltip" class="tooltip"></div>
+            </div>
+            
+            <div class="control-panel">
+                <button id="rotate-left">Rotate Left</button>
+                <button id="rotate-right">Rotate Right</button>
+                <button id="zoom-in">Zoom In</button>
+                <button id="zoom-out">Zoom Out</button>
+                <button id="reset-view">Reset View</button>
             </div>
         </section>
         
-        <section id="exploded-view" class="glass-panel interactive">
-            <h2 class="interactive-title">Exploded Gear View</h2>
-            <p>Explore the complex arrangement of gears within the Antikythera Mechanism. Use the slider to separate the layers and see how the different components fit together.</p>
-            
-            <div class="exploded-view">
-                <div class="controls">
-                    <label for="explosion-slider" class="mono">Separation: </label>
-                    <input type="range" id="explosion-slider" min="0" max="100" value="0">
-                    <button class="btn" id="reset-explosion">Reset View</button>
-                </div>
-                
-                <div class="exploded-container" id="exploded-view-container">
-                    <!-- Gear layers will be inserted here by JavaScript -->
-                </div>
-                
-                <div class="layer-info">
-                    <h3>Component Descriptions</h3>
-                    <div id="layer-description">
-                        <p>Move the slider to explore the different components of the mechanism.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <section id="timeline" class="glass-panel interactive">
-            <h2 class="interactive-title">Discovery Timeline</h2>
-            <p>The story of the Antikythera Mechanism spans over two millennia, from its creation to its discovery and ongoing research.</p>
+        <section class="glass-panel">
+            <h2>Discovery Timeline</h2>
+            <p>The story of the Antikythera Mechanism spans more than two millennia, from its creation to its discovery and ongoing analysis using cutting-edge technology.</p>
             
             <div class="timeline">
-                <div class="timeline-item timeline-left">
+                <div class="timeline-item">
+                    <div class="timeline-date">~100-70 BCE</div>
                     <div class="timeline-content">
-                        <h3 class="timeline-date">~100-70 BCE</h3>
-                        <p>The Antikythera Mechanism is constructed, likely on the island of Rhodes, which was known for its astronomical research and mechanical engineering.</p>
+                        <h3>Creation of the Mechanism</h3>
+                        <p>The Antikythera Mechanism was constructed, most likely on the island of Rhodes, which was known as a center of astronomical, mathematical, and engineering knowledge. The craftsmanship required precision metalworking skills that were exceptional for the time.</p>
                     </div>
                 </div>
                 
-                <div class="timeline-item timeline-right">
+                <div class="timeline-item">
+                    <div class="timeline-date">~60-50 BCE</div>
                     <div class="timeline-content">
-                        <h3 class="timeline-date">~60-50 BCE</h3>
-                        <p>The Roman ship carrying the mechanism sinks near the island of Antikythera, possibly during a storm while transporting treasures from the eastern Mediterranean to Rome.</p>
+                        <h3>The Shipwreck</h3>
+                        <p>The Roman ship carrying the mechanism sank near the island of Antikythera, between the Peloponnese and Crete. The ship was likely a merchant vessel carrying luxury goods from the Eastern Mediterranean to Rome.</p>
                     </div>
                 </div>
                 
-                <div class="timeline-item timeline-left">
+                <div class="timeline-item">
+                    <div class="timeline-date">1901</div>
                     <div class="timeline-content">
-                        <h3 class="timeline-date">1901</h3>
-                        <p>Greek sponge divers discover the shipwreck near Antikythera. Among the recovered artifacts are several corroded bronze fragments that would later be identified as parts of the mechanism.</p>
+                        <h3>Discovery by Sponge Divers</h3>
+                        <p>Greek sponge divers discovered the wreck at a depth of about 45 meters. Among the many artifacts recovered were marble statues, pottery, glassware, jewelry, and what appeared to be corroded lumps of metal - the first fragments of the Antikythera Mechanism.</p>
                     </div>
                 </div>
                 
-                <div class="timeline-item timeline-right">
+                <div class="timeline-item">
+                    <div class="timeline-date">1902</div>
                     <div class="timeline-content">
-                        <h3 class="timeline-date">1902</h3>
-                        <p>Archaeologist Valerios Stais notices gear wheels embedded in the fragments but his suggestion that they might be an astronomical mechanism is initially dismissed.</p>
+                        <h3>Initial Recognition</h3>
+                        <p>Archaeologist Valerios Stais noticed that one of the recovered fragments contained what appeared to be a gear wheel. This was the first recognition that the corroded artifacts might be parts of some kind of sophisticated device.</p>
                     </div>
                 </div>
                 
-                <div class="timeline-item timeline-left">
+                <div class="timeline-item">
+                    <div class="timeline-date">1951-1974</div>
                     <div class="timeline-content">
-                        <h3 class="timeline-date">1951-1952</h3>
-                        <p>British science historian Derek de Solla Price begins studying the mechanism and recognizes it as an ancient astronomical calculator.</p>
+                        <h3>Price and Wright's Analysis</h3>
+                        <p>British physicist Derek J. de Solla Price began studying the mechanism in detail, later collaborating with Greek nuclear physicist Charalampos Karakalos. Their work resulted in the first detailed analysis using X-rays and gamma rays, revealing the internal structure of the device.</p>
                     </div>
                 </div>
                 
-                <div class="timeline-item timeline-right">
+                <div class="timeline-item">
+                    <div class="timeline-date">2005-2006</div>
                     <div class="timeline-content">
-                        <h3 class="timeline-date">1971-1974</h3>
-                        <p>Price collaborates with nuclear physicist Charalampos Karakalos to obtain X-ray and gamma-ray images of the mechanism's internal structure, revealing its complex gear system.</p>
+                        <h3>The Antikythera Mechanism Research Project</h3>
+                        <p>An international team of researchers used advanced imaging techniques including high-resolution X-ray tomography to reveal previously hidden details of the mechanism's interior. These scans revealed inscriptions and structures that had been invisible before.</p>
                     </div>
                 </div>
                 
-                <div class="timeline-item timeline-left">
+                <div class="timeline-item">
+                    <div class="timeline-date">2008-2012</div>
                     <div class="timeline-content">
-                        <h3 class="timeline-date">2005-2006</h3>
-                        <p>The Antikythera Mechanism Research Project uses advanced imaging techniques, including high-resolution X-ray tomography, to create detailed 3D scans of the fragments.</p>
+                        <h3>Decoding the Inscriptions</h3>
+                        <p>Researchers deciphered more of the inscriptions on the mechanism, revealing it to be a complex astronomical calculator capable of predicting the positions of the sun, moon, and planets, as well as the timing of eclipses and ancient Greek festivals including the Olympics.</p>
                     </div>
                 </div>
                 
-                <div class="timeline-item timeline-right">
+                <div class="timeline-item">
+                    <div class="timeline-date">2016</div>
                     <div class="timeline-content">
-                        <h3 class="timeline-date">2006-2008</h3>
-                        <p>Researchers decipher previously hidden inscriptions, revealing that the device could predict eclipses and model the irregular orbit of the Moon based on Hipparchos' theories.</p>
+                        <h3>Discovery of Additional Functions</h3>
+                        <p>Further analysis revealed that the mechanism was even more sophisticated than previously thought, with functions for predicting the color of eclipses and other celestial phenomena. Researchers also determined that the mechanism likely had a forecast function rather than just tracking past events.</p>
                     </div>
                 </div>
                 
-                <div class="timeline-item timeline-left">
+                <div class="timeline-item">
+                    <div class="timeline-date">2021-Present</div>
                     <div class="timeline-content">
-                        <h3 class="timeline-date">2012-2016</h3>
-                        <p>Further analysis reveals that the mechanism also tracked Venus and Saturn's positions and included a dial for the four-year cycle of athletic competitions, including the Olympic Games.</p>
-                    </div>
-                </div>
-                
-                <div class="timeline-item timeline-right">
-                    <div class="timeline-content">
-                        <h3 class="timeline-date">Ongoing</h3>
-                        <p>Research continues to this day, with scientists creating working replicas and uncovering new details about this remarkable ancient technology.</p>
+                        <h3>Ongoing Research</h3>
+                        <p>Research continues with increasingly sophisticated technologies and reconstruction efforts. Computer models and physical replicas have been built to better understand how the complete mechanism would have functioned.</p>
                     </div>
                 </div>
             </div>
         </section>
         
-        <section id="quiz" class="glass-panel interactive">
-            <h2 class="interactive-title">Test Your Knowledge</h2>
-            <p>Think you've learned about the Antikythera Mechanism? Take this quiz to find out!</p>
+        <section class="glass-panel quiz-container">
+            <h2>Test Your Knowledge</h2>
+            <p>Now that you've learned about the Antikythera Mechanism, try this quiz to test your understanding of this ancient marvel.</p>
             
-            <div class="quiz-container" id="quiz-box">
-                <div class="question" id="question-container">
-                    <!-- Questions will be dynamically inserted here -->
+            <div id="quiz">
+                <div class="question" id="q1">
+                    <h3>1. When was the Antikythera Mechanism discovered?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q1" value="a"> 1750
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="b"> 1901
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="c"> 1950
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="d"> 2001
+                        </label>
+                    </div>
                 </div>
                 
-                <div class="controls">
-                    <button class="btn" id="check-answer" disabled>Check Answer</button>
-                    <button class="btn" id="next-question" disabled>Next Question</button>
+                <div class="question" id="q2">
+                    <h3>2. When was the Antikythera Mechanism created?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q2" value="a"> 500-400 BCE
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="b"> 100-70 BCE
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="c"> 100-200 CE
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="d"> 500-600 CE
+                        </label>
+                    </div>
                 </div>
                 
-                <div class="result" id="quiz-result"></div>
+                <div class="question" id="q3">
+                    <h3>3. What was the primary purpose of the Antikythera Mechanism?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q3" value="a"> To navigate ships
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="b"> To calculate taxes
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="c"> To predict astronomical events
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="d"> To control water flow
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="question" id="q4">
+                    <h3>4. Where was the Antikythera Mechanism likely created?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q4" value="a"> Athens
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="b"> Rhodes
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="c"> Alexandria
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="d"> Rome
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="question" id="q5">
+                    <h3>5. What technology revealed hidden inscriptions on the Antikythera Mechanism?</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q5" value="a"> Electron microscopy
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="b"> CT scans
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="c"> Ultraviolet light
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="d"> Laser cleaning
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="quiz-buttons">
+                    <button id="submit-quiz">Submit Answers</button>
+                    <button id="reset-quiz">Reset Quiz</button>
+                </div>
+                
+                <div class="result-container" id="quiz-results">
+                    <h3>Your Results</h3>
+                    <p id="score-display"></p>
+                    <div id="answers-review"></div>
+                </div>
             </div>
         </section>
+        
+        <footer>
+            <p>Interactive Antikythera Mechanism Exploration | Created 2026</p>
+        </footer>
     </div>
     
-    <footer>
-        <p>© The Antikythera Mechanism Interactive Experience</p>
-        <p class="attribution">Created as a single HTML file with no external dependencies</p>
-    </footer>
-    
-    <!-- JavaScript -->
+    <!-- JavaScript for interactive elements -->
     <script>
-        // Starfield Background
-        document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the starfield background
+        (function createStarfield() {
             const canvas = document.getElementById('starfield');
             const ctx = canvas.getContext('2d');
+            let stars = [];
+            const fps = 30;
+            const numStars = 250;
             
-            // Set canvas size to window size
+            // Set canvas size
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
+                initStars();
             }
             
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            
-            // Star properties
-            const stars = [];
-            const starCount = Math.min(window.innerWidth, window.innerHeight) * 0.3; // Responsive star count
-            
-            // Initialize stars
-            for (let i = 0; i < starCount; i++) {
-                stars.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 2,
-                    brightness: Math.random(),
-                    speed: Math.random() * 0.05
-                });
+            // Create initial stars
+            function initStars() {
+                stars = [];
+                for (let i = 0; i < numStars; i++) {
+                    stars.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * 1.5 + 0.5,
+                        speed: Math.random() * 0.05 + 0.02,
+                        brightness: Math.random() * 0.3 + 0.7,
+                        color: Math.random() > 0.15 ? '#ffffff' : '#FFD28E'
+                    });
+                }
             }
             
-            // Animation loop
-            function animateStars() {
+            // Draw the stars
+            function drawStars() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#030305';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
                 // Draw stars
-                for (let i = 0; i < stars.length; i++) {
-                    const star = stars[i];
-                    
-                    // Twinkle effect
-                    star.brightness += Math.random() * 0.1 - 0.05;
-                    if (star.brightness < 0.3) star.brightness = 0.3;
-                    if (star.brightness > 1) star.brightness = 1;
-                    
-                    ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+                stars.forEach(star => {
                     ctx.beginPath();
                     ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    ctx.fillStyle = star.color;
+                    ctx.globalAlpha = star.brightness;
                     ctx.fill();
                     
-                    // Slight movement
+                    // Move star
                     star.y += star.speed;
                     
-                    // Reset stars that move off-screen
+                    // Reset star when it goes off screen
                     if (star.y > canvas.height) {
                         star.y = 0;
                         star.x = Math.random() * canvas.width;
                     }
-                }
+                });
                 
-                requestAnimationFrame(animateStars);
+                ctx.globalAlpha = 1;
             }
             
-            animateStars();
+            // Animation loop
+            function animate() {
+                drawStars();
+                requestAnimationFrame(animate);
+            }
             
-            // Gear Simulator
-            initGearSimulator();
-            
-            // Date Explorer
-            initDateExplorer();
-            
-            // Exploded View
-            initExplodedView();
-            
-            // Quiz
-            initQuiz();
-        });
+            // Initialize
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            animate();
+        })();
         
         // Gear Simulator
-        function initGearSimulator() {
-            const container = document.getElementById('gear-simulator-container');
-            const crank = document.getElementById('crank');
+        (function createGearSimulator() {
+            const canvas = document.getElementById('gear-canvas');
+            const ctx = canvas.getContext('2d');
+            const turnCrankBtn = document.getElementById('turn-crank');
+            const autoCrankBtn = document.getElementById('auto-crank');
+            const speedControl = document.getElementById('speed-control');
+            const resetBtn = document.getElementById('reset-gears');
             const positionDisplay = document.getElementById('position-display');
-            const resetButton = document.getElementById('reset-gears');
+            const ratioDisplay = document.getElementById('ratio-display');
             
-            // Create gears with different sizes and teeth counts
+            let isAnimating = false;
+            let animationId = null;
+            let rotationAngle = 0;
+            let speed = 1;
+            
+            // Gear colors
+            const gearColors = {
+                main: '#FFD28E',
+                secondary: '#C9A97C',
+                tertiary: '#A88A68',
+                small: '#856B52'
+            };
+            
+            // Gear definitions
             const gears = [
-                { id: 'gear1', size: 160, teeth: 48, color: '#FFD28E', position: { x: 200, y: 200 }, angle: 0, ratio: 1 },
-                { id: 'gear2', size: 100, teeth: 24, color: '#D4AF37', position: { x: 120, y: 120 }, angle: 0, ratio: 2 },
-                { id: 'gear3', size: 80, teeth: 16, color: '#B8860B', position: { x: 300, y: 100 }, angle: 0, ratio: 3 },
-                { id: 'gear4', size: 60, teeth: 12, color: '#CD7F32', position: { x: 280, y: 280 }, angle: 0, ratio: 4 },
-                { id: 'gear5', size: 40, teeth: 8, color: '#A67D3D', position: { x: 110, y: 270 }, angle: 0, ratio: 6 }
+                { id: 'main-drive', x: 250, y: 250, radius: 80, teeth: 32, color: gearColors.main, angle: 0, ratio: 1 },
+                { id: 'year-gear', x: 390, y: 250, radius: 40, teeth: 16, color: gearColors.secondary, angle: 0, ratio: 2 },
+                { id: 'month-gear', x: 170, y: 170, radius: 30, teeth: 12, color: gearColors.tertiary, angle: 0, ratio: 2.67 },
+                { id: 'moon-gear', x: 160, y: 310, radius: 25, teeth: 10, color: gearColors.secondary, angle: 0, ratio: 3.2 },
+                { id: 'sun-gear', x: 330, y: 150, radius: 35, teeth: 14, color: gearColors.tertiary, angle: 0, ratio: 2.29 },
+                { id: 'olympiad-gear', x: 330, y: 350, radius: 20, teeth: 8, color: gearColors.small, angle: 0, ratio: 4 },
+                { id: 'eclipse-gear', x: 460, y: 190, radius: 15, teeth: 6, color: gearColors.small, angle: 0, ratio: 5.33 }
             ];
             
-            // Create gear elements
-            gears.forEach(gear => {
-                const gearElement = document.createElement('div');
-                gearElement.id = gear.id;
-                gearElement.className = 'gear';
-                gearElement.style.width = `${gear.size}px`;
-                gearElement.style.height = `${gear.size}px`;
-                gearElement.style.left = `${gear.position.x - gear.size / 2}px`;
-                gearElement.style.top = `${gear.position.y - gear.size / 2}px`;
-                gearElement.style.borderRadius = '50%';
-                gearElement.style.border = `${gear.size / 16}px dashed ${gear.color}`;
-                gearElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            // Resize canvas
+            function resizeCanvas() {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+                drawGears();
+            }
+            
+            // Draw a single gear
+            function drawGear(gear) {
+                const { x, y, radius, teeth, color, angle } = gear;
                 
-                // Add gear teeth indicators
-                for (let i = 0; i < gear.teeth; i++) {
-                    const tooth = document.createElement('div');
-                    tooth.style.position = 'absolute';
-                    tooth.style.width = '10px';
-                    tooth.style.height = '10px';
-                    tooth.style.backgroundColor = gear.color;
-                    tooth.style.borderRadius = '50%';
-                    
-                    const angle = (i * 360 / gear.teeth) * (Math.PI / 180);
-                    const radius = gear.size / 2 - 5;
-                    
-                    tooth.style.left = `${gear.size / 2 + radius * Math.cos(angle) - 5}px`;
-                    tooth.style.top = `${gear.size / 2 + radius * Math.sin(angle) - 5}px`;
-                    
-                    gearElement.appendChild(tooth);
+                // Draw gear body
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                
+                // Gear circle
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.globalAlpha = 0.7;
+                ctx.fill();
+                ctx.strokeStyle = '#FFD28E';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Gear teeth
+                const toothSize = radius * 0.15;
+                const toothAngle = (Math.PI * 2) / teeth;
+                
+                ctx.globalAlpha = 0.9;
+                for (let i = 0; i < teeth; i++) {
+                    const toothAngleStart = i * toothAngle;
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        (radius - toothSize/2) * Math.cos(toothAngleStart),
+                        (radius - toothSize/2) * Math.sin(toothAngleStart)
+                    );
+                    ctx.lineTo(
+                        (radius + toothSize) * Math.cos(toothAngleStart),
+                        (radius + toothSize) * Math.sin(toothAngleStart)
+                    );
+                    ctx.lineTo(
+                        (radius + toothSize) * Math.cos(toothAngleStart + toothAngle * 0.4),
+                        (radius + toothSize) * Math.sin(toothAngleStart + toothAngle * 0.4)
+                    );
+                    ctx.lineTo(
+                        (radius - toothSize/2) * Math.cos(toothAngleStart + toothAngle * 0.4),
+                        (radius - toothSize/2) * Math.sin(toothAngleStart + toothAngle * 0.4)
+                    );
+                    ctx.fillStyle = color;
+                    ctx.fill();
                 }
                 
-                container.appendChild(gearElement);
-            });
-            
-            // Position the crank on the first gear
-            crank.style.left = `${gears[0].position.x - 30}px`;
-            crank.style.top = `${gears[0].position.y - 30}px`;
-            
-            let isDragging = false;
-            let lastAngle = 0;
-            let centerX = gears[0].position.x;
-            let centerY = gears[0].position.y;
-            
-            // Update gear rotations based on main gear angle
-            function updateGears(mainAngle) {
-                gears[0].angle = mainAngle;
-                document.getElementById(gears[0].id).style.transform = `rotate(${gears[0].angle}deg)`;
+                // Center hole
+                ctx.beginPath();
+                ctx.arc(0, 0, radius * 0.2, 0, Math.PI * 2);
+                ctx.fillStyle = '#111';
+                ctx.globalAlpha = 0.8;
+                ctx.fill();
+                ctx.strokeStyle = '#FFD28E';
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 1;
+                ctx.stroke();
                 
-                // Update other gears based on their ratios
-                for (let i = 1; i < gears.length; i++) {
-                    gears[i].angle = mainAngle * gears[i].ratio * -1;
-                    document.getElementById(gears[i].id).style.transform = `rotate(${gears[i].angle}deg)`;
+                // Main drive central pin
+                if (gear.id === 'main-drive') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, radius * 0.1, 0, Math.PI * 2);
+                    ctx.fillStyle = '#FFD28E';
+                    ctx.fill();
+                    
+                    // Draw handle for main drive
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(radius + 30, 0);
+                    ctx.lineWidth = 5;
+                    ctx.strokeStyle = '#FFD28E';
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.arc(radius + 35, 0, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#FFD28E';
+                    ctx.fill();
                 }
+                
+                ctx.restore();
+            }
+            
+            // Draw all gears
+            function drawGears() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw gear connections
+                ctx.strokeStyle = 'rgba(255,210,142,0.2)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([3, 3]);
+                
+                // Connect gears with lines
+                const connections = [
+                    { from: 'main-drive', to: 'year-gear' },
+                    { from: 'main-drive', to: 'month-gear' },
+                    { from: 'main-drive', to: 'moon-gear' },
+                    { from: 'year-gear', to: 'sun-gear' },
+                    { from: 'main-drive', to: 'olympiad-gear' },
+                    { from: 'year-gear', to: 'eclipse-gear' }
+                ];
+                
+                connections.forEach(conn => {
+                    const fromGear = gears.find(g => g.id === conn.from);
+                    const toGear = gears.find(g => g.id === conn.to);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(fromGear.x, fromGear.y);
+                    ctx.lineTo(toGear.x, toGear.y);
+                    ctx.stroke();
+                });
+                
+                ctx.setLineDash([]);
+                
+                // Draw all gears
+                gears.forEach(gear => drawGear(gear));
                 
                 // Update display
-                positionDisplay.textContent = `${Math.round(mainAngle % 360)}°`;
+                positionDisplay.textContent = `${Math.round(rotationAngle * (180/Math.PI))}°`;
             }
             
-            // Crank rotation handlers
-            crank.addEventListener('mousedown', startDrag);
-            crank.addEventListener('touchstart', e => {
-                e.preventDefault();
-                startDrag(e);
-            });
+            // Rotate gears
+            function rotateGears(angle) {
+                const mainGear = gears.find(g => g.id === 'main-drive');
+                mainGear.angle += angle;
+                rotationAngle = mainGear.angle;
+                
+                // Rotate other gears based on their ratios
+                gears.forEach(gear => {
+                    if (gear.id !== 'main-drive') {
+                        gear.angle = -rotationAngle * gear.ratio;
+                    }
+                });
+                
+                drawGears();
+            }
             
-            function startDrag(e) {
-                isDragging = true;
-                crank.style.cursor = 'grabbing';
+            // Animation function
+            function animateGears() {
+                if (!isAnimating) return;
                 
-                // Get initial angle
-                const rect = crank.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                
-                if (e.type === 'touchstart') {
-                    lastAngle = getAngle(centerX, centerY, e.touches[0].clientX, e.touches[0].clientY);
+                rotateGears(0.02 * (speed / 5));
+                animationId = requestAnimationFrame(animateGears);
+            }
+            
+            // Start animation
+            function startAnimation() {
+                if (!isAnimating) {
+                    isAnimating = true;
+                    autoCrankBtn.textContent = "Stop Rotation";
+                    animateGears();
                 } else {
-                    lastAngle = getAngle(centerX, centerY, e.clientX, e.clientY);
-                }
-                
-                document.addEventListener('mousemove', drag);
-                document.addEventListener('touchmove', drag, { passive: false });
-                document.addEventListener('mouseup', endDrag);
-                document.addEventListener('touchend', endDrag);
-            }
-            
-            function drag(e) {
-                if (!isDragging) return;
-                e.preventDefault();
-                
-                const rect = crank.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                
-                let currentAngle;
-                if (e.type === 'touchmove') {
-                    currentAngle = getAngle(centerX, centerY, e.touches[0].clientX, e.touches[0].clientY);
-                } else {
-                    currentAngle = getAngle(centerX, centerY, e.clientX, e.clientY);
-                }
-                
-                // Calculate difference and update
-                let angleDiff = currentAngle - lastAngle;
-                
-                // Handle crossing the -180°/180° boundary
-                if (angleDiff > 180) angleDiff -= 360;
-                if (angleDiff < -180) angleDiff += 360;
-                
-                gears[0].angle += angleDiff;
-                updateGears(gears[0].angle);
-                
-                lastAngle = currentAngle;
-            }
-            
-            function endDrag() {
-                if (isDragging) {
-                    isDragging = false;
-                    crank.style.cursor = 'grab';
-                    
-                    document.removeEventListener('mousemove', drag);
-                    document.removeEventListener('touchmove', drag);
-                    document.removeEventListener('mouseup', endDrag);
-                    document.removeEventListener('touchend', endDrag);
+                    isAnimating = false;
+                    autoCrankBtn.textContent = "Auto Rotate";
+                    cancelAnimationFrame(animationId);
                 }
             }
             
-            // Calculate angle from center point to cursor
-            function getAngle(centerX, centerY, pointX, pointY) {
-                return Math.atan2(pointY - centerY, pointX - centerX) * 180 / Math.PI;
+            // Single turn
+            function turnCrank() {
+                rotateGears(Math.PI / 12); // 15 degrees
             }
             
-            // Reset button
-            resetButton.addEventListener('click', function() {
-                gears.forEach(gear => { gear.angle = 0 });
-                updateGears(0);
-            });
-            
-            // Initialize with gears at 0 degrees
-            updateGears(0);
-        }
-        
-        // Date Explorer
-        function initDateExplorer() {
-            const monthNames = [
-                "Posideon (Dec/Jan)", "Gamelion (Jan/Feb)", "Anthesterion (Feb/Mar)",
-                "Elaphebolion (Mar/Apr)", "Mounychion (Apr/May)", "Thargelion (May/Jun)",
-                "Skirophorion (Jun/Jul)", "Hekatombaion (Jul/Aug)", "Metageitnion (Aug/Sep)",
-                "Boedromion (Sep/Oct)", "Pyanepsion (Oct/Nov)", "Maimakterion (Nov/Dec)"
-            ];
-            
-            let currentMonth = 0; // 0-based index for the months
-            const calendarGrid = document.getElementById('calendar-grid');
-            const currentDateDisplay = document.getElementById('current-date');
-            const prevButton = document.getElementById('prev-month');
-            const nextButton = document.getElementById('next-month');
-            const eventsList = document.getElementById('events-list');
-            
-            // Events data (historical/astronomical events that would be tracked)
-            const events = [
-                { month: 0, day: 5, event: "Winter Solstice Festival", type: "cultural" },
-                { month: 0, day: 12, event: "New Moon", type: "astronomical" },
-                { month: 0, day: 27, event: "Full Moon", type: "astronomical" },
-                { month: 1, day: 3, event: "Mercury at Greatest Eastern Elongation", type: "astronomical" },
-                { month: 1, day: 15, event: "Marriage Festival of Hera and Zeus", type: "cultural" },
-                { month: 2, day: 11, event: "Anthesteria Festival (Wine Festival)", type: "cultural" },
-                { month: 2, day: 22, event: "Partial Solar Eclipse", type: "astronomical" },
-                { month: 3, day: 7, event: "Festival of Artemis", type: "cultural" },
-                { month: 3, day: 19, event: "Venus at Maximum Brightness", type: "astronomical" },
-                { month: 4, day: 5, event: "Spring Equinox Celebrations", type: "cultural" },
-                { month: 4, day: 18, event: "Jupiter-Saturn Conjunction", type: "astronomical" },
-                { month: 5, day: 2, event: "Thargelia Festival (Apollo)", type: "cultural" },
-                { month: 5, day: 23, event: "Total Lunar Eclipse", type: "astronomical" },
-                { month: 6, day: 14, event: "Skiraphoria Festival", type: "cultural" },
-                { month: 6, day: 28, event: "Summer Solstice Observations", type: "astronomical" },
-                { month: 7, day: 8, event: "First Day of Olympic Games (Year 1)", type: "cultural" },
-                { month: 7, day: 16, event: "Mars at Opposition", type: "astronomical" },
-                { month: 8, day: 4, event: "Festival of Poseidon", type: "cultural" },
-                { month: 8, day: 19, event: "Mercury at Greatest Western Elongation", type: "astronomical" },
-                { month: 9, day: 7, event: "Boedromia Festival (Apollo)", type: "cultural" },
-                { month: 9, day: 23, event: "Autumn Equinox", type: "astronomical" },
-                { month: 10, day: 10, event: "Pyanepsia Festival (Apollo)", type: "cultural" },
-                { month: 10, day: 25, event: "Saturn at Opposition", type: "astronomical" },
-                { month: 11, day: 3, event: "Festival of Zeus", type: "cultural" },
-                { month: 11, day: 20, event: "Lunar Standstill (Major)", type: "astronomical" }
-            ];
-            
-            // Render calendar for current month
-            function renderCalendar() {
-                // Clear existing calendar
-                calendarGrid.innerHTML = '';
+            // Reset gears
+            function resetGears() {
+                isAnimating = false;
+                autoCrankBtn.textContent = "Auto Rotate";
+                cancelAnimationFrame(animationId);
                 
-                // Update month display
-                currentDateDisplay.textContent = `${monthNames[currentMonth]}, 150 BCE`;
-                
-                // Add day headers
-                const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-                dayNames.forEach(day => {
-                    const dayHeader = document.createElement('div');
-                    dayHeader.className = 'calendar-day';
-                    dayHeader.style.fontWeight = 'bold';
-                    dayHeader.textContent = day;
-                    calendarGrid.appendChild(dayHeader);
+                rotationAngle = 0;
+                gears.forEach(gear => {
+                    gear.angle = 0;
                 });
                 
-                // Add days (using a 30-day month for ancient Greek calendar)
-                for (let i = 1; i <= 30; i++) {
-                    const dayElement = document.createElement('div');
-                    dayElement.className = 'calendar-day';
-                    dayElement.textContent = i;
-                    dayElement.setAttribute('data-day', i);
-                    
-                    // Check if this day has events
-                    const dayEvents = events.filter(event => event.month === currentMonth && event.day === i);
-                    if (dayEvents.length > 0) {
-                        dayElement.style.backgroundColor = 'rgba(255, 210, 142, 0.2)';
-                        dayElement.style.borderColor = 'var(--gold-dim)';
-                        dayElement.style.cursor = 'pointer';
-                    }
-                    
-                    dayElement.addEventListener('click', () => showEvents(i));
-                    calendarGrid.appendChild(dayElement);
-                }
-                
-                // Add empty cells to complete the grid
-                const emptyCells = (7 - (30 % 7)) % 7;
-                for (let i = 0; i < emptyCells; i++) {
-                    const emptyCell = document.createElement('div');
-                    emptyCell.className = 'calendar-day';
-                    emptyCell.style.backgroundColor = 'transparent';
-                    emptyCell.style.border = 'none';
-                    calendarGrid.appendChild(emptyCell);
-                }
-            }
-            
-            // Show events for a specific day
-            function showEvents(day) {
-                // Clear previous events
-                eventsList.innerHTML = '';
-                
-                // Get events for this day
-                const dayEvents = events.filter(event => event.month === currentMonth && event.day === day);
-                
-                if (dayEvents.length === 0) {
-                    eventsList.innerHTML = '<p>No recorded events for this day.</p>';
-                    return;
-                }
-                
-                // Create list of events
-                const eventHeader = document.createElement('h4');
-                eventHeader.textContent = `Events for Day ${day}`;
-                eventsList.appendChild(eventHeader);
-                
-                const list = document.createElement('ul');
-                
-                dayEvents.forEach(event => {
-                    const item = document.createElement('li');
-                    item.innerHTML = `<strong>${event.event}</strong> <span class="mono">(${event.type})</span>`;
-                    
-                    // Color-code by event type
-                    if (event.type === 'astronomical') {
-                        item.style.color = 'var(--gold)';
-                    } else {
-                        item.style.color = 'var(--text-light)';
-                    }
-                    
-                    list.appendChild(item);
-                });
-                
-                eventsList.appendChild(list);
-                
-                // Add a note about the mechanism
-                const note = document.createElement('p');
-                note.style.fontStyle = 'italic';
-                note.style.marginTop = '1rem';
-                note.textContent = 'The Antikythera Mechanism could calculate and display these events through its complex system of gears and dials.';
-                eventsList.appendChild(note);
-            }
-            
-            // Month navigation
-            prevButton.addEventListener('click', () => {
-                currentMonth = (currentMonth - 1 + 12) % 12;
-                renderCalendar();
-            });
-            
-            nextButton.addEventListener('click', () => {
-                currentMonth = (currentMonth + 1) % 12;
-                renderCalendar();
-            });
-            
-            // Initial render
-            renderCalendar();
-        }
-        
-        // Exploded View
-        function initExplodedView() {
-            const container = document.getElementById('exploded-view-container');
-            const slider = document.getElementById('explosion-slider');
-            const resetButton = document.getElementById('reset-explosion');
-            const descriptionBox = document.getElementById('layer-description');
-            
-            // Layer data for the exploded view
-            const layers = [
-                { 
-                    id: 'layer1', 
-                    name: 'Front Face / Display Dial',
-                    description: 'The main dial displayed the zodiac calendar and Egyptian calendar. It had two concentric scales, with the inner one showing the Greek signs of the Zodiac.',
-                    color: '#FFD28E'
-                },
-                { 
-                    id: 'layer2', 
-                    name: 'Main Drive Wheel',
-                    description: 'This large gear was the primary input, driven by a now-lost hand crank. It engaged with the other gears to drive the various displays.',
-                    color: '#E6BE7E'
-                },
-                { 
-                    id: 'layer3', 
-                    name: 'Epicyclic Gearing',
-                    description: 'This sophisticated arrangement modeled the Moon's irregular orbit around Earth using epicyclic gearing—essentially a gear mounted on another gear.',
-                    color: '#CCAF6E'
-                },
-                { 
-                    id: 'layer4', 
-                    name: 'Eclipse Prediction System',
-                    description: 'A specialized gear train that rotated once every 223 lunar months (the Saros cycle), allowing the prediction of solar and lunar eclipses.',
-                    color: '#B39F5E'
-                },
-                { 
-                    id: 'layer5', 
-                    name: 'Differential Turntable',
-                    description: 'An early differential gear system that computed the difference between two inputs, used to model the apparent motion of celestial bodies.',
-                    color: '#998F4E'
-                },
-                { 
-                    id: 'layer6', 
-                    name: 'Back Face / Olympic Games Dial',
-                    description: 'The back face included dials that tracked the 4-year Olympic cycle, as well as other Panhellenic Games that followed 2-year and 4-year cycles.',
-                    color: '#807F3E'
-                }
-            ];
-            
-            // Create layer elements
-            layers.forEach((layer, index) => {
-                const layerElement = document.createElement('div');
-                layerElement.id = layer.id;
-                layerElement.className = 'layer';
-                
-                // Create a stylized representation of each layer
-                layerElement.style.width = '300px';
-                layerElement.style.height = '300px';
-                layerElement.style.margin = '0 auto';
-                layerElement.style.borderRadius = '50%';
-                layerElement.style.border = '2px solid ' + layer.color;
-                layerElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                layerElement.style.boxShadow = `0 0 15px ${layer.color}`;
-                
-                // Add internal details unique to each layer
-                for (let i = 0; i < 6 + index; i++) {
-                    const detail = document.createElement('div');
-                    const angle = (i * 360 / (6 + index)) * (Math.PI / 180);
-                    const radius = 100 - index * 10;
-                    
-                    detail.style.position = 'absolute';
-                    detail.style.width = (20 - index * 2) + 'px';
-                    detail.style.height = (20 - index * 2) + 'px';
-                    detail.style.borderRadius = '50%';
-                    detail.style.backgroundColor = layer.color;
-                    detail.style.opacity = '0.8';
-                    detail.style.left = `${150 + radius * Math.cos(angle) - 10}px`;
-                    detail.style.top = `${150 + radius * Math.sin(angle) - 10}px`;
-                    
-                    layerElement.appendChild(detail);
-                }
-                
-                // Add gear teeth for mechanical layers
-                if (index > 0 && index < 5) {
-                    const teethCount = 24 - index * 3;
-                    
-                    for (let i = 0; i < teethCount; i++) {
-                        const tooth = document.createElement('div');
-                        const angle = (i * 360 / teethCount) * (Math.PI / 180);
-                        const radius = 140;
-                        
-                        tooth.style.position = 'absolute';
-                        tooth.style.width = '10px';
-                        tooth.style.height = '20px';
-                        tooth.style.backgroundColor = layer.color;
-                        tooth.style.left = `${150 + radius * Math.cos(angle) - 5}px`;
-                        tooth.style.top = `${150 + radius * Math.sin(angle) - 10}px`;
-                        tooth.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
-                        
-                        layerElement.appendChild(tooth);
-                    }
-                }
-                
-                // Add layer name
-                const nameElement = document.createElement('div');
-                nameElement.textContent = layer.name;
-                nameElement.style.position = 'absolute';
-                nameElement.style.top = '50%';
-                nameElement.style.left = '50%';
-                nameElement.style.transform = 'translate(-50%, -50%)';
-                nameElement.style.color = layer.color;
-                nameElement.style.fontFamily = 'JetBrains Mono, monospace';
-                nameElement.style.fontSize = '14px';
-                nameElement.style.fontWeight = 'bold';
-                nameElement.style.textAlign = 'center';
-                nameElement.style.pointerEvents = 'none';
-                
-                layerElement.appendChild(nameElement);
-                container.appendChild(layerElement);
-            });
-            
-            // Update layer positions based on slider
-            function updateExplodedView() {
-                const explosionFactor = parseInt(slider.value);
-                
-                layers.forEach((layer, index) => {
-                    const layerElement = document.getElementById(layer.id);
-                    
-                    // Distribute layers along z-axis based on slider value
-                    const zOffset = index * explosionFactor;
-                    layerElement.style.transform = `translateZ(${zOffset}px)`;
-                    
-                    // Simulate perspective by scaling
-                    const scale = 1 - (explosionFactor * 0.002 * index);
-                    layerElement.style.transform = `translateY(${zOffset}px) scale(${scale})`;
-                    
-                    // Adjust opacity for depth effect
-                    layerElement.style.opacity = 1 - (explosionFactor * 0.005 * index);
-                    
-                    // Show active layer description
-                    if (index === Math.floor((explosionFactor / 100) * (layers.length - 1))) {
-                        descriptionBox.innerHTML = `
-                            <h4>${layer.name}</h4>
-                            <p>${layer.description}</p>
-                        `;
-                    }
-                });
+                drawGears();
             }
             
             // Event listeners
-            slider.addEventListener('input', updateExplodedView);
-            
-            resetButton.addEventListener('click', () => {
-                slider.value = 0;
-                updateExplodedView();
+            turnCrankBtn.addEventListener('click', turnCrank);
+            autoCrankBtn.addEventListener('click', startAnimation);
+            resetBtn.addEventListener('click', resetGears);
+            speedControl.addEventListener('input', () => {
+                speed = parseInt(speedControl.value);
             });
+            window.addEventListener('resize', resizeCanvas);
             
             // Initialize
-            updateExplodedView();
-        }
+            resizeCanvas();
+            drawGears();
+        })();
         
-        // Quiz
-        function initQuiz() {
-            const quizContainer = document.getElementById('question-container');
-            const checkButton = document.getElementById('check-answer');
-            const nextButton = document.getElementById('next-question');
-            const resultDisplay = document.getElementById('quiz-result');
+        // Exploded View Visualization
+        (function createExplodedView() {
+            const canvas = document.getElementById('exploded-canvas');
+            const ctx = canvas.getContext('2d');
+            const tooltip = document.getElementById('gear-tooltip');
             
-            // Quiz questions
-            const questions = [
+            const rotateLeftBtn = document.getElementById('rotate-left');
+            const rotateRightBtn = document.getElementById('rotate-right');
+            const zoomInBtn = document.getElementById('zoom-in');
+            const zoomOutBtn = document.getElementById('zoom-out');
+            const resetViewBtn = document.getElementById('reset-view');
+            
+            let viewAngle = 0;
+            let scale = 1;
+            let isDragging = false;
+            let lastX = 0;
+            let lastY = 0;
+            let offsetX = 0;
+            let offsetY = 0;
+            
+            // Gear components with descriptions
+            const components = [
                 {
-                    question: "When was the Antikythera Mechanism discovered?",
-                    options: ["1801", "1901", "1951", "2001"],
-                    correct: 1,
-                    explanation: "The mechanism was discovered in 1901 by Greek sponge divers exploring a shipwreck off the island of Antikythera."
+                    id: 'main-drive',
+                    name: 'Main Drive Wheel',
+                    description: 'The primary gear with 223 teeth. Powers the entire mechanism. Located on the front of the device.',
+                    color: '#FFD28E',
+                    size: 1.0,
+                    z: 0,
+                    x: 0,
+                    y: 0
                 },
                 {
-                    question: "What was the primary function of the Antikythera Mechanism?",
-                    options: [
-                        "Navigation at sea",
-                        "Military calculations", 
-                        "Astronomical predictions and calendar calculations",
-                        "Architectural measurements"
-                    ],
-                    correct: 2,
-                    explanation: "The primary function was astronomical in nature, allowing users to predict astronomical positions, eclipses, and track calendars including the four-year cycle of athletic games."
+                    id: 'lunar-gear',
+                    name: 'Lunar Mechanism',
+                    description: 'Complex gear train that models the moon\'s orbit, including its anomaly (the varying speed of the Moon in its elliptical orbit).',
+                    color: '#C9A97C',
+                    size: 0.8,
+                    z: 0.3,
+                    x: 0.5,
+                    y: -0.4
                 },
                 {
-                    question: "How old is the Antikythera Mechanism estimated to be?",
-                    options: [
-                        "Approximately 1,000 years old",
-                        "Approximately 2,000 years old",
-                        "Approximately 3,000 years old",
-                        "Approximately 500 years old"
-                    ],
-                    correct: 1,
-                    explanation: "The mechanism dates to around 100-70 BCE, making it approximately 2,100 years old."
+                    id: 'solar-gear',
+                    name: 'Solar Pointer',
+                    description: 'Tracks the position of the Sun through the zodiac over the year.',
+                    color: '#A88A68',
+                    size: 0.7,
+                    z: 0.5,
+                    x: -0.7,
+                    y: -0.3
                 },
                 {
-                    question: "What technology was used to reveal the hidden inscriptions on the Antikythera Mechanism?",
-                    options: [
-                        "Ultraviolet light scanning",
-                        "Laser spectroscopy",
-                        "CT (Computed Tomography) scanning",
-                        "Chemical treatments"
-                    ],
-                    correct: 2,
-                    explanation: "CT scans and high-resolution X-ray tomography were used in the early 2000s to reveal the inscriptions and internal structure without damaging the fragile artifact."
+                    id: 'eclipse-predictor',
+                    name: 'Eclipse Predictor',
+                    description: 'Uses the Saros cycle to predict solar and lunar eclipses with remarkable accuracy.',
+                    color: '#FFD28E',
+                    size: 0.65,
+                    z: 0.7,
+                    x: 0.3,
+                    y: 0.6
                 },
                 {
-                    question: "What makes the Antikythera Mechanism historically significant?",
-                    options: [
-                        "It was made of gold and precious gems",
-                        "Its technological sophistication was not seen again for at least 1,500 years",
-                        "It was owned by a famous Roman emperor",
-                        "It's the oldest known Greek artifact"
-                    ],
-                    correct: 1,
-                    explanation: "The mechanism's technological sophistication, with its complex gear train and astronomical calculations, was not matched for at least 1,500 years, making it a unique window into ancient Greek technology."
+                    id: 'olympiad-dial',
+                    name: 'Olympiad Dial',
+                    description: 'Four-year cycle indicator that tracked the ancient Olympic Games and other Panhellenic festivals.',
+                    color: '#C9A97C',
+                    size: 0.5,
+                    z: 0.9,
+                    x: -0.5,
+                    y: 0.5
+                },
+                {
+                    id: 'calendar-gear',
+                    name: 'Calendar Gear',
+                    description: 'Controls the 365-day solar calendar display with a special mechanism to account for leap years.',
+                    color: '#A88A68',
+                    size: 0.75,
+                    z: 1.1,
+                    x: 0,
+                    y: -0.7
+                },
+                {
+                    id: 'planetary-display',
+                    name: 'Planetary Display',
+                    description: 'Tracks the apparent motion of the five planets known to the ancient Greeks: Mercury, Venus, Mars, Jupiter, and Saturn.',
+                    color: '#FFD28E',
+                    size: 0.85,
+                    z: 1.3,
+                    x: -0.3,
+                    y: 0.2
+                },
+                {
+                    id: 'differential-gears',
+                    name: 'Differential Gear',
+                    description: 'Possibly the first known differential gear mechanism in history, used to subtract one motion from another.',
+                    color: '#C9A97C',
+                    size: 0.6,
+                    z: 1.5,
+                    x: 0.7,
+                    y: 0.1
                 }
             ];
             
-            let currentQuestion = 0;
-            let score = 0;
-            let selectedOption = null;
-            
-            // Display current question
-            function showQuestion() {
-                // Reset state
-                selectedOption = null;
-                checkButton.disabled = true;
-                nextButton.disabled = true;
-                
-                // Get current question
-                const questionData = questions[currentQuestion];
-                
-                // Create question element
-                quizContainer.innerHTML = `
-                    <h3>Question ${currentQuestion + 1} of ${questions.length}</h3>
-                    <p>${questionData.question}</p>
-                    <ul class="options" id="quiz-options"></ul>
-                `;
-                
-                // Add options
-                const optionsList = document.getElementById('quiz-options');
-                
-                questionData.options.forEach((option, index) => {
-                    const optionElement = document.createElement('li');
-                    optionElement.className = 'option';
-                    optionElement.textContent = option;
-                    optionElement.setAttribute('data-index', index);
-                    
-                    optionElement.addEventListener('click', () => {
-                        // Remove selection from all options
-                        document.querySelectorAll('.option').forEach(el => {
-                            el.classList.remove('selected');
-                        });
-                        
-                        // Add selection to clicked option
-                        optionElement.classList.add('selected');
-                        selectedOption = index;
-                        
-                        // Enable check button
-                        checkButton.disabled = false;
-                    });
-                    
-                    optionsList.appendChild(optionElement);
-                });
+            // Resize canvas function
+            function resizeCanvas() {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+                drawExplodedView();
             }
             
-            // Check answer
-            checkButton.addEventListener('click', () => {
-                if (selectedOption === null) return;
+            // Draw the exploded view
+            function drawExplodedView() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                const questionData = questions[currentQuestion];
-                const options = document.querySelectorAll('.option');
+                // Center point
+                const centerX = canvas.width / 2 + offsetX;
+                const centerY = canvas.height / 2 + offsetY;
                 
-                // Mark correct and incorrect answers
-                options.forEach((option, index) => {
-                    if (index === questionData.correct) {
-                        option.classList.add('correct');
-                    } else if (index === selectedOption) {
-                        option.classList.add('incorrect');
-                    }
+                // Draw components sorted by z-index (back to front)
+                const sortedComponents = [...components].sort((a, b) => a.z - b.z);
+                
+                sortedComponents.forEach(comp => {
+                    drawComponent(comp, centerX, centerY);
                 });
                 
-                // Show explanation
-                const explanationElement = document.createElement('p');
-                explanationElement.style.marginTop = '1rem';
-                explanationElement.style.fontStyle = 'italic';
-                explanationElement.textContent = questionData.explanation;
-                document.getElementById('quiz-options').appendChild(explanationElement);
+                // Draw connecting lines
+                ctx.strokeStyle = 'rgba(255,210,142,0.2)';
+                ctx.setLineDash([5, 3]);
+                ctx.lineWidth = 1;
                 
-                // Update score if correct
-                if (selectedOption === questionData.correct) {
-                    score++;
+                for (let i = 0; i < components.length - 1; i++) {
+                    const curr = components[i];
+                    const next = components[i + 1];
+                    
+                    const currX = centerX + curr.x * 200 * scale * Math.cos(viewAngle);
+                    const currY = centerY + curr.y * 200 * scale;
+                    const currZ = curr.z * 60 * scale * Math.sin(viewAngle);
+                    
+                    const nextX = centerX + next.x * 200 * scale * Math.cos(viewAngle);
+                    const nextY = centerY + next.y * 200 * scale;
+                    const nextZ = next.z * 60 * scale * Math.sin(viewAngle);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(currX, currY - currZ);
+                    ctx.lineTo(nextX, nextY - nextZ);
+                    ctx.stroke();
                 }
                 
-                // Enable next button
-                nextButton.disabled = false;
-                checkButton.disabled = true;
-            });
+                ctx.setLineDash([]);
+            }
             
-            // Next question
-            nextButton.addEventListener('click', () => {
-                currentQuestion++;
+            // Draw a single component
+            function drawComponent(component, centerX, centerY) {
+                // Calculate position based on 3D coordinates
+                const x = centerX + component.x * 200 * scale * Math.cos(viewAngle);
+                const y = centerY + component.y * 200 * scale;
+                const z = component.z * 60 * scale * Math.sin(viewAngle);
                 
-                if (currentQuestion < questions.length) {
-                    showQuestion();
-                } else {
-                    // Show results
-                    quizContainer.innerHTML = `<h3>Quiz Complete!</h3>`;
-                    resultDisplay.innerHTML = `You scored ${score} out of ${questions.length}!`;
+                const radius = 50 * component.size * scale;
+                
+                // Draw shadow
+                ctx.beginPath();
+                ctx.ellipse(x, y + radius/3, radius, radius/3, 0, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fill();
+                
+                // Draw gear
+                ctx.save();
+                ctx.translate(x, y - z);
+                
+                // Main gear circle
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                ctx.fillStyle = component.color;
+                ctx.globalAlpha = 0.8;
+                ctx.fill();
+                ctx.strokeStyle = '#FFD28E';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Gear teeth
+                const teethCount = Math.floor(radius * 0.8);
+                const toothSize = radius * 0.2;
+                const toothAngle = (Math.PI * 2) / teethCount;
+                
+                ctx.globalAlpha = 0.9;
+                for (let i = 0; i < teethCount; i++) {
+                    const toothAngleStart = i * toothAngle;
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        (radius - toothSize/2) * Math.cos(toothAngleStart),
+                        (radius - toothSize/2) * Math.sin(toothAngleStart)
+                    );
+                    ctx.lineTo(
+                        (radius + toothSize) * Math.cos(toothAngleStart),
+                        (radius + toothSize) * Math.sin(toothAngleStart)
+                    );
+                    ctx.lineTo(
+                        (radius + toothSize) * Math.cos(toothAngleStart + toothAngle * 0.4),
+                        (radius + toothSize) * Math.sin(toothAngleStart + toothAngle * 0.4)
+                    );
+                    ctx.lineTo(
+                        (radius - toothSize/2) * Math.cos(toothAngleStart + toothAngle * 0.4),
+                        (radius - toothSize/2) * Math.sin(toothAngleStart + toothAngle * 0.4)
+                    );
+                    ctx.fillStyle = component.color;
+                    ctx.fill();
+                }
+                
+                // Center hole
+                ctx.beginPath();
+                ctx.arc(0, 0, radius * 0.2, 0, Math.PI * 2);
+                ctx.fillStyle = '#111';
+                ctx.globalAlpha = 0.8;
+                ctx.fill();
+                ctx.strokeStyle = '#FFD28E';
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 1;
+                ctx.stroke();
+                
+                // Component ID
+                ctx.save();
+                ctx.fillStyle = '#111';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = `${radius * 0.3}px 'JetBrains Mono', monospace`;
+                ctx.fillText(component.id.split('-')[0].slice(0, 3), 0, 0);
+                ctx.restore();
+                
+                ctx.restore();
+                
+                // Store component data for hover detection
+                component.screenX = x;
+                component.screenY = y - z;
+                component.screenRadius = radius;
+            }
+            
+            // Check if mouse is over a component
+            function getComponentUnderMouse(mouseX, mouseY) {
+                // Check in reverse order (front to back)
+                for (let i = components.length - 1; i >= 0; i--) {
+                    const comp = components[i];
+                    const dx = mouseX - comp.screenX;
+                    const dy = mouseY - comp.screenY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    // Add feedback based on score
-                    let feedback;
-                    if (score === questions.length) {
-                        feedback = "Perfect score! You're an Antikythera expert!";
-                    } else if (score >= questions.length * 0.7) {
-                        feedback = "Great job! You know your ancient technology well!";
-                    } else if (score >= questions.length * 0.5) {
-                        feedback = "Good effort! You've learned some interesting facts about this ancient wonder.";
+                    if (distance <= comp.screenRadius) {
+                        return comp;
+                    }
+                }
+                return null;
+            }
+            
+            // Mouse move event
+            function onMouseMove(e) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // If dragging, move the view
+                if (isDragging) {
+                    offsetX += mouseX - lastX;
+                    offsetY += mouseY - lastY;
+                    lastX = mouseX;
+                    lastY = mouseY;
+                    drawExplodedView();
+                    return;
+                }
+                
+                // Check for hover
+                const hoveredComponent = getComponentUnderMouse(mouseX, mouseY);
+                
+                if (hoveredComponent) {
+                    tooltip.style.left = `${mouseX + 20}px`;
+                    tooltip.style.top = `${mouseY}px`;
+                    tooltip.innerHTML = `<strong>${hoveredComponent.name}</strong><br>${hoveredComponent.description}`;
+                    tooltip.style.opacity = 1;
+                    canvas.style.cursor = 'pointer';
+                } else {
+                    tooltip.style.opacity = 0;
+                    canvas.style.cursor = 'default';
+                }
+            }
+            
+            // Mouse down event
+            function onMouseDown(e) {
+                const rect = canvas.getBoundingClientRect();
+                lastX = e.clientX - rect.left;
+                lastY = e.clientY - rect.top;
+                isDragging = true;
+                canvas.style.cursor = 'grabbing';
+            }
+            
+            // Mouse up event
+            function onMouseUp() {
+                isDragging = false;
+                canvas.style.cursor = 'default';
+            }
+            
+            // Mouse leave event
+            function onMouseLeave() {
+                isDragging = false;
+                tooltip.style.opacity = 0;
+            }
+            
+            // Rotate view
+            function rotateView(angle) {
+                viewAngle += angle;
+                drawExplodedView();
+            }
+            
+            // Zoom view
+            function zoomView(factor) {
+                scale *= factor;
+                // Limit scale
+                scale = Math.max(0.5, Math.min(scale, 2.5));
+                drawExplodedView();
+            }
+            
+            // Reset view
+            function resetView() {
+                viewAngle = 0;
+                scale = 1;
+                offsetX = 0;
+                offsetY = 0;
+                drawExplodedView();
+            }
+            
+            // Add event listeners
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('mouseleave', onMouseLeave);
+            
+            rotateLeftBtn.addEventListener('click', () => rotateView(-Math.PI/6));
+            rotateRightBtn.addEventListener('click', () => rotateView(Math.PI/6));
+            zoomInBtn.addEventListener('click', () => zoomView(1.2));
+            zoomOutBtn.addEventListener('click', () => zoomView(0.8));
+            resetViewBtn.addEventListener('click', resetView);
+            
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Initialize
+            resizeCanvas();
+        })();
+        
+        // Date Explorer
+        (function createDateExplorer() {
+            const calculateBtn = document.getElementById('calculate-date');
+            const yearInput = document.getElementById('year-input');
+            const monthInput = document.getElementById('month-input');
+            const dayInput = document.getElementById('day-input');
+            const predictionOutput = document.getElementById('prediction-output');
+            
+            // Astronomical constants
+            const constants = {
+                // Length of synodic month in days
+                synodicMonth: 29.53059,
+                // Length of draconic month in days
+                draconicMonth: 27.21222,
+                // Length of anomalistic month in days
+                anomalisticMonth: 27.55455,
+                // Length of tropical year in days
+                tropicalYear: 365.24219,
+                // Length of Metonic cycle in years
+                metonicCycle: 19,
+                // Length of Saros cycle in days
+                sarosCycle: 6585.3213,
+                // Length of Callipic cycle in years
+                callipicCycle: 76,
+                // Olympiad cycle in years
+                olympiadCycle: 4
+            };
+            
+            // Calculate moon phase
+            function getMoonPhase(date) {
+                // Reference date for known new moon
+                const knownNewMoon = new Date("2000-01-06T00:00:00Z");
+                
+                // Calculate difference in days
+                const diffTime = Math.abs(date - knownNewMoon);
+                const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                
+                // Calculate current phase
+                const phase = (diffDays % constants.synodicMonth) / constants.synodicMonth;
+                
+                // Determine phase name
+                if (phase < 0.025 || phase > 0.975) return "New Moon";
+                if (phase < 0.25) return "Waxing Crescent";
+                if (phase < 0.275) return "First Quarter";
+                if (phase < 0.475) return "Waxing Gibbous";
+                if (phase < 0.525) return "Full Moon";
+                if (phase < 0.725) return "Waning Gibbous";
+                if (phase < 0.775) return "Last Quarter";
+                return "Waning Crescent";
+            }
+            
+            // Check if date is likely to have an eclipse
+            function checkForEclipse(date) {
+                // Reference date for known eclipse
+                const knownEclipse = new Date("2000-07-16T00:00:00Z");
+                
+                // Calculate difference in days
+                const diffTime = Math.abs(date - knownEclipse);
+                const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                
+                // Check if date is close to Saros cycle
+                const modSaros = diffDays % constants.sarosCycle;
+                const modSynodic = diffDays % constants.synodicMonth;
+                
+                // Eclipse possibility if near full or new moon and close to Saros cycle
+                const isNearNewOrFull = modSynodic < 1.5 || modSynodic > constants.synodicMonth - 1.5;
+                const isNearSarosCycle = modSaros < 4 || modSaros > constants.sarosCycle - 4;
+                
+                if (isNearNewOrFull && isNearSarosCycle) {
+                    if (modSynodic < 1.5) {
+                        return "Possible Solar Eclipse";
                     } else {
-                        feedback = "Thanks for taking the quiz! Explore the page to learn more about this fascinating artifact.";
+                        return "Possible Lunar Eclipse";
+                    }
+                }
+                
+                return "No Eclipse Likely";
+            }
+            
+            // Calculate Olympic year
+            function getOlympicInfo(year) {
+                // First modern Olympics was in 1896
+                // First ancient Olympics was around 776 BCE
+                const firstAncientOlympics = -776;
+                
+                // Handle BCE years (negative values)
+                const adjustedYear = year < 0 ? year : year;
+                
+                // Calculate Olympiad
+                const olympiadsSinceFirst = Math.floor((adjustedYear - firstAncientOlympics) / constants.olympiadCycle);
+                const yearInOlympiad = (adjustedYear - firstAncientOlympics) % constants.olympiadCycle;
+                
+                let olympiadInfo = "";
+                
+                // If year is before first Olympics
+                if (adjustedYear < firstAncientOlympics) {
+                    olympiadInfo = "Before the first recorded Olympic Games";
+                } 
+                // If year is during ancient Olympics (776 BCE - 394 CE)
+                else if (adjustedYear <= 394) {
+                    if (yearInOlympiad === 0) {
+                        olympiadInfo = `Year of the ${ordinal(olympiadsSinceFirst)} Ancient Olympic Games`;
+                    } else {
+                        olympiadInfo = `${ordinal(yearInOlympiad)} year of the ${ordinal(olympiadsSinceFirst)} Olympiad`;
+                    }
+                }
+                // If year is after ancient Olympics but before modern Olympics
+                else if (adjustedYear < 1896) {
+                    olympiadInfo = "After the ancient Olympics ended (393 CE) but before modern Olympics began";
+                }
+                
+                return olympiadInfo;
+            }
+            
+            // Helper function for ordinal numbers
+            function ordinal(n) {
+                const s = ["th", "st", "nd", "rd"];
+                const v = n % 100;
+                return n + (s[(v - 20) % 10] || s[v] || s[0]);
+            }
+            
+            // Get zodiac sign for date
+            function getZodiacSign(month, day) {
+                // Ancient Greek zodiac dates may differ slightly from modern ones
+                const zodiacSigns = [
+                    { name: "Aries (Krios)", start: { month: 3, day: 21 }, end: { month: 4, day: 19 } },
+                    { name: "Taurus (Tavros)", start: { month: 4, day: 20 }, end: { month: 5, day: 20 } },
+                    { name: "Gemini (Didymoi)", start: { month: 5, day: 21 }, end: { month: 6, day: 20 } },
+                    { name: "Cancer (Karkinos)", start: { month: 6, day: 21 }, end: { month: 7, day: 22 } },
+                    { name: "Leo (Leon)", start: { month: 7, day: 23 }, end: { month: 8, day: 22 } },
+                    { name: "Virgo (Parthenos)", start: { month: 8, day: 23 }, end: { month: 9, day: 22 } },
+                    { name: "Libra (Zygos)", start: { month: 9, day: 23 }, end: { month: 10, day: 22 } },
+                    { name: "Scorpio (Skorpios)", start: { month: 10, day: 23 }, end: { month: 11, day: 21 } },
+                    { name: "Sagittarius (Toxotes)", start: { month: 11, day: 22 }, end: { month: 12, day: 21 } },
+                    { name: "Capricorn (Aigokeros)", start: { month: 12, day: 22 }, end: { month: 1, day: 19 } },
+                    { name: "Aquarius (Hydrokhoos)", start: { month: 1, day: 20 }, end: { month: 2, day: 18 } },
+                    { name: "Pisces (Ikhthyes)", start: { month: 2, day: 19 }, end: { month: 3, day: 20 } }
+                ];
+                
+                // JavaScript months are 0-indexed
+                month = month + 1;
+                
+                for (const sign of zodiacSigns) {
+                    if (
+                        (month === sign.start.month && day >= sign.start.day) || 
+                        (month === sign.end.month && day <= sign.end.day) ||
+                        (sign.start.month > sign.end.month && (
+                            (month >= sign.start.month && month <= 12) || 
+                            (month >= 1 && month <= sign.end.month)
+                        ))
+                    ) {
+                        return sign.name;
+                    }
+                }
+                
+                return "Unknown";
+            }
+            
+            // Get calendar conversion (Gregorian to ancient Greek lunar calendar)
+            function getAncientGreekCalendar(year, month, day) {
+                // This is a simplified approximation as the ancient Greek calendar
+                // was lunisolar and varied between city-states
+                const months = [
+                    "Hekatombaion", "Metageitnion", "Boedromion",
+                    "Pyanepsion", "Maimakterion", "Poseideon",
+                    "Gamelion", "Anthesterion", "Elaphebolion",
+                    "Mounichion", "Thargelion", "Skirophorion"
+                ];
+                
+                // Calculate lunar month
+                // This is a rough approximation - actual calculation would be complex
+                const date = new Date(year < 0 ? year + 1 : year, month, day);
+                const startOfYear = new Date(year < 0 ? year + 1 : year, 0, 1);
+                const dayOfYear = Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000));
+                
+                // Approximate the lunar month (30 day months)
+                const lunarMonthIndex = Math.floor((dayOfYear % 354) / 29.5) % 12;
+                
+                // Calculate the day in the lunar month
+                const dayInMonth = Math.ceil((dayOfYear % 354) % 29.5);
+                
+                return `${dayInMonth} ${months[lunarMonthIndex]}`;
+            }
+            
+            // Generate prediction text
+            function generatePrediction(year, month, day) {
+                // Create date object (handling BCE dates)
+                // BCE years are negative (1 BCE = year 0, 2 BCE = year -1)
+                const dateObj = new Date(year < 0 ? year + 1 : year, month, day);
+                
+                // Get moon phase
+                const moonPhase = getMoonPhase(dateObj);
+                
+                // Check for eclipse
+                const eclipseStatus = checkForEclipse(dateObj);
+                
+                // Get Olympic info
+                const olympicInfo = getOlympicInfo(year);
+                
+                // Get zodiac sign
+                const zodiacSign = getZodiacSign(month, day);
+                
+                // Get ancient Greek calendar date
+                const greekDate = getAncientGreekCalendar(year, month, day);
+                
+                // Compile results
+                let results = `<div class="mono">
+                    <p>🌙 Moon Phase: ${moonPhase}</p>
+                    <p>☀️ Eclipse Status: ${eclipseStatus}</p>
+                    <p>🏛️ Olympic Cycle: ${olympicInfo}</p>
+                    <p>⭐ Zodiac Position: ${zodiacSign}</p>
+                    <p>📅 Greek Calendar: ${greekDate}</p>
+                </div>`;
+                
+                return results;
+            }
+            
+            // Calculate button event
+            calculateBtn.addEventListener('click', () => {
+                // Get input values
+                const year = parseInt(yearInput.value);
+                const month = parseInt(monthInput.value);
+                const day = parseInt(dayInput.value);
+                
+                // Validate inputs
+                if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                    predictionOutput.innerHTML = '<p>Please enter valid date values.</p>';
+                    return;
+                }
+                
+                if (day < 1 || day > 31) {
+                    predictionOutput.innerHTML = '<p>Please enter a valid day (1-31).</p>';
+                    return;
+                }
+                
+                // Generate prediction
+                const prediction = generatePrediction(year, month, day);
+                predictionOutput.innerHTML = prediction;
+            });
+        })();
+        
+        // Quiz
+        (function createQuiz() {
+            const submitBtn = document.getElementById('submit-quiz');
+            const resetBtn = document.getElementById('reset-quiz');
+            const resultsContainer = document.getElementById('quiz-results');
+            const scoreDisplay = document.getElementById('score-display');
+            const answersReview = document.getElementById('answers-review');
+            
+            // Correct answers
+            const correctAnswers = {
+                q1: 'b', // 1901
+                q2: 'b', // 100-70 BCE
+                q3: 'c', // Predict astronomical events
+                q4: 'b', // Rhodes
+                q5: 'b'  // CT scans
+            };
+            
+            // Submit quiz
+            function submitQuiz() {
+                let score = 0;
+                let reviewHTML = '';
+                
+                // Check each question
+                for (const [question, answer] of Object.entries(correctAnswers)) {
+                    const selected = document.querySelector(`input[name="${question}"]:checked`);
+                    
+                    if (!selected) {
+                        reviewHTML += `<p>${question.toUpperCase()}: Not answered</p>`;
+                        continue;
                     }
                     
-                    const feedbackElement = document.createElement('p');
-                    feedbackElement.textContent = feedback;
-                    resultDisplay.appendChild(feedbackElement);
+                    const isCorrect = selected.value === answer;
                     
-                    // Add restart button
-                    const restartButton = document.createElement('button');
-                    restartButton.className = 'btn';
-                    restartButton.textContent = 'Restart Quiz';
-                    restartButton.addEventListener('click', () => {
-                        currentQuestion = 0;
-                        score = 0;
-                        resultDisplay.innerHTML = '';
-                        showQuestion();
-                    });
-                    resultDisplay.appendChild(restartButton);
+                    if (isCorrect) {
+                        score++;
+                    }
                     
-                    // Hide control buttons
-                    checkButton.style.display = 'none';
-                    nextButton.style.display = 'none';
+                    // Get the question text
+                    const questionElement = document.querySelector(`#${question} h3`);
+                    const questionText = questionElement ? questionElement.textContent.substring(3) : question;
+                    
+                    // Get the selected answer text
+                    const selectedOption = selected.parentElement.textContent.trim();
+                    
+                    // Get the correct answer text
+                    const correctElement = document.querySelector(`input[name="${question}"][value="${answer}"]`);
+                    const correctOption = correctElement ? correctElement.parentElement.textContent.trim() : answer;
+                    
+                    // Add to review
+                    reviewHTML += `
+                        <p>${isCorrect ? '✓' : '✗'} <strong>${questionText}</strong><br>
+                        Your answer: ${selectedOption}<br>
+                        ${!isCorrect ? `Correct answer: ${correctOption}` : ''}
+                        </p>
+                    `;
                 }
-            });
+                
+                // Display results
+                scoreDisplay.textContent = `Your score: ${score} out of ${Object.keys(correctAnswers).length}`;
+                
+                if (score === Object.keys(correctAnswers).length) {
+                    scoreDisplay.textContent += " - Perfect!";
+                } else if (score >= Object.keys(correctAnswers).length * 0.8) {
+                    scoreDisplay.textContent += " - Excellent!";
+                } else if (score >= Object.keys(correctAnswers).length * 0.6) {
+                    scoreDisplay.textContent += " - Good job!";
+                } else {
+                    scoreDisplay.textContent += " - Keep learning!";
+                }
+                
+                answersReview.innerHTML = reviewHTML;
+                resultsContainer.style.display = 'block';
+                
+                // Scroll to results
+                resultsContainer.scrollIntoView({ behavior: 'smooth' });
+            }
             
-            // Start quiz
-            showQuestion();
-        }
+            // Reset quiz
+            function resetQuiz() {
+                // Uncheck all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(input => {
+                    input.checked = false;
+                });
+                
+                // Hide results
+                resultsContainer.style.display = 'none';
+            }
+            
+            // Add event listeners
+            submitBtn.addEventListener('click', submitQuiz);
+            resetBtn.addEventListener('click', resetQuiz);
+        })();
     </script>
 </body>
 </html>
