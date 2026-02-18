@@ -283,6 +283,10 @@ const PANEL_DELAY = 800;
 let currentRound = 0;
 let liveMode = false;
 
+// Wavespeed proxy endpoint - deploy the Cloudflare Worker and paste URL here
+// See: /api/image-proxy-worker.js for the worker code
+const IMAGE_PROXY_URL = 'https://image-proxy.justinhartbiz.workers.dev'; // UPDATE THIS
+
 const SIM_IMAGES = {
   1:'comic-assets/panel1-patriot.png',2:'comic-assets/panel2-skeptic.png',3:'comic-assets/panel3-urgency.png',4:'comic-assets/panel4-consensus.png',
   5:'comic-assets/panel1-patriot.png',6:'comic-assets/panel2-skeptic.png',7:'comic-assets/panel3-urgency.png',8:'comic-assets/panel4-consensus.png',
@@ -312,35 +316,40 @@ function toggleLive() {
   }
 }
 
-async function fetchImage(prompt, retries = 3) {
-  const seed = Math.floor(Math.random() * 999999);
-  // Pollinations.ai simple URL format - no auth needed
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=500&nologo=true&seed=${seed}`;
-  
+async function fetchImage(prompt, retries = 2) {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      console.log(`Generating image (attempt ${attempt+1}): ${prompt.substring(0,50)}...`);
-      const imgUrl = await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          console.log('Image loaded successfully');
-          resolve(url);
-        };
-        img.onerror = (e) => {
-          console.error('Image load failed:', e);
-          reject(new Error('Image load failed'));
-        };
-        img.src = url;
+      console.log(`Generating image via Wavespeed (attempt ${attempt+1}): ${prompt.substring(0,50)}...`);
+      
+      const response = await fetch(IMAGE_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
       });
-      return imgUrl;
+      
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Proxy error');
+      }
+      
+      const data = await response.json();
+      if (data.url) {
+        console.log('Image generated:', data.url);
+        return data.url;
+      }
+      throw new Error('No URL in response');
+      
     } catch(e) {
-      console.warn(`Panel image attempt ${attempt+1} failed, retrying in 2s...`);
-      await new Promise(r => setTimeout(r, 2000));
+      console.warn(`Attempt ${attempt+1} failed:`, e.message);
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, 1500));
+      }
     }
   }
-  console.error('All retries failed, returning URL anyway');
-  return url;
+  
+  // Fallback to placeholder
+  console.error('Live generation failed, using placeholder');
+  return `https://placehold.co/800x500/0E3358/F2AA1F?text=${encodeURIComponent('AI Generation Failed')}`;
 }
 
 function getPanelSrc(panelNum) {
