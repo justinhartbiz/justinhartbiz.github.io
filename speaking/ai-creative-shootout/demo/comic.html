@@ -283,21 +283,20 @@ const PANEL_DELAY = 800;
 let currentRound = 0;
 let liveMode = false;
 
-// Stable Horde - free, no API key needed (anonymous access)
-const HORDE_API = 'https://stablehorde.net/api/v2';
-
 const SIM_IMAGES = {
   1:'comic-assets/panel1-patriot.png',2:'comic-assets/panel2-skeptic.png',3:'comic-assets/panel3-urgency.png',4:'comic-assets/panel4-consensus.png',
   5:'comic-assets/panel1-patriot.png',6:'comic-assets/panel2-skeptic.png',7:'comic-assets/panel3-urgency.png',8:'comic-assets/panel4-consensus.png',
   9:'comic-assets/panel1-patriot.png',10:'comic-assets/panel2-skeptic.png',11:'comic-assets/panel3-urgency.png',12:'comic-assets/panel4-consensus.png'
 };
 
-const LIVE_PROMPTS = {
-  1: "comic book art style, american patriot superhero in business suit, bald eagle on shoulder, pointing dramatically, red white blue colors, dynamic pose, clean lines, marvel style",
-  2: "comic book art style, noir female detective, dark hair glasses, magnifying glass, skeptical expression, dramatic lighting, clean lines, professional",
-  3: "comic book art style, man shouting into megaphone, flames background, red orange glow, urgent action pose, dynamic, clean lines, intense expression",
-  0: "comic book art style, three business people shaking hands, warm golden light, consensus agreement, professional attire, clean lines, triumphant mood"
+// Live mode: AI-generated images via Wavespeed z-image/turbo
+const LIVE_IMAGES = {
+  1:'comic-assets/live/patriot.jpg',2:'comic-assets/live/skeptic.jpg',3:'comic-assets/live/urgency.jpg',4:'comic-assets/live/consensus.jpg',
+  5:'comic-assets/live/patriot.jpg',6:'comic-assets/live/skeptic.jpg',7:'comic-assets/live/urgency.jpg',8:'comic-assets/live/consensus.jpg',
+  9:'comic-assets/live/patriot.jpg',10:'comic-assets/live/skeptic.jpg',11:'comic-assets/live/urgency.jpg',12:'comic-assets/live/consensus.jpg'
 };
+
+// Live prompts used to generate comic-assets/live/*.jpg via Wavespeed z-image/turbo
 
 function toggleLive() {
   liveMode = !liveMode;
@@ -307,7 +306,7 @@ function toggleLive() {
   if (liveMode) {
     toggle.classList.add('live');
     icon.textContent = '🔴';
-    text.textContent = 'Live Mode (Pollinations FLUX)';
+    text.textContent = 'Live Mode (Wavespeed AI)';
   } else {
     toggle.classList.remove('live');
     icon.textContent = '⚪';
@@ -315,63 +314,8 @@ function toggleLive() {
   }
 }
 
-async function fetchImage(prompt) {
-  try {
-    console.log(`Generating image via Stable Horde: ${prompt.substring(0,50)}...`);
-    
-    // 1. Queue the generation
-    const queueRes = await fetch(`${HORDE_API}/generate/async`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'apikey': '0000000000' // Anonymous key
-      },
-      body: JSON.stringify({
-        prompt: prompt + ', highly detailed, professional illustration, vibrant colors',
-        params: {
-          width: 768,
-          height: 512,
-          steps: 25,
-          cfg_scale: 7,
-          sampler_name: 'k_euler_a'
-        },
-        nsfw: false,
-        models: ['stable_diffusion'],
-        r2: true
-      })
-    });
-    
-    if (!queueRes.ok) throw new Error('Failed to queue');
-    const { id } = await queueRes.json();
-    console.log('Queued job:', id);
-    
-    // 2. Poll until done (max 60s)
-    const maxWait = 60000;
-    const start = Date.now();
-    while (Date.now() - start < maxWait) {
-      await new Promise(r => setTimeout(r, 2000));
-      
-      const checkRes = await fetch(`${HORDE_API}/generate/check/${id}`);
-      const status = await checkRes.json();
-      console.log('Status:', status.done ? 'DONE' : `waiting (${status.wait_time}s)...`);
-      
-      if (status.done) {
-        // 3. Get the result
-        const resultRes = await fetch(`${HORDE_API}/generate/status/${id}`);
-        const result = await resultRes.json();
-        if (result.generations?.[0]?.img) {
-          const imgUrl = result.generations[0].img;
-          console.log('Image ready:', imgUrl);
-          return imgUrl;
-        }
-      }
-    }
-    throw new Error('Generation timeout');
-    
-  } catch(e) {
-    console.error('Stable Horde error:', e.message);
-    return `https://placehold.co/800x500/0E3358/F2AA1F?text=${encodeURIComponent('Generation Failed - Try Again')}`;
-  }
+function getLiveImage(panelNum) {
+  return LIVE_IMAGES[panelNum];
 }
 
 function getPanelSrc(panelNum) {
@@ -412,11 +356,7 @@ async function revealRound(round, panels, onDone) {
     const img = document.getElementById('panel' + panelNum).querySelector('img');
 
     if (liveMode) {
-      const promptKey = panelNum % 4;
-      const loadingText = document.getElementById('load' + panelNum).querySelector('.loading-text');
-      loadingText.textContent = '🎨 Generating with AI...';
-      const imageUrl = await fetchImage(LIVE_PROMPTS[promptKey]);
-      img.src = imageUrl;
+      img.src = getLiveImage(panelNum);
     } else {
       img.src = getPanelSrc(panelNum);
     }
