@@ -283,9 +283,8 @@ const PANEL_DELAY = 800;
 let currentRound = 0;
 let liveMode = false;
 
-// Wavespeed proxy endpoint - deploy the Cloudflare Worker and paste URL here
-// See: /api/image-proxy-worker.js for the worker code
-const IMAGE_PROXY_URL = 'https://image-proxy.justinhartbiz.workers.dev'; // UPDATE THIS
+// Stable Horde - free, no API key needed (anonymous access)
+const HORDE_API = 'https://stablehorde.net/api/v2';
 
 const SIM_IMAGES = {
   1:'comic-assets/panel1-patriot.png',2:'comic-assets/panel2-skeptic.png',3:'comic-assets/panel3-urgency.png',4:'comic-assets/panel4-consensus.png',
@@ -294,10 +293,10 @@ const SIM_IMAGES = {
 };
 
 const LIVE_PROMPTS = {
-  1: "dramatic comic book panel, patriotic american superhero in business suit with eagle motif, pointing finger accusingly, bold colors, professional illustration, speech bubble style",
-  2: "comic book panel, female detective with glasses looking skeptical, holding magnifying glass, noir style, dramatic shadows, professional illustration",
-  3: "comic book panel, passionate person shouting with megaphone, flames and urgency in background, red and orange tones, dramatic action pose, professional illustration",
-  0: "comic book panel, three diverse professionals shaking hands in agreement, warm lighting, consensus reached, professional business illustration"
+  1: "comic book art style, american patriot superhero in business suit, bald eagle on shoulder, pointing dramatically, red white blue colors, dynamic pose, clean lines, marvel style",
+  2: "comic book art style, noir female detective, dark hair glasses, magnifying glass, skeptical expression, dramatic lighting, clean lines, professional",
+  3: "comic book art style, man shouting into megaphone, flames background, red orange glow, urgent action pose, dynamic, clean lines, intense expression",
+  0: "comic book art style, three business people shaking hands, warm golden light, consensus agreement, professional attire, clean lines, triumphant mood"
 };
 
 function toggleLive() {
@@ -316,40 +315,63 @@ function toggleLive() {
   }
 }
 
-async function fetchImage(prompt, retries = 2) {
-  for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      console.log(`Generating image via Wavespeed (attempt ${attempt+1}): ${prompt.substring(0,50)}...`);
+async function fetchImage(prompt) {
+  try {
+    console.log(`Generating image via Stable Horde: ${prompt.substring(0,50)}...`);
+    
+    // 1. Queue the generation
+    const queueRes = await fetch(`${HORDE_API}/generate/async`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'apikey': '0000000000' // Anonymous key
+      },
+      body: JSON.stringify({
+        prompt: prompt + ', highly detailed, professional illustration, vibrant colors',
+        params: {
+          width: 768,
+          height: 512,
+          steps: 25,
+          cfg_scale: 7,
+          sampler_name: 'k_euler_a'
+        },
+        nsfw: false,
+        models: ['stable_diffusion'],
+        r2: true
+      })
+    });
+    
+    if (!queueRes.ok) throw new Error('Failed to queue');
+    const { id } = await queueRes.json();
+    console.log('Queued job:', id);
+    
+    // 2. Poll until done (max 60s)
+    const maxWait = 60000;
+    const start = Date.now();
+    while (Date.now() - start < maxWait) {
+      await new Promise(r => setTimeout(r, 2000));
       
-      const response = await fetch(IMAGE_PROXY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
-      });
+      const checkRes = await fetch(`${HORDE_API}/generate/check/${id}`);
+      const status = await checkRes.json();
+      console.log('Status:', status.done ? 'DONE' : `waiting (${status.wait_time}s)...`);
       
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'Proxy error');
-      }
-      
-      const data = await response.json();
-      if (data.url) {
-        console.log('Image generated:', data.url);
-        return data.url;
-      }
-      throw new Error('No URL in response');
-      
-    } catch(e) {
-      console.warn(`Attempt ${attempt+1} failed:`, e.message);
-      if (attempt < retries - 1) {
-        await new Promise(r => setTimeout(r, 1500));
+      if (status.done) {
+        // 3. Get the result
+        const resultRes = await fetch(`${HORDE_API}/generate/status/${id}`);
+        const result = await resultRes.json();
+        if (result.generations?.[0]?.img) {
+          const imgUrl = result.generations[0].img;
+          console.log('Image ready:', imgUrl);
+          return imgUrl;
+        }
       }
     }
+    throw new Error('Generation timeout');
+    
+  } catch(e) {
+    console.error('Stable Horde error:', e.message);
+    return `https://placehold.co/800x500/0E3358/F2AA1F?text=${encodeURIComponent('Generation Failed - Try Again')}`;
   }
-  
-  // Fallback to placeholder
-  console.error('Live generation failed, using placeholder');
-  return `https://placehold.co/800x500/0E3358/F2AA1F?text=${encodeURIComponent('AI Generation Failed')}`;
 }
 
 function getPanelSrc(panelNum) {
