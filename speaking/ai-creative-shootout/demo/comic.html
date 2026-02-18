@@ -290,10 +290,10 @@ const SIM_IMAGES = {
 };
 
 const LIVE_PROMPTS = {
-  1: "comic book panel, sin city style, high contrast black and white, superhero eagle-man in a suit pointing finger, dramatic lighting",
-  2: "comic book panel, sin city style, high contrast black and white, noir detective looking skeptical with magnifying glass",
-  3: "comic book panel, sin city style, high contrast black and white, angry man screaming into a megaphone, explosion background",
-  0: "comic book panel, sin city style, high contrast black and white, three diverse people shaking hands in agreement"
+  1: "dramatic comic book panel, patriotic american superhero in business suit with eagle motif, pointing finger accusingly, bold colors, professional illustration, speech bubble style",
+  2: "comic book panel, female detective with glasses looking skeptical, holding magnifying glass, noir style, dramatic shadows, professional illustration",
+  3: "comic book panel, passionate person shouting with megaphone, flames and urgency in background, red and orange tones, dramatic action pose, professional illustration",
+  0: "comic book panel, three diverse professionals shaking hands in agreement, warm lighting, consensus reached, professional business illustration"
 };
 
 function toggleLive() {
@@ -314,21 +314,32 @@ function toggleLive() {
 
 async function fetchImage(prompt, retries = 3) {
   const seed = Math.floor(Math.random() * 999999);
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=500&nologo=true&seed=${seed}&model=flux&token=sk_BSQUG7yJDFnDepMFyXcFqHOFtDYAB88K`;
+  // Pollinations.ai simple URL format - no auth needed
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=500&nologo=true&seed=${seed}`;
+  
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
+      console.log(`Generating image (attempt ${attempt+1}): ${prompt.substring(0,50)}...`);
       const imgUrl = await new Promise((resolve, reject) => {
         const img = new Image();
-        img.onload = () => resolve(url);
-        img.onerror = () => reject(new Error('Image load failed'));
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          console.log('Image loaded successfully');
+          resolve(url);
+        };
+        img.onerror = (e) => {
+          console.error('Image load failed:', e);
+          reject(new Error('Image load failed'));
+        };
         img.src = url;
       });
       return imgUrl;
     } catch(e) {
-      console.warn(`Panel image attempt ${attempt+1} failed, retrying in 3s...`);
-      await new Promise(r => setTimeout(r, 3000));
+      console.warn(`Panel image attempt ${attempt+1} failed, retrying in 2s...`);
+      await new Promise(r => setTimeout(r, 2000));
     }
   }
+  console.error('All retries failed, returning URL anyway');
   return url;
 }
 
@@ -371,6 +382,8 @@ async function revealRound(round, panels, onDone) {
 
     if (liveMode) {
       const promptKey = panelNum % 4;
+      const loadingText = document.getElementById('load' + panelNum).querySelector('.loading-text');
+      loadingText.textContent = '🎨 Generating with AI...';
       const imageUrl = await fetchImage(LIVE_PROMPTS[promptKey]);
       img.src = imageUrl;
     } else {
