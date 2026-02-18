@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeroBox Shootout — Feb 18, 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --db-navy: #0E3358;
+            --db-gold: #F2AA1F;
+            --db-blue: #2EA3F2;
+            --db-white: #FFFFFF;
+            --db-light-gray: #EEEFF0;
+            --db-dark-gray: #30353B;
+            --db-text: #666666;
+            --db-text-dark: #333333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Open Sans', Arial, sans-serif;
+            background: var(--db-light-gray);
+            min-height: 100vh;
+            color: var(--db-text);
+        }
+        .header {
+            background: var(--db-navy);
+            color: var(--db-white);
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            font-family: 'Lato', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .header-meta {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .selection-box {
+            background: var(--db-white);
+            border-bottom: 3px solid var(--db-gold);
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .selection-box h3 {
+            font-family: 'Lato', sans-serif;
+            color: var(--db-navy);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        .selected-ids {
+            background: var(--db-light-gray);
+            border: 2px solid var(--db-navy);
+            border-radius: 6px;
+            padding: 12px 15px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            min-height: 44px;
+            color: var(--db-navy);
+            font-weight: 600;
+        }
+        .selected-ids:empty::before {
+            content: "Click checkboxes below to select creatives...";
+            color: #999;
+            font-weight: 400;
+        }
+        .selection-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-gold {
+            background: var(--db-gold);
+            color: var(--db-white);
+        }
+        .btn-gold:hover { background: #e09a10; }
+        .btn-outline {
+            background: var(--db-white);
+            color: var(--db-navy);
+            border: 2px solid var(--db-navy);
+        }
+        .btn-outline:hover { background: var(--db-light-gray); }
+        
+        .brief {
+            background: var(--db-white);
+            margin: 20px 30px;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--db-gold);
+        }
+        .brief h3 {
+            font-family: 'Lato', sans-serif;
+            color: var(--db-navy);
+            margin-bottom: 10px;
+        }
+        .brief ul {
+            margin-left: 20px;
+            font-size: 0.9rem;
+        }
+        .brief li { margin: 5px 0; }
+        .brief strong { color: var(--db-text-dark); }
+        
+        .creatives-container {
+            padding: 0 30px 30px;
+        }
+        .section-header {
+            background: var(--db-navy);
+            color: var(--db-white);
+            padding: 12px 20px;
+            font-family: 'Lato', sans-serif;
+            font-weight: 700;
+            border-radius: 8px 8px 0 0;
+            margin-top: 20px;
+        }
+        .creative-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 15px;
+            background: var(--db-white);
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .creative-card {
+            background: var(--db-white);
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .creative-card:hover {
+            border-color: var(--db-blue);
+        }
+        .creative-card.selected {
+            border-color: var(--db-gold);
+            box-shadow: 0 0 0 3px rgba(242, 170, 31, 0.3);
+        }
+        .card-header {
+            background: var(--db-light-gray);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .card-id {
+            font-family: monospace;
+            font-weight: 700;
+            color: var(--db-navy);
+            font-size: 0.9rem;
+        }
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .angle-tag {
+            background: var(--db-navy);
+            color: var(--db-white);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .angle-tag.guilt { background: #dc2626; }
+        .angle-tag.curiosity { background: #7c3aed; }
+        .angle-tag.social { background: #059669; }
+        .angle-tag.urgency { background: #ea580c; }
+        .angle-tag.seasonal { background: #ec4899; }
+        .angle-tag.impact { background: #2563eb; }
+        .card-checkbox {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--db-gold);
+        }
+        .card-body {
+            padding: 15px;
+        }
+        .creative-text {
+            font-size: 0.85rem;
+            line-height: 1.55;
+            color: var(--db-text-dark);
+            white-space: pre-wrap;
+            background: #fafafa;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #eee;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .card-footer {
+            padding: 10px 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        .char-count { color: var(--db-text); }
+        .char-count.ok { color: #22c55e; }
+        .char-count.warn { color: var(--db-gold); }
+        .char-count.over { color: #ef4444; }
+        .copy-btn {
+            background: var(--db-navy);
+            color: var(--db-white);
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .copy-btn:hover { background: #1a4a7a; }
+        
+        .image-hint {
+            font-size: 0.75rem;
+            color: #888;
+            font-style: italic;
+            margin-top: 10px;
+            padding: 8px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .creative-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 10px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📦 HeroBox Care Package Shootout</h1>
+        <div class="header-meta">Feb 18, 2026 • Military Care Packages • $25-35 asks</div>
+    </div>
+
+    <div class="selection-box">
+        <h3>📋 SELECTED CREATIVES (paste these IDs to Railstote)</h3>
+        <div class="selected-ids" id="selectedIds"></div>
+        <div class="selection-actions">
+            <button class="btn btn-gold" onclick="copySelectedIds()">Copy IDs</button>
+            <button class="btn btn-outline" onclick="clearSelection()">Clear All</button>
+        </div>
+    </div>
+
+    <div class="brief">
+        <h3>Campaign Brief</h3>
+        <ul>
+            <li><strong>Client:</strong> HeroBox — Military care packages for deployed troops</li>
+            <li><strong>Goal:</strong> $25-35 donations to send care packages to 500+ waiting heroes</li>
+            <li><strong>Top Performers:</strong> MMS vastly outperforms SMS ($0.1068 vs $0.0271/send)</li>
+            <li><strong>Winning Hooks:</strong> "Will you let our heroes be forgotten?" ($2.155/send), "That smile!" format</li>
+            <li><strong>February Context:</strong> Valentine's season, winter deployment support</li>
+        </ul>
+    </div>
+
+    <div class="creatives-container">
+        <!-- MMS SECTION -->
+        <div class="section-header">📱 MMS Creatives (Care Package Appeals)</div>
+        <div class="creative-grid">
+            
+            <div class="creative-card" data-id="HERO-MMS-1">
+                <div class="card-header">
+                    <span class="card-id">HERO-MMS-1</span>
+                    <div class="card-meta">
+                        <span class="angle-tag guilt">Guilt + Identity</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">Subject: Will you let [statename]'s heroes be forgotten, [firstname]?
+
+[firstname|Patriot], it's a harsh reality. While we enjoy our freedom at home, over 500 deployed heroes are still waiting for their first HeroBox care package.
+
+These aren't just boxes — they're lifelines to home. For a soldier stationed thousands of miles away, receiving a HeroBox means they haven't been forgotten.
+
+Will you stand with [statename]'s military community and send a Hero Box today? Just $25 delivers comfort, essentials, and hope to a hero serving our country.
+
+>> [link]</div>
+                    <div class="image-hint">📷 Split screen - One side showing soldier alone in barracks looking at empty mailbox; other side showing soldier smiling while opening HeroBox with American flag visible.</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count ok">542 chars ✓</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+            <div class="creative-card" data-id="HERO-MMS-2">
+                <div class="card-header">
+                    <span class="card-id">HERO-MMS-2</span>
+                    <div class="card-meta">
+                        <span class="angle-tag curiosity">Curiosity + Gratitude</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">What's in a HeroBox? 🎁 🇺🇸
+
+Great question, [firstname|Friend]! At HeroBox, we're packing more than just supplies - we're delivering smiles to our troops overseas.
+
+Each box contains:
+• Handwritten letters of gratitude
+• Comfort snacks & treats from home
+• Personal care items
+• And most importantly, a reminder that someone cares
+
+Our February mission: Send 100 boxes to the 82nd Airborne currently deployed. Will you help us reach our goal? Just $35 sponsors an entire box.
+
+>> [link]</div>
+                    <div class="image-hint">📷 Overhead photo of open HeroBox with neatly arranged contents - snacks, toiletries, letters, small American flag - with military unit patch visible on box.</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count ok">533 chars ✓</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+            <div class="creative-card" data-id="HERO-MMS-3">
+                <div class="card-header">
+                    <span class="card-id">HERO-MMS-3</span>
+                    <div class="card-meta">
+                        <span class="angle-tag social">Social Proof + Emotional</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">That smile! 😊
+
+[firstname|Friend], this is Specialist Rivera after receiving her HeroBox last week. "It felt like Christmas morning in February," she told us.
+
+Your previous support has been incredible. Now we need your help for our next mission - 500 HeroBoxes to troops stationed in remote outposts with limited supplies and connection to home.
+
+Can we count on you to bring more smiles like this? Your $25 gift today = one more hero who knows they're not forgotten.
+
+>> [link]</div>
+                    <div class="image-hint">📷 Female soldier smiling genuinely while holding up items from her HeroBox, wearing military fatigues, in barracks or tent housing.</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count ok">515 chars ✓</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- VARIATIONS SECTION -->
+        <div class="section-header">🔄 MMS Variations (A/B Test Options)</div>
+        <div class="creative-grid">
+
+            <div class="creative-card" data-id="HERO-MMS-1A">
+                <div class="card-header">
+                    <span class="card-id">HERO-MMS-1A</span>
+                    <div class="card-meta">
+                        <span class="angle-tag guilt">Direct Guilt</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[firstname|Fellow American], the truth is hard to hear. While we sleep safely in our beds, 500+ deployed heroes are still waiting for their first HeroBox.
+
+These aren't anonymous soldiers — they're sons, daughters, parents and spouses who made the choice to serve. Now they're stationed thousands of miles from home, wondering if anyone remembers their sacrifice.
+
+Will you be the one who ensures a hero isn't forgotten? Your $25 donation sends comfort, essentials, and a reminder that [statename] still cares.
+
+>> [link]</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count ok">527 chars ✓</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+            <div class="creative-card" data-id="HERO-MMS-1B">
+                <div class="card-header">
+                    <span class="card-id">HERO-MMS-1B</span>
+                    <div class="card-meta">
+                        <span class="angle-tag guilt">Question Identity</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">Are you still a supporter of [statename]'s military heroes, [firstname]?
+
+Over 500 deployed servicemembers are waiting for their first HeroBox care package. These heroes volunteered to protect our freedoms, but they shouldn't have to wonder if we've forgotten them.
+
+Your $25 gift doesn't just send snacks and essentials — it delivers a powerful message that says "Your service matters. Your sacrifice is seen."
+
+Will you answer the call and send a hero a piece of home today?
+
+>> [link]</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count ok">505 chars ✓</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+            <div class="creative-card" data-id="HERO-MMS-1C">
+                <div class="card-header">
+                    <span class="card-id">HERO-MMS-1C</span>
+                    <div class="card-meta">
+                        <span class="angle-tag urgency">Deadline Driven</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[firstname|Patriot], we have 10 DAYS to clear our backlog of 500+ heroes waiting for care packages.
+
+Every day without support from home makes deployment harder for our troops. These HeroBoxes aren't luxuries — they're lifelines to the country they're serving.
+
+As a proud resident of [statename], you can ensure a hero receives their first HeroBox this month. Your $25 gift sends a complete package of comfort items and hometown support.
+
+The deadline is approaching. Will you stand with our military before it's too late?
+
+>> [link]</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count ok">546 chars ✓</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SMS SECTION -->
+        <div class="section-header">💬 SMS Creatives (160 chars max)</div>
+        <div class="creative-grid">
+
+            <div class="creative-card" data-id="HERO-SMS-1">
+                <div class="card-header">
+                    <span class="card-id">HERO-SMS-1</span>
+                    <div class="card-meta">
+                        <span class="angle-tag urgency">Urgency + Identity</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">MISSION ALERT, [firstname|Patriot]: 500+ heroes await their first HeroBox care package. Your $25 sends essential supplies & hope to a deployed soldier. Will you be their hero today? [link]</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count warn">187 chars ⚠️</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+            <div class="creative-card" data-id="HERO-SMS-2">
+                <div class="card-header">
+                    <span class="card-id">HERO-SMS-2</span>
+                    <div class="card-meta">
+                        <span class="angle-tag seasonal">Seasonal + Emotional</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">While we celebrate with loved ones, 150,000+ troops serve far from home this Valentine's season. Send them love with a HeroBox! Your $25 gift shows them they're not forgotten. [link]</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count warn">180 chars ⚠️</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+            <div class="creative-card" data-id="HERO-SMS-3">
+                <div class="card-header">
+                    <span class="card-id">HERO-SMS-3</span>
+                    <div class="card-meta">
+                        <span class="angle-tag impact">Social Proof + Gratitude</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">"Opening my HeroBox was the highlight of my deployment." -Sgt. Miller, 10th Mountain Division. [firstname], your support makes this possible. Send another hero a piece of home: [link]</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count warn">181 chars ⚠️</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+            <div class="creative-card" data-id="HERO-SMS-1A">
+                <div class="card-header">
+                    <span class="card-id">HERO-SMS-1A</span>
+                    <div class="card-meta">
+                        <span class="angle-tag urgency">72hr Urgency</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">🚨 HERO ALERT: 72 HOURS to meet our February quota, [firstname]. 500 troops still need their first care package. Your $25 gift tells a hero they're not forgotten. Act now: [link]</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count warn">176 chars ⚠️</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+            <div class="creative-card" data-id="HERO-SMS-1B">
+                <div class="card-header">
+                    <span class="card-id">HERO-SMS-1B</span>
+                    <div class="card-meta">
+                        <span class="angle-tag social">Unit Specific</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[firstname], the 82nd Airborne just deployed to a remote station. Your $25 sends a HeroBox with essentials & hometown support to a soldier far from everything familiar. Help now: [link]</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count warn">183 chars ⚠️</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+            <div class="creative-card" data-id="HERO-SMS-1C">
+                <div class="card-header">
+                    <span class="card-id">HERO-SMS-1C</span>
+                    <div class="card-meta">
+                        <span class="angle-tag social">State Patriots</span>
+                        <input type="checkbox" class="card-checkbox" onchange="toggleSelect(this)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="creative-text">[firstname], your fellow [statename] patriots have sponsored 37 HeroBoxes this week. Will you be #38? Your $25 gift sends vital supplies & hometown love to a deployed hero: [link]</div>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count warn">177 chars ⚠️</span>
+                    <button class="copy-btn" onclick="copyText(this)">Copy</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let selectedIds = new Set();
+
+        function toggleSelect(checkbox) {
+            const card = checkbox.closest('.creative-card');
+            const id = card.dataset.id;
+            
+            if (checkbox.checked) {
+                selectedIds.add(id);
+                card.classList.add('selected');
+            } else {
+                selectedIds.delete(id);
+                card.classList.remove('selected');
+            }
+            
+            updateSelectedDisplay();
+        }
+
+        function updateSelectedDisplay() {
+            const display = document.getElementById('selectedIds');
+            display.textContent = Array.from(selectedIds).join(', ');
+        }
+
+        function copySelectedIds() {
+            const ids = Array.from(selectedIds).join(', ');
+            if (ids) {
+                navigator.clipboard.writeText(ids).then(() => {
+                    alert('Copied: ' + ids);
+                });
+            } else {
+                alert('No creatives selected');
+            }
+        }
+
+        function clearSelection() {
+            selectedIds.clear();
+            document.querySelectorAll('.card-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.creative-card').forEach(card => card.classList.remove('selected'));
+            updateSelectedDisplay();
+        }
+
+        function copyText(btn) {
+            const card = btn.closest('.creative-card');
+            const text = card.querySelector('.creative-text').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 1500);
+            });
+        }
+    </script>
+</body>
+</html>
