@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kintsugi: The Art of Golden Repair</title>
+  <style>
+    /* Base Styles */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap');
+    
+    :root {
+      --bg-color: #030305;
+      --text-color: #f8f8ff;
+      --gold: #FFD28E;
+      --gold-dark: #BA9A6B;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Playfair Display', serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+    
+    /* Starfield Background */
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    
+    .star {
+      position: absolute;
+      background-color: #ffffff;
+      border-radius: 50%;
+    }
+    
+    /* Typography */
+    h1, h2, h3 {
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    h1 {
+      font-size: 3.5rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+      background: linear-gradient(to right, #fff, var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+    }
+    
+    h2 {
+      font-size: 2.2rem;
+      margin-top: 2rem;
+      color: var(--gold);
+      position: relative;
+    }
+    
+    h2:after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 60px;
+      height: 2px;
+      background-color: var(--gold);
+    }
+    
+    h3 {
+      font-size: 1.5rem;
+      margin-top: 1.5rem;
+      color: var(--gold-dark);
+    }
+    
+    p {
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+    }
+    
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+    }
+    
+    /* Layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    header {
+      padding: 3rem 0;
+      text-align: center;
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      font-style: italic;
+      opacity: 0.9;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    section {
+      margin-bottom: 4rem;
+    }
+    
+    /* Glassmorphism Panels */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 15px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .glass-panel:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 40px rgba(255, 210, 142, 0.15);
+    }
+    
+    /* Interactive Elements */
+    .interactive {
+      margin-top: 3rem;
+    }
+    
+    /* Break and Mend Experience */
+    .break-mend {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .bowl-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .bowl {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDAgMzAwIj48ZWxsaXBzZSBjeD0iMTUwIiBjeT0iMTUwIiByeD0iMTIwIiByeT0iNzAiIGZpbGw9IiNCQTlBNkIiLz48ZWxsaXBzZSBjeD0iMTUwIiBjeT0iMTUwIiByeD0iMTAwIiByeT0iNjAiIGZpbGw9IiNFQkQxQjAiLz48L3N2Zz4=') no-repeat center;
+      background-size: contain;
+      transition: opacity 0.3s;
+    }
+    
+    .bowl-broken {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .piece {
+      position: absolute;
+      background-color: #EBD1B0;
+      transform-origin: center;
+      border: 1px solid rgba(186, 154, 107, 0.5);
+      transition: transform 0.5s ease;
+    }
+    
+    .crack {
+      position: absolute;
+      background-color: transparent;
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 10px rgba(255, 210, 142, 0.7);
+      opacity: 0;
+      z-index: 5;
+    }
+    
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 15px;
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: var(--bg-color);
+      border: none;
+      padding: 10px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 210, 142, 0.4);
+    }
+    
+    .btn:active {
+      transform: translateY(1px);
+    }
+    
+    /* Before/After Slider */
+    .slider-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      overflow: hidden;
+      border-radius: 15px;
+      margin: 2rem 0;
+    }
+    
+    .slider-before, .slider-after {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+    }
+    
+    .slider-before {
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgNDAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzE3MTUxMyIvPjxwYXRoIGQ9Ik0zMjMgMTczIGMtNTAgLTUgLTc1IDMwIC0xMzAgMjUgLTMwIC00IC02MCAtMjggLTYwIC01MyAwIC0yMCAzMCAtNTUgMTI1IC01NSA5NSAwIDE2NSAyNSAxNjUgNzAgMCAyMCAtMjAgNDUgLTU1IDQweiIgZmlsbD0iI0JBOUNBMyIvPjxwYXRoIGQ9Ik0zMjYgMTY2IGMtMTAgLTEwIC0zNiAtMTUgLTYwIC0xMCAtMjUgNSAtNDMgMjAgLTc1IDE1IC0xNSAtMyAtMzAgLTE1IC0zMCAtMzAgMCAtMjAgNTUgLTQwIDExMCAtNDAgNTAgMCAxMTAgMjAgMTEwIDQwIDAgMTUgLTIwIDMwIC00MCAzMHoiIGZpbGw9IiNEQUNFQzAiLz48cGF0aCBkPSJNMjMwIDIxMCBsMjAgLTYwIDE1IDQwIDI1IC02MCAxMCA1MCAxNSAtNzAgMjUgMTAwIC0xMTAgMHoiIGZpbGw9IiNBQTkxN0IiIHN0cm9rZT0iIzgyNkU1QyIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+');
+    }
+    
+    .slider-after {
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgNDAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzE3MTUxMyIvPjxwYXRoIGQ9Ik0zMjMgMTczIGMtNTAgLTUgLTc1IDMwIC0xMzAgMjUgLTMwIC00IC02MCAtMjggLTYwIC01MyAwIC0yMCAzMCAtNTUgMTI1IC01NSA5NSAwIDE2NSAyNSAxNjUgNzAgMCAyMCAtMjAgNDUgLTU1IDQweiIgZmlsbD0iI0JBOUNBMyIvPjxwYXRoIGQ9Ik0zMjYgMTY2IGMtMTAgLTEwIC0zNiAtMTUgLTYwIC0xMCAtMjUgNSAtNDMgMjAgLTc1IDE1IC0xNSAtMyAtMzAgLTE1IC0zMCAtMzAgMCAtMjAgNTUgLTQwIDExMCAtNDAgNTAgMCAxMTAgMjAgMTEwIDQwIDAgMTUgLTIwIDMwIC00MCAzMHoiIGZpbGw9IiNEQUNFQzAiLz48cGF0aCBkPSJNMjMwIDIxMCBsMjAgLTYwIDE1IDQwIDI1IC02MCAxMCA1MCAxNSAtNzAgMjUgMTAwIC0xMTAgMHoiIGZpbGw9IiNBQTkxN0IiIHN0cm9rZT0iIzgyNkU1QyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHBhdGggZD0iTTI2MiAxNTAgbDMgNjAgbS0xNSAtODAgbDIgNDAgbS0yMiAtMzAgbDQgNTAgbTQ1IC03MCBsMCAxMDAiIHN0cm9rZT0iI0ZGRDg4RSIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjMwIDIxMCBsMjAgLTYwIDE1IDQwIDI1IC02MCAxMCA1MCAxNSAtNzAgMjUgMTAwIC0xMTAgMHoiIHN0cm9rZT0iI0ZGRDg4RSIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48L3N2Zz4=');
+      width: 50%;
+    }
+    
+    .slider-line {
+      position: absolute;
+      width: 4px;
+      height: 100%;
+      background-color: var(--gold);
+      left: 50%;
+      transform: translateX(-50%);
+      cursor: ew-resize;
+    }
+    
+    .slider-button {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--gold);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      cursor: ew-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(255, 210, 142, 0.8);
+    }
+    
+    .slider-button::before, .slider-button::after {
+      content: '';
+      width: 0;
+      height: 0;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+    }
+    
+    .slider-button::before {
+      border-right: 8px solid var(--bg-color);
+      margin-right: 4px;
+    }
+    
+    .slider-button::after {
+      border-left: 8px solid var(--bg-color);
+      margin-left: 4px;
+    }
+    
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding: 2rem 0;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      height: 100%;
+      width: 2px;
+      background-color: var(--gold-dark);
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .timeline-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3rem;
+    }
+    
+    .timeline-item:nth-child(even) {
+      flex-direction: row-reverse;
+    }
+    
+    .timeline-content {
+      width: 45%;
+      padding: 1.5rem;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      position: relative;
+    }
+    
+    .timeline-content::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      width: 20px;
+      height: 20px;
+      background-color: var(--gold);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(255, 210, 142, 0.6);
+    }
+    
+    .timeline-item:nth-child(odd) .timeline-content::after {
+      right: -36px;
+    }
+    
+    .timeline-item:nth-child(even) .timeline-content::after {
+      left: -36px;
+    }
+    
+    .timeline-date {
+      color: var(--gold);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 0.5rem;
+    }
+    
+    /* Quiz */
+    .quiz-container {
+      margin-top: 2rem;
+    }
+    
+    .question {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    
+    .question.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .question h3 {
+      margin-top: 0;
+    }
+    
+    .options {
+      margin-top: 1.5rem;
+      display: grid;
+      gap: 10px;
+    }
+    
+    .option {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      padding: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .option:hover {
+      background: rgba(255, 210, 142, 0.1);
+      transform: translateX(5px);
+    }
+    
+    .option.selected {
+      background: rgba(255, 210, 142, 0.2);
+      border-color: var(--gold);
+    }
+    
+    .option.correct {
+      background: rgba(144, 238, 144, 0.2);
+      border-color: lightgreen;
+    }
+    
+    .option.wrong {
+      background: rgba(255, 99, 71, 0.2);
+      border-color: tomato;
+    }
+    
+    .quiz-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+    }
+    
+    .quiz-result {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+      background: var(--glass-bg);
+      border: 1px solid var(--gold);
+      border-radius: 15px;
+    }
+    
+    .quiz-score {
+      font-size: 2rem;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    
+    /* Techniques Section */
+    .techniques {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    
+    .technique {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      padding: 1.5rem;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+    
+    .technique:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      border-color: var(--gold);
+    }
+    
+    .technique-icon {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 1rem;
+      opacity: 0.8;
+      filter: invert(1) sepia(1) saturate(5) hue-rotate(320deg);
+    }
+    
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      margin-top: 4rem;
+      border-top: 1px solid var(--glass-border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes goldPulse {
+      0% { box-shadow: 0 0 5px rgba(255, 210, 142, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(255, 210, 142, 0.8); }
+      100% { box-shadow: 0 0 5px rgba(255, 210, 142, 0.5); }
+    }
+    
+    .gold-glow {
+      animation: goldPulse 2s infinite;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+      
+      h2 {
+        font-size: 1.8rem;
+      }
+      
+      .container {
+        padding: 1rem;
+      }
+      
+      .timeline::before {
+        left: 30px;
+      }
+      
+      .timeline-item {
+        flex-direction: column-reverse !important;
+        margin-left: 50px;
+      }
+      
+      .timeline-content {
+        width: 100%;
+        margin-bottom: 1.5rem;
+      }
+      
+      .timeline-content::after {
+        left: -36px !important;
+      }
+      
+      .techniques {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  
+  <div class="container">
+    <header>
+      <h1>錦絵 KINTSUGI</h1>
+      <p class="subtitle">The Japanese Art of Golden Repair</p>
+    </header>
+    
+    <section class="intro glass-panel">
+      <h2>The Art of Embracing Imperfection</h2>
+      <p>
+        Kintsugi (金継ぎ), literally meaning "golden joinery," is the ancient Japanese art of repairing broken pottery by mending the areas of breakage with lacquer dusted or mixed with powdered gold, silver, or platinum. This technique emerged during the 15th century Muromachi period in Japan and is deeply connected to the philosophy of wabi-sabi — finding beauty in imperfection and accepting the natural cycle of life.
+      </p>
+      <p>
+        Rather than disguising the damage, kintsugi celebrates the history of the object by emphasizing the breaks and repairs as an important part of the object's journey. Each golden seam tells a story of resilience, renewal, and beauty born from brokenness.
+      </p>
+      <p class="mono">
+        "The world breaks everyone and afterward many are strong at the broken places."<br>
+        — Ernest Hemingway
+      </p>
+    </section>
+    
+    <section class="interactive">
+      <h2>Break & Mend Experience</h2>
+      <div class="break-mend">
+        <div class="bowl-container">
+          <div class="bowl" id="intact-bowl"></div>
+          <div class="bowl-broken" id="broken-bowl"></div>
+        </div>
+        <div class="controls">
+          <button class="btn" id="break-bowl">Break the Bowl</button>
+          <button class="btn" id="repair-bowl" disabled>Repair with Gold</button>
+          <button class="btn" id="reset-bowl" disabled>Reset</button>
+        </div>
+      </div>
+      <p>Click "Break the Bowl" to shatter it, then click "Repair with Gold" to experience the kintsugi process. The golden lines will trace along the cracks, transforming damage into art.</p>
+    </section>
+    
+    <section class="before-after">
+      <h2>The Transformation</h2>
+      <p>Slide to compare a piece of pottery before and after the kintsugi restoration. Notice how the golden repairs add character and new beauty to the piece.</p>
+      <div class="slider-container">
+        <div class="slider-before"></div>
+        <div class="slider-after"></div>
+        <div class="slider-line">
+          <div class="slider-button"></div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="history glass-panel">
+      <h2>Historical Context</h2>
+      <p>
+        The practice of kintsugi began in the 15th century during Japan's Muromachi period (1336-1573). According to legend, when Japanese shogun Ashikaga Yoshimasa sent a damaged Chinese tea bowl back to China for repairs, it returned with unsightly metal staples. This prompted Japanese craftsmen to develop a more aesthetic means of repair, using lacquer and gold.
+      </p>
+      <p>
+        The kintsugi technique spread alongside the popularity of the tea ceremony in Japan, where prized ceramics were central to the ritual. Rather than disposing of broken vessels, Japanese craftsmen developed this technique to transform them into unique works of art with their own aesthetic and historical significance.
+      </p>
+    </section>
+    
+    <section class="philosophy">
+      <h2>Wabi-Sabi Philosophy</h2>
+      <p>
+        Kintsugi embodies the philosophy of wabi-sabi, a worldview centered on the acceptance of transience and imperfection. This aesthetic is sometimes described as one of appreciating beauty that is "imperfect, impermanent, and incomplete."
+      </p>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-content">
+            <div class="timeline-date">13th-14th Century</div>
+            <h3>Wabi-Sabi Emerges</h3>
+            <p>The Japanese aesthetic of wabi-sabi develops, influenced by Zen Buddhism. It emphasizes simplicity, asymmetry, and the beauty of natural imperfection.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-content">
+            <div class="timeline-date">15th Century</div>
+            <h3>Birth of Kintsugi</h3>
+            <p>Kintsugi technique develops during the Muromachi period as craftsmen sought more beautiful ways to repair valuable pottery.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-content">
+            <div class="timeline-date">16th Century</div>
+            <h3>Tea Ceremony Influence</h3>
+            <p>The rise of the Japanese tea ceremony (chanoyu) elevates kintsugi as broken tea bowls are repaired and given new life, sometimes becoming more valuable after repair.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-content">
+            <div class="timeline-date">17th-19th Century</div>
+            <h3>Artistic Refinement</h3>
+            <p>Techniques are refined, and kintsugi becomes recognized as a distinctive art form. Different styles and approaches develop across Japan.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-content">
+            <div class="timeline-date">20th Century to Present</div>
+            <h3>Global Recognition</h3>
+            <p>Kintsugi gains international recognition and influences contemporary art, design, and philosophy. It becomes a powerful metaphor for healing and resilience.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="techniques-section">
+      <h2>Kintsugi Techniques</h2>
+      <p>
+        Master kintsugi artisans employ various techniques to repair ceramics, depending on the type and extent of damage. Each approach requires patience, precision, and an eye for transforming breakage into beauty.
+      </p>
+      <div class="techniques">
+        <div class="technique">
+          <div class="technique-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 32L52 32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              <path d="M24 20L40 44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              <path d="M40 20L24 44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Crack Technique (Hibi)</h3>
+          <p>
+            Used when the piece has a clean crack but remains intact. The crack is filled with lacquer and dusted with gold powder to create a delicate golden seam. This technique emphasizes the subtle beauty of the damage while preserving the original form.
+          </p>
+        </div>
+        <div class="technique">
+          <div class="technique-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 32L32 16L48 32L32 48L16 32Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="32" cy="32" r="4" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3>Piece Technique (Makienaoshi)</h3>
+          <p>
+            Applied when a ceramic fragment has broken off completely. The missing piece is replaced with lacquer mixed with gold powder, creating a striking contrast between the original ceramic and the golden replacement. This technique transforms absence into presence.
+          </p>
+        </div>
+        <div class="technique">
+          <div class="technique-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 20L44 44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              <path d="M20 44L44 20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="32" cy="32" r="16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Joint Call Technique (Yobitsugi)</h3>
+          <p>
+            This advanced method involves using fragments from entirely different pieces of ceramics to replace missing portions. The diverse pieces are joined with gold-infused lacquer, creating a visually striking patchwork that celebrates the union of distinct histories.
+          </p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="process glass-panel">
+      <h2>The Kintsugi Process</h2>
+      <p>
+        The traditional kintsugi process is meticulous and time-consuming, often taking weeks or months to complete a single repair. The primary materials include:
+      </p>
+      <ul>
+        <li><strong>Urushi Lacquer</strong>: A natural resin harvested from the Japanese lacquer tree (Toxicodendron vernicifluum)</li>
+        <li><strong>Gold, Silver, or Platinum Powder</strong>: Precious metals that create the distinctive shimmering seams</li>
+        <li><strong>Rice Flour</strong>: Sometimes added to the lacquer to adjust viscosity</li>
+        <li><strong>Bamboo Tools</strong>: Traditional implements for applying and shaping the lacquer</li>
+      </ul>
+      <p>
+        The process typically involves multiple stages of application, with drying periods between each layer. The final result is a robust repair that is both functional and aesthetically pleasing, transforming damage into a distinctive feature of beauty.
+      </p>
+    </section>
+    
+    <section class="quiz-section">
+      <h2>Test Your Knowledge</h2>
+      <p>Take this quick quiz to see how much you've learned about kintsugi and its philosophy.</p>
+      
+      <div class="quiz-container">
+        <div class="question" id="q1" data-question="1">
+          <h3>Question 1</h3>
+          <p>In which historical period did kintsugi emerge in Japan?</p>
+          <div class="options">
+            <div class="option" data-correct="false">Heian Period (794-1185)</div>
+            <div class="option" data-correct="false">Kamakura Period (1185-1333)</div>
+            <div class="option" data-correct="true">Muromachi Period (1336-1573)</div>
+            <div class="option" data-correct="false">Edo Period (1603-1868)</div>
+          </div>
+        </div>
+        
+        <div class="question" id="q2" data-question="2">
+          <h3>Question 2</h3>
+          <p>Which philosophy is most closely associated with kintsugi?</p>
+          <div class="options">
+            <div class="option" data-correct="false">Ikigai</div>
+            <div class="option" data-correct="true">Wabi-Sabi</div>
+            <div class="option" data-correct="false">Mono no Aware</div>
+            <div class="option" data-correct="false">Kaizen</div>
+          </div>
+        </div>
+        
+        <div class="question" id="q3" data-question="3">
+          <h3>Question 3</h3>
+          <p>Which materials are traditionally used in kintsugi repairs?</p>
+          <div class="options">
+            <div class="option" data-correct="false">Epoxy and brass powder</div>
+            <div class="option" data-correct="false">Cement and bronze filings</div>
+            <div class="option" data-correct="true">Urushi lacquer and gold powder</div>
+            <div class="option" data-correct="false">Clay and copper dust</div>
+          </div>
+        </div>
+        
+        <div class="question" id="q4" data-question="4">
+          <h3>Question 4</h3>
+          <p>What is the "piece technique" (Makienaoshi) in kintsugi?</p>
+          <div class="options">
+            <div class="option" data-correct="true">Replacing missing fragments with lacquer mixed with gold</div>
+            <div class="option" data-correct="false">Adding decorative gold pieces to undamaged pottery</div>
+            <div class="option" data-correct="false">Breaking pottery intentionally for artistic effect</div>
+            <div class="option" data-correct="false">Using gold leaf to cover the entire ceramic surface</div>
+          </div>
+        </div>
+        
+        <div class="question" id="q5" data-question="5">
+          <h3>Question 5</h3>
+          <p>What lesson does kintsugi teach about imperfection?</p>
+          <div class="options">
+            <div class="option" data-correct="false">Imperfections should be hidden with decoration</div>
+            <div class="option" data-correct="false">Imperfect objects have no value</div>
+            <div class="option" data-correct="false">Only perfect objects deserve to be repaired</div>
+            <div class="option" data-correct="true">Imperfections can become beautiful aspects of an object's history</div>
+          </div>
+        </div>
+        
+        <div class="quiz-result" id="quiz-result">
+          <h3>Quiz Complete!</h3>
+          <div class="quiz-score">You scored: <span id="score">0</span>/5</div>
+          <p id="result-message"></p>
+          <button class="btn" id="restart-quiz">Take Quiz Again</button>
+        </div>
+        
+        <div class="quiz-nav">
+          <button class="btn" id="prev-question" disabled>Previous</button>
+          <div><span id="current-question">1</span>/5</div>
+          <button class="btn" id="next-question">Next</button>
+        </div>
+      </div>
+    </section>
+    
+    <section class="modern glass-panel">
+      <h2>Modern Interpretations</h2>
+      <p>
+        Today, kintsugi has transcended its origins as a ceramic repair technique to become a powerful metaphor for healing and resilience. Contemporary artists across various mediums draw inspiration from kintsugi, applying its principles to everything from sculpture and jewelry to digital art and photography.
+      </p>
+      <p>
+        Beyond the arts, kintsugi has become a psychological and philosophical metaphor for embracing our scars and experiences. In therapy and personal growth contexts, the concept helps people reframe their understanding of life's challenges — seeing difficult experiences not as something to hide, but as valuable golden seams that make us who we are.
+      </p>
+      <p class="mono">
+        "There is a crack in everything. That's how the light gets in."<br>
+        — Leonard Cohen
+      </p>
+    </section>
+    
+    <footer>
+      <p>Created with appreciation for the art of kintsugi and its timeless philosophy.</p>
+      <p>© 2026 Justin Hart • <span class="mono">horizon-v2 project</span></p>
+    </footer>
+  </div>
+  
+  <script>
+    // Starfield Background
+    function createStarfield() {
+      const stars = document.querySelector('.stars');
+      const starsCount = 200;
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      
+      for (let i = 0; i < starsCount; i++) {
+        const star = document.createElement('div');
+        star.classList.add('star');
+        
+        // Random position
+        const x = Math.floor(Math.random() * windowWidth);
+        const y = Math.floor(Math.random() * windowHeight);
+        
+        // Random size (smaller stars are more common)
+        const size = Math.random() * 2;
+        
+        // Random opacity
+        const opacity = Math.random();
+        
+        // Set styles
+        star.style.left = `${x}px`;
+        star.style.top = `${y}px`;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        star.style.opacity = opacity;
+        
+        stars.appendChild(star);
+      }
+    }
+    
+    // Break and Mend Experience
+    function setupBreakMendExperience() {
+      const intactBowl = document.getElementById('intact-bowl');
+      const brokenBowl = document.getElementById('broken-bowl');
+      const breakBtn = document.getElementById('break-bowl');
+      const repairBtn = document.getElementById('repair-bowl');
+      const resetBtn = document.getElementById('reset-bowl');
+      
+      // Generate bowl pieces
+      function generateBrokenPieces() {
+        // Clear previous pieces
+        brokenBowl.innerHTML = '';
+        
+        // Create 7-9 random pieces
+        const numPieces = 7 + Math.floor(Math.random() * 3);
+        const pieceAngles = [];
+        const pieceElements = [];
+        
+        // Create the pieces with random shapes
+        for (let i = 0; i < numPieces; i++) {
+          const piece = document.createElement('div');
+          piece.classList.add('piece');
+          
+          // Random position and size for each piece
+          const width = 20 + Math.random() * 80;
+          const height = 20 + Math.random() * 80;
+          const top = Math.random() * (300 - height);
+          const left = Math.random() * (300 - width);
+          const rotation = Math.random() * 360;
+          
+          piece.style.width = `${width}px`;
+          piece.style.height = `${height}px`;
+          piece.style.top = `${top}px`;
+          piece.style.left = `${left}px`;
+          piece.style.transform = `rotate(${rotation}deg)`;
+          piece.dataset.rotation = rotation;
+          
+          // Store the angle for this piece (for crack positioning)
+          pieceAngles.push({
+            x: left + width/2,
+            y: top + height/2,
+            angle: Math.atan2(150 - (top + height/2), 150 - (left + width/2))
+          });
+          
+          brokenBowl.appendChild(piece);
+          pieceElements.push(piece);
+        }
+        
+        // Create cracks between pieces
+        for (let i = 0; i < pieceAngles.length; i++) {
+          for (let j = i + 1; j < pieceAngles.length; j++) {
+            // Don't create cracks between all pieces, just some
+            if (Math.random() > 0.5) continue;
+            
+            const crack = document.createElement('div');
+            crack.classList.add('crack');
+            
+            const x1 = pieceAngles[i].x;
+            const y1 = pieceAngles[i].y;
+            const x2 = pieceAngles[j].x;
+            const y2 = pieceAngles[j].y;
+            
+            // Calculate crack position and dimensions
+            const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+            
+            crack.style.width = `${length}px`;
+            crack.style.height = `2px`;
+            crack.style.left = `${x1}px`;
+            crack.style.top = `${y1}px`;
+            crack.style.transformOrigin = 'left center';
+            crack.style.transform = `rotate(${angle}deg)`;
+            
+            brokenBowl.appendChild(crack);
+          }
+        }
+        
+        return pieceElements;
+      }
+      
+      // Break the bowl
+      breakBtn.addEventListener('click', () => {
+        intactBowl.style.opacity = 0;
+        setTimeout(() => {
+          const pieces = generateBrokenPieces();
+          brokenBowl.style.opacity = 1;
+          
+          // Animate pieces flying apart
+          pieces.forEach(piece => {
+            const baseRotation = parseFloat(piece.dataset.rotation);
+            const xMove = (Math.random() * 40) - 20;
+            const yMove = (Math.random() * 40) - 20;
+            const rotateMore = baseRotation + ((Math.random() * 60) - 30);
+            
+            piece.style.transition = 'transform 0.5s ease';
+            piece.style.transform = `translate(${xMove}px, ${yMove}px) rotate(${rotateMore}deg)`;
+          });
+          
+          breakBtn.disabled = true;
+          repairBtn.disabled = false;
+        }, 300);
+      });
+      
+      // Repair the bowl with gold
+      repairBtn.addEventListener('click', () => {
+        const cracks = brokenBowl.querySelectorAll('.crack');
+        
+        // Animate cracks appearing with golden glow
+        cracks.forEach((crack, index) => {
+          setTimeout(() => {
+            crack.style.opacity = 1;
+            crack.classList.add('gold-glow');
+          }, index * 300);
+        });
+        
+        repairBtn.disabled = true;
+        resetBtn.disabled = false;
+      });
+      
+      // Reset everything
+      resetBtn.addEventListener('click', () => {
+        brokenBowl.style.opacity = 0;
+        setTimeout(() => {
+          brokenBowl.innerHTML = '';
+          intactBowl.style.opacity = 1;
+          
+          breakBtn.disabled = false;
+          repairBtn.disabled = true;
+          resetBtn.disabled = true;
+        }, 300);
+      });
+    }
+    
+    // Before/After Slider
+    function setupBeforeAfterSlider() {
+      const sliderContainer = document.querySelector('.slider-container');
+      const sliderAfter = document.querySelector('.slider-after');
+      const sliderLine = document.querySelector('.slider-line');
+      const sliderButton = document.querySelector('.slider-button');
+      
+      let isDragging = false;
+      
+      // Update slider position
+      function updateSliderPosition(x) {
+        const containerRect = sliderContainer.getBoundingClientRect();
+        const containerWidth = containerRect.width;
+        
+        // Calculate position as percentage (constrained between 0-100%)
+        let percentage = ((x - containerRect.left) / containerWidth) * 100;
+        percentage = Math.min(Math.max(percentage, 0), 100);
+        
+        // Update the width of the "after" div and position of the slider line
+        sliderAfter.style.width = `${percentage}%`;
+        sliderLine.style.left = `${percentage}%`;
+      }
+      
+      // Event listeners for mouse/touch events
+      sliderButton.addEventListener('mousedown', () => {
+        isDragging = true;
+      });
+      
+      sliderLine.addEventListener('mousedown', () => {
+        isDragging = true;
+      });
+      
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        updateSliderPosition(e.clientX);
+      });
+      
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+      
+      // Touch events for mobile
+      sliderButton.addEventListener('touchstart', () => {
+        isDragging = true;
+      });
+      
+      sliderLine.addEventListener('touchstart', () => {
+        isDragging = true;
+      });
+      
+      document.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        updateSliderPosition(e.touches[0].clientX);
+      });
+      
+      document.addEventListener('touchend', () => {
+        isDragging = false;
+      });
+    }
+    
+    // Quiz Functionality
+    function setupQuiz() {
+      const questions = document.querySelectorAll('.question');
+      const prevBtn = document.getElementById('prev-question');
+      const nextBtn = document.getElementById('next-question');
+      const currentQuestionSpan = document.getElementById('current-question');
+      const quizResult = document.getElementById('quiz-result');
+      const scoreSpan = document.getElementById('score');
+      const resultMessage = document.getElementById('result-message');
+      const restartBtn = document.getElementById('restart-quiz');
+      
+      let currentQuestionIndex = 0;
+      const userAnswers = new Array(questions.length).fill(null);
+      
+      function showQuestion(index) {
+        // Hide all questions
+        questions.forEach(q => q.classList.remove('active'));
+        
+        // Show the current question
+        questions[index].classList.add('active');
+        
+        // Update question counter
+        currentQuestionSpan.textContent = index + 1;
+        
+        // Enable/disable prev/next buttons
+        prevBtn.disabled = index === 0;
+        nextBtn.textContent = index === questions.length - 1 ? 'Finish' : 'Next';
+        
+        // If the user already selected an answer for this question, highlight it
+        if (userAnswers[index] !== null) {
+          const options = questions[index].querySelectorAll('.option');
+          options.forEach(option => option.classList.remove('selected'));
+          options[userAnswers[index]].classList.add('selected');
+        }
+      }
+      
+      function calculateScore() {
+        let score = 0;
+        userAnswers.forEach((answerIndex, questionIndex) => {
+          if (answerIndex === null) return;
+          
+          const selectedOption = questions[questionIndex].querySelectorAll('.option')[answerIndex];
+          if (selectedOption.dataset.correct === 'true') {
+            score++;
+          }
+        });
+        return score;
+      }
+      
+      function showResult() {
+        const score = calculateScore();
+        const percentage = (score / questions.length) * 100;
+        
+        questions.forEach(q => q.classList.remove('active'));
+        document.querySelector('.quiz-nav').style.display = 'none';
+        quizResult.style.display = 'block';
+        
+        scoreSpan.textContent = score;
+        
+        // Set the result message based on score
+        if (percentage >= 80) {
+          resultMessage.textContent = 'Excellent! You have a deep understanding of kintsugi.';
+        } else if (percentage >= 60) {
+          resultMessage.textContent = 'Good job! You know the essentials of kintsugi.';
+        } else {
+          resultMessage.textContent = 'Keep learning about this beautiful art form!';
+        }
+        
+        // Show correct/wrong answers
+        questions.forEach((question, qIndex) => {
+          const options = question.querySelectorAll('.option');
+          
+          options.forEach((option, oIndex) => {
+            option.classList.remove('selected');
+            
+            if (userAnswers[qIndex] === oIndex) {
+              option.classList.add(option.dataset.correct === 'true' ? 'correct' : 'wrong');
+            } else if (option.dataset.correct === 'true') {
+              option.classList.add('correct');
+            }
+          });
+        });
+      }
+      
+      // Option click handler
+      questions.forEach((question, questionIndex) => {
+        const options = question.querySelectorAll('.option');
+        
+        options.forEach((option, optionIndex) => {
+          option.addEventListener('click', () => {
+            // Clear previous selection
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            // Mark this option as selected
+            option.classList.add('selected');
+            
+            // Save user's answer
+            userAnswers[questionIndex] = optionIndex;
+          });
+        });
+      });
+      
+      // Navigation handlers
+      prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+          currentQuestionIndex--;
+          showQuestion(currentQuestionIndex);
+        }
+      });
+      
+      nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+          currentQuestionIndex++;
+          showQuestion(currentQuestionIndex);
+        } else {
+          // Last question, show results
+          showResult();
+        }
+      });
+      
+      restartBtn.addEventListener('click', () => {
+        // Reset quiz state
+        currentQuestionIndex = 0;
+        userAnswers.fill(null);
+        
+        // Reset UI
+        quizResult.style.display = 'none';
+        document.querySelector('.quiz-nav').style.display = 'flex';
+        
+        // Remove correct/wrong classes
+        questions.forEach(question => {
+          question.querySelectorAll('.option').forEach(option => {
+            option.classList.remove('selected', 'correct', 'wrong');
+          });
+        });
+        
+        showQuestion(0);
+      });
+      
+      // Initialize first question
+      showQuestion(0);
+    }
+    
+    // Initialize everything when the document is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      createStarfield();
+      setupBreakMendExperience();
+      setupBeforeAfterSlider();
+      setupQuiz();
+      
+      // Resize starfield when window is resized
+      window.addEventListener('resize', () => {
+        document.querySelector('.stars').innerHTML = '';
+        createStarfield();
+      });
+    });
+  </script>
+</body>
+</html>

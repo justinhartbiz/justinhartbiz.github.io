@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PANDO: THE TREMBLING GIANT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --dark-bg: #030305;
+            --gold-accent: #FFD28E;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: rgba(0, 0, 0, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Playfair Display', serif;
+            background-color: var(--dark-bg);
+            color: white;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Starfield Background */
+        #starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Typography */
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--gold-accent);
+            margin-bottom: 0.5em;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            text-align: center;
+            margin: 1em 0;
+            text-shadow: 0 0 10px rgba(255, 210, 142, 0.5);
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-top: 1em;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            margin-top: 0.8em;
+        }
+
+        p {
+            margin-bottom: 1em;
+            font-size: 1.1rem;
+        }
+
+        code, .stats {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Glassmorphism Panels */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 32px var(--glass-shadow);
+        }
+
+        .intro {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Key Stats */
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-box {
+            background: rgba(255, 210, 142, 0.1);
+            border: 1px solid var(--gold-accent);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            flex: 1 1 200px;
+            max-width: 250px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            color: var(--gold-accent);
+            margin-bottom: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        /* Interactive Elements Common Styles */
+        .interactive-section {
+            margin: 3rem 0;
+        }
+
+        button, .quiz-option {
+            background: rgba(255, 210, 142, 0.1);
+            color: var(--gold-accent);
+            border: 1px solid var(--gold-accent);
+            padding: 0.7rem 1.5rem;
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        button:hover, .quiz-option:hover {
+            background: rgba(255, 210, 142, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Root Network Visualization */
+        #root-network {
+            width: 100%;
+            height: 400px;
+            margin: 1.5rem 0;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .tree {
+            position: absolute;
+            width: 20px;
+            height: 60px;
+            background: #8B5A2B;
+            bottom: 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .tree::before {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #4CAF50;
+            border-radius: 50%;
+            left: -10px;
+            top: -25px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .tree:hover::before {
+            transform: scale(1.1);
+            background: #6dda72;
+        }
+
+        .tree.active::before {
+            background: var(--gold-accent);
+        }
+
+        .root {
+            position: absolute;
+            height: 2px;
+            background: #8B5A2B;
+            opacity: 0.7;
+            transform-origin: left center;
+            bottom: 0;
+        }
+
+        .signal {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--gold-accent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+        }
+
+        /* Size Comparison */
+        #size-comparison {
+            height: 300px;
+            position: relative;
+            margin: 2rem 0;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .comparison-object {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            transition: all 0.5s ease;
+        }
+
+        .pando {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px dashed rgba(76, 175, 80, 0.8);
+            height: 200px;
+        }
+
+        .blue-whale {
+            background: rgba(33, 150, 243, 0.3);
+            border: 2px dashed rgba(33, 150, 243, 0.8);
+            height: 30px;
+        }
+
+        .football-field {
+            background: rgba(255, 193, 7, 0.3);
+            border: 2px dashed rgba(255, 193, 7, 0.8);
+            height: 50px;
+        }
+
+        .comparison-labels {
+            display: flex;
+            margin-top: 1rem;
+            gap: 1rem;
+        }
+
+        .comparison-label {
+            display: flex;
+            align-items: center;
+            margin-right: 1.5rem;
+        }
+
+        .comparison-label::before {
+            content: '';
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+
+        .label-pando::before {
+            background: rgba(76, 175, 80, 0.8);
+        }
+
+        .label-whale::before {
+            background: rgba(33, 150, 243, 0.8);
+        }
+
+        .label-field::before {
+            background: rgba(255, 193, 7, 0.8);
+        }
+
+        /* Timeline */
+        #timeline {
+            position: relative;
+            height: 200px;
+            margin: 3rem 0;
+        }
+
+        .timeline-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--gold-accent);
+        }
+
+        .timeline-event {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--gold-accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .timeline-event::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: var(--dark-bg);
+            border-radius: 50%;
+        }
+
+        .timeline-event:hover {
+            transform: translateY(-50%) scale(1.2);
+        }
+
+        .timeline-event.active {
+            background: white;
+        }
+
+        .timeline-content {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 1rem;
+            border-radius: 5px;
+            width: 250px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .timeline-event:hover .timeline-content {
+            opacity: 1;
+        }
+
+        .timeline-date {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--gold-accent);
+            white-space: nowrap;
+        }
+
+        /* Nutrient Trading Game */
+        #nutrient-game {
+            position: relative;
+            height: 400px;
+            margin: 2rem 0;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .game-tree {
+            position: absolute;
+            width: 30px;
+            height: 80px;
+            cursor: pointer;
+        }
+
+        .game-tree::before {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #4CAF50;
+            border-radius: 50%;
+            left: -15px;
+            top: -35px;
+            transition: background-color 0.3s;
+        }
+
+        .game-tree::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #8B5A2B;
+            bottom: 0;
+            left: 0;
+        }
+
+        .game-tree.struggling::before {
+            background: #FFC107;
+        }
+
+        .game-tree.dying::before {
+            background: #F44336;
+        }
+
+        .nutrient {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: var(--gold-accent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            z-index: 5;
+        }
+
+        .game-stats {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--glass-bg);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            z-index: 5;
+        }
+
+        .game-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 5;
+        }
+
+        /* Quiz */
+        #quiz-container {
+            margin: 3rem 0;
+        }
+
+        .quiz-question {
+            margin-bottom: 1.5rem;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            margin: 1rem 0;
+        }
+
+        .quiz-option {
+            text-align: left;
+            display: block;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .quiz-option.correct {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: #4CAF50;
+        }
+
+        .quiz-option.incorrect {
+            background: rgba(244, 67, 54, 0.3);
+            border-color: #F44336;
+        }
+
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            display: block;
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+
+        .quiz-feedback.incorrect {
+            display: block;
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+
+        .quiz-progress {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+        }
+
+        .quiz-dot {
+            width: 15px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+
+        .quiz-dot.active {
+            background: var(--gold-accent);
+        }
+
+        .quiz-dot.correct {
+            background: #4CAF50;
+        }
+
+        .quiz-dot.incorrect {
+            background: #F44336;
+        }
+
+        #quiz-score {
+            margin: 1.5rem 0;
+            font-size: 1.2rem;
+            text-align: center;
+            display: none;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .stats-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .stat-box {
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            #root-network, #size-comparison, #timeline, #nutrient-game {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starfield"></canvas>
+    
+    <div class="container">
+        <header>
+            <h1>PANDO: THE TREMBLING GIANT</h1>
+            <div class="glass-panel intro">
+                <p>Deep in Utah's Fishlake National Forest lies a wonder of nature that defies our understanding of what constitutes a single living organism. Pando—Latin for "I spread"—is not just a forest, but a single living entity: one tree with 47,000 trunks, all genetically identical and all connected by one massive underground root system.</p>
+                <p>This aspen colony is among the oldest and heaviest organisms on Earth, having survived for approximately 80,000 years through climate changes, forest fires, and human development. Today, this ancient giant faces new threats, primarily from overgrazing that prevents new shoots from growing to replace dying trees.</p>
+                <p>Explore this interactive page to discover the wonder that is Pando, and understand why its preservation is crucial for our planet's biodiversity.</p>
+            </div>
+        </header>
+
+        <section class="glass-panel">
+            <h2>Key Facts</h2>
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Organism</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">47,000</div>
+                    <div class="stat-label">Trees</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">80,000</div>
+                    <div class="stat-label">Years Old</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">106</div>
+                    <div class="stat-label">Acres</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">13M</div>
+                    <div class="stat-label">Pounds</div>
+                </div>
+            </div>
+            <p>Pando is a clonal colony of quaking aspen (<em>Populus tremuloides</em>) located in the Fishlake National Forest in south-central Utah. What appears to be a forest of individual trees is actually a single organism connected by an extensive underground root system. Each "tree" is actually a genetic clone—a stem growing from the same root system, sharing identical DNA.</p>
+            <p>Its name, "Pando," comes from the Latin word meaning "I spread." And spread it has, covering approximately 106 acres of land. At an estimated 13 million pounds, it's considered one of the heaviest known living organisms on Earth.</p>
+            <p>Scientists believe Pando could be among the oldest living organisms on Earth, with some estimates suggesting it may be 80,000 years old. However, due to factors like overgrazing by deer and cattle, this ancient giant is currently in decline, with older trees dying faster than new ones can establish.</p>
+        </section>
+
+        <section class="glass-panel interactive-section">
+            <h2>Root Network Visualization</h2>
+            <p>Tap on any tree to see how signals and nutrients propagate through Pando's interconnected root system. In reality, these trees communicate and share resources through their roots, helping each other survive.</p>
+            <div id="root-network"></div>
+        </section>
+
+        <section class="glass-panel interactive-section">
+            <h2>Size Comparison</h2>
+            <p>It's hard to comprehend just how massive Pando is. Toggle between these comparisons to understand the scale of this giant organism.</p>
+            <div class="comparison-controls">
+                <button id="show-pando">Show Pando</button>
+                <button id="show-whale">Compare to Blue Whale</button>
+                <button id="show-field">Compare to Football Fields</button>
+            </div>
+            <div id="size-comparison">
+                <div class="comparison-object pando" style="width: 90%; display: none;"></div>
+                <div class="comparison-object blue-whale" style="width: 10%; display: none;"></div>
+                <div class="comparison-object football-field" style="width: 20%; display: none;"></div>
+            </div>
+            <div class="comparison-labels">
+                <div class="comparison-label label-pando">Pando (106 acres)</div>
+                <div class="comparison-label label-whale">Blue Whale (100 ft)</div>
+                <div class="comparison-label label-field">Football Field (1.32 acres)</div>
+            </div>
+            <p>Pando covers approximately 106 acres—equivalent to about 80 football fields. Its massive root system stretches underground, connecting all 47,000 stems as one organism. For perspective, the blue whale—Earth's largest animal—would be dwarfed by Pando's expansive presence.</p>
+        </section>
+
+        <section class="glass-panel interactive-section">
+            <h2>80,000 Years of History</h2>
+            <p>Explore key events in Earth's history that have occurred during Pando's lifetime. This ancient organism has survived through ice ages, the rise and fall of civilizations, and dramatic climate changes.</p>
+            <div id="timeline"></div>
+        </section>
+
+        <section class="glass-panel interactive-section">
+            <h2>Nutrient Trading Game</h2>
+            <p>Experience how Pando's interconnected root system helps the whole organism survive. In this mini-game, drag nutrients to struggling trees before they die. The healthier trees can manage longer without additional nutrients.</p>
+            <div id="nutrient-game">
+                <div class="game-stats">
+                    Health: <span id="colony-health">100%</span> | Time: <span id="game-time">60s</span>
+                </div>
+                <div class="game-controls">
+                    <button id="start-game">Start Game</button>
+                    <button id="restart-game" style="display:none;">Play Again</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-panel interactive-section">
+            <h2>Test Your Knowledge</h2>
+            <p>Now that you've learned about Pando, test your understanding with this 5-question quiz.</p>
+            <div id="quiz-container">
+                <div class="quiz-progress">
+                    <div class="quiz-dot active"></div>
+                    <div class="quiz-dot"></div>
+                    <div class="quiz-dot"></div>
+                    <div class="quiz-dot"></div>
+                    <div class="quiz-dot"></div>
+                </div>
+                <div id="quiz-question-container"></div>
+                <button id="next-question" style="display:none;">Next Question</button>
+                <div id="quiz-score"></div>
+            </div>
+        </section>
+
+        <section class="glass-panel">
+            <h2>Conservation Efforts</h2>
+            <p>Pando is currently facing significant threats, primarily from overgrazing by deer and cattle, which prevents new shoots from establishing. As older trees die, they aren't being replaced at a sustainable rate.</p>
+            <p>Conservation efforts include:</p>
+            <ul style="margin-left: 2rem;">
+                <li>Fencing sections of Pando to prevent wildlife grazing</li>
+                <li>Controlled burning to stimulate new growth</li>
+                <li>Monitoring health indicators across the colony</li>
+                <li>Public education about the importance of this unique organism</li>
+            </ul>
+            <p>Scientists and conservationists are working to understand how to best protect this ancient giant for future generations.</p>
+        </section>
+
+        <footer>
+            <p>Created for educational purposes about one of Earth's most fascinating organisms. &copy; 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        // Starfield Background
+        (function createStarfield() {
+            const canvas = document.getElementById('starfield');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas to full window size
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // Create stars
+            const stars = [];
+            const starCount = Math.floor(canvas.width * canvas.height / 1000);
+            
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5,
+                    opacity: Math.random(),
+                    speed: Math.random() * 0.02
+                });
+            }
+            
+            function drawStars() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#030305';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                stars.forEach(star => {
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.closePath();
+                    
+                    const gradient = ctx.createRadialGradient(
+                        star.x, star.y, 0, 
+                        star.x, star.y, star.radius * 2
+                    );
+                    
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${star.opacity})`);
+                    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    
+                    // Twinkle effect
+                    star.opacity += Math.random() * 0.02 - 0.01;
+                    
+                    // Keep opacity in bounds
+                    star.opacity = Math.max(0.2, Math.min(1, star.opacity));
+                    
+                    // Slow drift
+                    star.y += star.speed;
+                    
+                    // Wrap around if star goes off screen
+                    if (star.y > canvas.height) {
+                        star.y = 0;
+                        star.x = Math.random() * canvas.width;
+                    }
+                });
+                
+                requestAnimationFrame(drawStars);
+            }
+            
+            drawStars();
+        })();
+
+        // Root Network Visualization
+        (function createRootNetwork() {
+            const network = document.getElementById('root-network');
+            const networkWidth = network.offsetWidth;
+            const networkHeight = network.offsetHeight;
+            
+            // Create underground layer
+            const underground = document.createElement('div');
+            underground.style.position = 'absolute';
+            underground.style.bottom = '0';
+            underground.style.left = '0';
+            underground.style.width = '100%';
+            underground.style.height = '40%';
+            underground.style.background = 'linear-gradient(to top, #3E2723, transparent)';
+            underground.style.opacity = '0.5';
+            network.appendChild(underground);
+            
+            // Create trees and root system
+            const treeCount = 20;
+            const trees = [];
+            const roots = [];
+            
+            // Create central root
+            const centralRoot = document.createElement('div');
+            centralRoot.style.position = 'absolute';
+            centralRoot.style.bottom = '0';
+            centralRoot.style.left = '50%';
+            centralRoot.style.width = '5px';
+            centralRoot.style.height = '40%';
+            centralRoot.style.backgroundColor = '#8B5A2B';
+            centralRoot.style.opacity = '0.6';
+            centralRoot.style.transformOrigin = 'bottom center';
+            network.appendChild(centralRoot);
+            
+            // Create trees with roots
+            for (let i = 0; i < treeCount; i++) {
+                // Create tree
+                const tree = document.createElement('div');
+                tree.className = 'tree';
+                tree.style.left = (5 + (i * (networkWidth - 10) / treeCount)) + 'px';
+                network.appendChild(tree);
+                trees.push(tree);
+                
+                // Create root connecting to central root
+                const root = document.createElement('div');
+                root.className = 'root';
+                
+                // Calculate angle and distance from central root
+                const treeX = 5 + (i * (networkWidth - 10) / treeCount) + 10; // +10 for center of tree
+                const centralX = networkWidth / 2;
+                const distance = Math.sqrt(Math.pow(treeX - centralX, 2) + Math.pow(networkHeight * 0.4, 2));
+                const angle = Math.atan2(networkHeight * 0.4, treeX - centralX) * 180 / Math.PI;
+                
+                root.style.width = distance + 'px';
+                root.style.left = centralX + 'px';
+                root.style.bottom = '0';
+                root.style.transform = `rotate(${angle}deg)`;
+                
+                network.appendChild(root);
+                roots.push(root);
+                
+                // Add click event
+                tree.addEventListener('click', function() {
+                    sendSignal(i);
+                });
+            }
+            
+            // Send signal through roots when tree is clicked
+            function sendSignal(treeIndex) {
+                // Reset all trees
+                trees.forEach(tree => {
+                    tree.classList.remove('active');
+                });
+                
+                // Activate clicked tree
+                trees[treeIndex].classList.add('active');
+                
+                // Create and animate signal
+                const signal = document.createElement('div');
+                signal.className = 'signal';
+                network.appendChild(signal);
+                
+                // Get positions
+                const treeX = 5 + (treeIndex * (networkWidth - 10) / treeCount) + 10;
+                const treeY = networkHeight * 0.6;
+                const centralX = networkWidth / 2;
+                const centralY = networkHeight;
+                
+                // Animate signal from tree to central root
+                let progress = 0;
+                const signalSpeed = 0.01;
+                
+                function animateToCenter() {
+                    progress += signalSpeed;
+                    
+                    if (progress <= 1) {
+                        const x = treeX + (centralX - treeX) * progress;
+                        const y = treeY + (centralY - treeY) * progress;
+                        
+                        signal.style.left = x + 'px';
+                        signal.style.top = y + 'px';
+                        signal.style.opacity = 1;
+                        
+                        requestAnimationFrame(animateToCenter);
+                    } else {
+                        // Signal reached center, now send to other trees
+                        spreadToOtherTrees();
+                    }
+                }
+                
+                function spreadToOtherTrees() {
+                    // Create signals to each other tree
+                    trees.forEach((tree, i) => {
+                        if (i !== treeIndex) {
+                            const otherSignal = document.createElement('div');
+                            otherSignal.className = 'signal';
+                            otherSignal.style.left = centralX + 'px';
+                            otherSignal.style.top = centralY + 'px';
+                            otherSignal.style.opacity = 1;
+                            network.appendChild(otherSignal);
+                            
+                            // Target positions
+                            const targetX = 5 + (i * (networkWidth - 10) / treeCount) + 10;
+                            const targetY = networkHeight * 0.6;
+                            
+                            // Animate
+                            let otherProgress = 0;
+                            
+                            function animateToTree() {
+                                otherProgress += signalSpeed * 0.8;
+                                
+                                if (otherProgress <= 1) {
+                                    const x = centralX + (targetX - centralX) * otherProgress;
+                                    const y = centralY + (targetY - centralY) * otherProgress;
+                                    
+                                    otherSignal.style.left = x + 'px';
+                                    otherSignal.style.top = y + 'px';
+                                    
+                                    requestAnimationFrame(animateToTree);
+                                } else {
+                                    // Briefly highlight receiving tree
+                                    tree.classList.add('active');
+                                    setTimeout(() => {
+                                        tree.classList.remove('active');
+                                        otherSignal.remove();
+                                    }, 300);
+                                }
+                            }
+                            
+                            // Stagger the animations slightly
+                            setTimeout(() => {
+                                animateToTree();
+                            }, Math.random() * 200);
+                        }
+                    });
+                    
+                    // Remove original signal
+                    setTimeout(() => {
+                        signal.remove();
+                    }, 300);
+                }
+                
+                // Start animation
+                animateToCenter();
+            }
+        })();
+
+        // Size Comparison
+        (function initSizeComparison() {
+            const pandoElem = document.querySelector('.comparison-object.pando');
+            const whaleElem = document.querySelector('.comparison-object.blue-whale');
+            const fieldElem = document.querySelector('.comparison-object.football-field');
+            
+            document.getElementById('show-pando').addEventListener('click', function() {
+                pandoElem.style.display = 'block';
+                whaleElem.style.display = 'none';
+                fieldElem.style.display = 'none';
+            });
+            
+            document.getElementById('show-whale').addEventListener('click', function() {
+                pandoElem.style.display = 'block';
+                whaleElem.style.display = 'block';
+                fieldElem.style.display = 'none';
+                
+                // Position whale for comparison
+                whaleElem.style.left = '10%';
+                
+                // Animate to emphasize size difference
+                setTimeout(() => {
+                    whaleElem.style.left = '20%';
+                    setTimeout(() => {
+                        whaleElem.style.left = '30%';
+                        setTimeout(() => {
+                            whaleElem.style.left = '40%';
+                            setTimeout(() => {
+                                whaleElem.style.left = '50%';
+                                setTimeout(() => {
+                                    whaleElem.style.left = '60%';
+                                    setTimeout(() => {
+                                        whaleElem.style.left = '70%';
+                                        setTimeout(() => {
+                                            whaleElem.style.left = '80%';
+                                        }, 300);
+                                    }, 300);
+                                }, 300);
+                            }, 300);
+                        }, 300);
+                    }, 300);
+                }, 300);
+            });
+            
+            document.getElementById('show-field').addEventListener('click', function() {
+                pandoElem.style.display = 'block';
+                whaleElem.style.display = 'none';
+                fieldElem.style.display = 'block';
+                
+                // Position field for comparison
+                fieldElem.style.left = '10%';
+                
+                // Create multiple fields
+                const comparison = document.getElementById('size-comparison');
+                const existingFields = comparison.querySelectorAll('.football-field');
+                
+                // Remove extras if they exist
+                for (let i = 1; i < existingFields.length; i++) {
+                    existingFields[i].remove();
+                }
+                
+                // Add multiple football fields to show scale
+                for (let i = 1; i < 5; i++) {
+                    const newField = fieldElem.cloneNode(true);
+                    newField.style.left = (10 + i * 20) + '%';
+                    comparison.appendChild(newField);
+                }
+            });
+            
+            // Default state
+            document.getElementById('show-pando').click();
+        })();
+
+        // Timeline
+        (function createTimeline() {
+            const timeline = document.getElementById('timeline');
+            const events = [
+                { 
+                    year: -80000, 
+                    display: "80,000 BCE", 
+                    event: "Pando begins growing during the Ice Age when early humans were just beginning to migrate out of Africa."
+                },
+                { 
+                    year: -10000, 
+                    display: "10,000 BCE", 
+                    event: "End of the last Ice Age. Humans begin developing agriculture while Pando has already been growing for 70,000 years."
+                },
+                { 
+                    year: -3000, 
+                    display: "3,000 BCE", 
+                    event: "Ancient Egyptians build the Great Pyramid of Giza. Pando is already 77,000 years old."
+                },
+                { 
+                    year: 0, 
+                    display: "1 CE", 
+                    event: "Birth of Christ and beginning of the Common Era. Pando has lived through 80,000 years by this point."
+                },
+                { 
+                    year: 1492, 
+                    display: "1492", 
+                    event: "Columbus reaches the Americas. Native American tribes have been aware of Pando for thousands of years."
+                },
+                { 
+                    year: 1900, 
+                    display: "1900", 
+                    event: "Industrial Revolution in full swing. Pando remains largely untouched in the American West."
+                },
+                { 
+                    year: 1968, 
+                    display: "1968", 
+                    event: "Researcher Burton Barnes first describes Pando as a single clonal organism."
+                },
+                { 
+                    year: 2006, 
+                    display: "2006", 
+                    event: "Scientists confirm Pando is declining due to overgrazing and lack of regeneration."
+                },
+                { 
+                    year: 2018, 
+                    display: "2018", 
+                    event: "Research shows parts of Pando that were fenced to prevent grazing have recovered, while unfenced areas continue to decline."
+                },
+                { 
+                    year: 2026, 
+                    display: "Present", 
+                    event: "Conservation efforts continue as scientists work to protect this ancient organism for future generations."
+                }
+            ];
+            
+            // Calculate position for each event on the timeline
+            const timelineWidth = timeline.offsetWidth;
+            const earliestYear = -80000;
+            const latestYear = 2026;
+            const yearRange = latestYear - earliestYear;
+            
+            events.forEach(eventData => {
+                const position = ((eventData.year - earliestYear) / yearRange) * 100;
+                
+                // Create event marker
+                const eventMarker = document.createElement('div');
+                eventMarker.className = 'timeline-event';
+                eventMarker.style.left = `${position}%`;
+                
+                // Create date label
+                const dateLabel = document.createElement('div');
+                dateLabel.className = 'timeline-date';
+                dateLabel.textContent = eventData.display;
+                eventMarker.appendChild(dateLabel);
+                
+                // Create content popup
+                const content = document.createElement('div');
+                content.className = 'timeline-content';
+                content.textContent = eventData.event;
+                eventMarker.appendChild(content);
+                
+                timeline.appendChild(eventMarker);
+            });
+            
+            // Create timeline line
+            const timelineLine = document.createElement('div');
+            timelineLine.className = 'timeline-line';
+            timeline.appendChild(timelineLine);
+        })();
+
+        // Nutrient Trading Game
+        (function createNutrientGame() {
+            const gameArea = document.getElementById('nutrient-game');
+            const startButton = document.getElementById('start-game');
+            const restartButton = document.getElementById('restart-game');
+            const healthDisplay = document.getElementById('colony-health');
+            const timeDisplay = document.getElementById('game-time');
+            
+            const gameWidth = gameArea.offsetWidth;
+            const gameHeight = gameArea.offsetHeight;
+            
+            let gameTrees = [];
+            let nutrients = [];
+            let gameActive = false;
+            let gameTimer = 60;
+            let colonyHealth = 100;
+            let timerInterval;
+            let currentNutrient = null;
+            
+            // Create trees
+            function createTrees() {
+                // Clear existing trees
+                gameArea.querySelectorAll('.game-tree').forEach(tree => tree.remove());
+                gameTrees = [];
+                
+                // Create new trees
+                for (let i = 0; i < 8; i++) {
+                    const tree = document.createElement('div');
+                    tree.className = 'game-tree';
+                    
+                    // Position in a rough circle
+                    const angle = (i / 8) * Math.PI * 2;
+                    const radius = Math.min(gameWidth, gameHeight) * 0.3;
+                    const x = gameWidth / 2 + Math.cos(angle) * radius;
+                    const y = gameHeight / 2 + Math.sin(angle) * radius;
+                    
+                    tree.style.left = `${x - 15}px`;
+                    tree.style.top = `${y - 40}px`;
+                    
+                    // Tree properties
+                    tree.health = 100;
+                    tree.drainRate = 0.1 + Math.random() * 0.2; // Random drain rate
+                    
+                    gameArea.appendChild(tree);
+                    gameTrees.push(tree);
+                    
+                    // Update tree visual state
+                    updateTreeState(tree);
+                }
+            }
+            
+            // Create nutrient
+            function createNutrient() {
+                if (nutrients.length >= 3 || !gameActive) return; // Limit to 3 nutrients at a time
+                
+                const nutrient = document.createElement('div');
+                nutrient.className = 'nutrient';
+                
+                // Random position near the center
+                const x = gameWidth / 2 + (Math.random() - 0.5) * 100;
+                const y = gameHeight / 2 + (Math.random() - 0.5) * 100;
+                
+                nutrient.style.left = `${x}px`;
+                nutrient.style.top = `${y}px`;
+                
+                gameArea.appendChild(nutrient);
+                nutrients.push(nutrient);
+                
+                // Make draggable
+                nutrient.addEventListener('mousedown', startDrag);
+                nutrient.addEventListener('touchstart', startDrag, {passive: false});
+            }
+            
+            // Start dragging a nutrient
+            function startDrag(e) {
+                e.preventDefault();
+                
+                if (!gameActive) return;
+                
+                currentNutrient = this;
+                
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('touchmove', drag, {passive: false});
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchend', stopDrag);
+            }
+            
+            // Drag nutrient
+            function drag(e) {
+                if (!currentNutrient || !gameActive) return;
+                
+                e.preventDefault();
+                
+                const x = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                const y = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                
+                // Get position relative to game area
+                const gameRect = gameArea.getBoundingClientRect();
+                const gameX = x - gameRect.left;
+                const gameY = y - gameRect.top;
+                
+                currentNutrient.style.left = `${gameX}px`;
+                currentNutrient.style.top = `${gameY}px`;
+            }
+            
+            // Stop dragging nutrient
+            function stopDrag() {
+                if (!currentNutrient || !gameActive) return;
+                
+                // Check if nutrient is dropped on a tree
+                const nutrientRect = currentNutrient.getBoundingClientRect();
+                const nutrientCenterX = nutrientRect.left + nutrientRect.width / 2;
+                const nutrientCenterY = nutrientRect.top + nutrientRect.height / 2;
+                
+                let targetTree = null;
+                
+                gameTrees.forEach(tree => {
+                    const treeRect = tree.getBoundingClientRect();
+                    
+                    // Check if nutrient center is within tree bounds (with some padding)
+                    if (
+                        nutrientCenterX >= treeRect.left - 20 &&
+                        nutrientCenterX <= treeRect.right + 20 &&
+                        nutrientCenterY >= treeRect.top - 20 &&
+                        nutrientCenterY <= treeRect.bottom + 20
+                    ) {
+                        targetTree = tree;
+                    }
+                });
+                
+                if (targetTree) {
+                    // Apply nutrient to tree
+                    applyNutrientToTree(targetTree);
+                }
+                
+                // Clean up
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchend', stopDrag);
+                currentNutrient = null;
+            }
+            
+            // Apply nutrient to tree
+            function applyNutrientToTree(tree) {
+                // Increase tree health
+                tree.health = Math.min(100, tree.health + 30);
+                
+                // Update tree visual state
+                updateTreeState(tree);
+                
+                // Remove nutrient
+                const index = nutrients.indexOf(currentNutrient);
+                if (index > -1) {
+                    nutrients.splice(index, 1);
+                }
+                currentNutrient.remove();
+                
+                // Create a new nutrient after delay
+                setTimeout(createNutrient, 2000);
+            }
+            
+            // Update tree visual state based on health
+            function updateTreeState(tree) {
+                tree.classList.remove('struggling', 'dying');
+                
+                if (tree.health < 30) {
+                    tree.classList.add('dying');
+                } else if (tree.health < 60) {
+                    tree.classList.add('struggling');
+                }
+            }
+            
+            // Game loop
+            function gameLoop() {
+                if (!gameActive) return;
+                
+                // Update tree health
+                let totalHealth = 0;
+                
+                gameTrees.forEach(tree => {
+                    // Drain health over time
+                    tree.health = Math.max(0, tree.health - tree.drainRate);
+                    
+                    // Update tree visual state
+                    updateTreeState(tree);
+                    
+                    // Add to total health
+                    totalHealth += tree.health;
+                });
+                
+                // Update colony health (average of all trees)
+                colonyHealth = Math.round(totalHealth / gameTrees.length);
+                healthDisplay.textContent = `${colonyHealth}%`;
+                
+                // Check win/loss conditions
+                if (colonyHealth <= 0) {
+                    endGame(false);
+                }
+                
+                // Schedule next loop
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // Start game
+            function startGame() {
+                // Reset game state
+                gameActive = true;
+                gameTimer = 60;
+                colonyHealth = 100;
+                
+                // Clear existing elements
+                nutrients.forEach(nutrient => nutrient.remove());
+                nutrients = [];
+                
+                // Create trees
+                createTrees();
+                
+                // Create initial nutrients
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(createNutrient, i * 500);
+                }
+                
+                // Update UI
+                startButton.style.display = 'none';
+                restartButton.style.display = 'none';
+                healthDisplay.textContent = `${colonyHealth}%`;
+                timeDisplay.textContent = `${gameTimer}s`;
+                
+                // Start timer
+                timerInterval = setInterval(() => {
+                    gameTimer--;
+                    timeDisplay.textContent = `${gameTimer}s`;
+                    
+                    if (gameTimer <= 0) {
+                        endGame(true);
+                    }
+                }, 1000);
+                
+                // Start game loop
+                gameLoop();
+            }
+            
+            // End game
+            function endGame(success) {
+                gameActive = false;
+                clearInterval(timerInterval);
+                
+                // Show restart button
+                restartButton.style.display = 'block';
+                
+                // Display result
+                if (success) {
+                    alert(`You kept Pando alive! Final health: ${colonyHealth}%`);
+                } else {
+                    alert("Pando's health dropped to critical levels. Try again to save this ancient organism!");
+                }
+            }
+            
+            // Event listeners
+            startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', startGame);
+            
+            // Initial setup
+            createTrees();
+        })();
+
+        // Quiz
+        (function createQuiz() {
+            const questions = [
+                {
+                    question: "How old is Pando estimated to be?",
+                    options: ["8,000 years", "80,000 years", "800,000 years", "8 million years"],
+                    correct: 1,
+                    explanation: "Scientists estimate Pando to be approximately 80,000 years old, making it one of the oldest living organisms on Earth."
+                },
+                {
+                    question: "Why is Pando considered a single organism?",
+                    options: [
+                        "The trees are all touching each other",
+                        "It has one central trunk with many branches",
+                        "All stems share the same root system and identical DNA",
+                        "Its branches are all interconnected above ground"
+                    ],
+                    correct: 2,
+                    explanation: "Pando is a clonal colony with a massive underground root system. All 47,000 stems share identical DNA and are connected through this root system, making them genetically one organism."
+                },
+                {
+                    question: "What does the name 'Pando' mean?",
+                    options: [
+                        "Ancient one",
+                        "Trembling giant",
+                        "Forest king",
+                        "I spread"
+                    ],
+                    correct: 3,
+                    explanation: "The name 'Pando' comes from the Latin word meaning 'I spread,' which describes how this organism has expanded over its long life."
+                },
+                {
+                    question: "What is the primary threat to Pando's survival today?",
+                    options: [
+                        "Climate change",
+                        "Overgrazing by wildlife and cattle",
+                        "Forest fires",
+                        "Fungal disease"
+                    ],
+                    correct: 1,
+                    explanation: "While Pando faces multiple challenges, overgrazing by deer and cattle is the most immediate threat. This prevents new shoots from establishing to replace dying older trees."
+                },
+                {
+                    question: "Approximately how many individual tree stems make up Pando?",
+                    options: [
+                        "4,700",
+                        "47,000", 
+                        "470,000",
+                        "4,700,000"
+                    ],
+                    correct: 1,
+                    explanation: "Pando consists of approximately 47,000 tree stems (or trunks), all connected by a single root system."
+                }
+            ];
+            
+            const quizContainer = document.getElementById('quiz-container');
+            const questionContainer = document.getElementById('quiz-question-container');
+            const nextButton = document.getElementById('next-question');
+            const quizScore = document.getElementById('quiz-score');
+            const progressDots = document.querySelectorAll('.quiz-dot');
+            
+            let currentQuestion = 0;
+            let score = 0;
+            let answered = false;
+            
+            // Display question
+            function displayQuestion() {
+                // Reset state
+                answered = false;
+                questionContainer.innerHTML = '';
+                
+                // Get current question
+                const q = questions[currentQuestion];
+                
+                // Create question element
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'quiz-question';
+                questionDiv.innerHTML = `<h3>Question ${currentQuestion + 1}:</h3><p>${q.question}</p>`;
+                
+                // Create options
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'quiz-options';
+                
+                q.options.forEach((option, index) => {
+                    const optionButton = document.createElement('button');
+                    optionButton.className = 'quiz-option';
+                    optionButton.textContent = option;
+                    
+                    optionButton.addEventListener('click', function() {
+                        if (answered) return;
+                        
+                        answered = true;
+                        
+                        // Check if correct
+                        if (index === q.correct) {
+                            optionButton.classList.add('correct');
+                            score++;
+                            progressDots[currentQuestion].classList.add('correct');
+                        } else {
+                            optionButton.classList.add('incorrect');
+                            progressDots[currentQuestion].classList.add('incorrect');
+                            
+                            // Highlight correct answer
+                            optionsDiv.querySelectorAll('.quiz-option')[q.correct].classList.add('correct');
+                        }
+                        
+                        // Show explanation
+                        const feedback = document.createElement('div');
+                        feedback.className = index === q.correct ? 'quiz-feedback correct' : 'quiz-feedback incorrect';
+                        feedback.innerHTML = `<p><strong>${index === q.correct ? 'Correct!' : 'Incorrect!'}</strong></p><p>${q.explanation}</p>`;
+                        questionDiv.appendChild(feedback);
+                        
+                        // Show next button or score
+                        if (currentQuestion < questions.length - 1) {
+                            nextButton.style.display = 'block';
+                        } else {
+                            // Quiz complete
+                            quizScore.textContent = `You scored ${score} out of ${questions.length}!`;
+                            quizScore.style.display = 'block';
+                            
+                            let message = '';
+                            if (score === questions.length) {
+                                message = "Perfect score! You're a Pando expert!";
+                            } else if (score >= questions.length * 0.7) {
+                                message = "Great job! You've learned a lot about this ancient organism.";
+                            } else {
+                                message = "You've learned some things about Pando. Try again to improve your score!";
+                            }
+                            
+                            const messageDiv = document.createElement('p');
+                            messageDiv.textContent = message;
+                            quizScore.appendChild(messageDiv);
+                        }
+                    });
+                    
+                    optionsDiv.appendChild(optionButton);
+                });
+                
+                questionContainer.appendChild(questionDiv);
+                questionDiv.appendChild(optionsDiv);
+                
+                // Update progress
+                progressDots.forEach((dot, index) => {
+                    dot.classList.remove('active');
+                    if (index === currentQuestion) {
+                        dot.classList.add('active');
+                    }
+                });
+            }
+            
+            // Next question
+            nextButton.addEventListener('click', function() {
+                currentQuestion++;
+                nextButton.style.display = 'none';
+                
+                if (currentQuestion < questions.length) {
+                    displayQuestion();
+                }
+            });
+            
+            // Start quiz
+            displayQuestion();
+        })();
+    </script>
+</body>
+</html>

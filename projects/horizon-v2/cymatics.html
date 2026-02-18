@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYMATICS: The Science of Making Sound Visible</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --dark-bg: #030305;
+            --gold-accent: #FFD28E;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: #fff;
+            font-family: 'Playfair Display', serif;
+            overflow-x: hidden;
+            position: relative;
+            line-height: 1.6;
+        }
+        
+        /* Starfield Background */
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1, h2, h3 {
+            color: var(--gold-accent);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            text-align: center;
+            margin-top: 2rem;
+            text-shadow: 0 0 10px rgba(255, 210, 142, 0.5);
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin-top: 2.5rem;
+        }
+        
+        h3 {
+            font-size: 1.8rem;
+            margin-top: 2rem;
+        }
+        
+        p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gold-text {
+            color: var(--gold-accent);
+        }
+        
+        .code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+        }
+        
+        .highlight {
+            background: linear-gradient(to right, rgba(255, 210, 142, 0.1), transparent);
+            padding: 0.5em;
+            border-left: 3px solid var(--gold-accent);
+        }
+        
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .flex-item {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        /* Interactive Elements */
+        .slider-container {
+            margin: 20px 0;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            border-radius: 5px;
+            background: #333;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: var(--gold-accent);
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: var(--gold-accent);
+            cursor: pointer;
+        }
+        
+        .canvas-container {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        
+        .note-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .note-button {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.3s;
+        }
+        
+        .note-button:hover {
+            background-color: var(--gold-accent);
+            color: var(--dark-bg);
+        }
+        
+        .freq-comparison {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .freq-box {
+            flex: 1;
+            min-width: 220px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .freq-box canvas {
+            width: 100%;
+            height: 200px;
+            margin-top: 10px;
+        }
+        
+        /* Quiz Styles */
+        .quiz-container {
+            margin: 20px 0;
+        }
+        
+        .question {
+            margin-bottom: 20px;
+        }
+        
+        .options {
+            margin: 10px 0;
+        }
+        
+        .option {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option:hover {
+            background-color: rgba(255, 210, 142, 0.1);
+        }
+        
+        .option.selected {
+            background-color: var(--gold-accent);
+            color: var(--dark-bg);
+        }
+        
+        .quiz-buttons {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: rgba(255, 210, 142, 0.2);
+            border: 1px solid var(--gold-accent);
+            border-radius: 5px;
+            color: var(--gold-accent);
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--gold-accent);
+            color: var(--dark-bg);
+        }
+        
+        .score-display {
+            font-size: 1.2rem;
+            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+            
+            .canvas-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="stars"></canvas>
+    <div class="container">
+        <h1>CYMATICS</h1>
+        <p class="gold-text" style="text-align: center; font-size: 1.3rem;">The Science of Making Sound Visible</p>
+        
+        <div class="glass-panel">
+            <h2>What is Cymatics?</h2>
+            <p>Cymatics is the study of visible sound and vibration patterns. The term was coined by Swiss scientist <span class="gold-text">Hans Jenny</span> in 1967, but the phenomenon was first documented by physicist <span class="gold-text">Ernst Chladni</span> in the 18th century.</p>
+            <p>When sound waves pass through matter - whether sand, water, or other mediums - they create geometric patterns that correspond to the vibration's frequency. These patterns reveal the hidden architecture of sound, showing us that <span class="highlight">every sound has a shape</span>.</p>
+        </div>
+        
+        <div class="glass-panel">
+            <h2>The Chladni Plate Experiment</h2>
+            <p>Ernst Chladni's famous experiment demonstrated how sound creates form. By placing sand on a metal plate and drawing a bow across its edge, he discovered that the sand would arrange itself into distinct geometric patterns as the plate vibrated.</p>
+            <p>These patterns, now known as <span class="gold-text">Chladni figures</span>, form along the nodal lines of the vibrating plate - areas that remain stationary during vibration. As the frequency increases, the patterns become more complex.</p>
+            
+            <h3>Virtual Chladni Plate</h3>
+            <p>Move the slider to change the frequency and observe how the patterns change:</p>
+            
+            <div class="slider-container">
+                <input type="range" min="20" max="1000" value="100" class="slider" id="frequencySlider">
+                <p>Frequency: <span id="frequencyValue" class="code">100 Hz</span></p>
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="chladniCanvas"></canvas>
+            </div>
+            
+            <p><span class="code">Note:</span> This simulation approximates the patterns that would form on a square plate. The mathematical functions use idealized formulas based on vibrational modes.</p>
+        </div>
+        
+        <div class="glass-panel">
+            <h2>Sound Shape Gallery</h2>
+            <p>Different musical notes create different patterns. Click on a note to see its corresponding cymatic pattern:</p>
+            
+            <div class="note-buttons">
+                <div class="note-button" data-freq="261.63">C4</div>
+                <div class="note-button" data-freq="293.66">D4</div>
+                <div class="note-button" data-freq="329.63">E4</div>
+                <div class="note-button" data-freq="349.23">F4</div>
+                <div class="note-button" data-freq="392.00">G4</div>
+                <div class="note-button" data-freq="440.00">A4</div>
+                <div class="note-button" data-freq="493.88">B4</div>
+                <div class="note-button" data-freq="523.25">C5</div>
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="noteCanvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="glass-panel">
+            <h2>Frequency Comparison</h2>
+            <p>See how different frequencies produce patterns of varying complexity:</p>
+            
+            <div class="freq-comparison">
+                <div class="freq-box">
+                    <h3>100 Hz</h3>
+                    <canvas id="freq100Canvas"></canvas>
+                </div>
+                <div class="freq-box">
+                    <h3>500 Hz</h3>
+                    <canvas id="freq500Canvas"></canvas>
+                </div>
+                <div class="freq-box">
+                    <h3>2000 Hz</h3>
+                    <canvas id="freq2000Canvas"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-panel">
+            <h2>Water Cymatics</h2>
+            <p>When sound passes through water, it creates even more fascinating patterns. Unlike sand, which only shows the nodal lines, water can form three-dimensional structures that dance and pulse with the sound.</p>
+            <p>At higher frequencies, water can even form perfect geometric shapes that resemble <span class="gold-text">sacred geometry</span> - patterns that have been revered in spiritual traditions for millennia.</p>
+        </div>
+        
+        <div class="glass-panel">
+            <h2>Connection to Sacred Geometry</h2>
+            <p>Many cymatic patterns resemble sacred geometric forms found throughout nature, art, and architecture:</p>
+            
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h3>Flower of Life</h3>
+                    <p>This ancient pattern consists of overlapping circles and appears in cymatic patterns at certain frequencies. It's considered a blueprint of creation in many spiritual traditions.</p>
+                </div>
+                <div class="flex-item">
+                    <h3>Sri Yantra</h3>
+                    <p>This complex sacred diagram from Hindu tradition can be reproduced through cymatic vibrations, suggesting a deep connection between sound and form.</p>
+                </div>
+            </div>
+            
+            <p class="highlight">The remarkable similarity between cymatic patterns and sacred geometry suggests that perhaps ancient cultures understood the relationship between sound and form in ways we are only rediscovering today.</p>
+        </div>
+        
+        <div class="glass-panel">
+            <h2>Test Your Knowledge</h2>
+            <div class="quiz-container">
+                <div class="question" id="q1">
+                    <h3>1. Who coined the term "Cymatics"?</h3>
+                    <div class="options">
+                        <div class="option" data-correct="true">Hans Jenny</div>
+                        <div class="option">Ernst Chladni</div>
+                        <div class="option">Nikola Tesla</div>
+                        <div class="option">Alexander Graham Bell</div>
+                    </div>
+                </div>
+                
+                <div class="question" id="q2">
+                    <h3>2. What happens to cymatic patterns as frequency increases?</h3>
+                    <div class="options">
+                        <div class="option" data-correct="true">They become more complex</div>
+                        <div class="option">They become simpler</div>
+                        <div class="option">They remain the same</div>
+                        <div class="option">They disappear entirely</div>
+                    </div>
+                </div>
+                
+                <div class="question" id="q3">
+                    <h3>3. In the Chladni plate experiment, the sand collects along:</h3>
+                    <div class="options">
+                        <div class="option" data-correct="true">Nodal lines (where there is no movement)</div>
+                        <div class="option">Antinodal points (where movement is greatest)</div>
+                        <div class="option">Randomly across the plate</div>
+                        <div class="option">The edges of the plate only</div>
+                    </div>
+                </div>
+                
+                <div class="question" id="q4">
+                    <h3>4. Which century did Ernst Chladni conduct his famous experiments?</h3>
+                    <div class="options">
+                        <div class="option" data-correct="true">18th century</div>
+                        <div class="option">19th century</div>
+                        <div class="option">17th century</div>
+                        <div class="option">20th century</div>
+                    </div>
+                </div>
+                
+                <div class="question" id="q5">
+                    <h3>5. Water cymatics are different from sand cymatics because:</h3>
+                    <div class="options">
+                        <div class="option" data-correct="true">Water can form three-dimensional structures</div>
+                        <div class="option">Water only works at high frequencies</div>
+                        <div class="option">Water patterns are always circular</div>
+                        <div class="option">Water cannot show cymatic patterns</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-buttons">
+                    <button id="checkAnswers">Check Answers</button>
+                    <button id="resetQuiz">Reset Quiz</button>
+                </div>
+                
+                <div class="score-display" id="scoreDisplay"></div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>CYMATICS: The Science of Making Sound Visible | Created for Horizon-v2 Project</p>
+        </footer>
+    </div>
+
+    <script>
+        // Starfield Background
+        (function createStarfield() {
+            const canvas = document.getElementById('stars');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas dimensions
+            function setCanvasDimensions() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            setCanvasDimensions();
+            window.addEventListener('resize', setCanvasDimensions);
+            
+            // Create stars
+            const stars = [];
+            const numStars = Math.floor(canvas.width * canvas.height / 1000);
+            
+            for (let i = 0; i < numStars; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5,
+                    opacity: Math.random(),
+                    speed: Math.random() * 0.05
+                });
+            }
+            
+            function drawStars() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#ffffff';
+                
+                for (let i = 0; i < stars.length; i++) {
+                    const star = stars[i];
+                    
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                    ctx.fill();
+                    
+                    // Move stars slightly
+                    star.y += star.speed;
+                    
+                    // Reset position if star goes off screen
+                    if (star.y > canvas.height) {
+                        star.y = 0;
+                        star.x = Math.random() * canvas.width;
+                    }
+                }
+                
+                requestAnimationFrame(drawStars);
+            }
+            
+            drawStars();
+        })();
+        
+        // Chladni Plate Simulation
+        (function createChladniSimulation() {
+            const canvas = document.getElementById('chladniCanvas');
+            const ctx = canvas.getContext('2d');
+            const slider = document.getElementById('frequencySlider');
+            const freqValue = document.getElementById('frequencyValue');
+            
+            // Set canvas dimensions
+            function setCanvasDimensions() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+            
+            setCanvasDimensions();
+            window.addEventListener('resize', setCanvasDimensions);
+            
+            // Generate Chladni pattern based on frequency
+            function generateChladniPattern(frequency) {
+                const resolution = 1; // Pixel size of each "sand" particle
+                const width = canvas.width;
+                const height = canvas.height;
+                const normFreq = frequency / 100; // Normalize frequency for calculation
+                
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = '#FFD28E';
+                
+                // Calculate n and m values based on frequency
+                // This is a simplified approach that approximates vibrational modes
+                const n = Math.floor(normFreq * 0.3) + 1;
+                const m = Math.floor(normFreq * 0.5) + 1;
+                
+                for (let x = 0; x < width; x += resolution) {
+                    for (let y = 0; y < height; y += resolution) {
+                        // Normalize coordinates to [0, 1]
+                        const normalizedX = x / width;
+                        const normalizedY = y / height;
+                        
+                        // Chladni equation: sin(n*π*x) * sin(m*π*y) - sin(m*π*x) * sin(n*π*y)
+                        const sinNX = Math.sin(n * Math.PI * normalizedX);
+                        const sinMY = Math.sin(m * Math.PI * normalizedY);
+                        const sinMX = Math.sin(m * Math.PI * normalizedX);
+                        const sinNY = Math.sin(n * Math.PI * normalizedY);
+                        
+                        // Modify for more complex patterns at higher frequencies
+                        let value;
+                        if (frequency > 500) {
+                            // Add more complex terms at higher frequencies
+                            const sinKX = Math.sin((n+m) * Math.PI * normalizedX);
+                            const sinKY = Math.sin((n+m) * Math.PI * normalizedY);
+                            value = sinNX * sinMY - sinMX * sinNY + sinKX * sinKY * 0.2;
+                        } else {
+                            value = sinNX * sinMY - sinMX * sinNY;
+                        }
+                        
+                        // Draw sand at nodal lines (where value is close to 0)
+                        const threshold = 0.05;
+                        if (Math.abs(value) < threshold) {
+                            ctx.fillRect(x, y, resolution, resolution);
+                        }
+                    }
+                }
+            }
+            
+            // Initialize pattern
+            generateChladniPattern(parseInt(slider.value));
+            
+            // Update pattern when slider moves
+            slider.addEventListener('input', function() {
+                const frequency = parseInt(this.value);
+                freqValue.textContent = frequency + ' Hz';
+                generateChladniPattern(frequency);
+            });
+        })();
+        
+        // Sound Shape Gallery
+        (function createNoteGallery() {
+            const canvas = document.getElementById('noteCanvas');
+            const ctx = canvas.getContext('2d');
+            const noteButtons = document.querySelectorAll('.note-button');
+            
+            // Set canvas dimensions
+            function setCanvasDimensions() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+            
+            setCanvasDimensions();
+            window.addEventListener('resize', setCanvasDimensions);
+            
+            // Generate pattern based on frequency
+            function generateNotePattern(frequency) {
+                const width = canvas.width;
+                const height = canvas.height;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const maxRadius = Math.min(width, height) * 0.4;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                // Background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Draw a mandala-like pattern based on the frequency
+                const numWaves = Math.floor(frequency / 50); // Number of waves increases with frequency
+                const numPetals = Math.floor(frequency / 40);
+                
+                // Draw base circle
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, maxRadius * 0.2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 210, 142, 0.7)';
+                ctx.fill();
+                
+                // Draw petals
+                for (let i = 0; i < numPetals; i++) {
+                    const angle = (i / numPetals) * Math.PI * 2;
+                    const petalSize = maxRadius * 0.8;
+                    
+                    // Calculate pattern complexity based on frequency
+                    const complexity = frequency / 200;
+                    
+                    ctx.save();
+                    ctx.translate(centerX, centerY);
+                    ctx.rotate(angle);
+                    
+                    // Create a gradient for each petal
+                    const gradient = ctx.createLinearGradient(0, 0, petalSize, 0);
+                    gradient.addColorStop(0, 'rgba(255, 210, 142, 0.8)');
+                    gradient.addColorStop(1, 'rgba(255, 210, 142, 0.2)');
+                    
+                    // Draw petal shape
+                    ctx.beginPath();
+                    for (let j = 0; j < petalSize; j++) {
+                        const x = j;
+                        const waveHeight = Math.sin(j * complexity * 0.01) * (j * 0.05);
+                        const y = waveHeight;
+                        
+                        if (j === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    for (let j = petalSize; j > 0; j--) {
+                        const x = j;
+                        const waveHeight = Math.sin(j * complexity * 0.01) * (j * 0.05);
+                        const y = -waveHeight;
+                        ctx.lineTo(x, y);
+                    }
+                    
+                    ctx.closePath();
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    ctx.restore();
+                }
+                
+                // Draw rings
+                for (let i = 0; i < numWaves; i++) {
+                    const radius = maxRadius * (i / numWaves);
+                    
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.lineWidth = 1;
+                    const opacity = 0.1 + (i / numWaves) * 0.2;
+                    ctx.strokeStyle = `rgba(255, 210, 142, ${opacity})`;
+                    ctx.stroke();
+                }
+                
+                // Draw note name and frequency in the center
+                const noteName = Array.from(noteButtons).find(btn => 
+                    parseInt(btn.getAttribute('data-freq')) === frequency
+                )?.textContent || frequency + ' Hz';
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '20px JetBrains Mono';
+                ctx.textAlign = 'center';
+                ctx.fillText(noteName, centerX, centerY + 5);
+            }
+            
+            // Set up click handlers for note buttons
+            noteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const frequency = parseFloat(this.getAttribute('data-freq'));
+                    generateNotePattern(frequency);
+                    
+                    // Highlight active button
+                    noteButtons.forEach(btn => btn.style.backgroundColor = '');
+                    this.style.backgroundColor = 'var(--gold-accent)';
+                    this.style.color = 'var(--dark-bg)';
+                });
+            });
+            
+            // Initialize with first note
+            noteButtons[0].click();
+        })();
+        
+        // Frequency Comparison
+        (function createFrequencyComparison() {
+            const canvas100 = document.getElementById('freq100Canvas');
+            const ctx100 = canvas100.getContext('2d');
+            
+            const canvas500 = document.getElementById('freq500Canvas');
+            const ctx500 = canvas500.getContext('2d');
+            
+            const canvas2000 = document.getElementById('freq2000Canvas');
+            const ctx2000 = canvas2000.getContext('2d');
+            
+            // Set canvas dimensions
+            function setCanvasDimensions() {
+                const canvases = [canvas100, canvas500, canvas2000];
+                canvases.forEach(canvas => {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                });
+            }
+            
+            setCanvasDimensions();
+            window.addEventListener('resize', setCanvasDimensions);
+            
+            // Draw comparison patterns
+            function drawComparisonPattern(ctx, frequency) {
+                const width = ctx.canvas.width;
+                const height = ctx.canvas.height;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                // Background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Parameters based on frequency
+                const n = Math.floor(Math.sqrt(frequency) / 4) + 1;
+                const m = Math.floor(Math.sqrt(frequency) / 3) + 1;
+                const resolution = 2; // Pixel size for dots
+                
+                // Draw pattern
+                ctx.fillStyle = '#FFD28E';
+                
+                for (let x = 0; x < width; x += resolution) {
+                    for (let y = 0; y < height; y += resolution) {
+                        const normalizedX = x / width;
+                        const normalizedY = y / height;
+                        
+                        // Chladni equation modified for visual comparison
+                        const sinNX = Math.sin(n * Math.PI * normalizedX);
+                        const sinMY = Math.sin(m * Math.PI * normalizedY);
+                        const sinMX = Math.sin(m * Math.PI * normalizedX);
+                        const sinNY = Math.sin(n * Math.PI * normalizedY);
+                        
+                        let value = sinNX * sinMY - sinMX * sinNY;
+                        
+                        // Add complexity for higher frequencies
+                        if (frequency >= 500) {
+                            const k = Math.floor(Math.sqrt(frequency) / 2);
+                            const sinKX = Math.sin(k * Math.PI * normalizedX);
+                            const sinKY = Math.sin(k * Math.PI * normalizedY);
+                            value += sinKX * sinKY * (frequency / 1000);
+                        }
+                        
+                        // Draw dots at nodal lines (where value is close to 0)
+                        const threshold = 0.05;
+                        if (Math.abs(value) < threshold) {
+                            ctx.fillRect(x, y, resolution, resolution);
+                        }
+                    }
+                }
+            }
+            
+            // Draw the patterns
+            drawComparisonPattern(ctx100, 100);
+            drawComparisonPattern(ctx500, 500);
+            drawComparisonPattern(ctx2000, 2000);
+        })();
+        
+        // Quiz functionality
+        (function setupQuiz() {
+            const checkButton = document.getElementById('checkAnswers');
+            const resetButton = document.getElementById('resetQuiz');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const options = document.querySelectorAll('.option');
+            
+            // Handle option selection
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selection from siblings
+                    const siblings = Array.from(this.parentNode.children);
+                    siblings.forEach(sib => sib.classList.remove('selected'));
+                    
+                    // Mark this option as selected
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Check answers
+            checkButton.addEventListener('click', function() {
+                let score = 0;
+                const questions = document.querySelectorAll('.question');
+                
+                questions.forEach(question => {
+                    const selected = question.querySelector('.selected');
+                    if (!selected) return; // No answer selected
+                    
+                    const isCorrect = selected.getAttribute('data-correct') === 'true';
+                    
+                    if (isCorrect) {
+                        score++;
+                        selected.style.backgroundColor = 'rgba(0, 255, 0, 0.3)';
+                    } else {
+                        selected.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+                        
+                        // Highlight the correct answer
+                        const correctOption = question.querySelector('[data-correct="true"]');
+                        if (correctOption) {
+                            correctOption.style.backgroundColor = 'rgba(0, 255, 0, 0.2)';
+                        }
+                    }
+                });
+                
+                // Display score
+                scoreDisplay.textContent = `Your Score: ${score} out of 5`;
+                scoreDisplay.style.display = 'block';
+                
+                // Add a special message for perfect scores
+                if (score === 5) {
+                    scoreDisplay.innerHTML += '<br>Perfect! You are a Cymatics expert!';
+                } else if (score >= 3) {
+                    scoreDisplay.innerHTML += '<br>Good job! You understand the basics of Cymatics.';
+                } else {
+                    scoreDisplay.innerHTML += '<br>Keep exploring Cymatics to learn more!';
+                }
+            });
+            
+            // Reset quiz
+            resetButton.addEventListener('click', function() {
+                options.forEach(option => {
+                    option.classList.remove('selected');
+                    option.style.backgroundColor = '';
+                });
+                
+                scoreDisplay.style.display = 'none';
+            });
+        })();
+    </script>
+</body>
+</html>

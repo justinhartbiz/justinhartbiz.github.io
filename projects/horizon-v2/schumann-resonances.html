@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schumann Resonances: Earth's Electromagnetic Heartbeat</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
+    
+    :root {
+      --bg-color: #030305;
+      --gold-accent: #FFD28E;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background-color: var(--bg-color);
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+      min-height: 100vh;
+    }
+    
+    /* Starfield background */
+    #starfield {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    header {
+      text-align: center;
+      padding: 2rem 0;
+    }
+    
+    h1, h2, h3 {
+      color: var(--gold-accent);
+      margin-bottom: 1rem;
+    }
+    
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 15px rgba(255, 210, 142, 0.5);
+    }
+    
+    h2 {
+      font-size: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      opacity: 0.8;
+    }
+    
+    p {
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+    }
+    
+    /* Glassmorphism panel */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .glass-panel:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+    }
+    
+    /* Button styles */
+    .btn {
+      background: linear-gradient(135deg, var(--gold-accent), #D4A76A);
+      color: var(--bg-color);
+      border: none;
+      border-radius: 30px;
+      padding: 0.8rem 1.6rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 210, 142, 0.3);
+      margin: 0.5rem;
+    }
+    
+    .btn:hover {
+      box-shadow: 0 7px 20px rgba(255, 210, 142, 0.5);
+      transform: translateY(-2px);
+    }
+    
+    .btn:active {
+      transform: translateY(1px);
+    }
+    
+    /* Interactive elements */
+    #lightning-map {
+      width: 100%;
+      height: 300px;
+      border-radius: 8px;
+      background-color: rgba(0, 0, 30, 0.5);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    
+    #frequency-visualizer {
+      width: 100%;
+      height: 250px;
+      border-radius: 8px;
+      position: relative;
+    }
+    
+    canvas {
+      border-radius: 8px;
+      width: 100%;
+    }
+    
+    /* Quiz styling */
+    #quiz-container {
+      display: none;
+    }
+    
+    .quiz-question {
+      margin-bottom: 1.5rem;
+    }
+    
+    .quiz-options {
+      list-style: none;
+      margin-left: 1rem;
+    }
+    
+    .quiz-option {
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .quiz-option:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .quiz-option.selected {
+      background-color: rgba(255, 210, 142, 0.2);
+      border: 1px solid var(--gold-accent);
+    }
+    
+    .quiz-option.correct {
+      background-color: rgba(0, 255, 0, 0.2);
+    }
+    
+    .quiz-option.incorrect {
+      background-color: rgba(255, 0, 0, 0.2);
+    }
+    
+    #quiz-result {
+      margin-top: 1rem;
+      font-weight: bold;
+      display: none;
+    }
+    
+    /* Audio controls */
+    .audio-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+    
+    .frequency-select {
+      display: flex;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .frequency-btn {
+      background-color: transparent;
+      border: 1px solid var(--gold-accent);
+      color: var(--gold-accent);
+      padding: 0.5rem 1rem;
+      margin: 0.3rem;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    
+    .frequency-btn:hover, .frequency-btn.active {
+      background-color: var(--gold-accent);
+      color: var(--bg-color);
+    }
+    
+    /* Code font */
+    .code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      h1 {
+        font-size: 2.5rem;
+      }
+      
+      h2 {
+        font-size: 1.8rem;
+      }
+      
+      .glass-panel {
+        padding: 1.5rem;
+      }
+      
+      #lightning-map, #frequency-visualizer {
+        height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+  
+  <div class="container">
+    <header>
+      <h1>Schumann Resonances</h1>
+      <p class="subtitle">Earth's Electromagnetic Heartbeat</p>
+    </header>
+    
+    <main>
+      <section class="glass-panel">
+        <h2>The Phenomenon</h2>
+        <p>
+          The Schumann resonances are a set of spectrum peaks in the extremely low frequency (ELF) portion of the Earth's electromagnetic field spectrum. They are global electromagnetic resonances generated and excited by lightning discharges in the cavity formed by the Earth's surface and the ionosphere.
+        </p>
+        <p>
+          These resonances were first predicted in 1952 by physicist <strong>Winfried Otto Schumann</strong>, and observed in the late 1950s. The fundamental Schumann resonance frequency is approximately <span class="code">7.83 Hz</span>, with harmonics at approximately 14.3, 20.8, 27.3, and 33.8 Hz.
+        </p>
+        <p>
+          At any given moment, approximately 2,000 thunderstorms are occurring worldwide, producing about 50 lightning strikes every second. This creates a constant electrical current that resonates around our planet, creating these measurable frequencies.
+        </p>
+      </section>
+      
+      <section class="glass-panel">
+        <h2>Lightning Activity</h2>
+        <p>Watch how lightning strikes around the world create and maintain the Schumann Resonances:</p>
+        <div id="lightning-map"></div>
+        <div style="text-align: center;">
+          <button class="btn" id="toggle-lightning">Start Animation</button>
+        </div>
+      </section>
+      
+      <section class="glass-panel">
+        <h2>Frequency Visualization</h2>
+        <p>
+          The fundamental Schumann Resonance of 7.83 Hz falls within the human alpha brainwave range (7-13 Hz), which is associated with relaxation, creativity, and meditation.
+        </p>
+        <div id="frequency-visualizer">
+          <canvas id="visualizer-canvas"></canvas>
+        </div>
+        
+        <div class="frequency-select">
+          <button class="frequency-btn active" data-frequency="7.83">7.83 Hz</button>
+          <button class="frequency-btn" data-frequency="14.3">14.3 Hz</button>
+          <button class="frequency-btn" data-frequency="20.8">20.8 Hz</button>
+          <button class="frequency-btn" data-frequency="27.3">27.3 Hz</button>
+          <button class="frequency-btn" data-frequency="33.8">33.8 Hz</button>
+        </div>
+      </section>
+      
+      <section class="glass-panel">
+        <h2>Listen to the Resonances</h2>
+        <p>
+          While the actual Schumann resonances are electromagnetic phenomena and not audio waves, we can convert these frequencies to sound. The binaural beat effect can be experienced when wearing headphones.
+        </p>
+        
+        <div class="audio-controls">
+          <button id="play-btn" class="btn">
+            <span id="play-icon">▶</span> Listen to 7.83 Hz
+          </button>
+          <button id="stop-btn" class="btn" disabled>Stop</button>
+        </div>
+        
+        <p class="subtitle">
+          <small>Note: For the full effect, please use headphones.</small>
+        </p>
+      </section>
+      
+      <section class="glass-panel">
+        <h2>Test Your Knowledge</h2>
+        <p>Take this quick quiz to test your understanding of the Schumann Resonances:</p>
+        
+        <button id="start-quiz" class="btn">Start Quiz</button>
+        
+        <div id="quiz-container">
+          <div id="question-container"></div>
+          <div id="quiz-result"></div>
+          <div class="audio-controls">
+            <button id="submit-quiz" class="btn">Submit Answers</button>
+            <button id="reset-quiz" class="btn">Reset Quiz</button>
+          </div>
+        </div>
+      </section>
+      
+      <section class="glass-panel">
+        <h2>Human Connection</h2>
+        <p>
+          The correlation between Schumann resonances and human brainwaves has led to speculation about their influence on human health and consciousness. The fundamental frequency of 7.83 Hz falls within the alpha brainwave state, which is associated with relaxation, meditation, and creativity.
+        </p>
+        <p>
+          Some researchers theorize that the Schumann resonances may act as a natural "tuning fork" for our brains, potentially explaining why being in nature can feel restorative and grounding. However, more scientific research is needed to establish definitive connections.
+        </p>
+        <p>
+          Modern electromagnetic interference and urban environments may shield us from these natural frequencies, potentially contributing to various health issues. This has led to the development of "earthing" or "grounding" practices, designed to reconnect people with the Earth's natural electromagnetic field.
+        </p>
+      </section>
+    </main>
+    
+    <footer class="glass-panel" style="text-align: center; margin-top: 3rem;">
+      <p>
+        Created by Justin Hart | <span class="code">2026</span>
+        <br>
+        <small>A single HTML file with no external dependencies</small>
+      </p>
+    </footer>
+  </div>
+  
+  <script>
+    // =========== STARFIELD BACKGROUND ===========
+    (function() {
+      const canvas = document.getElementById('starfield');
+      const ctx = canvas.getContext('2d');
+      let stars = [];
+      let animationFrame;
+      
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initStars();
+      }
+      
+      function initStars() {
+        stars = [];
+        const starCount = Math.floor(canvas.width * canvas.height / 1000);
+        
+        for (let i = 0; i < starCount; i++) {
+          stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 1.5,
+            speed: Math.random() * 0.5,
+            brightness: Math.random() * 0.8 + 0.2
+          });
+        }
+      }
+      
+      function drawStars() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw stars
+        stars.forEach(star => {
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+          ctx.fill();
+          
+          // Update star position for twinkling effect
+          star.brightness += Math.random() * 0.02 - 0.01;
+          
+          if (star.brightness < 0.2) star.brightness = 0.2;
+          if (star.brightness > 1) star.brightness = 1;
+          
+          // Slight movement
+          star.y += star.speed;
+          
+          // Reset if star goes off screen
+          if (star.y > canvas.height) {
+            star.y = 0;
+            star.x = Math.random() * canvas.width;
+          }
+        });
+        
+        animationFrame = requestAnimationFrame(drawStars);
+      }
+      
+      // Initialize and start animation
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+      drawStars();
+    })();
+    
+    // =========== LIGHTNING MAP ANIMATION ===========
+    (function() {
+      const map = document.getElementById('lightning-map');
+      const toggleBtn = document.getElementById('toggle-lightning');
+      let isAnimating = false;
+      let lightnings = [];
+      let animationInterval;
+      
+      // World map coordinates (simplified)
+      const worldMap = [
+        // North America
+        {x: 0.2, y: 0.3, frequency: 0.7},
+        // South America
+        {x: 0.3, y: 0.6, frequency: 0.9},
+        // Europe
+        {x: 0.5, y: 0.3, frequency: 0.6},
+        // Africa
+        {x: 0.5, y: 0.5, frequency: 0.85},
+        // Asia
+        {x: 0.7, y: 0.35, frequency: 0.8},
+        // Australia
+        {x: 0.8, y: 0.7, frequency: 0.75}
+      ];
+      
+      function createLightning() {
+        if (!isAnimating) return;
+        
+        // Create multiple lightning strikes based on region frequency
+        worldMap.forEach(region => {
+          if (Math.random() < region.frequency * 0.3) {
+            const x = region.x * map.offsetWidth + (Math.random() * 0.2 - 0.1) * map.offsetWidth;
+            const y = region.y * map.offsetHeight + (Math.random() * 0.2 - 0.1) * map.offsetHeight;
+            
+            const lightning = document.createElement('div');
+            lightning.style.position = 'absolute';
+            lightning.style.width = '2px';
+            lightning.style.height = `${Math.random() * 10 + 5}px`;
+            lightning.style.backgroundColor = '#FFF';
+            lightning.style.left = `${x}px`;
+            lightning.style.top = `${y}px`;
+            lightning.style.boxShadow = '0 0 10px 2px rgba(255, 255, 255, 0.8)';
+            lightning.style.opacity = '0.8';
+            
+            map.appendChild(lightning);
+            
+            // Add to tracking array
+            lightnings.push({
+              element: lightning,
+              life: 10 // frames of life
+            });
+          }
+        });
+        
+        // Update and remove old lightning
+        for (let i = lightnings.length - 1; i >= 0; i--) {
+          lightnings[i].life--;
+          lightnings[i].element.style.opacity = lightnings[i].life / 10;
+          
+          if (lightnings[i].life <= 0) {
+            map.removeChild(lightnings[i].element);
+            lightnings.splice(i, 1);
+          }
+        }
+      }
+      
+      // Draw simple world map
+      function drawWorldMap() {
+        const worldMapOutline = document.createElement('div');
+        worldMapOutline.style.position = 'absolute';
+        worldMapOutline.style.top = '10%';
+        worldMapOutline.style.left = '5%';
+        worldMapOutline.style.width = '90%';
+        worldMapOutline.style.height = '80%';
+        worldMapOutline.style.border = '1px solid rgba(255, 210, 142, 0.3)';
+        worldMapOutline.style.borderRadius = '50%';
+        map.appendChild(worldMapOutline);
+        
+        // Add continent outlines (simplified)
+        const continents = [
+          // North America
+          "M20,30 Q30,20 40,40 Q50,30 60,50 Q40,70 20,50 Z",
+          // South America
+          "M30,60 Q40,50 50,70 Q35,90 25,80 Z",
+          // Europe + Africa
+          "M50,25 Q65,20 55,40 Q65,70 45,80 Q40,50 50,25 Z",
+          // Asia + Australia
+          "M65,30 Q85,20 90,40 Q75,50 85,70 Q70,65 65,30 Z"
+        ];
+        
+        const mapSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        mapSvg.setAttribute("width", "100%");
+        mapSvg.setAttribute("height", "100%");
+        mapSvg.style.position = "absolute";
+        mapSvg.style.top = "0";
+        mapSvg.style.left = "0";
+        
+        continents.forEach(path => {
+          const continent = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          continent.setAttribute("d", path);
+          continent.setAttribute("fill", "rgba(255, 210, 142, 0.1)");
+          continent.setAttribute("stroke", "rgba(255, 210, 142, 0.5)");
+          continent.setAttribute("stroke-width", "1");
+          mapSvg.appendChild(continent);
+        });
+        
+        map.appendChild(mapSvg);
+      }
+      
+      toggleBtn.addEventListener('click', function() {
+        if (isAnimating) {
+          isAnimating = false;
+          clearInterval(animationInterval);
+          toggleBtn.textContent = 'Start Animation';
+          
+          // Clean up existing lightnings
+          lightnings.forEach(l => map.removeChild(l.element));
+          lightnings = [];
+        } else {
+          isAnimating = true;
+          toggleBtn.textContent = 'Stop Animation';
+          animationInterval = setInterval(createLightning, 50);
+        }
+      });
+      
+      // Initialize map
+      drawWorldMap();
+    })();
+    
+    // =========== FREQUENCY VISUALIZER ===========
+    (function() {
+      const canvas = document.getElementById('visualizer-canvas');
+      const ctx = canvas.getContext('2d');
+      const frequencyBtns = document.querySelectorAll('.frequency-btn');
+      let currentFrequency = 7.83;
+      let animationFrame;
+      let startTime;
+      
+      function resizeCanvas() {
+        canvas.width = canvas.parentElement.offsetWidth;
+        canvas.height = canvas.parentElement.offsetHeight;
+      }
+      
+      function drawWave(frequency, amplitude, color, offset = 0) {
+        const height = canvas.height;
+        const width = canvas.width;
+        const now = Date.now();
+        if (!startTime) startTime = now;
+        const elapsed = (now - startTime) / 1000; // seconds
+        
+        ctx.beginPath();
+        ctx.moveTo(0, height / 2);
+        
+        for (let x = 0; x < width; x++) {
+          const t = x / width;
+          const wave = Math.sin((t * 10 + elapsed) * Math.PI * 2 * frequency) * amplitude;
+          const y = height / 2 + wave + offset;
+          
+          ctx.lineTo(x, y);
+        }
+        
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      
+      function drawFrequencies() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw grid lines
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        
+        // Horizontal grid line
+        ctx.moveTo(0, canvas.height / 2);
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.stroke();
+        
+        // Vertical grid lines
+        for (let i = 0; i < canvas.width; i += 50) {
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, canvas.height);
+          ctx.stroke();
+        }
+        
+        // Draw main frequency wave
+        drawWave(1, canvas.height * 0.3, '#FFD28E');
+        
+        // Draw harmonics if viewing fundamental frequency
+        if (currentFrequency === 7.83) {
+          // Second harmonic
+          drawWave(2, canvas.height * 0.15, 'rgba(255, 210, 142, 0.6)', -canvas.height * 0.2);
+          
+          // Third harmonic
+          drawWave(3, canvas.height * 0.1, 'rgba(255, 210, 142, 0.4)', canvas.height * 0.2);
+        }
+        
+        // Draw frequency text
+        ctx.font = '16px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#FFD28E';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${currentFrequency} Hz`, canvas.width / 2, 30);
+        
+        animationFrame = requestAnimationFrame(drawFrequencies);
+      }
+      
+      // Handle frequency buttons
+      frequencyBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          frequencyBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFrequency = parseFloat(btn.dataset.frequency);
+          startTime = Date.now(); // Reset animation time
+        });
+      });
+      
+      // Initialize and start animation
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+      drawFrequencies();
+    })();
+    
+    // =========== AUDIO GENERATION ===========
+    (function() {
+      let audioContext = null;
+      let oscillator1 = null;
+      let oscillator2 = null;
+      let gainNode = null;
+      let isPlaying = false;
+      
+      const playBtn = document.getElementById('play-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      const frequencyBtns = document.querySelectorAll('.frequency-btn');
+      let currentFrequency = 7.83;
+      
+      function initAudio() {
+        // Create audio context on first user interaction
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+      
+      function playBinauralBeat(frequency) {
+        if (isPlaying) stopSound();
+        
+        // Create gain node
+        gainNode = audioContext.createGain();
+        gainNode.gain.value = 0.2; // Lower volume
+        gainNode.connect(audioContext.destination);
+        
+        // Create binaural beat (two slightly different frequencies)
+        oscillator1 = audioContext.createOscillator();
+        oscillator2 = audioContext.createOscillator();
+        
+        // Set frequencies for left and right ear
+        // For binaural effect, use base frequency in one ear and base+difference in other
+        const binauralDifference = frequency;  // The difference creates the perceived frequency
+        oscillator1.frequency.value = 200;  // Base tone left
+        oscillator2.frequency.value = 200 + binauralDifference;  // Base tone + difference right
+        
+        // Create stereo panner for each oscillator
+        const pannerLeft = audioContext.createStereoPanner();
+        const pannerRight = audioContext.createStereoPanner();
+        
+        pannerLeft.pan.value = -1;  // Full left
+        pannerRight.pan.value = 1;  // Full right
+        
+        // Connect everything
+        oscillator1.connect(pannerLeft);
+        oscillator2.connect(pannerRight);
+        pannerLeft.connect(gainNode);
+        pannerRight.connect(gainNode);
+        
+        // Start oscillators
+        oscillator1.start();
+        oscillator2.start();
+        
+        isPlaying = true;
+        playBtn.disabled = true;
+        stopBtn.disabled = false;
+      }
+      
+      function stopSound() {
+        if (!isPlaying) return;
+        
+        oscillator1.stop();
+        oscillator2.stop();
+        oscillator1 = null;
+        oscillator2 = null;
+        
+        isPlaying = false;
+        playBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+      
+      // Event listeners
+      playBtn.addEventListener('click', function() {
+        initAudio();
+        playBinauralBeat(currentFrequency);
+        playBtn.innerHTML = `<span>▶</span> Playing ${currentFrequency} Hz`;
+      });
+      
+      stopBtn.addEventListener('click', stopSound);
+      
+      // Update frequency when buttons are clicked
+      frequencyBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          currentFrequency = parseFloat(btn.dataset.frequency);
+          playBtn.innerHTML = `<span id="play-icon">▶</span> Listen to ${currentFrequency} Hz`;
+          
+          // Update sound if currently playing
+          if (isPlaying) {
+            stopSound();
+            playBinauralBeat(currentFrequency);
+          }
+        });
+      });
+    })();
+    
+    // =========== QUIZ ===========
+    (function() {
+      const quizData = [
+        {
+          question: "What is the fundamental frequency of the Schumann Resonance?",
+          options: ["3.14 Hz", "7.83 Hz", "12.5 Hz", "20.3 Hz"],
+          correct: 1
+        },
+        {
+          question: "Who first predicted the existence of these global electromagnetic resonances?",
+          options: ["Nikola Tesla", "Albert Einstein", "Winfried Otto Schumann", "James Clerk Maxwell"],
+          correct: 2
+        },
+        {
+          question: "Approximately how many lightning strikes occur worldwide each second?",
+          options: ["5-10", "20-30", "50-100", "Over 200"],
+          correct: 2
+        },
+        {
+          question: "The fundamental Schumann Resonance frequency falls within which human brainwave range?",
+          options: ["Delta (1-4 Hz)", "Theta (4-7 Hz)", "Alpha (7-13 Hz)", "Beta (13-30 Hz)"],
+          correct: 2
+        },
+        {
+          question: "What forms the cavity that creates the Schumann Resonances?",
+          options: [
+            "The Earth's crust and mantle", 
+            "The Earth's surface and the ionosphere", 
+            "The troposphere and stratosphere", 
+            "The Earth's magnetic field lines"
+          ],
+          correct: 1
+        }
+      ];
+      
+      const startQuizBtn = document.getElementById('start-quiz');
+      const quizContainer = document.getElementById('quiz-container');
+      const questionContainer = document.getElementById('question-container');
+      const quizResult = document.getElementById('quiz-result');
+      const submitQuizBtn = document.getElementById('submit-quiz');
+      const resetQuizBtn = document.getElementById('reset-quiz');
+      
+      let userAnswers = [];
+      
+      function renderQuiz() {
+        questionContainer.innerHTML = '';
+        
+        quizData.forEach((question, index) => {
+          const questionDiv = document.createElement('div');
+          questionDiv.className = 'quiz-question';
+          
+          questionDiv.innerHTML = `
+            <h3>Question ${index + 1}:</h3>
+            <p>${question.question}</p>
+            <ul class="quiz-options">
+              ${question.options.map((option, optionIndex) => `
+                <li class="quiz-option" data-question="${index}" data-option="${optionIndex}">
+                  ${option}
+                </li>
+              `).join('')}
+            </ul>
+          `;
+          
+          questionContainer.appendChild(questionDiv);
+        });
+        
+        // Add event listeners to options
+        const options = document.querySelectorAll('.quiz-option');
+        options.forEach(option => {
+          option.addEventListener('click', function() {
+            const questionIndex = parseInt(this.dataset.question);
+            const optionIndex = parseInt(this.dataset.option);
+            
+            // Deselect all options for this question
+            const questionOptions = document.querySelectorAll(`.quiz-option[data-question="${questionIndex}"]`);
+            questionOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Select this option
+            this.classList.add('selected');
+            
+            // Save user answer
+            userAnswers[questionIndex] = optionIndex;
+          });
+        });
+      }
+      
+      function checkAnswers() {
+        let score = 0;
+        const options = document.querySelectorAll('.quiz-option');
+        
+        // Reset all options
+        options.forEach(option => {
+          option.classList.remove('correct', 'incorrect');
+        });
+        
+        // Check each question
+        quizData.forEach((question, questionIndex) => {
+          const userAnswer = userAnswers[questionIndex];
+          
+          if (userAnswer === question.correct) {
+            score++;
+            document.querySelector(`.quiz-option[data-question="${questionIndex}"][data-option="${userAnswer}"]`)
+              .classList.add('correct');
+          } else {
+            if (userAnswer !== undefined) {
+              document.querySelector(`.quiz-option[data-question="${questionIndex}"][data-option="${userAnswer}"]`)
+                .classList.add('incorrect');
+            }
+            document.querySelector(`.quiz-option[data-question="${questionIndex}"][data-option="${question.correct}"]`)
+              .classList.add('correct');
+          }
+        });
+        
+        // Display result
+        quizResult.textContent = `Your score: ${score}/${quizData.length}`;
+        quizResult.style.color = score >= 3 ? '#6bff8b' : '#ff6b6b';
+        quizResult.style.display = 'block';
+        
+        return score;
+      }
+      
+      startQuizBtn.addEventListener('click', function() {
+        quizContainer.style.display = 'block';
+        startQuizBtn.style.display = 'none';
+        renderQuiz();
+        quizResult.style.display = 'none';
+        userAnswers = [];
+      });
+      
+      submitQuizBtn.addEventListener('click', function() {
+        const score = checkAnswers();
+        submitQuizBtn.disabled = true;
+        
+        // Give feedback based on score
+        let feedback = '';
+        
+        if (score === quizData.length) {
+          feedback = '🎉 Perfect! You\'re a Schumann Resonance expert!';
+        } else if (score >= 3) {
+          feedback = '👏 Good job! You understand the basics of Schumann Resonances.';
+        } else {
+          feedback = '📚 Keep learning! Review the page to understand Schumann Resonances better.';
+        }
+        
+        quizResult.innerHTML = `Your score: ${score}/${quizData.length}<br>${feedback}`;
+      });
+      
+      resetQuizBtn.addEventListener('click', function() {
+        renderQuiz();
+        quizResult.style.display = 'none';
+        userAnswers = [];
+        submitQuizBtn.disabled = false;
+      });
+    })();
+  </script>
+</body>
+</html>

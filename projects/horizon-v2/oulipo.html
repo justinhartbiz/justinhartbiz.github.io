@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OULIPO - Constrained Writing Movement</title>
+    <style>
+        /* Base Styles */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --bg-color: #030305;
+            --text-color: #f5f5f5;
+            --accent: #FFD28E;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Playfair Display', serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        /* Starfield Background */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            margin: 2rem 0 4rem;
+        }
+        
+        h1 {
+            font-size: 4rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-style: italic;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        /* Glassmorphism Panel */
+        .glass-panel {
+            background: var(--glass-bg);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Section Styles */
+        section {
+            margin-bottom: 3rem;
+        }
+        
+        h2 {
+            color: var(--accent);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--accent);
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            color: var(--accent);
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+        }
+        
+        /* Links */
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Buttons */
+        button, .btn {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem 0;
+        }
+        
+        button:hover, .btn:hover {
+            background: var(--accent);
+            color: var(--bg-color);
+        }
+        
+        /* Code and Monospace Text */
+        code, pre, .mono {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.9rem;
+        }
+        
+        pre {
+            padding: 1rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        /* Interactive Elements */
+        .interactive {
+            margin: 1.5rem 0;
+        }
+        
+        textarea, input[type="text"] {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
+            color: var(--text-color);
+            padding: 0.8rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 1rem;
+        }
+        
+        input[type="text"] {
+            min-height: auto;
+        }
+        
+        .results {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 50px;
+        }
+        
+        /* Quiz Styling */
+        .quiz-question {
+            margin-bottom: 1.5rem;
+        }
+        
+        .quiz-options {
+            margin-top: 0.5rem;
+        }
+        
+        .quiz-options label {
+            display: block;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+        
+        .quiz-options label:hover {
+            background: rgba(255,210,142,0.1);
+        }
+        
+        input[type="radio"] {
+            margin-right: 0.8rem;
+        }
+        
+        .highlight {
+            background-color: rgba(255,210,142,0.2);
+            padding: 0.2rem;
+            border-radius: 2px;
+        }
+        
+        /* Key Words Highlight */
+        .key-word {
+            color: var(--accent);
+            font-weight: bold;
+        }
+        
+        /* Examples Box */
+        .example-box {
+            background: rgba(255,210,142,0.08);
+            border-left: 3px solid var(--accent);
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* For 99 Ways Exercise */
+        .style-sample {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .container {
+                padding: 1rem;
+            }
+            .glass-panel {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Starfield Background -->
+    <div class="stars" id="stars"></div>
+    
+    <div class="container">
+        <header>
+            <h1>OULIPO</h1>
+            <div class="subtitle">Ouvroir de Littérature Potentielle<br>(Workshop of Potential Literature)</div>
+        </header>
+        
+        <section class="glass-panel">
+            <h2>About OULIPO</h2>
+            <p>Founded in 1960 by Raymond Queneau and François Le Lionnais, <span class="key-word">OULIPO</span> (Ouvroir de Littérature Potentielle) is a French literary movement centered around creating works using constrained writing techniques.</p>
+            
+            <p>The group believes that by imposing specific formal constraints on writing, authors can discover new ideas and pathways that would otherwise remain hidden. In the paradoxical philosophy of Oulipo, <span class="key-word">constraints liberate creativity</span> rather than restrict it.</p>
+            
+            <h3>Notable Members</h3>
+            <p>Notable OULIPO members include:</p>
+            <ul>
+                <li>Raymond Queneau (co-founder)</li>
+                <li>François Le Lionnais (co-founder)</li>
+                <li>Georges Perec</li>
+                <li>Italo Calvino</li>
+                <li>Jacques Roubaud</li>
+                <li>Harry Mathews</li>
+            </ul>
+            
+            <h3>Famous Works & Techniques</h3>
+            
+            <div class="example-box">
+                <h4>"A Void" (La Disparition) by Georges Perec</h4>
+                <p>A 300-page novel written entirely without using the letter 'E' (the most common letter in French and English). This constraint is called a lipogram.</p>
+            </div>
+            
+            <div class="example-box">
+                <h4>"Exercises in Style" by Raymond Queneau</h4>
+                <p>Tells the same mundane story 99 different ways, each employing a different style, constraint, or literary technique.</p>
+            </div>
+            
+            <div class="example-box">
+                <h4>N+7 Technique</h4>
+                <p>Replace each noun in a text with the noun found seven entries later in a dictionary, creating surprising and often humorous transformations.</p>
+            </div>
+        </section>
+        
+        <!-- Interactive Elements -->
+        <section class="glass-panel">
+            <h2>Interactive Experiments</h2>
+            <p>Experience Oulipo techniques yourself with these interactive tools:</p>
+            
+            <!-- Restricted Typewriter -->
+            <div class="interactive">
+                <h3>Restricted Typewriter</h3>
+                <p>Write a greeting without using the letter 'E'. The 'E' key has been disabled:</p>
+                <textarea id="restricted-typewriter" placeholder="Try writing a greeting without using the letter 'E'..."></textarea>
+                <div class="results" id="typewriter-result">Status: No forbidden letters detected</div>
+            </div>
+            
+            <!-- N+7 Transformer -->
+            <div class="interactive">
+                <h3>N+7 Transformer</h3>
+                <p>Paste a text below to transform it using the N+7 technique (replacing each noun with the noun found 7 entries later in our dictionary):</p>
+                <textarea id="n7-input" placeholder="Paste your text here to transform it using the N+7 technique..."></textarea>
+                <button id="n7-transform">Transform</button>
+                <div class="results" id="n7-result"></div>
+            </div>
+            
+            <!-- Lipogram Detector -->
+            <div class="interactive">
+                <h3>Lipogram Detector</h3>
+                <p>Enter a text below to check which letters it avoids entirely:</p>
+                <textarea id="lipogram-input" placeholder="Enter text to analyze which letters it avoids..."></textarea>
+                <button id="detect-lipogram">Analyze</button>
+                <div class="results" id="lipogram-result"></div>
+            </div>
+            
+            <!-- 99 Ways Exercise -->
+            <div class="interactive">
+                <h3>99 Ways Exercise</h3>
+                <p>Inspired by Queneau's "Exercises in Style," try rewriting this simple event in different styles:</p>
+                <div class="style-sample">
+                    <strong>Original Event:</strong> "A man gets on a bus, argues with another passenger, then sees an empty seat and sits down."
+                </div>
+                <select id="style-selector">
+                    <option value="">Select a style constraint...</option>
+                    <option value="metaphor">Metaphorical</option>
+                    <option value="haiku">Haiku</option>
+                    <option value="backwards">Backwards</option>
+                    <option value="exclamation">All Exclamations</option>
+                    <option value="questions">All Questions</option>
+                    <option value="colors">Color-focused</option>
+                </select>
+                <div id="style-instructions" class="hidden"></div>
+                <textarea id="style-input" placeholder="Rewrite the event using the selected style..."></textarea>
+                <button id="save-style">Save Your Version</button>
+                <div class="results" id="saved-styles">
+                    <p>Your saved styles will appear here</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Quiz Section -->
+        <section class="glass-panel">
+            <h2>OULIPO Knowledge Quiz</h2>
+            <p>Test your knowledge of OULIPO and constrained writing:</p>
+            
+            <form id="quiz-form">
+                <div class="quiz-question">
+                    <p>1. What year was OULIPO founded?</p>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q1" value="a"> 1950</label>
+                        <label><input type="radio" name="q1" value="b"> 1960</label>
+                        <label><input type="radio" name="q1" value="c"> 1970</label>
+                        <label><input type="radio" name="q1" value="d"> 1980</label>
+                    </div>
+                </div>
+                
+                <div class="quiz-question">
+                    <p>2. Who wrote "A Void," a novel without the letter 'E'?</p>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q2" value="a"> Raymond Queneau</label>
+                        <label><input type="radio" name="q2" value="b"> Georges Perec</label>
+                        <label><input type="radio" name="q2" value="c"> Italo Calvino</label>
+                        <label><input type="radio" name="q2" value="d"> François Le Lionnais</label>
+                    </div>
+                </div>
+                
+                <div class="quiz-question">
+                    <p>3. What is a 'lipogram'?</p>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q3" value="a"> Writing that excludes one or more letters</label>
+                        <label><input type="radio" name="q3" value="b"> Writing that uses palindromes</label>
+                        <label><input type="radio" name="q3" value="c"> Writing that repeats the same letter pattern</label>
+                        <label><input type="radio" name="q3" value="d"> Writing that uses only vowels</label>
+                    </div>
+                </div>
+                
+                <div class="quiz-question">
+                    <p>4. Which of these works tells the same story 99 different ways?</p>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q4" value="a"> "Invisible Cities"</label>
+                        <label><input type="radio" name="q4" value="b"> "A Void"</label>
+                        <label><input type="radio" name="q4" value="c"> "Exercises in Style"</label>
+                        <label><input type="radio" name="q4" value="d"> "If on a winter's night a traveler"</label>
+                    </div>
+                </div>
+                
+                <div class="quiz-question">
+                    <p>5. What does the N+7 technique involve?</p>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="q5" value="a"> Writing every 7th word in a text</label>
+                        <label><input type="radio" name="q5" value="b"> Replacing each noun with the noun found 7 entries later in the dictionary</label>
+                        <label><input type="radio" name="q5" value="c"> Using only 7 words per sentence</label>
+                        <label><input type="radio" name="q5" value="d"> Adding 7 random words to each paragraph</label>
+                    </div>
+                </div>
+                
+                <button type="button" id="submit-quiz">Check Answers</button>
+                <div class="results" id="quiz-results"></div>
+            </form>
+        </section>
+    </div>
+
+    <script>
+        // Create starfield background
+        function createStarfield() {
+            const stars = document.getElementById('stars');
+            const count = 200;
+            
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                const size = Math.random() * 2;
+                
+                star.style.position = 'absolute';
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.borderRadius = '50%';
+                star.style.backgroundColor = i % 20 === 0 ? '#FFD28E' : '#ffffff';
+                star.style.opacity = Math.random() * 0.8 + 0.2;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animation = `twinkle ${Math.random() * 5 + 3}s infinite`;
+                
+                stars.appendChild(star);
+            }
+            
+            // Add CSS animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes twinkle {
+                    0% { opacity: 0.2; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0.2; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Restricted Typewriter
+        function setupRestrictedTypewriter() {
+            const textarea = document.getElementById('restricted-typewriter');
+            const result = document.getElementById('typewriter-result');
+            
+            textarea.addEventListener('keydown', function(e) {
+                // Block the letter 'E' and 'e'
+                if (e.key.toLowerCase() === 'e') {
+                    e.preventDefault();
+                    result.textContent = 'Status: The letter "E" is not allowed!';
+                    result.style.color = '#ff6b6b';
+                    
+                    // Flash effect
+                    textarea.style.borderColor = '#ff6b6b';
+                    setTimeout(() => {
+                        textarea.style.borderColor = 'var(--glass-border)';
+                    }, 300);
+                }
+            });
+            
+            textarea.addEventListener('input', function() {
+                // Check if text contains 'e' or 'E'
+                if (/[eE]/.test(this.value)) {
+                    result.textContent = 'Status: The letter "E" was detected! Please remove it.';
+                    result.style.color = '#ff6b6b';
+                } else {
+                    result.textContent = 'Status: No forbidden letters detected';
+                    result.style.color = 'var(--text-color)';
+                }
+            });
+        }
+        
+        // N+7 Transformer
+        function setupN7Transformer() {
+            // Simple dictionary for demonstration
+            const nouns = [
+                'apple', 'baby', 'car', 'door', 'elephant', 'flower', 'glass', 'house',
+                'ice', 'jacket', 'key', 'lamp', 'money', 'note', 'orange', 'paper',
+                'queen', 'radio', 'star', 'table', 'umbrella', 'violin', 'window', 'xylophone',
+                'yacht', 'zebra', 'airport', 'book', 'computer', 'desk', 'egg', 'fridge',
+                'guitar', 'hat', 'igloo', 'jam', 'kettle', 'letter', 'mountain', 'newspaper',
+                'ocean', 'pencil', 'quilt', 'road', 'sun', 'train', 'university', 'village',
+                'water', 'x-ray', 'year', 'zoo', 'artist', 'building', 'city', 'dog',
+                'earth', 'farm', 'garden', 'home', 'island', 'jungle', 'kitchen', 'lake',
+                'mail', 'night', 'office', 'park', 'queen', 'river', 'school', 'tree',
+                'uncle', 'vacation', 'woman', 'xylophone', 'youth', 'zone', 'bank', 'cat',
+                'day', 'ear', 'face', 'game', 'hair', 'idea', 'job', 'king'
+            ];
+            
+            const button = document.getElementById('n7-transform');
+            const input = document.getElementById('n7-input');
+            const result = document.getElementById('n7-result');
+            
+            // Word type detection (very simplified)
+            const isNoun = word => {
+                // Strip punctuation for checking
+                const cleanWord = word.replace(/[^\w]/g, '').toLowerCase();
+                return nouns.includes(cleanWord);
+            };
+            
+            // Find replacement (N+7)
+            const findReplacement = word => {
+                // Strip punctuation for processing
+                const cleanWord = word.replace(/[^\w]/g, '').toLowerCase();
+                const index = nouns.indexOf(cleanWord);
+                
+                if (index !== -1) {
+                    // Calculate replacement index with wrapping
+                    const newIndex = (index + 7) % nouns.length;
+                    
+                    // Preserve original capitalization
+                    let replacement = nouns[newIndex];
+                    if (word[0] === word[0].toUpperCase()) {
+                        replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
+                    }
+                    
+                    // Preserve trailing punctuation
+                    const punctuation = word.match(/[^\w]+$/);
+                    if (punctuation) {
+                        replacement += punctuation[0];
+                    }
+                    
+                    return replacement;
+                }
+                
+                return word; // Not a noun or not in our dictionary
+            };
+            
+            button.addEventListener('click', function() {
+                const text = input.value;
+                if (!text.trim()) {
+                    result.textContent = 'Please enter some text to transform.';
+                    return;
+                }
+                
+                // Split by spaces but preserve punctuation
+                const words = text.match(/[\w']+[^\w]*/g) || [];
+                
+                // Transform each word
+                const transformedWords = words.map(word => {
+                    // Check if it's likely a noun
+                    if (isNoun(word)) {
+                        return findReplacement(word);
+                    }
+                    return word;
+                });
+                
+                result.textContent = transformedWords.join(' ');
+            });
+        }
+        
+        // Lipogram Detector
+        function setupLipogramDetector() {
+            const button = document.getElementById('detect-lipogram');
+            const input = document.getElementById('lipogram-input');
+            const result = document.getElementById('lipogram-result');
+            
+            button.addEventListener('click', function() {
+                const text = input.value.toLowerCase();
+                if (!text.trim()) {
+                    result.textContent = 'Please enter some text to analyze.';
+                    return;
+                }
+                
+                // Check for each letter of the alphabet
+                const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+                const missingLetters = [];
+                
+                for (const letter of alphabet) {
+                    if (!text.includes(letter)) {
+                        missingLetters.push(letter);
+                    }
+                }
+                
+                if (missingLetters.length === 0) {
+                    result.innerHTML = 'This text uses all letters of the alphabet.';
+                } else {
+                    result.innerHTML = `This text is a <span class="highlight">lipogram</span> that completely avoids these letters: <br><span class="key-word">${missingLetters.join(', ')}</span>`;
+                    
+                    // Add note about famous lipograms
+                    if (missingLetters.includes('e')) {
+                        result.innerHTML += '<br><br>Note: Your text avoids the letter "e" — just like Georges Perec\'s novel "A Void"!';
+                    }
+                }
+            });
+        }
+        
+        // 99 Ways Exercise
+        function setup99WaysExercise() {
+            const selector = document.getElementById('style-selector');
+            const instructions = document.getElementById('style-instructions');
+            const input = document.getElementById('style-input');
+            const saveButton = document.getElementById('save-style');
+            const savedStyles = document.getElementById('saved-styles');
+            
+            // Style instructions
+            const styleGuides = {
+                metaphor: "Rewrite the event using extended metaphors. Think of the bus as a vessel, the argument as a storm, etc.",
+                haiku: "Write the event as a haiku (three lines of 5, 7, and 5 syllables).",
+                backwards: "Tell the story in reverse chronological order.",
+                exclamation: "Rewrite using only exclamatory sentences!",
+                questions: "Rewrite using only questions?",
+                colors: "Focus on colors in your description. Add color details that weren't in the original."
+            };
+            
+            // Saved styles storage
+            const styles = {
+                count: 0,
+                entries: {}
+            };
+            
+            // Handle style selection
+            selector.addEventListener('change', function() {
+                const style = this.value;
+                if (style && styleGuides[style]) {
+                    instructions.textContent = styleGuides[style];
+                    instructions.classList.remove('hidden');
+                    input.placeholder = `Rewrite using the ${style} style...`;
+                } else {
+                    instructions.classList.add('hidden');
+                    input.placeholder = "Select a style first...";
+                }
+            });
+            
+            // Save button handler
+            saveButton.addEventListener('click', function() {
+                const style = selector.value;
+                const content = input.value.trim();
+                
+                if (!style) {
+                    alert("Please select a style first!");
+                    return;
+                }
+                
+                if (!content) {
+                    alert("Please write something before saving!");
+                    return;
+                }
+                
+                // Save the style
+                styles.count++;
+                const id = `style-${styles.count}`;
+                styles.entries[id] = {
+                    style: style,
+                    content: content
+                };
+                
+                // Update the display
+                updateSavedStyles();
+                
+                // Clear the input and reset selector
+                input.value = '';
+                //selector.selectedIndex = 0;
+                //instructions.classList.add('hidden');
+            });
+            
+            // Update saved styles display
+            function updateSavedStyles() {
+                if (styles.count === 0) {
+                    savedStyles.innerHTML = '<p>Your saved styles will appear here</p>';
+                    return;
+                }
+                
+                let html = '<h4>Your Exercises in Style:</h4>';
+                
+                for (const id in styles.entries) {
+                    const entry = styles.entries[id];
+                    html += `
+                        <div class="style-entry">
+                            <p><strong>${entry.style.charAt(0).toUpperCase() + entry.style.slice(1)} style:</strong></p>
+                            <p>${entry.content}</p>
+                        </div>
+                        <hr>
+                    `;
+                }
+                
+                savedStyles.innerHTML = html;
+            }
+        }
+        
+        // Quiz
+        function setupQuiz() {
+            const submitButton = document.getElementById('submit-quiz');
+            const results = document.getElementById('quiz-results');
+            
+            // Correct answers
+            const answers = {
+                q1: 'b', // 1960
+                q2: 'b', // Georges Perec
+                q3: 'a', // Writing that excludes one or more letters
+                q4: 'c', // "Exercises in Style"
+                q5: 'b'  // Replacing each noun with the noun found 7 entries later in the dictionary
+            };
+            
+            submitButton.addEventListener('click', function() {
+                let score = 0;
+                let feedback = '';
+                
+                // Check each question
+                for (const question in answers) {
+                    const selected = document.querySelector(`input[name="${question}"]:checked`);
+                    
+                    if (!selected) {
+                        feedback += `Please answer question ${question.substring(1)}.<br>`;
+                        continue;
+                    }
+                    
+                    if (selected.value === answers[question]) {
+                        score++;
+                    }
+                }
+                
+                // If not all questions answered
+                if (feedback) {
+                    results.innerHTML = feedback;
+                    return;
+                }
+                
+                // Display results
+                results.innerHTML = `
+                    <p>Your score: ${score}/5</p>
+                    <p>${getScoreMessage(score)}</p>
+                `;
+            });
+            
+            // Get message based on score
+            function getScoreMessage(score) {
+                if (score === 5) return "Perfect! You're a true OULIPO scholar!";
+                if (score >= 4) return "Excellent! You know your constrained writing well!";
+                if (score >= 3) return "Good job! You have a solid understanding of OULIPO.";
+                if (score >= 2) return "You know some OULIPO basics.";
+                return "Time to learn more about the fascinating world of OULIPO!";
+            }
+        }
+        
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            createStarfield();
+            setupRestrictedTypewriter();
+            setupN7Transformer();
+            setupLipogramDetector();
+            setup99WaysExercise();
+            setupQuiz();
+        });
+    </script>
+</body>
+</html>

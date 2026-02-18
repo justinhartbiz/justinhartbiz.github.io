@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Antikythera Mechanism</title>
+    <style>
+        /* Base Styles */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --dark-bg: #030305;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --gold: #FFD28E;
+            --gold-light: rgba(255, 210, 142, 0.7);
+            --gold-dim: rgba(255, 210, 142, 0.3);
+            --text-light: rgba(255, 255, 255, 0.9);
+            --text-dim: rgba(255, 255, 255, 0.7);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Playfair Display', serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        /* Starfield Background */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4, h5 {
+            font-family: 'Playfair Display', serif;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            text-align: center;
+            margin: 2rem 0;
+            letter-spacing: 1px;
+        }
+        
+        h2 {
+            font-size: 2.2rem;
+            margin-top: 1.5rem;
+        }
+        
+        h3 {
+            font-size: 1.8rem;
+            margin-top: 1rem;
+        }
+        
+        p, li {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 1rem 0;
+        }
+        
+        section {
+            margin: 3rem 0;
+        }
+        
+        /* Glassmorphism Panels */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Navigation */
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gold-dim);
+        }
+        
+        nav a:hover {
+            background: var(--gold-dim);
+            color: var(--dark-bg);
+        }
+        
+        /* Interactive Elements Common Styles */
+        .interactive {
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .interactive-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+        
+        /* Buttons & Controls */
+        .btn {
+            font-family: 'JetBrains Mono', monospace;
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            margin: 0.5rem;
+        }
+        
+        .btn:hover {
+            background-color: var(--gold);
+            color: var(--dark-bg);
+        }
+        
+        /* Gear Simulator Styles */
+        .gear-simulator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .gear-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 1rem auto;
+        }
+        
+        .gear {
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transform-origin: center;
+            transition: transform 0.1s linear;
+        }
+        
+        .crank-handle {
+            cursor: grab;
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--dark-bg);
+            user-select: none;
+            z-index: 10;
+        }
+        
+        /* Date Explorer Styles */
+        .date-explorer {
+            text-align: center;
+        }
+        
+        .calendar-display {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin: 1rem 0;
+        }
+        
+        .calendar-day {
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+        
+        /* Exploded View Styles */
+        .exploded-view {
+            text-align: center;
+        }
+        
+        .exploded-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin: 1rem 0;
+        }
+        
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: all 0.5s ease;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+        
+        /* Timeline Styles */
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+        
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 3px;
+            background-color: var(--gold-dim);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -1px;
+        }
+        
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+        }
+        
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: var(--gold);
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        
+        .timeline-left {
+            left: 0;
+        }
+        
+        .timeline-right {
+            left: 50%;
+        }
+        
+        .timeline-left::after {
+            right: -8px;
+        }
+        
+        .timeline-right::after {
+            left: -7px;
+        }
+        
+        .timeline-content {
+            padding: 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+        }
+        
+        .timeline-date {
+            color: var(--gold);
+            font-weight: bold;
+        }
+        
+        /* Quiz Styles */
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .question {
+            margin: 1.5rem 0;
+        }
+        
+        .options {
+            list-style-type: none;
+            margin: 1rem 0;
+        }
+        
+        .option {
+            padding: 0.7rem 1rem;
+            margin: 0.5rem 0;
+            border: 1px solid var(--glass-border);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .selected {
+            background-color: var(--gold-dim);
+            color: var(--dark-bg);
+        }
+        
+        .correct {
+            background-color: rgba(0, 255, 0, 0.2);
+            border-color: rgba(0, 255, 0, 0.5);
+        }
+        
+        .incorrect {
+            background-color: rgba(255, 0, 0, 0.2);
+            border-color: rgba(255, 0, 0, 0.5);
+        }
+        
+        .result {
+            margin-top: 2rem;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        /* Media Queries */
+        @media (max-width: 800px) {
+            .gear-container {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .timeline::after {
+                left: 31px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            
+            .timeline-right, .timeline-left {
+                left: 0;
+            }
+            
+            .timeline-left::after, .timeline-right::after {
+                left: 15px;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.7rem;
+            }
+            
+            .gear-container {
+                width: 250px;
+                height: 250px;
+            }
+        }
+
+        /* Footer Styles */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+        
+        .attribution {
+            font-style: italic;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas class="stars" id="starfield"></canvas>
+    
+    <div class="container">
+        <header>
+            <h1>THE ANTIKYTHERA MECHANISM</h1>
+            <p class="subtitle">The World's First Computer — 2,000 Years Ahead of Its Time</p>
+        </header>
+        
+        <nav class="glass-panel">
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#gear-simulator">Gear Simulator</a></li>
+                <li><a href="#date-explorer">Date Explorer</a></li>
+                <li><a href="#exploded-view">Exploded View</a></li>
+                <li><a href="#timeline">Timeline</a></li>
+                <li><a href="#quiz">Quiz</a></li>
+            </ul>
+        </nav>
+        
+        <section id="about" class="glass-panel">
+            <h2>The 2,000-Year-Old Computer</h2>
+            <p>Discovered in 1901 in a Roman-era shipwreck off the coast of Antikythera, Greece, the Antikythera Mechanism is the world's oldest known analog computer. Built between 100-70 BCE, this remarkable device contained over 30 precision bronze gears that could predict astronomical positions, eclipses, and even track the cycles of the Olympic Games.</p>
+            
+            <div class="about-highlights">
+                <h3>Key Facts</h3>
+                <ul>
+                    <li><strong>Age:</strong> Approximately 2,100 years old</li>
+                    <li><strong>Origin:</strong> Likely constructed on the island of Rhodes</li>
+                    <li><strong>Size:</strong> About the size of a shoebox</li>
+                    <li><strong>Complexity:</strong> Contained at least 30 precisely-cut bronze gears</li>
+                    <li><strong>Function:</strong> Calculated astronomical positions, predicted eclipses, tracked lunar phases, and displayed the four-year cycle of athletic games</li>
+                    <li><strong>Historical Significance:</strong> Its technological sophistication was not seen again for at least 1,500 years</li>
+                    <li><strong>Modern Discovery:</strong> CT scans in the early 2000s revealed hidden inscriptions and the full complexity of its mechanism</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="gear-simulator" class="glass-panel interactive">
+            <h2 class="interactive-title">Gear Turning Simulator</h2>
+            <p>Rotate the crank to see how the gears of the Antikythera Mechanism would have worked together. This simplified model demonstrates the principles of differential gear movement that allowed the device to track celestial bodies.</p>
+            
+            <div class="gear-simulator">
+                <div class="gear-container" id="gear-simulator-container">
+                    <div class="crank-handle" id="crank">TURN</div>
+                </div>
+                <div class="gear-info">
+                    <p>Current position: <span id="position-display" class="mono">0°</span></p>
+                    <div>
+                        <button class="btn" id="reset-gears">Reset Position</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="date-explorer" class="glass-panel interactive">
+            <h2 class="interactive-title">Ancient Date Explorer (circa 150 BCE)</h2>
+            <p>The Antikythera Mechanism could calculate dates of astronomical phenomena and important cultural events. Explore how the ancient calendar would have looked around the time the device was created.</p>
+            
+            <div class="date-explorer">
+                <div class="controls">
+                    <button class="btn" id="prev-month">Previous Month</button>
+                    <span id="current-date" class="mono" style="margin: 0 1rem; display: inline-block; min-width: 200px;">Month, 150 BCE</span>
+                    <button class="btn" id="next-month">Next Month</button>
+                </div>
+                
+                <div class="calendar-display" id="calendar-grid">
+                    <!-- Calendar days will be inserted here by JavaScript -->
+                </div>
+                
+                <div class="event-display glass-panel" style="margin-top: 1.5rem;">
+                    <h3>Events & Astronomical Phenomena</h3>
+                    <div id="events-list">
+                        <p>Select a day to see associated events.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="exploded-view" class="glass-panel interactive">
+            <h2 class="interactive-title">Exploded Gear View</h2>
+            <p>Explore the complex arrangement of gears within the Antikythera Mechanism. Use the slider to separate the layers and see how the different components fit together.</p>
+            
+            <div class="exploded-view">
+                <div class="controls">
+                    <label for="explosion-slider" class="mono">Separation: </label>
+                    <input type="range" id="explosion-slider" min="0" max="100" value="0">
+                    <button class="btn" id="reset-explosion">Reset View</button>
+                </div>
+                
+                <div class="exploded-container" id="exploded-view-container">
+                    <!-- Gear layers will be inserted here by JavaScript -->
+                </div>
+                
+                <div class="layer-info">
+                    <h3>Component Descriptions</h3>
+                    <div id="layer-description">
+                        <p>Move the slider to explore the different components of the mechanism.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="timeline" class="glass-panel interactive">
+            <h2 class="interactive-title">Discovery Timeline</h2>
+            <p>The story of the Antikythera Mechanism spans over two millennia, from its creation to its discovery and ongoing research.</p>
+            
+            <div class="timeline">
+                <div class="timeline-item timeline-left">
+                    <div class="timeline-content">
+                        <h3 class="timeline-date">~100-70 BCE</h3>
+                        <p>The Antikythera Mechanism is constructed, likely on the island of Rhodes, which was known for its astronomical research and mechanical engineering.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item timeline-right">
+                    <div class="timeline-content">
+                        <h3 class="timeline-date">~60-50 BCE</h3>
+                        <p>The Roman ship carrying the mechanism sinks near the island of Antikythera, possibly during a storm while transporting treasures from the eastern Mediterranean to Rome.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item timeline-left">
+                    <div class="timeline-content">
+                        <h3 class="timeline-date">1901</h3>
+                        <p>Greek sponge divers discover the shipwreck near Antikythera. Among the recovered artifacts are several corroded bronze fragments that would later be identified as parts of the mechanism.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item timeline-right">
+                    <div class="timeline-content">
+                        <h3 class="timeline-date">1902</h3>
+                        <p>Archaeologist Valerios Stais notices gear wheels embedded in the fragments but his suggestion that they might be an astronomical mechanism is initially dismissed.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item timeline-left">
+                    <div class="timeline-content">
+                        <h3 class="timeline-date">1951-1952</h3>
+                        <p>British science historian Derek de Solla Price begins studying the mechanism and recognizes it as an ancient astronomical calculator.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item timeline-right">
+                    <div class="timeline-content">
+                        <h3 class="timeline-date">1971-1974</h3>
+                        <p>Price collaborates with nuclear physicist Charalampos Karakalos to obtain X-ray and gamma-ray images of the mechanism's internal structure, revealing its complex gear system.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item timeline-left">
+                    <div class="timeline-content">
+                        <h3 class="timeline-date">2005-2006</h3>
+                        <p>The Antikythera Mechanism Research Project uses advanced imaging techniques, including high-resolution X-ray tomography, to create detailed 3D scans of the fragments.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item timeline-right">
+                    <div class="timeline-content">
+                        <h3 class="timeline-date">2006-2008</h3>
+                        <p>Researchers decipher previously hidden inscriptions, revealing that the device could predict eclipses and model the irregular orbit of the Moon based on Hipparchos' theories.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item timeline-left">
+                    <div class="timeline-content">
+                        <h3 class="timeline-date">2012-2016</h3>
+                        <p>Further analysis reveals that the mechanism also tracked Venus and Saturn's positions and included a dial for the four-year cycle of athletic competitions, including the Olympic Games.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item timeline-right">
+                    <div class="timeline-content">
+                        <h3 class="timeline-date">Ongoing</h3>
+                        <p>Research continues to this day, with scientists creating working replicas and uncovering new details about this remarkable ancient technology.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="quiz" class="glass-panel interactive">
+            <h2 class="interactive-title">Test Your Knowledge</h2>
+            <p>Think you've learned about the Antikythera Mechanism? Take this quiz to find out!</p>
+            
+            <div class="quiz-container" id="quiz-box">
+                <div class="question" id="question-container">
+                    <!-- Questions will be dynamically inserted here -->
+                </div>
+                
+                <div class="controls">
+                    <button class="btn" id="check-answer" disabled>Check Answer</button>
+                    <button class="btn" id="next-question" disabled>Next Question</button>
+                </div>
+                
+                <div class="result" id="quiz-result"></div>
+            </div>
+        </section>
+    </div>
+    
+    <footer>
+        <p>© The Antikythera Mechanism Interactive Experience</p>
+        <p class="attribution">Created as a single HTML file with no external dependencies</p>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script>
+        // Starfield Background
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('starfield');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size to window size
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Star properties
+            const stars = [];
+            const starCount = Math.min(window.innerWidth, window.innerHeight) * 0.3; // Responsive star count
+            
+            // Initialize stars
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2,
+                    brightness: Math.random(),
+                    speed: Math.random() * 0.05
+                });
+            }
+            
+            // Animation loop
+            function animateStars() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw stars
+                for (let i = 0; i < stars.length; i++) {
+                    const star = stars[i];
+                    
+                    // Twinkle effect
+                    star.brightness += Math.random() * 0.1 - 0.05;
+                    if (star.brightness < 0.3) star.brightness = 0.3;
+                    if (star.brightness > 1) star.brightness = 1;
+                    
+                    ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Slight movement
+                    star.y += star.speed;
+                    
+                    // Reset stars that move off-screen
+                    if (star.y > canvas.height) {
+                        star.y = 0;
+                        star.x = Math.random() * canvas.width;
+                    }
+                }
+                
+                requestAnimationFrame(animateStars);
+            }
+            
+            animateStars();
+            
+            // Gear Simulator
+            initGearSimulator();
+            
+            // Date Explorer
+            initDateExplorer();
+            
+            // Exploded View
+            initExplodedView();
+            
+            // Quiz
+            initQuiz();
+        });
+        
+        // Gear Simulator
+        function initGearSimulator() {
+            const container = document.getElementById('gear-simulator-container');
+            const crank = document.getElementById('crank');
+            const positionDisplay = document.getElementById('position-display');
+            const resetButton = document.getElementById('reset-gears');
+            
+            // Create gears with different sizes and teeth counts
+            const gears = [
+                { id: 'gear1', size: 160, teeth: 48, color: '#FFD28E', position: { x: 200, y: 200 }, angle: 0, ratio: 1 },
+                { id: 'gear2', size: 100, teeth: 24, color: '#D4AF37', position: { x: 120, y: 120 }, angle: 0, ratio: 2 },
+                { id: 'gear3', size: 80, teeth: 16, color: '#B8860B', position: { x: 300, y: 100 }, angle: 0, ratio: 3 },
+                { id: 'gear4', size: 60, teeth: 12, color: '#CD7F32', position: { x: 280, y: 280 }, angle: 0, ratio: 4 },
+                { id: 'gear5', size: 40, teeth: 8, color: '#A67D3D', position: { x: 110, y: 270 }, angle: 0, ratio: 6 }
+            ];
+            
+            // Create gear elements
+            gears.forEach(gear => {
+                const gearElement = document.createElement('div');
+                gearElement.id = gear.id;
+                gearElement.className = 'gear';
+                gearElement.style.width = `${gear.size}px`;
+                gearElement.style.height = `${gear.size}px`;
+                gearElement.style.left = `${gear.position.x - gear.size / 2}px`;
+                gearElement.style.top = `${gear.position.y - gear.size / 2}px`;
+                gearElement.style.borderRadius = '50%';
+                gearElement.style.border = `${gear.size / 16}px dashed ${gear.color}`;
+                gearElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                
+                // Add gear teeth indicators
+                for (let i = 0; i < gear.teeth; i++) {
+                    const tooth = document.createElement('div');
+                    tooth.style.position = 'absolute';
+                    tooth.style.width = '10px';
+                    tooth.style.height = '10px';
+                    tooth.style.backgroundColor = gear.color;
+                    tooth.style.borderRadius = '50%';
+                    
+                    const angle = (i * 360 / gear.teeth) * (Math.PI / 180);
+                    const radius = gear.size / 2 - 5;
+                    
+                    tooth.style.left = `${gear.size / 2 + radius * Math.cos(angle) - 5}px`;
+                    tooth.style.top = `${gear.size / 2 + radius * Math.sin(angle) - 5}px`;
+                    
+                    gearElement.appendChild(tooth);
+                }
+                
+                container.appendChild(gearElement);
+            });
+            
+            // Position the crank on the first gear
+            crank.style.left = `${gears[0].position.x - 30}px`;
+            crank.style.top = `${gears[0].position.y - 30}px`;
+            
+            let isDragging = false;
+            let lastAngle = 0;
+            let centerX = gears[0].position.x;
+            let centerY = gears[0].position.y;
+            
+            // Update gear rotations based on main gear angle
+            function updateGears(mainAngle) {
+                gears[0].angle = mainAngle;
+                document.getElementById(gears[0].id).style.transform = `rotate(${gears[0].angle}deg)`;
+                
+                // Update other gears based on their ratios
+                for (let i = 1; i < gears.length; i++) {
+                    gears[i].angle = mainAngle * gears[i].ratio * -1;
+                    document.getElementById(gears[i].id).style.transform = `rotate(${gears[i].angle}deg)`;
+                }
+                
+                // Update display
+                positionDisplay.textContent = `${Math.round(mainAngle % 360)}°`;
+            }
+            
+            // Crank rotation handlers
+            crank.addEventListener('mousedown', startDrag);
+            crank.addEventListener('touchstart', e => {
+                e.preventDefault();
+                startDrag(e);
+            });
+            
+            function startDrag(e) {
+                isDragging = true;
+                crank.style.cursor = 'grabbing';
+                
+                // Get initial angle
+                const rect = crank.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                if (e.type === 'touchstart') {
+                    lastAngle = getAngle(centerX, centerY, e.touches[0].clientX, e.touches[0].clientY);
+                } else {
+                    lastAngle = getAngle(centerX, centerY, e.clientX, e.clientY);
+                }
+                
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('touchmove', drag, { passive: false });
+                document.addEventListener('mouseup', endDrag);
+                document.addEventListener('touchend', endDrag);
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                const rect = crank.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                let currentAngle;
+                if (e.type === 'touchmove') {
+                    currentAngle = getAngle(centerX, centerY, e.touches[0].clientX, e.touches[0].clientY);
+                } else {
+                    currentAngle = getAngle(centerX, centerY, e.clientX, e.clientY);
+                }
+                
+                // Calculate difference and update
+                let angleDiff = currentAngle - lastAngle;
+                
+                // Handle crossing the -180°/180° boundary
+                if (angleDiff > 180) angleDiff -= 360;
+                if (angleDiff < -180) angleDiff += 360;
+                
+                gears[0].angle += angleDiff;
+                updateGears(gears[0].angle);
+                
+                lastAngle = currentAngle;
+            }
+            
+            function endDrag() {
+                if (isDragging) {
+                    isDragging = false;
+                    crank.style.cursor = 'grab';
+                    
+                    document.removeEventListener('mousemove', drag);
+                    document.removeEventListener('touchmove', drag);
+                    document.removeEventListener('mouseup', endDrag);
+                    document.removeEventListener('touchend', endDrag);
+                }
+            }
+            
+            // Calculate angle from center point to cursor
+            function getAngle(centerX, centerY, pointX, pointY) {
+                return Math.atan2(pointY - centerY, pointX - centerX) * 180 / Math.PI;
+            }
+            
+            // Reset button
+            resetButton.addEventListener('click', function() {
+                gears.forEach(gear => { gear.angle = 0 });
+                updateGears(0);
+            });
+            
+            // Initialize with gears at 0 degrees
+            updateGears(0);
+        }
+        
+        // Date Explorer
+        function initDateExplorer() {
+            const monthNames = [
+                "Posideon (Dec/Jan)", "Gamelion (Jan/Feb)", "Anthesterion (Feb/Mar)",
+                "Elaphebolion (Mar/Apr)", "Mounychion (Apr/May)", "Thargelion (May/Jun)",
+                "Skirophorion (Jun/Jul)", "Hekatombaion (Jul/Aug)", "Metageitnion (Aug/Sep)",
+                "Boedromion (Sep/Oct)", "Pyanepsion (Oct/Nov)", "Maimakterion (Nov/Dec)"
+            ];
+            
+            let currentMonth = 0; // 0-based index for the months
+            const calendarGrid = document.getElementById('calendar-grid');
+            const currentDateDisplay = document.getElementById('current-date');
+            const prevButton = document.getElementById('prev-month');
+            const nextButton = document.getElementById('next-month');
+            const eventsList = document.getElementById('events-list');
+            
+            // Events data (historical/astronomical events that would be tracked)
+            const events = [
+                { month: 0, day: 5, event: "Winter Solstice Festival", type: "cultural" },
+                { month: 0, day: 12, event: "New Moon", type: "astronomical" },
+                { month: 0, day: 27, event: "Full Moon", type: "astronomical" },
+                { month: 1, day: 3, event: "Mercury at Greatest Eastern Elongation", type: "astronomical" },
+                { month: 1, day: 15, event: "Marriage Festival of Hera and Zeus", type: "cultural" },
+                { month: 2, day: 11, event: "Anthesteria Festival (Wine Festival)", type: "cultural" },
+                { month: 2, day: 22, event: "Partial Solar Eclipse", type: "astronomical" },
+                { month: 3, day: 7, event: "Festival of Artemis", type: "cultural" },
+                { month: 3, day: 19, event: "Venus at Maximum Brightness", type: "astronomical" },
+                { month: 4, day: 5, event: "Spring Equinox Celebrations", type: "cultural" },
+                { month: 4, day: 18, event: "Jupiter-Saturn Conjunction", type: "astronomical" },
+                { month: 5, day: 2, event: "Thargelia Festival (Apollo)", type: "cultural" },
+                { month: 5, day: 23, event: "Total Lunar Eclipse", type: "astronomical" },
+                { month: 6, day: 14, event: "Skiraphoria Festival", type: "cultural" },
+                { month: 6, day: 28, event: "Summer Solstice Observations", type: "astronomical" },
+                { month: 7, day: 8, event: "First Day of Olympic Games (Year 1)", type: "cultural" },
+                { month: 7, day: 16, event: "Mars at Opposition", type: "astronomical" },
+                { month: 8, day: 4, event: "Festival of Poseidon", type: "cultural" },
+                { month: 8, day: 19, event: "Mercury at Greatest Western Elongation", type: "astronomical" },
+                { month: 9, day: 7, event: "Boedromia Festival (Apollo)", type: "cultural" },
+                { month: 9, day: 23, event: "Autumn Equinox", type: "astronomical" },
+                { month: 10, day: 10, event: "Pyanepsia Festival (Apollo)", type: "cultural" },
+                { month: 10, day: 25, event: "Saturn at Opposition", type: "astronomical" },
+                { month: 11, day: 3, event: "Festival of Zeus", type: "cultural" },
+                { month: 11, day: 20, event: "Lunar Standstill (Major)", type: "astronomical" }
+            ];
+            
+            // Render calendar for current month
+            function renderCalendar() {
+                // Clear existing calendar
+                calendarGrid.innerHTML = '';
+                
+                // Update month display
+                currentDateDisplay.textContent = `${monthNames[currentMonth]}, 150 BCE`;
+                
+                // Add day headers
+                const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                dayNames.forEach(day => {
+                    const dayHeader = document.createElement('div');
+                    dayHeader.className = 'calendar-day';
+                    dayHeader.style.fontWeight = 'bold';
+                    dayHeader.textContent = day;
+                    calendarGrid.appendChild(dayHeader);
+                });
+                
+                // Add days (using a 30-day month for ancient Greek calendar)
+                for (let i = 1; i <= 30; i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day';
+                    dayElement.textContent = i;
+                    dayElement.setAttribute('data-day', i);
+                    
+                    // Check if this day has events
+                    const dayEvents = events.filter(event => event.month === currentMonth && event.day === i);
+                    if (dayEvents.length > 0) {
+                        dayElement.style.backgroundColor = 'rgba(255, 210, 142, 0.2)';
+                        dayElement.style.borderColor = 'var(--gold-dim)';
+                        dayElement.style.cursor = 'pointer';
+                    }
+                    
+                    dayElement.addEventListener('click', () => showEvents(i));
+                    calendarGrid.appendChild(dayElement);
+                }
+                
+                // Add empty cells to complete the grid
+                const emptyCells = (7 - (30 % 7)) % 7;
+                for (let i = 0; i < emptyCells; i++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'calendar-day';
+                    emptyCell.style.backgroundColor = 'transparent';
+                    emptyCell.style.border = 'none';
+                    calendarGrid.appendChild(emptyCell);
+                }
+            }
+            
+            // Show events for a specific day
+            function showEvents(day) {
+                // Clear previous events
+                eventsList.innerHTML = '';
+                
+                // Get events for this day
+                const dayEvents = events.filter(event => event.month === currentMonth && event.day === day);
+                
+                if (dayEvents.length === 0) {
+                    eventsList.innerHTML = '<p>No recorded events for this day.</p>';
+                    return;
+                }
+                
+                // Create list of events
+                const eventHeader = document.createElement('h4');
+                eventHeader.textContent = `Events for Day ${day}`;
+                eventsList.appendChild(eventHeader);
+                
+                const list = document.createElement('ul');
+                
+                dayEvents.forEach(event => {
+                    const item = document.createElement('li');
+                    item.innerHTML = `<strong>${event.event}</strong> <span class="mono">(${event.type})</span>`;
+                    
+                    // Color-code by event type
+                    if (event.type === 'astronomical') {
+                        item.style.color = 'var(--gold)';
+                    } else {
+                        item.style.color = 'var(--text-light)';
+                    }
+                    
+                    list.appendChild(item);
+                });
+                
+                eventsList.appendChild(list);
+                
+                // Add a note about the mechanism
+                const note = document.createElement('p');
+                note.style.fontStyle = 'italic';
+                note.style.marginTop = '1rem';
+                note.textContent = 'The Antikythera Mechanism could calculate and display these events through its complex system of gears and dials.';
+                eventsList.appendChild(note);
+            }
+            
+            // Month navigation
+            prevButton.addEventListener('click', () => {
+                currentMonth = (currentMonth - 1 + 12) % 12;
+                renderCalendar();
+            });
+            
+            nextButton.addEventListener('click', () => {
+                currentMonth = (currentMonth + 1) % 12;
+                renderCalendar();
+            });
+            
+            // Initial render
+            renderCalendar();
+        }
+        
+        // Exploded View
+        function initExplodedView() {
+            const container = document.getElementById('exploded-view-container');
+            const slider = document.getElementById('explosion-slider');
+            const resetButton = document.getElementById('reset-explosion');
+            const descriptionBox = document.getElementById('layer-description');
+            
+            // Layer data for the exploded view
+            const layers = [
+                { 
+                    id: 'layer1', 
+                    name: 'Front Face / Display Dial',
+                    description: 'The main dial displayed the zodiac calendar and Egyptian calendar. It had two concentric scales, with the inner one showing the Greek signs of the Zodiac.',
+                    color: '#FFD28E'
+                },
+                { 
+                    id: 'layer2', 
+                    name: 'Main Drive Wheel',
+                    description: 'This large gear was the primary input, driven by a now-lost hand crank. It engaged with the other gears to drive the various displays.',
+                    color: '#E6BE7E'
+                },
+                { 
+                    id: 'layer3', 
+                    name: 'Epicyclic Gearing',
+                    description: 'This sophisticated arrangement modeled the Moon's irregular orbit around Earth using epicyclic gearing—essentially a gear mounted on another gear.',
+                    color: '#CCAF6E'
+                },
+                { 
+                    id: 'layer4', 
+                    name: 'Eclipse Prediction System',
+                    description: 'A specialized gear train that rotated once every 223 lunar months (the Saros cycle), allowing the prediction of solar and lunar eclipses.',
+                    color: '#B39F5E'
+                },
+                { 
+                    id: 'layer5', 
+                    name: 'Differential Turntable',
+                    description: 'An early differential gear system that computed the difference between two inputs, used to model the apparent motion of celestial bodies.',
+                    color: '#998F4E'
+                },
+                { 
+                    id: 'layer6', 
+                    name: 'Back Face / Olympic Games Dial',
+                    description: 'The back face included dials that tracked the 4-year Olympic cycle, as well as other Panhellenic Games that followed 2-year and 4-year cycles.',
+                    color: '#807F3E'
+                }
+            ];
+            
+            // Create layer elements
+            layers.forEach((layer, index) => {
+                const layerElement = document.createElement('div');
+                layerElement.id = layer.id;
+                layerElement.className = 'layer';
+                
+                // Create a stylized representation of each layer
+                layerElement.style.width = '300px';
+                layerElement.style.height = '300px';
+                layerElement.style.margin = '0 auto';
+                layerElement.style.borderRadius = '50%';
+                layerElement.style.border = '2px solid ' + layer.color;
+                layerElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                layerElement.style.boxShadow = `0 0 15px ${layer.color}`;
+                
+                // Add internal details unique to each layer
+                for (let i = 0; i < 6 + index; i++) {
+                    const detail = document.createElement('div');
+                    const angle = (i * 360 / (6 + index)) * (Math.PI / 180);
+                    const radius = 100 - index * 10;
+                    
+                    detail.style.position = 'absolute';
+                    detail.style.width = (20 - index * 2) + 'px';
+                    detail.style.height = (20 - index * 2) + 'px';
+                    detail.style.borderRadius = '50%';
+                    detail.style.backgroundColor = layer.color;
+                    detail.style.opacity = '0.8';
+                    detail.style.left = `${150 + radius * Math.cos(angle) - 10}px`;
+                    detail.style.top = `${150 + radius * Math.sin(angle) - 10}px`;
+                    
+                    layerElement.appendChild(detail);
+                }
+                
+                // Add gear teeth for mechanical layers
+                if (index > 0 && index < 5) {
+                    const teethCount = 24 - index * 3;
+                    
+                    for (let i = 0; i < teethCount; i++) {
+                        const tooth = document.createElement('div');
+                        const angle = (i * 360 / teethCount) * (Math.PI / 180);
+                        const radius = 140;
+                        
+                        tooth.style.position = 'absolute';
+                        tooth.style.width = '10px';
+                        tooth.style.height = '20px';
+                        tooth.style.backgroundColor = layer.color;
+                        tooth.style.left = `${150 + radius * Math.cos(angle) - 5}px`;
+                        tooth.style.top = `${150 + radius * Math.sin(angle) - 10}px`;
+                        tooth.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
+                        
+                        layerElement.appendChild(tooth);
+                    }
+                }
+                
+                // Add layer name
+                const nameElement = document.createElement('div');
+                nameElement.textContent = layer.name;
+                nameElement.style.position = 'absolute';
+                nameElement.style.top = '50%';
+                nameElement.style.left = '50%';
+                nameElement.style.transform = 'translate(-50%, -50%)';
+                nameElement.style.color = layer.color;
+                nameElement.style.fontFamily = 'JetBrains Mono, monospace';
+                nameElement.style.fontSize = '14px';
+                nameElement.style.fontWeight = 'bold';
+                nameElement.style.textAlign = 'center';
+                nameElement.style.pointerEvents = 'none';
+                
+                layerElement.appendChild(nameElement);
+                container.appendChild(layerElement);
+            });
+            
+            // Update layer positions based on slider
+            function updateExplodedView() {
+                const explosionFactor = parseInt(slider.value);
+                
+                layers.forEach((layer, index) => {
+                    const layerElement = document.getElementById(layer.id);
+                    
+                    // Distribute layers along z-axis based on slider value
+                    const zOffset = index * explosionFactor;
+                    layerElement.style.transform = `translateZ(${zOffset}px)`;
+                    
+                    // Simulate perspective by scaling
+                    const scale = 1 - (explosionFactor * 0.002 * index);
+                    layerElement.style.transform = `translateY(${zOffset}px) scale(${scale})`;
+                    
+                    // Adjust opacity for depth effect
+                    layerElement.style.opacity = 1 - (explosionFactor * 0.005 * index);
+                    
+                    // Show active layer description
+                    if (index === Math.floor((explosionFactor / 100) * (layers.length - 1))) {
+                        descriptionBox.innerHTML = `
+                            <h4>${layer.name}</h4>
+                            <p>${layer.description}</p>
+                        `;
+                    }
+                });
+            }
+            
+            // Event listeners
+            slider.addEventListener('input', updateExplodedView);
+            
+            resetButton.addEventListener('click', () => {
+                slider.value = 0;
+                updateExplodedView();
+            });
+            
+            // Initialize
+            updateExplodedView();
+        }
+        
+        // Quiz
+        function initQuiz() {
+            const quizContainer = document.getElementById('question-container');
+            const checkButton = document.getElementById('check-answer');
+            const nextButton = document.getElementById('next-question');
+            const resultDisplay = document.getElementById('quiz-result');
+            
+            // Quiz questions
+            const questions = [
+                {
+                    question: "When was the Antikythera Mechanism discovered?",
+                    options: ["1801", "1901", "1951", "2001"],
+                    correct: 1,
+                    explanation: "The mechanism was discovered in 1901 by Greek sponge divers exploring a shipwreck off the island of Antikythera."
+                },
+                {
+                    question: "What was the primary function of the Antikythera Mechanism?",
+                    options: [
+                        "Navigation at sea",
+                        "Military calculations", 
+                        "Astronomical predictions and calendar calculations",
+                        "Architectural measurements"
+                    ],
+                    correct: 2,
+                    explanation: "The primary function was astronomical in nature, allowing users to predict astronomical positions, eclipses, and track calendars including the four-year cycle of athletic games."
+                },
+                {
+                    question: "How old is the Antikythera Mechanism estimated to be?",
+                    options: [
+                        "Approximately 1,000 years old",
+                        "Approximately 2,000 years old",
+                        "Approximately 3,000 years old",
+                        "Approximately 500 years old"
+                    ],
+                    correct: 1,
+                    explanation: "The mechanism dates to around 100-70 BCE, making it approximately 2,100 years old."
+                },
+                {
+                    question: "What technology was used to reveal the hidden inscriptions on the Antikythera Mechanism?",
+                    options: [
+                        "Ultraviolet light scanning",
+                        "Laser spectroscopy",
+                        "CT (Computed Tomography) scanning",
+                        "Chemical treatments"
+                    ],
+                    correct: 2,
+                    explanation: "CT scans and high-resolution X-ray tomography were used in the early 2000s to reveal the inscriptions and internal structure without damaging the fragile artifact."
+                },
+                {
+                    question: "What makes the Antikythera Mechanism historically significant?",
+                    options: [
+                        "It was made of gold and precious gems",
+                        "Its technological sophistication was not seen again for at least 1,500 years",
+                        "It was owned by a famous Roman emperor",
+                        "It's the oldest known Greek artifact"
+                    ],
+                    correct: 1,
+                    explanation: "The mechanism's technological sophistication, with its complex gear train and astronomical calculations, was not matched for at least 1,500 years, making it a unique window into ancient Greek technology."
+                }
+            ];
+            
+            let currentQuestion = 0;
+            let score = 0;
+            let selectedOption = null;
+            
+            // Display current question
+            function showQuestion() {
+                // Reset state
+                selectedOption = null;
+                checkButton.disabled = true;
+                nextButton.disabled = true;
+                
+                // Get current question
+                const questionData = questions[currentQuestion];
+                
+                // Create question element
+                quizContainer.innerHTML = `
+                    <h3>Question ${currentQuestion + 1} of ${questions.length}</h3>
+                    <p>${questionData.question}</p>
+                    <ul class="options" id="quiz-options"></ul>
+                `;
+                
+                // Add options
+                const optionsList = document.getElementById('quiz-options');
+                
+                questionData.options.forEach((option, index) => {
+                    const optionElement = document.createElement('li');
+                    optionElement.className = 'option';
+                    optionElement.textContent = option;
+                    optionElement.setAttribute('data-index', index);
+                    
+                    optionElement.addEventListener('click', () => {
+                        // Remove selection from all options
+                        document.querySelectorAll('.option').forEach(el => {
+                            el.classList.remove('selected');
+                        });
+                        
+                        // Add selection to clicked option
+                        optionElement.classList.add('selected');
+                        selectedOption = index;
+                        
+                        // Enable check button
+                        checkButton.disabled = false;
+                    });
+                    
+                    optionsList.appendChild(optionElement);
+                });
+            }
+            
+            // Check answer
+            checkButton.addEventListener('click', () => {
+                if (selectedOption === null) return;
+                
+                const questionData = questions[currentQuestion];
+                const options = document.querySelectorAll('.option');
+                
+                // Mark correct and incorrect answers
+                options.forEach((option, index) => {
+                    if (index === questionData.correct) {
+                        option.classList.add('correct');
+                    } else if (index === selectedOption) {
+                        option.classList.add('incorrect');
+                    }
+                });
+                
+                // Show explanation
+                const explanationElement = document.createElement('p');
+                explanationElement.style.marginTop = '1rem';
+                explanationElement.style.fontStyle = 'italic';
+                explanationElement.textContent = questionData.explanation;
+                document.getElementById('quiz-options').appendChild(explanationElement);
+                
+                // Update score if correct
+                if (selectedOption === questionData.correct) {
+                    score++;
+                }
+                
+                // Enable next button
+                nextButton.disabled = false;
+                checkButton.disabled = true;
+            });
+            
+            // Next question
+            nextButton.addEventListener('click', () => {
+                currentQuestion++;
+                
+                if (currentQuestion < questions.length) {
+                    showQuestion();
+                } else {
+                    // Show results
+                    quizContainer.innerHTML = `<h3>Quiz Complete!</h3>`;
+                    resultDisplay.innerHTML = `You scored ${score} out of ${questions.length}!`;
+                    
+                    // Add feedback based on score
+                    let feedback;
+                    if (score === questions.length) {
+                        feedback = "Perfect score! You're an Antikythera expert!";
+                    } else if (score >= questions.length * 0.7) {
+                        feedback = "Great job! You know your ancient technology well!";
+                    } else if (score >= questions.length * 0.5) {
+                        feedback = "Good effort! You've learned some interesting facts about this ancient wonder.";
+                    } else {
+                        feedback = "Thanks for taking the quiz! Explore the page to learn more about this fascinating artifact.";
+                    }
+                    
+                    const feedbackElement = document.createElement('p');
+                    feedbackElement.textContent = feedback;
+                    resultDisplay.appendChild(feedbackElement);
+                    
+                    // Add restart button
+                    const restartButton = document.createElement('button');
+                    restartButton.className = 'btn';
+                    restartButton.textContent = 'Restart Quiz';
+                    restartButton.addEventListener('click', () => {
+                        currentQuestion = 0;
+                        score = 0;
+                        resultDisplay.innerHTML = '';
+                        showQuestion();
+                    });
+                    resultDisplay.appendChild(restartButton);
+                    
+                    // Hide control buttons
+                    checkButton.style.display = 'none';
+                    nextButton.style.display = 'none';
+                }
+            });
+            
+            // Start quiz
+            showQuestion();
+        }
+    </script>
+</body>
+</html>

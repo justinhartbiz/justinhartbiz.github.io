@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Non-Newtonian Fluids: Breaking Physics Rules</title>
+    <style>
+        /* Importing fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        /* Base styles */
+        :root {
+            --bg-color: #030305;
+            --text-color: #ffffff;
+            --accent-color: #FFD28E;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Playfair Display', serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Starfield background */
+        #starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        /* Typography */
+        h1, h2, h3 {
+            color: var(--accent-color);
+            margin: 1rem 0;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        h2 {
+            font-size: 2rem;
+            border-bottom: 1px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+        }
+        
+        p, li {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .section {
+            margin: 4rem 0;
+        }
+        
+        /* Glassmorphism cards */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            box-shadow: var(--glass-shadow);
+            padding: 2rem;
+            margin: 2rem 0;
+            transition: transform 0.3s ease;
+        }
+        
+        .glass-panel:hover {
+            transform: translateY(-5px);
+        }
+        
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            background: rgba(3, 3, 5, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        
+        nav li {
+            margin: 0 1rem;
+        }
+        
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        nav a:hover {
+            color: var(--accent-color);
+        }
+        
+        /* Grid layouts */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        /* Buttons */
+        button {
+            background-color: transparent;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.5rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+        
+        /* Interactive elements */
+        .interactive {
+            margin: 2rem 0;
+        }
+        
+        .interactive-canvas {
+            width: 100%;
+            height: 300px;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .slider {
+            flex-grow: 1;
+            height: 5px;
+            -webkit-appearance: none;
+            background: var(--glass-bg);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        /* Quiz styling */
+        .quiz-container {
+            margin: 2rem 0;
+        }
+        
+        .quiz-question {
+            margin-bottom: 2rem;
+        }
+        
+        .quiz-options {
+            list-style-type: none;
+            margin: 1rem 0;
+        }
+        
+        .quiz-option {
+            padding: 0.8rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 5px;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quiz-option:hover {
+            background: rgba(255, 210, 142, 0.1);
+        }
+        
+        .quiz-option.selected {
+            background: rgba(255, 210, 142, 0.2);
+            border-color: var(--accent-color);
+        }
+        
+        .quiz-option.correct {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: #00ff00;
+        }
+        
+        .quiz-option.incorrect {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff0000;
+        }
+        
+        /* Recipe builder */
+        .recipe-builder {
+            margin: 2rem 0;
+        }
+        
+        .ingredient-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .ingredient {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .ingredient.selected {
+            background: rgba(255, 210, 142, 0.2);
+            border-color: var(--accent-color);
+        }
+        
+        #recipe-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--glass-bg);
+            border-radius: 10px;
+            min-height: 100px;
+        }
+        
+        /* Fluid identification game */
+        .identify-fluid-game {
+            text-align: center;
+        }
+        
+        .fluid-animation {
+            width: 100%;
+            height: 200px;
+            background: var(--glass-bg);
+            border-radius: 10px;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+            border-top: 1px solid var(--glass-border);
+            font-size: 0.9rem;
+        }
+        
+        /* Media queries */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            nav li {
+                margin: 0.5rem 0;
+            }
+            
+            .interactive-canvas {
+                height: 200px;
+            }
+        }
+
+        /* Special animations for simulations */
+        @keyframes flow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .particle {
+            position: absolute;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        /* "Punch the Pool" specific styles */
+        #punch-pool {
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
+            position: relative;
+        }
+
+        .pool {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70%;
+            background: linear-gradient(to bottom, rgba(255, 210, 142, 0.1), rgba(255, 210, 142, 0.2));
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            overflow: hidden;
+            transform-origin: center bottom;
+            transition: transform 0.3s ease;
+        }
+        
+        .force-meter {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: var(--glass-bg);
+            border-radius: 5px;
+            padding: 0.5rem;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Viscosity spectrum simulation */
+        .drag-object {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            cursor: move;
+            user-select: none;
+            z-index: 10;
+        }
+
+        .fluid-lane {
+            position: relative;
+            height: 100%;
+            border-right: 1px dashed rgba(255, 255, 255, 0.2);
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.08));
+        }
+
+        .fluid-lane:last-child {
+            border-right: none;
+        }
+
+        .fluid-name {
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Progress bars for viscosity */
+        .viscosity-meter {
+            position: absolute;
+            left: 10px;
+            width: 5px;
+            height: calc(100% - 40px);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            top: 20px;
+        }
+
+        .viscosity-level {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: var(--accent-color);
+            border-radius: 5px;
+            transition: height 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Starfield background -->
+    <canvas id="starfield"></canvas>
+    
+    <nav>
+        <ul>
+            <li><a href="#intro">Introduction</a></li>
+            <li><a href="#types">Types</a></li>
+            <li><a href="#physics">Physics</a></li>
+            <li><a href="#applications">Applications</a></li>
+            <li><a href="#interactive">Interactive</a></li>
+            <li><a href="#quiz">Quiz</a></li>
+        </ul>
+    </nav>
+    
+    <div class="container">
+        <header>
+            <h1>NON-NEWTONIAN FLUIDS</h1>
+            <p class="subtitle" style="text-align: center; font-size: 1.5rem; margin-top: -1rem; margin-bottom: 2rem; color: var(--accent-color);">Liquids That Break Physics Rules</p>
+        </header>
+        
+        <section id="intro" class="section glass-panel">
+            <h2>Introduction</h2>
+            <p>Non-Newtonian fluids challenge our everyday understanding of how liquids behave. Unlike water or oil, these fascinating substances can change their viscosity (resistance to flow) in response to applied force or stress.</p>
+            <p>Imagine a liquid that lets you run across its surface but sucks you in when you stand still, or a substance that becomes more fluid the harder you stir it. These aren't science fiction—they're non-Newtonian fluids, and they're all around us in everyday life.</p>
+            <p>What makes these fluids "non-Newtonian" is that they don't follow Newton's law of viscosity, which states that the stress in a fluid is proportional to the strain rate. Instead, their viscosity changes based on the applied force, time, or other factors.</p>
+        </section>
+        
+        <section id="types" class="section glass-panel">
+            <h2>Types of Non-Newtonian Fluids</h2>
+            
+            <div class="grid">
+                <div class="glass-panel">
+                    <h3>Shear-Thickening Fluids</h3>
+                    <p>These fluids increase in viscosity when stress is applied. The classic example is <strong>oobleck</strong>, a mixture of cornstarch and water.</p>
+                    <p><strong>Behavior:</strong> Run across it quickly, and it behaves like a solid. Stand still, and you'll slowly sink in as it behaves like a liquid.</p>
+                    <p><strong>Examples:</strong> Cornstarch and water (oobleck), Silly Putty under impact, some ceramic suspensions</p>
+                </div>
+                
+                <div class="glass-panel">
+                    <h3>Shear-Thinning Fluids</h3>
+                    <p>These fluids decrease in viscosity when stress is applied. They become more fluid-like when stirred, shaken, or squeezed.</p>
+                    <p><strong>Behavior:</strong> The harder you shake or stir, the more easily they flow.</p>
+                    <p><strong>Examples:</strong> Ketchup, paint, blood, mayonnaise, many liquid polymers</p>
+                </div>
+                
+                <div class="glass-panel">
+                    <h3>Thixotropic Fluids</h3>
+                    <p>These fluids change viscosity over time. When left still, they gradually become more viscous (gel-like), but when disturbed, they thin out.</p>
+                    <p><strong>Behavior:</strong> They "remember" their history - they become more liquid when shaken but return to a gel-like state when left alone.</p>
+                    <p><strong>Examples:</strong> Yogurt, quicksand, some clays, printer ink, honey</p>
+                </div>
+                
+                <div class="glass-panel">
+                    <h3>Rheopectic Fluids</h3>
+                    <p>These rare fluids are the opposite of thixotropic. They increase in viscosity when stressed over time.</p>
+                    <p><strong>Behavior:</strong> The longer you stir or shake them, the thicker they become.</p>
+                    <p><strong>Examples:</strong> Some types of whipped cream, certain lubricants, cream of tartar solutions</p>
+                </div>
+                
+                <div class="glass-panel">
+                    <h3>Bingham Plastics</h3>
+                    <p>These fluids behave as solids at low stress but flow as viscous fluids at high stress. They require a minimum threshold of stress to begin flowing.</p>
+                    <p><strong>Behavior:</strong> They won't flow until enough force is applied, then they flow normally.</p>
+                    <p><strong>Examples:</strong> Toothpaste, ketchup, mayonnaise, mustard, some drilling muds</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="physics" class="section glass-panel">
+            <h2>The Physics Behind Non-Newtonian Fluids</h2>
+            
+            <div class="glass-panel">
+                <h3>Microstructure: Particles and Chains</h3>
+                <p>The unusual behavior of non-Newtonian fluids stems from their complex microstructure:</p>
+                <ul>
+                    <li><strong>Particulate Suspensions:</strong> Many non-Newtonian fluids consist of solid particles suspended in a liquid medium. How these particles interact determines the fluid's behavior.</li>
+                    <li><strong>Polymer Networks:</strong> Others contain long, chain-like molecules that can entangle or align when force is applied.</li>
+                </ul>
+                
+                <h3>Force Interactions</h3>
+                <p>Under different conditions, these microstructures can:</p>
+                <ul>
+                    <li><strong>Form Particle Chains:</strong> In shear-thickening fluids, particles that normally repel each other can momentarily form chain-like structures when forced together, jamming against each other and resisting flow.</li>
+                    <li><strong>Break Up and Align:</strong> In shear-thinning fluids, complex structures break down and align with the flow direction when stress is applied, reducing viscosity.</li>
+                    <li><strong>Rebuild Slowly:</strong> In thixotropic fluids, the particle networks take time to rebuild after being broken down, explaining their time-dependent behavior.</li>
+                </ul>
+                
+                <h3>Mathematical Models</h3>
+                <p>Several models describe non-Newtonian behavior:</p>
+                <ul>
+                    <li><strong>Power Law:</strong> η = K·γⁿ⁻¹ (where η is viscosity, γ is shear rate, K is consistency, and n is the flow index)</li>
+                    <li><strong>Bingham Model:</strong> τ = τ₀ + ηγ (where τ is shear stress, τ₀ is yield stress, and η is plastic viscosity)</li>
+                    <li><strong>Herschel-Bulkley Model:</strong> Combines both behaviors above</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="applications" class="section glass-panel">
+            <h2>Real-World Applications</h2>
+            
+            <div class="grid">
+                <div class="glass-panel">
+                    <h3>Protective Gear</h3>
+                    <p>Shear-thickening fluids are used in liquid body armor. These materials remain flexible for normal movement but instantly harden when hit by a bullet or knife, distributing and absorbing the impact.</p>
+                    <p>Companies like D3O and Armourgel produce protective gear for sports, military, and industrial applications using STF (Shear-Thickening Fluid) technology.</p>
+                </div>
+                
+                <div class="glass-panel">
+                    <h3>3D Printing</h3>
+                    <p>Non-Newtonian properties are crucial in many 3D printing materials. The ideal printing material flows easily through the nozzle but maintains its shape once deposited, rather than sagging or spreading.</p>
+                    <p>This behavior is achieved using carefully engineered non-Newtonian fluids, often with shear-thinning properties.</p>
+                </div>
+                
+                <div class="glass-panel">
+                    <h3>Food Science</h3>
+                    <p>The food industry relies heavily on understanding and controlling non-Newtonian properties:</p>
+                    <ul>
+                        <li>Ketchup's shear-thinning properties make it stay in the bottle until shaken but flow easily when squeezed</li>
+                        <li>Ice cream's texture is partially due to its non-Newtonian properties</li>
+                        <li>Chocolate has complex non-Newtonian behavior during processing</li>
+                    </ul>
+                </div>
+                
+                <div class="glass-panel">
+                    <h3>Construction</h3>
+                    <p>Concrete is a non-Newtonian fluid before it sets. This property allows it to be pumped through pipes but remain stable once poured.</p>
+                    <p>Self-leveling compounds used in flooring utilize carefully controlled non-Newtonian properties to achieve the perfect balance of flow and stability.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="interactive" class="section glass-panel">
+            <h2>Interactive Experiments</h2>
+            
+            <div class="glass-panel">
+                <h3>Punch the Pool: Oobleck Simulator</h3>
+                <p>Click on the pool with different force (speed) to see how a shear-thickening fluid reacts. Rapid clicks create a solid-like response, while slow, gentle clicks show liquid behavior.</p>
+                <div id="punch-pool" class="interactive-canvas">
+                    <div class="pool"></div>
+                    <div class="force-meter">Force: <span id="force-value">0</span></div>
+                </div>
+                <div class="slider-container">
+                    <span>Force:</span>
+                    <input type="range" min="1" max="10" value="5" class="slider" id="force-slider">
+                    <span id="force-display">5</span>
+                </div>
+                <button id="punch-button">Punch Pool</button>
+            </div>
+            
+            <div class="glass-panel">
+                <h3>Viscosity Spectrum: Drag Objects Through Different Fluids</h3>
+                <p>Drag the circle through different fluid types to feel how viscosity changes. Experience the resistance difference between shear-thickening, Newtonian, and shear-thinning fluids.</p>
+                <div id="viscosity-spectrum" class="interactive-canvas">
+                    <div class="viscosity-lanes"></div>
+                </div>
+                <p>Drag speed: <span id="drag-speed">0</span> px/s</p>
+            </div>
+            
+            <div class="glass-panel">
+                <h3>Identify the Fluid Game</h3>
+                <p>Watch the animation and guess which type of non-Newtonian fluid is being shown based on its behavior.</p>
+                <div id="identify-fluid" class="interactive-canvas">
+                    <div class="fluid-animation"></div>
+                </div>
+                <div class="fluid-options">
+                    <button class="fluid-option" data-type="shear-thickening">Shear-Thickening</button>
+                    <button class="fluid-option" data-type="shear-thinning">Shear-Thinning</button>
+                    <button class="fluid-option" data-type="thixotropic">Thixotropic</button>
+                    <button class="fluid-option" data-type="rheopectic">Rheopectic</button>
+                    <button class="fluid-option" data-type="bingham">Bingham Plastic</button>
+                </div>
+                <p id="identification-result"></p>
+                <button id="new-fluid">New Fluid</button>
+            </div>
+            
+            <div class="glass-panel">
+                <h3>Recipe Builder: Create Your Own Non-Newtonian Fluid</h3>
+                <p>Select ingredients to create your own non-Newtonian fluid. The simulator will predict what type of fluid you'll create and its properties.</p>
+                <div class="recipe-builder">
+                    <h4>Base Ingredient:</h4>
+                    <div class="ingredient-list" id="base-ingredients">
+                        <div class="ingredient" data-ingredient="water">Water</div>
+                        <div class="ingredient" data-ingredient="glycerin">Glycerin</div>
+                        <div class="ingredient" data-ingredient="oil">Vegetable Oil</div>
+                    </div>
+                    
+                    <h4>Thickening Agent:</h4>
+                    <div class="ingredient-list" id="thickening-agents">
+                        <div class="ingredient" data-ingredient="cornstarch">Cornstarch</div>
+                        <div class="ingredient" data-ingredient="flour">Flour</div>
+                        <div class="ingredient" data-ingredient="xanthan">Xanthan Gum</div>
+                        <div class="ingredient" data-ingredient="silica">Silica</div>
+                    </div>
+                    
+                    <h4>Additives (Optional):</h4>
+                    <div class="ingredient-list" id="additives">
+                        <div class="ingredient" data-ingredient="salt">Salt</div>
+                        <div class="ingredient" data-ingredient="baking-soda">Baking Soda</div>
+                        <div class="ingredient" data-ingredient="food-coloring">Food Coloring</div>
+                        <div class="ingredient" data-ingredient="glue">PVA Glue</div>
+                    </div>
+                    
+                    <h4>Mixing Intensity:</h4>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="mixing-slider">
+                        <span id="mixing-value">5</span>
+                    </div>
+                    
+                    <button id="mix-button">Mix Ingredients</button>
+                    
+                    <div id="recipe-result">
+                        <p>Select ingredients and click "Mix" to see the result...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="quiz" class="section glass-panel">
+            <h2>Test Your Knowledge</h2>
+            <div class="quiz-container">
+                <div class="quiz-question">
+                    <h3>1. Which of these is an example of a shear-thickening fluid?</h3>
+                    <ul class="quiz-options">
+                        <li class="quiz-option" data-correct="true">Oobleck (cornstarch and water)</li>
+                        <li class="quiz-option">Ketchup</li>
+                        <li class="quiz-option">Yogurt</li>
+                        <li class="quiz-option">Toothpaste</li>
+                    </ul>
+                </div>
+                
+                <div class="quiz-question">
+                    <h3>2. Why does quicksand become more dangerous when you struggle?</h3>
+                    <ul class="quiz-options">
+                        <li class="quiz-option">It's a shear-thickening fluid that hardens when force is applied</li>
+                        <li class="quiz-option" data-correct="true">It's a thixotropic fluid that becomes more liquid when disturbed</li>
+                        <li class="quiz-option">It's a Bingham plastic with a high yield stress</li>
+                        <li class="quiz-option">It's a Newtonian fluid with extremely high viscosity</li>
+                    </ul>
+                </div>
+                
+                <div class="quiz-question">
+                    <h3>3. Which non-Newtonian property is utilized in liquid body armor?</h3>
+                    <ul class="quiz-options">
+                        <li class="quiz-option" data-correct="true">Shear-thickening (hardens on impact)</li>
+                        <li class="quiz-option">Shear-thinning (flows more easily under stress)</li>
+                        <li class="quiz-option">Thixotropy (changes over time)</li>
+                        <li class="quiz-option">Rheopexy (thickens with prolonged stirring)</li>
+                    </ul>
+                </div>
+                
+                <div class="quiz-question">
+                    <h3>4. What causes the non-Newtonian behavior at the microscopic level?</h3>
+                    <ul class="quiz-options">
+                        <li class="quiz-option">Temperature changes within the fluid</li>
+                        <li class="quiz-option">Electrical charges repelling each other</li>
+                        <li class="quiz-option" data-correct="true">Particle or polymer chains forming or breaking</li>
+                        <li class="quiz-option">Density fluctuations causing buoyancy effects</li>
+                    </ul>
+                </div>
+                
+                <div class="quiz-question">
+                    <h3>5. Why doesn't ketchup come out of the bottle immediately when you turn it upside down?</h3>
+                    <ul class="quiz-options">
+                        <li class="quiz-option">It's too thick (high viscosity)</li>
+                        <li class="quiz-option" data-correct="true">It has a yield stress that must be overcome (Bingham plastic)</li>
+                        <li class="quiz-option">It's magnetic and sticks to the bottle</li>
+                        <li class="quiz-option">Air pressure prevents it from flowing</li>
+                    </ul>
+                </div>
+                
+                <button id="check-answers">Check Answers</button>
+                <p id="quiz-result"></p>
+            </div>
+        </section>
+    </div>
+    
+    <footer>
+        <p>Interactive Non-Newtonian Fluids Explorer | Created by Justin Hart | &copy; 2026</p>
+    </footer>
+    
+    <script>
+        // ========================
+        // STARFIELD BACKGROUND
+        // ========================
+        const starfield = document.getElementById('starfield');
+        const ctx = starfield.getContext('2d');
+        
+        // Set canvas to window size
+        function resizeCanvas() {
+            starfield.width = window.innerWidth;
+            starfield.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Star properties
+        const stars = [];
+        const starCount = 200;
+        const starSpeeds = [0.1, 0.2, 0.3];
+        
+        // Initialize stars
+        function initStars() {
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: Math.random() * starfield.width,
+                    y: Math.random() * starfield.height,
+                    size: Math.random() * 2 + 0.5,
+                    speed: starSpeeds[Math.floor(Math.random() * starSpeeds.length)],
+                    brightness: Math.random() * 0.8 + 0.2
+                });
+            }
+        }
+        
+        // Animate starfield
+        function animateStars() {
+            ctx.clearRect(0, 0, starfield.width, starfield.height);
+            
+            // Draw stars
+            for (let i = 0; i < stars.length; i++) {
+                const star = stars[i];
+                
+                // Move stars
+                star.x += star.speed;
+                
+                // Reset if off screen
+                if (star.x > starfield.width) {
+                    star.x = 0;
+                    star.y = Math.random() * starfield.height;
+                }
+                
+                // Draw star
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+                ctx.fill();
+            }
+            
+            requestAnimationFrame(animateStars);
+        }
+        
+        // Start starfield
+        initStars();
+        animateStars();
+
+        // ========================
+        // PUNCH THE POOL SIMULATOR
+        // ========================
+        const punchPool = document.getElementById('punch-pool');
+        const pool = punchPool.querySelector('.pool');
+        const forceSlider = document.getElementById('force-slider');
+        const forceDisplay = document.getElementById('force-display');
+        const forceValue = document.getElementById('force-value');
+        const punchButton = document.getElementById('punch-button');
+        
+        let currentForce = 5;
+        
+        forceSlider.addEventListener('input', function() {
+            currentForce = parseInt(this.value);
+            forceDisplay.textContent = currentForce;
+        });
+        
+        function punchWithForce(force, x, y) {
+            // Update force display
+            forceValue.textContent = force;
+            
+            // Create ripple effect
+            const ripple = document.createElement('div');
+            ripple.style.position = 'absolute';
+            ripple.style.width = '10px';
+            ripple.style.height = '10px';
+            ripple.style.background = 'rgba(255, 255, 255, 0.5)';
+            ripple.style.borderRadius = '50%';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.transform = 'translate(-50%, -50%)';
+            ripple.style.pointerEvents = 'none';
+            
+            pool.appendChild(ripple);
+            
+            // Animate ripple
+            let size = 10;
+            let opacity = 0.8;
+            
+            const rippleAnimation = setInterval(() => {
+                size += 5;
+                opacity -= 0.02;
+                
+                ripple.style.width = size + 'px';
+                ripple.style.height = size + 'px';
+                ripple.style.opacity = opacity;
+                
+                if (opacity <= 0) {
+                    clearInterval(rippleAnimation);
+                    ripple.remove();
+                }
+            }, 20);
+            
+            // Pool response based on force
+            if (force > 7) {
+                // High force - solid-like response
+                pool.style.transform = 'scaleY(0.9)';
+                
+                // Create particles
+                for (let i = 0; i < 20; i++) {
+                    createParticle(x, y);
+                }
+                
+                // Bounce back
+                setTimeout(() => {
+                    pool.style.transform = 'scaleY(1.05)';
+                    setTimeout(() => {
+                        pool.style.transform = 'scaleY(1)';
+                    }, 200);
+                }, 150);
+            } else if (force > 3) {
+                // Medium force - partial response
+                pool.style.transform = 'scaleY(0.95)';
+                
+                // Create fewer particles
+                for (let i = 0; i < 10; i++) {
+                    createParticle(x, y);
+                }
+                
+                // Less bounce
+                setTimeout(() => {
+                    pool.style.transform = 'scaleY(1.02)';
+                    setTimeout(() => {
+                        pool.style.transform = 'scaleY(1)';
+                    }, 150);
+                }, 100);
+            } else {
+                // Low force - liquid-like sink
+                const hand = document.createElement('div');
+                hand.style.position = 'absolute';
+                hand.style.width = '20px';
+                hand.style.height = '20px';
+                hand.style.background = 'rgba(255, 210, 142, 0.4)';
+                hand.style.borderRadius = '50%';
+                hand.style.left = x + 'px';
+                hand.style.top = y + 'px';
+                hand.style.transform = 'translate(-50%, -50%)';
+                
+                pool.appendChild(hand);
+                
+                // Slow sink animation
+                let depth = 0;
+                const sinkAnimation = setInterval(() => {
+                    depth += 1;
+                    hand.style.top = (y + depth) + 'px';
+                    hand.style.opacity = 1 - (depth / 50);
+                    
+                    if (depth >= 50) {
+                        clearInterval(sinkAnimation);
+                        hand.remove();
+                    }
+                }, 50);
+            }
+        }
+        
+        function createParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            particle.style.width = Math.random() * 8 + 2 + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.opacity = Math.random() * 0.5 + 0.5;
+            
+            pool.appendChild(particle);
+            
+            // Random direction
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 5 + 2;
+            const xVel = Math.cos(angle) * speed;
+            const yVel = Math.sin(angle) * speed - 5; // Initial upward velocity
+            
+            let posX = x;
+            let posY = y;
+            let gravity = 0.2;
+            
+            const moveParticle = () => {
+                posX += xVel;
+                posY += yVel;
+                yVel += gravity;
+                
+                particle.style.left = posX + 'px';
+                particle.style.top = posY + 'px';
+                particle.style.opacity -= 0.02;
+                
+                if (particle.style.opacity <= 0 || posY > punchPool.offsetHeight) {
+                    particle.remove();
+                    return;
+                }
+                
+                requestAnimationFrame(moveParticle);
+            };
+            
+            requestAnimationFrame(moveParticle);
+        }
+        
+        punchPool.addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            punchWithForce(currentForce, x, y);
+        });
+        
+        punchButton.addEventListener('click', function() {
+            const x = punchPool.offsetWidth / 2;
+            const y = punchPool.offsetHeight * 0.3;
+            
+            punchWithForce(currentForce, x, y);
+        });
+        
+        // ========================
+        // VISCOSITY SPECTRUM SIMULATOR
+        // ========================
+        const viscositySpectrum = document.getElementById('viscosity-spectrum');
+        const dragSpeedDisplay = document.getElementById('drag-speed');
+        
+        const fluidTypes = [
+            { name: 'Shear-Thickening', type: 'thickening', color: 'rgba(255, 150, 150, 0.3)' },
+            { name: 'Rheopectic', type: 'rheopectic', color: 'rgba(255, 200, 150, 0.3)' },
+            { name: 'Newtonian', type: 'newtonian', color: 'rgba(150, 200, 255, 0.3)' },
+            { name: 'Shear-Thinning', type: 'thinning', color: 'rgba(150, 255, 150, 0.3)' },
+            { name: 'Thixotropic', type: 'thixotropic', color: 'rgba(200, 150, 255, 0.3)' }
+        ];
+        
+        function createViscosityLanes() {
+            const laneWidth = viscositySpectrum.offsetWidth / fluidTypes.length;
+            const lanes = document.createElement('div');
+            lanes.style.display = 'flex';
+            lanes.style.width = '100%';
+            lanes.style.height = '100%';
+            
+            fluidTypes.forEach((fluid, index) => {
+                const lane = document.createElement('div');
+                lane.classList.add('fluid-lane');
+                lane.setAttribute('data-type', fluid.type);
+                lane.style.width = (100 / fluidTypes.length) + '%';
+                lane.style.backgroundColor = fluid.color;
+                
+                // Add fluid name
+                const fluidName = document.createElement('div');
+                fluidName.classList.add('fluid-name');
+                fluidName.textContent = fluid.name;
+                lane.appendChild(fluidName);
+                
+                // Add viscosity meter
+                const meter = document.createElement('div');
+                meter.classList.add('viscosity-meter');
+                
+                const level = document.createElement('div');
+                level.classList.add('viscosity-level');
+                level.style.height = '50%';
+                
+                meter.appendChild(level);
+                lane.appendChild(meter);
+                
+                lanes.appendChild(lane);
+            });
+            
+            viscositySpectrum.innerHTML = '';
+            viscositySpectrum.appendChild(lanes);
+            
+            // Add draggable object
+            const dragObject = document.createElement('div');
+            dragObject.classList.add('drag-object');
+            dragObject.style.left = (viscositySpectrum.offsetWidth / 2) + 'px';
+            dragObject.style.top = (viscositySpectrum.offsetHeight / 2) + 'px';
+            
+            viscositySpectrum.appendChild(dragObject);
+            
+            makeDraggable(dragObject);
+        }
+        
+        function makeDraggable(element) {
+            let isDragging = false;
+            let lastX, lastY, lastTime;
+            let velocities = [];
+            let currentLane = null;
+            
+            function dragStart(e) {
+                if (e.type === 'mousedown') {
+                    isDragging = true;
+                    document.addEventListener('mousemove', drag);
+                    document.addEventListener('mouseup', dragEnd);
+                } else if (e.type === 'touchstart') {
+                    isDragging = true;
+                    document.addEventListener('touchmove', drag, { passive: false });
+                    document.addEventListener('touchend', dragEnd);
+                }
+                
+                lastX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                lastY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+                lastTime = Date.now();
+                velocities = [];
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                e.preventDefault();
+                
+                const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                
+                const rect = viscositySpectrum.getBoundingClientRect();
+                let newLeft = clientX - rect.left;
+                let newTop = clientY - rect.top;
+                
+                // Constrain within container
+                newLeft = Math.max(15, Math.min(viscositySpectrum.offsetWidth - 15, newLeft));
+                newTop = Math.max(15, Math.min(viscositySpectrum.offsetHeight - 15, newTop));
+                
+                // Calculate velocity
+                const now = Date.now();
+                const dt = now - lastTime;
+                
+                if (dt > 0) {
+                    const dx = newLeft - parseFloat(element.style.left);
+                    const dy = newTop - parseFloat(element.style.top);
+                    const velocity = Math.sqrt(dx*dx + dy*dy) / dt * 1000; // px/s
+                    
+                    velocities.push(velocity);
+                    if (velocities.length > 5) velocities.shift();
+                    
+                    // Get average velocity
+                    const avgVelocity = velocities.reduce((a, b) => a + b, 0) / velocities.length;
+                    dragSpeedDisplay.textContent = Math.round(avgVelocity);
+                    
+                    // Determine which lane we're in
+                    const laneWidth = viscositySpectrum.offsetWidth / fluidTypes.length;
+                    const laneIndex = Math.floor(newLeft / laneWidth);
+                    const lane = document.querySelectorAll('.fluid-lane')[laneIndex];
+                    
+                    if (lane && lane !== currentLane) {
+                        currentLane = lane;
+                    }
+                    
+                    // Apply viscosity effect based on lane type
+                    if (currentLane) {
+                        const fluidType = currentLane.getAttribute('data-type');
+                        let resistance = 1;
+                        
+                        // Update viscosity meter
+                        const lanes = document.querySelectorAll('.fluid-lane');
+                        lanes.forEach(l => {
+                            const meter = l.querySelector('.viscosity-level');
+                            let height = '50%';
+                            
+                            if (l === currentLane) {
+                                const laneType = l.getAttribute('data-type');
+                                
+                                switch (laneType) {
+                                    case 'thickening':
+                                        height = Math.min(90, 40 + avgVelocity * 0.1) + '%';
+                                        resistance = 1 + (avgVelocity * 0.005);
+                                        break;
+                                    case 'rheopectic':
+                                        // Gradually increases with time
+                                        height = Math.min(80, 40 + (isDragging ? 40 : 0)) + '%';
+                                        resistance = 1 + (isDragging ? 0.8 : 0);
+                                        break;
+                                    case 'newtonian':
+                                        height = '50%';
+                                        resistance = 1;
+                                        break;
+                                    case 'thinning':
+                                        height = Math.max(10, 50 - avgVelocity * 0.1) + '%';
+                                        resistance = Math.max(0.1, 1 - (avgVelocity * 0.002));
+                                        break;
+                                    case 'thixotropic':
+                                        // Decreases with time
+                                        height = Math.max(20, 80 - (isDragging ? 40 : 0)) + '%';
+                                        resistance = Math.max(0.2, 1.2 - (isDragging ? 0.8 : 0));
+                                        break;
+                                }
+                            }
+                            
+                            if (meter) meter.style.height = height;
+                        });
+                        
+                        // Apply resistance effect
+                        if (resistance !== 1) {
+                            const targetX = newLeft;
+                            const targetY = newTop;
+                            
+                            // Adjust position based on resistance
+                            newLeft = parseFloat(element.style.left) + (targetX - parseFloat(element.style.left)) / resistance;
+                            newTop = parseFloat(element.style.top) + (targetY - parseFloat(element.style.top)) / resistance;
+                        }
+                    }
+                    
+                    lastTime = now;
+                }
+                
+                element.style.left = newLeft + 'px';
+                element.style.top = newTop + 'px';
+                
+                lastX = clientX;
+                lastY = clientY;
+            }
+            
+            function dragEnd() {
+                isDragging = false;
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('mouseup', dragEnd);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('touchend', dragEnd);
+                
+                // Reset speed display after a moment
+                setTimeout(() => {
+                    dragSpeedDisplay.textContent = '0';
+                    
+                    // Reset viscosity meters gradually
+                    const meters = document.querySelectorAll('.viscosity-level');
+                    meters.forEach(meter => {
+                        meter.style.transition = 'height 1s ease';
+                        meter.style.height = '50%';
+                        
+                        setTimeout(() => {
+                            meter.style.transition = 'height 0.3s ease';
+                        }, 1000);
+                    });
+                }, 1000);
+            }
+            
+            element.addEventListener('mousedown', dragStart);
+            element.addEventListener('touchstart', dragStart, { passive: false });
+        }
+        
+        // ========================
+        // IDENTIFY THE FLUID GAME
+        // ========================
+        const identifyFluid = document.getElementById('identify-fluid');
+        const fluidAnimation = identifyFluid.querySelector('.fluid-animation');
+        const identificationResult = document.getElementById('identification-result');
+        const newFluidBtn = document.getElementById('new-fluid');
+        const fluidOptions = document.querySelectorAll('.fluid-option');
+        
+        let currentFluidType = '';
+        
+        const fluidAnimations = {
+            'shear-thickening': function() {
+                fluidAnimation.style.background = 'linear-gradient(to bottom, rgba(255, 150, 150, 0.2), rgba(255, 150, 150, 0.4))';
+                
+                // Clear previous content
+                fluidAnimation.innerHTML = '';
+                
+                // Add ball
+                const ball = document.createElement('div');
+                ball.style.position = 'absolute';
+                ball.style.width = '40px';
+                ball.style.height = '40px';
+                ball.style.borderRadius = '50%';
+                ball.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                ball.style.top = '30px';
+                ball.style.left = '50%';
+                ball.style.transform = 'translateX(-50%)';
+                
+                fluidAnimation.appendChild(ball);
+                
+                // Create fluid surface
+                const surface = document.createElement('div');
+                surface.style.position = 'absolute';
+                surface.style.width = '100%';
+                surface.style.height = '80px';
+                surface.style.bottom = '0';
+                surface.style.background = 'linear-gradient(to bottom, rgba(255, 150, 150, 0.3), rgba(255, 150, 150, 0.6))';
+                surface.style.borderTopLeftRadius = '10px';
+                surface.style.borderTopRightRadius = '10px';
+                
+                fluidAnimation.appendChild(surface);
+                
+                // Ball drop animation
+                let position = 30;
+                let velocity = 0;
+                let isResting = false;
+                let gravity = 0.5;
+                
+                function animateBall() {
+                    if (!isResting) {
+                        position += velocity;
+                        velocity += gravity;
+                        
+                        // Floor level (accounting for ball height)
+                        const floorLevel = fluidAnimation.offsetHeight - 40 - 80;
+                        
+                        if (position >= floorLevel) {
+                            // Fast impact = bounce off solid surface
+                            if (velocity > 10) {
+                                position = floorLevel;
+                                velocity = -velocity * 0.6;
+                                
+                                // Deform the surface
+                                surface.style.borderTopLeftRadius = '30px';
+                                surface.style.borderTopRightRadius = '30px';
+                                surface.style.height = '70px';
+                                
+                                setTimeout(() => {
+                                    surface.style.borderTopLeftRadius = '10px';
+                                    surface.style.borderTopRightRadius = '10px';
+                                    surface.style.height = '80px';
+                                }, 200);
+                            } else {
+                                // Slow impact = sink
+                                isResting = true;
+                                
+                                // Sink animation
+                                let sinkDepth = 0;
+                                let sinkInterval = setInterval(() => {
+                                    sinkDepth++;
+                                    position = floorLevel + sinkDepth;
+                                    ball.style.top = position + 'px';
+                                    
+                                    if (sinkDepth >= 30) {
+                                        clearInterval(sinkInterval);
+                                    }
+                                }, 100);
+                            }
+                        }
+                        
+                        ball.style.top = position + 'px';
+                    }
+                    
+                    if (!isResting || position < floorLevel + 30) {
+                        requestAnimationFrame(animateBall);
+                    }
+                }
+                
+                // Start animation after delay
+                setTimeout(animateBall, 500);
+                
+                // Restart animation after a few seconds
+                setTimeout(() => {
+                    position = 30;
+                    velocity = 0;
+                    isResting = false;
+                    ball.style.top = position + 'px';
+                    
+                    animateBall();
+                }, 5000);
+            },
+            'shear-thinning': function() {
+                fluidAnimation.style.background = 'linear-gradient(to bottom, rgba(150, 255, 150, 0.2), rgba(150, 255, 150, 0.4))';
+                
+                // Clear previous content
+                fluidAnimation.innerHTML = '';
+                
+                // Create bottle
+                const bottle = document.createElement('div');
+                bottle.style.position = 'absolute';
+                bottle.style.width = '80px';
+                bottle.style.height = '140px';
+                bottle.style.borderRadius = '0 0 20px 20px';
+                bottle.style.top = '20px';
+                bottle.style.left = '50%';
+                bottle.style.transform = 'translateX(-50%)';
+                bottle.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                bottle.style.border = '2px solid rgba(255, 255, 255, 0.4)';
+                bottle.style.overflow = 'hidden';
+                
+                // Bottle neck
+                const neck = document.createElement('div');
+                neck.style.position = 'absolute';
+                neck.style.width = '30px';
+                neck.style.height = '40px';
+                neck.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                neck.style.border = '2px solid rgba(255, 255, 255, 0.4)';
+                neck.style.borderBottom = 'none';
+                neck.style.borderRadius = '10px 10px 0 0';
+                neck.style.top = '-40px';
+                neck.style.left = '50%';
+                neck.style.transform = 'translateX(-50%)';
+                
+                bottle.appendChild(neck);
+                
+                // Fluid in bottle
+                const fluid = document.createElement('div');
+                fluid.style.position = 'absolute';
+                fluid.style.width = '100%';
+                fluid.style.height = '100%';
+                fluid.style.backgroundColor = 'rgba(150, 255, 150, 0.5)';
+                fluid.style.bottom = '0';
+                fluid.style.transition = 'height 0.5s ease';
+                
+                bottle.appendChild(fluid);
+                
+                fluidAnimation.appendChild(bottle);
+                
+                // Pour button
+                const pourBtn = document.createElement('button');
+                pourBtn.style.position = 'absolute';
+                pourBtn.style.bottom = '10px';
+                pourBtn.style.left = '50%';
+                pourBtn.style.transform = 'translateX(-50%)';
+                pourBtn.textContent = 'Shake Bottle';
+                pourBtn.style.zIndex = '10';
+                
+                fluidAnimation.appendChild(pourBtn);
+                
+                // Shake and pour animation
+                pourBtn.addEventListener('click', () => {
+                    // Shake animation
+                    bottle.style.transition = 'transform 0.1s ease';
+                    
+                    let shakes = 0;
+                    const shakeInterval = setInterval(() => {
+                        if (shakes % 2 === 0) {
+                            bottle.style.transform = 'translateX(-45%) rotate(-5deg)';
+                        } else {
+                            bottle.style.transform = 'translateX(-55%) rotate(5deg)';
+                        }
+                        
+                        shakes++;
+                        
+                        if (shakes > 10) {
+                            clearInterval(shakeInterval);
+                            bottle.style.transform = 'translateX(-50%) rotate(180deg)';
+                            
+                            // Pour fluid
+                            setTimeout(() => {
+                                fluid.style.height = '0%';
+                                
+                                // Create flowing fluid
+                                const flowingFluid = document.createElement('div');
+                                flowingFluid.style.position = 'absolute';
+                                flowingFluid.style.width = '20px';
+                                flowingFluid.style.height = '0';
+                                flowingFluid.style.backgroundColor = 'rgba(150, 255, 150, 0.5)';
+                                flowingFluid.style.top = '20px';
+                                flowingFluid.style.left = '50%';
+                                flowingFluid.style.transformOrigin = 'top';
+                                flowingFluid.style.transition = 'height 1s ease';
+                                
+                                fluidAnimation.appendChild(flowingFluid);
+                                
+                                setTimeout(() => {
+                                    flowingFluid.style.height = '160px';
+                                }, 100);
+                                
+                                // Reset after animation
+                                setTimeout(() => {
+                                    bottle.style.transition = 'transform 1s ease';
+                                    bottle.style.transform = 'translateX(-50%) rotate(0)';
+                                    flowingFluid.style.opacity = '0';
+                                    
+                                    setTimeout(() => {
+                                        fluid.style.height = '100%';
+                                        flowingFluid.remove();
+                                    }, 1000);
+                                }, 2000);
+                            }, 500);
+                        }
+                    }, 100);
+                });
+            },
+            'thixotropic': function() {
+                fluidAnimation.style.background = 'linear-gradient(to bottom, rgba(200, 150, 255, 0.2), rgba(200, 150, 255, 0.4))';
+                
+                // Clear previous content
+                fluidAnimation.innerHTML = '';
+                
+                // Create yogurt container
+                const container = document.createElement('div');
+                container.style.position = 'absolute';
+                container.style.width = '120px';
+                container.style.height = '100px';
+                container.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                container.style.borderRadius = '0 0 20px 20px';
+                container.style.top = '50%';
+                container.style.left = '50%';
+                container.style.transform = 'translate(-50%, -50%)';
+                container.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                container.style.overflow = 'hidden';
+                
+                fluidAnimation.appendChild(container);
+                
+                // Yogurt
+                const yogurt = document.createElement('div');
+                yogurt.style.position = 'absolute';
+                yogurt.style.width = '100%';
+                yogurt.style.height = '80%';
+                yogurt.style.bottom = '0';
+                yogurt.style.backgroundColor = 'rgba(200, 150, 255, 0.6)';
+                yogurt.style.borderRadius = '0 0 18px 18px';
+                
+                container.appendChild(yogurt);
+                
+                // Spoon
+                const spoon = document.createElement('div');
+                spoon.style.position = 'absolute';
+                spoon.style.width = '20px';
+                spoon.style.height = '80px';
+                spoon.style.top = '10px';
+                spoon.style.left = '50%';
+                spoon.style.transform = 'translateX(-50%)';
+                spoon.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                spoon.style.borderRadius = '10px 10px 20px 20px';
+                
+                fluidAnimation.appendChild(spoon);
+                
+                // Animation
+                let isStirring = false;
+                let angle = 0;
+                let stirringSpeed = 0;
+                let yogurtViscosity = 1;
+                
+                function animateStirring() {
+                    if (isStirring) {
+                        angle += stirringSpeed * (1 / yogurtViscosity);
+                        
+                        // Decrease viscosity as stirring continues
+                        yogurtViscosity = Math.max(0.2, yogurtViscosity - 0.01);
+                        
+                        // Update yogurt appearance
+                        yogurt.style.backgroundColor = `rgba(200, 150, 255, ${0.2 + 0.4 * yogurtViscosity})`;
+                        
+                        // Circular motion
+                        const radius = 30;
+                        const centerX = container.offsetWidth / 2;
+                        const centerY = container.offsetHeight / 2;
+                        
+                        const x = centerX + radius * Math.cos(angle);
+                        const y = centerY + radius * Math.sin(angle);
+                        
+                        spoon.style.left = (container.offsetLeft + x) + 'px';
+                        spoon.style.top = (container.offsetTop + y - 40) + 'px';
+                        spoon.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
+                    }
+                    
+                    requestAnimationFrame(animateStirring);
+                }
+                
+                // Start/stop stirring
+                const stirButton = document.createElement('button');
+                stirButton.style.position = 'absolute';
+                stirButton.style.bottom = '10px';
+                stirButton.style.left = '50%';
+                stirButton.style.transform = 'translateX(-50%)';
+                stirButton.textContent = 'Start Stirring';
+                stirButton.style.zIndex = '10';
+                
+                stirButton.addEventListener('click', () => {
+                    if (!isStirring) {
+                        isStirring = true;
+                        stirringSpeed = 0.05;
+                        stirButton.textContent = 'Stop Stirring';
+                    } else {
+                        isStirring = false;
+                        stirButton.textContent = 'Start Stirring';
+                        
+                        // Reset spoon position
+                        spoon.style.left = '50%';
+                        spoon.style.top = '10px';
+                        spoon.style.transform = 'translateX(-50%)';
+                        
+                        // Gradually increase viscosity (thixotropic behavior)
+                        const resetInterval = setInterval(() => {
+                            yogurtViscosity = Math.min(1, yogurtViscosity + 0.05);
+                            yogurt.style.backgroundColor = `rgba(200, 150, 255, ${0.2 + 0.4 * yogurtViscosity})`;
+                            
+                            if (yogurtViscosity >= 1) {
+                                clearInterval(resetInterval);
+                            }
+                        }, 200);
+                    }
+                });
+                
+                fluidAnimation.appendChild(stirButton);
+                
+                // Start animation
+                animateStirring();
+            },
+            'rheopectic': function() {
+                fluidAnimation.style.background = 'linear-gradient(to bottom, rgba(255, 200, 150, 0.2), rgba(255, 200, 150, 0.4))';
+                
+                // Clear previous content
+                fluidAnimation.innerHTML = '';
+                
+                // Create bowl
+                const bowl = document.createElement('div');
+                bowl.style.position = 'absolute';
+                bowl.style.width = '150px';
+                bowl.style.height = '75px';
+                bowl.style.borderRadius = '0 0 75px 75px';
+                bowl.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                bowl.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                bowl.style.bottom = '30px';
+                bowl.style.left = '50%';
+                bowl.style.transform = 'translateX(-50%)';
+                bowl.style.overflow = 'hidden';
+                
+                fluidAnimation.appendChild(bowl);
+                
+                // Create cream
+                const cream = document.createElement('div');
+                cream.style.position = 'absolute';
+                cream.style.width = '100%';
+                cream.style.height = '60%';
+                cream.style.bottom = '0';
+                cream.style.backgroundColor = 'rgba(255, 200, 150, 0.5)';
+                cream.style.borderRadius = '0 0 75px 75px';
+                
+                bowl.appendChild(cream);
+                
+                // Create whisk
+                const whisk = document.createElement('div');
+                whisk.style.position = 'absolute';
+                whisk.style.width = '10px';
+                whisk.style.height = '80px';
+                whisk.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                whisk.style.top = '20px';
+                whisk.style.left = '50%';
+                whisk.style.transform = 'translateX(-50%)';
+                
+                // Whisk wires
+                for (let i = 0; i < 4; i++) {
+                    const wire = document.createElement('div');
+                    wire.style.position = 'absolute';
+                    wire.style.width = '3px';
+                    wire.style.height = '30px';
+                    wire.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                    wire.style.bottom = '0';
+                    wire.style.left = '50%';
+                    wire.style.transform = `translateX(-50%) rotate(${i * 45}deg)`;
+                    wire.style.transformOrigin = 'center bottom';
+                    
+                    whisk.appendChild(wire);
+                }
+                
+                fluidAnimation.appendChild(whisk);
+                
+                // Whipping button
+                const whipButton = document.createElement('button');
+                whipButton.style.position = 'absolute';
+                whipButton.style.bottom = '10px';
+                whipButton.style.left = '50%';
+                whipButton.style.transform = 'translateX(-50%)';
+                whipButton.textContent = 'Start Whipping';
+                whipButton.style.zIndex = '10';
+                
+                fluidAnimation.appendChild(whipButton);
+                
+                // Animation variables
+                let isWhipping = false;
+                let whippingTime = 0;
+                let angle = 0;
+                
+                function animateWhipping() {
+                    if (isWhipping) {
+                        // Rotate whisk
+                        angle += 0.1;
+                        whisk.style.transform = `translateX(-50%) rotate(${angle * 180 / Math.PI}deg)`;
+                        
+                        // Increase whipping time
+                        whippingTime += 0.02;
+                        
+                        // Change cream appearance as it whips (rheopectic behavior - gets thicker)
+                        const thickness = Math.min(1, whippingTime);
+                        const height = 60 + thickness * 20; // Increase height
+                        const lightness = 50 + thickness * 30; // Get lighter
+                        
+                        cream.style.height = height + '%';
+                        cream.style.backgroundColor = `rgba(255, ${200 + thickness * 55}, ${150 + thickness * 80}, ${0.5 + thickness * 0.3})`;
+                    }
+                    
+                    requestAnimationFrame(animateWhipping);
+                }
+                
+                whipButton.addEventListener('click', () => {
+                    isWhipping = !isWhipping;
+                    
+                    if (isWhipping) {
+                        whipButton.textContent = 'Stop Whipping';
+                    } else {
+                        whipButton.textContent = 'Start Whipping';
+                        
+                        // Reset after a while
+                        setTimeout(() => {
+                            if (!isWhipping) {
+                                whippingTime = 0;
+                                cream.style.height = '60%';
+                                cream.style.backgroundColor = 'rgba(255, 200, 150, 0.5)';
+                            }
+                        }, 5000);
+                    }
+                });
+                
+                // Start animation
+                animateWhipping();
+            },
+            'bingham': function() {
+                fluidAnimation.style.background = 'linear-gradient(to bottom, rgba(150, 200, 255, 0.2), rgba(150, 200, 255, 0.4))';
+                
+                // Clear previous content
+                fluidAnimation.innerHTML = '';
+                
+                // Create toothpaste tube
+                const tube = document.createElement('div');
+                tube.style.position = 'absolute';
+                tube.style.width = '120px';
+                tube.style.height = '40px';
+                tube.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+                tube.style.border = '2px solid rgba(255, 255, 255, 0.6)';
+                tube.style.borderRadius = '5px';
+                tube.style.top = '70px';
+                tube.style.left = '50%';
+                tube.style.transform = 'translateX(-50%) rotate(-30deg)';
+                
+                fluidAnimation.appendChild(tube);
+                
+                // Create nozzle
+                const nozzle = document.createElement('div');
+                nozzle.style.position = 'absolute';
+                nozzle.style.width = '20px';
+                nozzle.style.height = '15px';
+                nozzle.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
+                nozzle.style.border = '2px solid rgba(255, 255, 255, 0.8)';
+                nozzle.style.borderRadius = '5px';
+                nozzle.style.top = '-8px';
+                nozzle.style.left = '10px';
+                
+                tube.appendChild(nozzle);
+                
+                // Create squeeze button
+                const squeezeBtn = document.createElement('button');
+                squeezeBtn.style.position = 'absolute';
+                squeezeBtn.style.bottom = '10px';
+                squeezeBtn.style.left = '50%';
+                squeezeBtn.style.transform = 'translateX(-50%)';
+                squeezeBtn.textContent = 'Squeeze Tube';
+                squeezeBtn.style.zIndex = '10';
+                
+                fluidAnimation.appendChild(squeezeBtn);
+                
+                // Squeeze animation
+                squeezeBtn.addEventListener('click', () => {
+                    // Squeeze tube
+                    tube.style.transform = 'translateX(-50%) rotate(-30deg) scale(0.95, 1.05)';
+                    
+                    // Create toothpaste
+                    const paste = document.createElement('div');
+                    paste.style.position = 'absolute';
+                    paste.style.width = '0';
+                    paste.style.height = '10px';
+                    paste.style.backgroundColor = 'rgba(150, 200, 255, 0.8)';
+                    paste.style.left = tube.offsetLeft + 20;
+                    paste.style.top = tube.offsetTop;
+                    paste.style.borderRadius = '5px';
+                    paste.style.transition = 'width 1.5s cubic-bezier(0.25, 1, 0.5, 1)';
+                    
+                    fluidAnimation.appendChild(paste);
+                    
+                    // Extrude paste with delay (yield stress effect)
+                    setTimeout(() => {
+                        paste.style.width = '150px';
+                    }, 300);
+                    
+                    // Reset tube shape
+                    setTimeout(() => {
+                        tube.style.transform = 'translateX(-50%) rotate(-30deg)';
+                        
+                        // Remove old paste after a while
+                        setTimeout(() => {
+                            paste.remove();
+                        }, 3000);
+                    }, 800);
+                });
+            }
+        };
+        
+        // Initialize fluid identification game
+        function newFluidChallenge() {
+            // Reset all buttons
+            fluidOptions.forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            identificationResult.textContent = '';
+            
+            // Select a random fluid type
+            const fluidTypes = ['shear-thickening', 'shear-thinning', 'thixotropic', 'rheopectic', 'bingham'];
+            currentFluidType = fluidTypes[Math.floor(Math.random() * fluidTypes.length)];
+            
+            // Display the animation
+            fluidAnimations[currentFluidType]();
+        }
+        
+        // Handle fluid identification
+        fluidOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Clear previous selections
+                fluidOptions.forEach(btn => {
+                    btn.classList.remove('selected', 'correct', 'incorrect');
+                });
+                
+                // Mark as selected
+                option.classList.add('selected');
+                
+                // Check if correct
+                const selectedType = option.getAttribute('data-type');
+                
+                if (selectedType === currentFluidType) {
+                    option.classList.add('correct');
+                    identificationResult.textContent = 'Correct! That\'s a ' + option.textContent + ' fluid.';
+                    identificationResult.style.color = 'rgba(100, 255, 100, 0.8)';
+                } else {
+                    option.classList.add('incorrect');
+                    
+                    // Highlight the correct answer
+                    fluidOptions.forEach(btn => {
+                        if (btn.getAttribute('data-type') === currentFluidType) {
+                            btn.classList.add('correct');
+                        }
+                    });
+                    
+                    identificationResult.textContent = 'Not quite. This is a ' + currentFluidType.replace('-', ' ') + ' fluid.';
+                    identificationResult.style.color = 'rgba(255, 100, 100, 0.8)';
+                }
+            });
+        });
+        
+        newFluidBtn.addEventListener('click', newFluidChallenge);
+        
+        // ========================
+        // RECIPE BUILDER
+        // ========================
+        const baseIngredients = document.querySelectorAll('#base-ingredients .ingredient');
+        const thickeningAgents = document.querySelectorAll('#thickening-agents .ingredient');
+        const additives = document.querySelectorAll('#additives .ingredient');
+        const mixingSlider = document.getElementById('mixing-slider');
+        const mixingValue = document.getElementById('mixing-value');
+        const mixButton = document.getElementById('mix-button');
+        const recipeResult = document.getElementById('recipe-result');
+        
+        let selectedBase = null;
+        let selectedThickener = null;
+        let selectedAdditives = [];
+        let mixingIntensity = 5;
+        
+        // Update mixing intensity display
+        mixingSlider.addEventListener('input', function() {
+            mixingIntensity = parseInt(this.value);
+            mixingValue.textContent = mixingIntensity;
+        });
+        
+        // Handle ingredient selection
+        function setupIngredientSelection(ingredients, isMultiSelect = false) {
+            ingredients.forEach(ingredient => {
+                ingredient.addEventListener('click', () => {
+                    const ingredientType = ingredient.parentNode.id;
+                    
+                    if (isMultiSelect) {
+                        // Toggle selection
+                        ingredient.classList.toggle('selected');
+                        
+                        const ingredientName = ingredient.getAttribute('data-ingredient');
+                        
+                        if (ingredient.classList.contains('selected')) {
+                            selectedAdditives.push(ingredientName);
+                        } else {
+                            selectedAdditives = selectedAdditives.filter(a => a !== ingredientName);
+                        }
+                    } else {
+                        // Single select - clear other selections
+                        ingredients.forEach(i => i.classList.remove('selected'));
+                        ingredient.classList.add('selected');
+                        
+                        // Update selected ingredient
+                        if (ingredientType === 'base-ingredients') {
+                            selectedBase = ingredient.getAttribute('data-ingredient');
+                        } else if (ingredientType === 'thickening-agents') {
+                            selectedThickener = ingredient.getAttribute('data-ingredient');
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Set up selection behavior
+        setupIngredientSelection(baseIngredients);
+        setupIngredientSelection(thickeningAgents);
+        setupIngredientSelection(additives, true);
+        
+        // Mix button handler
+        mixButton.addEventListener('click', () => {
+            if (!selectedBase || !selectedThickener) {
+                recipeResult.innerHTML = `<p style="color: rgba(255, 100, 100, 0.8);">You need to select both a base and a thickening agent!</p>`;
+                return;
+            }
+            
+            // Determine fluid type based on ingredients and mixing intensity
+            let fluidType = '';
+            let properties = [];
+            let description = '';
+            
+            // Base effects
+            const baseEffects = {
+                'water': { tendency: 'neutral', viscosity: 'low' },
+                'glycerin': { tendency: 'thickening', viscosity: 'medium' },
+                'oil': { tendency: 'thinning', viscosity: 'medium' }
+            };
+            
+            // Thickener effects
+            const thickenerEffects = {
+                'cornstarch': { tendency: 'shear-thickening', strength: 'high' },
+                'flour': { tendency: 'bingham', strength: 'medium' },
+                'xanthan': { tendency: 'shear-thinning', strength: 'high' },
+                'silica': { tendency: 'thixotropic', strength: 'high' }
+            };
+            
+            // Additive effects
+            const additiveEffects = {
+                'salt': { effect: 'stabilizes', strength: 'medium' },
+                'baking-soda': { effect: 'increases yield stress', strength: 'medium' },
+                'food-coloring': { effect: 'visual only', strength: 'none' },
+                'glue': { effect: 'increases elasticity', strength: 'high' }
+            };
+            
+            // Calculate base properties
+            const baseEffect = baseEffects[selectedBase];
+            const thickenerEffect = thickenerEffects[selectedThickener];
+            
+            // Determine mixing effects
+            const isMixedWell = mixingIntensity >= 7;
+            const isMixedPoorly = mixingIntensity <= 3;
+            
+            // Determine primary fluid type
+            if (thickenerEffect.tendency === 'shear-thickening') {
+                if (isMixedWell && selectedBase === 'water') {
+                    fluidType = 'Shear-Thickening (Dilatant)';
+                    properties.push('Solid-like response to impact');
+                    properties.push('Fluid-like behavior at rest');
+                    description = 'You\'ve created a classic oobleck! This mixture will behave like a solid when struck quickly but flow like a liquid when moved slowly.';
+                } else if (selectedBase === 'glycerin') {
+                    fluidType = 'Rheopectic';
+                    properties.push('Thickens over time when stressed');
+                    properties.push('High viscosity when stirred continuously');
+                    description = 'The combination of glycerin and cornstarch with your mixing parameters has created a rheopectic fluid. It will thicken the longer you stir it!';
+                } else {
+                    fluidType = 'Complex Non-Newtonian';
+                    properties.push('Mixed behavior');
+                    description = 'Your mixture shows complicated behavior with both thickening and thinning properties depending on conditions.';
+                }
+            } else if (thickenerEffect.tendency === 'shear-thinning') {
+                fluidType = 'Shear-Thinning (Pseudoplastic)';
+                properties.push('Flows more easily under stress');
+                properties.push('Thicker at rest');
+                description = 'Your mixture flows more easily when stirred vigorously but thickens when left alone. This is similar to how ketchup behaves!';
+            } else if (thickenerEffect.tendency === 'bingham') {
+                fluidType = 'Bingham Plastic';
+                properties.push('Requires minimum force to flow');
+                properties.push('Behaves like a solid under low stress');
+                description = 'You\'ve created a substance that requires a minimum amount of force before it will flow, like toothpaste or mustard.';
+            } else if (thickenerEffect.tendency === 'thixotropic') {
+                fluidType = 'Thixotropic';
+                properties.push('Gets thinner over time when stressed');
+                properties.push('Gradually returns to gel state when at rest');
+                description = 'Your mixture will gradually become more fluid when stirred but will slowly return to a gel-like state when left alone.';
+            }
+            
+            // Adjust for additives
+            if (selectedAdditives.includes('glue') && selectedBase === 'water') {
+                properties.push('Elastic properties');
+                description += ' The addition of glue gives it elastic, bouncy properties similar to slime.';
+            }
+            
+            if (selectedAdditives.includes('salt') && selectedThickener === 'cornstarch') {
+                properties.push('More stable shear-thickening');
+                description += ' Salt helps stabilize the cornstarch suspension, making the effect more pronounced.';
+            }
+            
+            // Adjust for mixing intensity
+            if (isMixedPoorly) {
+                properties.push('Inconsistent behavior due to poor mixing');
+                description += ' Due to the low mixing intensity, the behavior is somewhat inconsistent and may separate over time.';
+            } else if (isMixedWell) {
+                properties.push('Very consistent properties');
+                description += ' Your thorough mixing has created a very consistent mixture with reliable properties.';
+            }
+            
+            // Generate recipe instructions
+            const instructions = `
+                <ol>
+                    <li>Start with ${selectedBase}.</li>
+                    <li>Gradually add ${selectedThickener} while mixing at ${mixingIntensity}/10 intensity.</li>
+                    ${selectedAdditives.length > 0 ? `<li>Mix in additives: ${selectedAdditives.join(', ')}</li>` : ''}
+                    <li>Continue mixing until the desired consistency is achieved.</li>
+                </ol>
+            `;
+            
+            // Update result
+            recipeResult.innerHTML = `
+                <h4>Your Non-Newtonian Fluid: ${fluidType}</h4>
+                <p><strong>Key Properties:</strong></p>
+                <ul>
+                    ${properties.map(p => `<li>${p}</li>`).join('')}
+                </ul>
+                <p>${description}</p>
+                <h4>Recipe:</h4>
+                ${instructions}
+            `;
+        });
+
+        // ========================
+        // KNOWLEDGE QUIZ
+        // ========================
+        const quizOptions = document.querySelectorAll('.quiz-option');
+        const checkAnswersBtn = document.getElementById('check-answers');
+        const quizResult = document.getElementById('quiz-result');
+        
+        let selectedAnswers = new Set();
+        
+        // Handle quiz option selection
+        quizOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Deselect siblings
+                const siblings = option.parentNode.querySelectorAll('.quiz-option');
+                siblings.forEach(sib => {
+                    sib.classList.remove('selected');
+                });
+                
+                // Select this option
+                option.classList.add('selected');
+                selectedAnswers.add(option);
+            });
+        });
+        
+        // Check answers
+        checkAnswersBtn.addEventListener('click', () => {
+            let correctCount = 0;
+            let totalQuestions = document.querySelectorAll('.quiz-question').length;
+            
+            // Clear previous results
+            quizOptions.forEach(option => {
+                option.classList.remove('correct', 'incorrect');
+            });
+            
+            // Check each selected answer
+            selectedAnswers.forEach(selected => {
+                if (selected.hasAttribute('data-correct')) {
+                    selected.classList.add('correct');
+                    correctCount++;
+                } else {
+                    selected.classList.add('incorrect');
+                    
+                    // Highlight the correct answer
+                    const siblings = selected.parentNode.querySelectorAll('.quiz-option');
+                    siblings.forEach(sib => {
+                        if (sib.hasAttribute('data-correct')) {
+                            sib.classList.add('correct');
+                        }
+                    });
+                }
+            });
+            
+            // Show result
+            quizResult.textContent = `You scored ${correctCount} out of ${totalQuestions}!`;
+            
+            if (correctCount === totalQuestions) {
+                quizResult.textContent += " Perfect score! You're a non-Newtonian fluid expert!";
+            } else if (correctCount >= totalQuestions * 0.7) {
+                quizResult.textContent += " Great job! You have a solid understanding of non-Newtonian fluids.";
+            } else if (correctCount >= totalQuestions * 0.5) {
+                quizResult.textContent += " Good effort! You've grasped the basics.";
+            } else {
+                quizResult.textContent += " Keep learning! Non-Newtonian fluids can be tricky to understand.";
+            }
+        });
+
+        // ========================
+        // PAGE INITIALIZATION
+        // ========================
+        
+        // Initialize all interactive components
+        window.addEventListener('DOMContentLoaded', () => {
+            // Initialize viscosity spectrum
+            createViscosityLanes();
+            
+            // Initialize fluid identification game
+            newFluidChallenge();
+            
+            // Smooth scrolling for navigation
+            document.querySelectorAll('nav a').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 70,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
