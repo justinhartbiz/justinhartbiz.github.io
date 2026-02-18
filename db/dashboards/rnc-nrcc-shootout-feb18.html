@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RNC + NRCC Creative Shootout — Feb 18, 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --db-navy: #0E3358;
+            --db-gold: #F2AA1F;
+            --db-blue: #2EA3F2;
+            --db-white: #FFFFFF;
+            --db-light-gray: #EEEFF0;
+            --db-dark-gray: #30353B;
+            --db-text: #666666;
+            --db-text-dark: #333333;
+            --font-body: 'Open Sans', Arial, sans-serif;
+            --font-heading: 'Lato', Helvetica, Arial, sans-serif;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--db-light-gray);
+            color: var(--db-text);
+            line-height: 1.6;
+        }
+        
+        header {
+            background: var(--db-navy);
+            color: var(--db-white);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        header h1 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        header .date {
+            color: var(--db-gold);
+            font-size: 0.9rem;
+        }
+        
+        .tabs {
+            display: flex;
+            background: var(--db-white);
+            border-bottom: 3px solid var(--db-navy);
+            padding: 0 2rem;
+        }
+        
+        .tab {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--db-text);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover { color: var(--db-navy); }
+        
+        .tab.active {
+            color: var(--db-navy);
+            border-bottom-color: var(--db-gold);
+            background: var(--db-light-gray);
+        }
+        
+        .tab-content { display: none; padding: 2rem; }
+        .tab-content.active { display: block; }
+        
+        .actions-bar {
+            background: var(--db-white);
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .btn {
+            background: var(--db-gold);
+            color: var(--db-white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover { background: #d99a1a; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--db-navy);
+            color: var(--db-navy);
+        }
+        
+        .btn-outline:hover {
+            background: var(--db-navy);
+            color: var(--db-white);
+        }
+        
+        .selected-count {
+            font-family: var(--font-heading);
+            color: var(--db-navy);
+            font-weight: 700;
+        }
+        
+        .selected-count span { color: var(--db-gold); }
+        
+        .brief {
+            background: var(--db-white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .brief h3 {
+            font-family: var(--font-heading);
+            color: var(--db-navy);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .brief ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .brief li { margin-bottom: 0.5rem; }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            color: var(--db-navy);
+            font-size: 1.3rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--db-gold);
+        }
+        
+        .creative-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .creative-card {
+            background: var(--db-white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .creative-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+        
+        .creative-card.selected {
+            border-color: var(--db-gold);
+        }
+        
+        .creative-header {
+            background: var(--db-navy);
+            color: var(--db-white);
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .creative-header label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 700;
+        }
+        
+        .creative-header input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--db-gold);
+        }
+        
+        .creative-meta {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .badge {
+            background: var(--db-gold);
+            color: var(--db-navy);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        
+        .badge.mms { background: var(--db-blue); color: white; }
+        .badge.sms { background: #6c757d; color: white; }
+        
+        .creative-body {
+            padding: 1rem;
+        }
+        
+        .creative-text {
+            background: var(--db-light-gray);
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 0.75rem;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .image-direction {
+            background: #fff3cd;
+            border-left: 3px solid var(--db-gold);
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            font-style: italic;
+            margin-bottom: 0.75rem;
+        }
+        
+        .creative-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.5rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .char-count {
+            font-size: 0.85rem;
+            color: var(--db-text);
+        }
+        
+        .char-count.warn { color: #dc3545; }
+        
+        .copy-btn {
+            background: var(--db-navy);
+            color: var(--db-white);
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover { background: #0a2540; }
+        .copy-btn.copied { background: #28a745; }
+        
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--db-navy);
+            color: var(--db-white);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .creative-grid { grid-template-columns: 1fr; }
+            .tabs { overflow-x: auto; }
+            .tab { white-space: nowrap; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎯 RNC + NRCC Creative Shootout</h1>
+        <div class="date">February 18, 2026 | No Celebrity Signers</div>
+    </header>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="rnc">RNC (6 MMS + 6 SMS)</div>
+        <div class="tab" data-tab="nrcc">NRCC (6 MMS + 6 SMS)</div>
+    </div>
+    
+    <div class="actions-bar">
+        <button class="btn" id="copySelected">📋 Copy Selected</button>
+        <button class="btn btn-outline" id="selectAll">Select All</button>
+        <button class="btn btn-outline" id="clearAll">Clear All</button>
+        <div class="selected-count"><span id="count">0</span> selected</div>
+    </div>
+    
+    <!-- RNC TAB -->
+    <div class="tab-content active" id="rnc">
+        <div class="brief">
+            <h3>📋 RNC Brief</h3>
+            <ul>
+                <li>Trump administration in governing phase — base energized but yield down 65% post-election</li>
+                <li>DOGE cutting billions — base loves it, Dems attacking</li>
+                <li>2026 midterms = early mobilization window</li>
+                <li>Current yield: ~$0.023-0.024/send (down from $0.085 in Q4 2024)</li>
+            </ul>
+            <strong style="color: var(--db-navy);">Strongest Picks:</strong> RNC-MMS-1 (DOGE Survey), RNC-MMS-3 (Guilt), RNC-MMS-6 (Identity)
+        </div>
+        
+        <h2 class="section-title">📱 MMS Creatives</h2>
+        <div class="creative-grid" id="rnc-mms"></div>
+        
+        <h2 class="section-title">💬 SMS Creatives</h2>
+        <div class="creative-grid" id="rnc-sms"></div>
+    </div>
+    
+    <!-- NRCC TAB -->
+    <div class="tab-content" id="nrcc">
+        <div class="brief">
+            <h3>📋 NRCC Brief</h3>
+            <ul>
+                <li>House GOP majority under siege — 30 Rs retiring vs 22 Ds. Dems smell blood.</li>
+                <li>DOGE backlash is double-edged — base wants MORE cuts, not less</li>
+                <li>Gerrymandering war: CA redrew to eliminate 5 GOP districts</li>
+                <li>NRCC fundraising strong but 7 top-priority seats all GOP-held (defense posture)</li>
+            </ul>
+            <strong style="color: var(--db-navy);">Strongest Picks:</strong> NRCC-MMS-1 (DOGE Survey), NRCC-MMS-5 (Speaker Johnson), NRCC-SMS-5 (Enemy Collapse)
+        </div>
+        
+        <h2 class="section-title">📱 MMS Creatives</h2>
+        <div class="creative-grid" id="nrcc-mms"></div>
+        
+        <h2 class="section-title">💬 SMS Creatives</h2>
+        <div class="creative-grid" id="nrcc-sms"></div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+    const creatives = {
+        rnc: {
+            mms: [
+                {
+                    id: "RNC-MMS-1",
+                    angle: "DOGE Survey",
+                    text: `🚨 DOGE UNDER ATTACK — [statename] REPUBLICANS NEEDED
+
+The Democrats want to KILL President Trump's Department of Government Efficiency.
+
+They're furious Elon and the DOGE team have already cut $2 BILLION in waste. Now they want it shut down.
+
+We need [statename] Republicans to weigh in IMMEDIATELY:
+
+→ Should DOGE continue cutting government waste?
+→ Or should Democrats succeed in stopping Trump?
+
+Your voice matters. Take the 30-second DOGE Defense Survey: [link]
+
+- Team RNC`,
+                    image: `Red "UNDER ATTACK" stamp over DOGE logo with Shiba Inu. Text: "[statename] RESPONSE REQUIRED"`,
+                    chars: 387
+                },
+                {
+                    id: "RNC-MMS-2",
+                    angle: "Voter Verification",
+                    text: `🚨 [statename] REPUBLICAN VERIFICATION
+
+We're updating our records before the 2026 midterms.
+
+According to our database, [firstname|your] Republican voter status shows: **UNVERIFIED**
+
+President Trump is personally reviewing state-by-state turnout projections. We need to know: Are you still with us?
+
+Confirm your Republican status now before the [statename] deadline: [link]
+
+Your response has been requested.
+- GOP Voter Operations`,
+                    image: `Mock "voter card" with [firstname] and [statename] fields, "UNVERIFIED" stamped in yellow, "CONFIRM NOW" button`,
+                    chars: 342
+                },
+                {
+                    id: "RNC-MMS-3",
+                    angle: "Guilt/Reactivation",
+                    text: `Should we GIVE UP on you, [firstname|Friend]?
+
+I'll be honest — this is getting embarrassing.
+
+We've reached out multiple times about President Trump's 2026 Midterm Pledge. Every time, silence from your end.
+
+Meanwhile, 43,847 [statename] Republicans have already confirmed. Your name is conspicuously absent.
+
+I have to report back to headquarters tonight. Please don't make me mark you as "UNRESPONSIVE."
+
+Complete the 30-second pledge confirmation: [link]
+
+Final notice.
+- Republican Headquarters`,
+                    image: `Somber red/white design. Large text: "FINAL NOTICE" with "[firstname]" and "Response Status: PENDING"`,
+                    chars: 401
+                },
+                {
+                    id: "RNC-MMS-4",
+                    angle: "Midterm Mobilization",
+                    text: `🗳️ MIDTERM ALERT — [statename]
+
+President Trump's agenda hangs in the balance.
+
+If Republicans lose the House in 2026, Democrats will:
+❌ Impeach Trump AGAIN
+❌ Defund DOGE completely  
+❌ Block the border wall
+❌ Raise YOUR taxes
+
+We're building the largest midterm defense operation in GOP history — starting in [statename].
+
+But we need to know: Can we count on [firstname|you]?
+
+Register for the 2026 Midterm Defense Team: [link]
+
+Every name matters.
+- RNC Midterm Operations`,
+                    image: `"2026 MIDTERM DEFENSE" badge with American flag. Text: "[statename] ENROLLMENT OPEN"`,
+                    chars: 389
+                },
+                {
+                    id: "RNC-MMS-5",
+                    angle: "Breaking News / DOGE",
+                    text: `🛑 BREAKING — TRUMP'S DOGE JUST CUT $2 BILLION
+
+While the media attacked them, the DOGE team delivered.
+
+$2,000,000,000 in wasteful government spending — GONE. 
+
+This is exactly what [firstname|Patriots like you] voted for. President Trump is proving the swamp CAN be drained.
+
+But the Democrats in Congress are already plotting to reverse every cut.
+
+Will you stand with Trump's DOGE mission?
+
+Take the DOGE Victory Survey: [link]
+
+- GOP HQ`,
+                    image: `"$2 BILLION CUT" in large red numbers over Capitol building. DOGE logo in corner. "SURVEY INSIDE →"`,
+                    chars: 367
+                },
+                {
+                    id: "RNC-MMS-6",
+                    angle: "Identity Confirm",
+                    text: `Quick question for [firstname|you]:
+
+Are you still a Republican?
+
+I don't mean to be blunt, but our records show you haven't engaged with the Party since the election.
+
+President Trump is building his 2026 coalition. He specifically asked us to verify the [statename] roster.
+
+We need a simple yes or no:
+
+→ YES, I'm still a Trump Republican
+→ NO, remove me from the rolls
+
+Confirm your status: [link]
+
+This takes 10 seconds.
+- Republican Headquarters`,
+                    image: `Simple form design with two checkboxes: "✓ STILL REPUBLICAN" and "✗ REMOVE ME" — creates urgency to click YES`,
+                    chars: 358
+                }
+            ],
+            sms: [
+                {
+                    id: "RNC-SMS-1",
+                    angle: "DOGE Survey",
+                    text: `🚨URGENT: Democrats are trying to DEFUND President Trump's DOGE. Should they succeed? Tell us in 30 seconds: [link] -GOP HQ`,
+                    chars: 159
+                },
+                {
+                    id: "RNC-SMS-2",
+                    angle: "Midterm Mobilization",
+                    text: `[firstname|Patriot]: 2026 midterms = Trump's last stand. Can we count on [statename] having your back? Confirm now: [link] -Team RNC`,
+                    chars: 156
+                },
+                {
+                    id: "RNC-SMS-3",
+                    angle: "Guilt/Reactivation",
+                    text: `This is getting SAD. [firstname], we've texted multiple times. Still no response. Are you DONE with Trump? Final check: [link]`,
+                    chars: 148
+                },
+                {
+                    id: "RNC-SMS-4",
+                    angle: "Voter Verification",
+                    text: `🚨[statename] ALERT: Your Republican voter status shows UNCONFIRMED. President Trump is reviewing. Verify now: [link] -GOP Voter Ops`,
+                    chars: 155
+                },
+                {
+                    id: "RNC-SMS-5",
+                    angle: "Breaking News / DOGE",
+                    text: `BREAKING: Trump's DOGE just cut $2 BILLION in waste. Democrats furious. Are you with Trump or with them? Quick survey: [link]`,
+                    chars: 158
+                },
+                {
+                    id: "RNC-SMS-6",
+                    angle: "Identity Confirm",
+                    text: `Quick: Are you still a Republican? Our records show you've gone quiet since the election. 10-second confirm: [link] -RNC`,
+                    chars: 142
+                }
+            ]
+        },
+        nrcc: {
+            mms: [
+                {
+                    id: "NRCC-MMS-1",
+                    angle: "DOGE Survey",
+                    text: `House GOP just released the official 2026 DOGE Accountability Survey — and you're 1 of 10 from [zipcode] invited to complete it.
+
+Elon's team is watching. Speaker Johnson needs YOUR input on what gets cut next.
+
+⏰ Survey portal closes TONIGHT at 11:59 PM.
+
+Take the DOGE Survey NOW → [link]
+
+Don't let your seat at the table go to waste, [firstname|Patriot].`,
+                    image: `Official-looking "CLASSIFIED: DOGE SURVEY" stamp on dark background with House GOP seal. Red "EXPIRES TONIGHT" banner across bottom.`,
+                    chars: 347
+                },
+                {
+                    id: "NRCC-MMS-2",
+                    angle: "House Majority Defense",
+                    text: `🚨 BREAKING from House GOP HQ:
+
+Democrats just announced a $200M war chest to FLIP the House in November. They're targeting YOUR district in [statename].
+
+Speaker Johnson called an emergency strategy session. He needs 50,000 confirmed defenders by midnight.
+
+Are you IN or are you OUT?
+
+✅ I'M IN — Count me in to defend the House → [link]
+❌ I'll sit this one out
+
+[firstname|Friend], we can't lose the House. Not now. Not after everything we've built.`,
+                    image: `Split screen — left: Hakeem Jeffries smirking with "FLIP THE HOUSE" text. Right: Speaker Johnson at podium with "HOLD THE LINE" text.`,
+                    chars: 418
+                },
+                {
+                    id: "NRCC-MMS-3",
+                    angle: "Don Jr. Validator",
+                    text: `[firstname|Friend] — it's Don Jr.
+
+I'll be honest. My father's agenda is DEAD if we lose the House in November. Every single promise — DOGE, the wall, tax cuts — gone.
+
+The Democrats know it. That's why they're spending more than EVER to flip Republican seats in [statename].
+
+I'm personally asking 10,000 patriots to step up and confirm their commitment to defending our House Majority before midnight.
+
+Will you be one of them?
+
+CONFIRM YOUR COMMITMENT → [link]
+
+Thank you,
+Don Jr.`,
+                    image: `Don Jr. photo with American flag background. Handwritten-style "Will you stand with us?" overlay.`,
+                    chars: 487
+                },
+                {
+                    id: "NRCC-MMS-4",
+                    angle: "Deep State / Breaking News",
+                    text: `Tulsi Gabbard just confirmed what we ALL suspected:
+
+The Deep State hid BURN BAGS of classified evidence. Obama knew. Brennan knew. Comey knew.
+
+House GOP is demanding FULL accountability — but we need [statename] patriots on record SUPPORTING the investigation.
+
+⏰ You have 24 HOURS to add your name.
+
+SIGN THE PETITION → [link]
+
+IT'S JUST PLAIN TREASON, [firstname|Friend]. Don't stay silent.`,
+                    image: `Dramatic "DECLASSIFIED" stamp over shredded document visual. Red "TREASON" text. Dark, urgent tone.`,
+                    chars: 378
+                },
+                {
+                    id: "NRCC-MMS-5",
+                    angle: "Speaker Johnson Validator",
+                    text: `I'm starting to worry, [firstname|Fellow Conservative].
+
+It's Speaker Mike Johnson. I don't reach out like this unless it's serious.
+
+We have THREE critical special elections coming up that will determine if we KEEP or LOSE our House Majority. Democrats are pouring millions into every single one.
+
+I personally reviewed the GOP roster in [statename] and YOUR name stood out.
+
+I need you to confirm your support before MIDNIGHT TONIGHT.
+
+CONFIRM YOUR SUPPORT → [link]
+
+God bless,
+Speaker Johnson`,
+                    image: `Official Speaker Johnson headshot with House chamber background. "URGENT MESSAGE FROM THE SPEAKER" header.`,
+                    chars: 462
+                },
+                {
+                    id: "NRCC-MMS-6",
+                    angle: "DOGE Refund",
+                    text: `$5,000.
+
+That's how much DOGE estimates YOUR household overpaid in wasted government spending last year.
+
+Want it back? House GOP is fighting to return YOUR money — but first they need to know: Where should we focus the cuts?
+
+🗳️ Take the 30-second DOGE Refund Survey → [link]
+
+Closes in 15 MINUTES, [firstname|Friend]. Don't miss this.`,
+                    image: `Giant "$5,000" in gold text on dark background. "YOUR DOGE REFUND" header. Calculator or money visual.`,
+                    chars: 339
+                }
+            ],
+            sms: [
+                {
+                    id: "NRCC-SMS-1",
+                    angle: "DOGE Survey Urgency",
+                    text: `DOGE Survey CLOSING in 1 hour! Tell House GOP what to cut next. You're 1/10 from [zipcode] invited. Submit before it's gone → [link]`,
+                    chars: 149
+                },
+                {
+                    id: "NRCC-SMS-2",
+                    angle: "Voter Verification",
+                    text: `Hey [firstname|Friend]! Quick check — is [zipcode] still your zip? 👍 YES → [link] 🔄 NO → [link] We need this updated by 9PM!`,
+                    chars: 139
+                },
+                {
+                    id: "NRCC-SMS-3",
+                    angle: "Membership Renewal",
+                    text: `FINAL NOTICE: Your House GOP Membership EXPIRES @ 11:59 PM tonight. Don't abandon your fellow Republicans now. RENEW → [link]`,
+                    chars: 155
+                },
+                {
+                    id: "NRCC-SMS-4",
+                    angle: "Immigration / ICE",
+                    text: `Quick YES or NO: Should ICE arrest dangerous illegal criminals on the streets of [zipcode|your area]? Tell House GOP where you stand → [link]`,
+                    chars: 151
+                },
+                {
+                    id: "NRCC-SMS-5",
+                    angle: "Enemy Collapse",
+                    text: `Hakeem Jeffries just COLLAPSED. AOC is SCREAMING. House GOP's battleplan is CRUSHING them. See why → [link]`,
+                    chars: 142
+                },
+                {
+                    id: "NRCC-SMS-6",
+                    angle: "Elon/DOGE",
+                    text: `Elon Musk just posted on X: Do you support @DOGE cutting government waste? 10 min to tell GOP leaders where you stand → [link]`,
+                    chars: 155
+                }
+            ]
+        }
+    };
+    
+    // Render creatives
+    function renderCreative(c, type) {
+        const isMMS = type === 'mms';
+        return `
+            <div class="creative-card" data-id="${c.id}">
+                <div class="creative-header">
+                    <label>
+                        <input type="checkbox" class="creative-checkbox" data-id="${c.id}">
+                        ${c.id}
+                    </label>
+                    <div class="creative-meta">
+                        <span class="badge ${type}">${type.toUpperCase()}</span>
+                        <span class="badge">${c.angle}</span>
+                    </div>
+                </div>
+                <div class="creative-body">
+                    <div class="creative-text">${c.text}</div>
+                    ${isMMS ? `<div class="image-direction">📷 ${c.image}</div>` : ''}
+                    <div class="creative-footer">
+                        <span class="char-count ${c.chars > (isMMS ? 500 : 160) ? 'warn' : ''}">${c.chars} chars</span>
+                        <button class="copy-btn" data-text="${encodeURIComponent(c.text)}">📋 Copy</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Initialize
+    document.getElementById('rnc-mms').innerHTML = creatives.rnc.mms.map(c => renderCreative(c, 'mms')).join('');
+    document.getElementById('rnc-sms').innerHTML = creatives.rnc.sms.map(c => renderCreative(c, 'sms')).join('');
+    document.getElementById('nrcc-mms').innerHTML = creatives.nrcc.mms.map(c => renderCreative(c, 'mms')).join('');
+    document.getElementById('nrcc-sms').innerHTML = creatives.nrcc.sms.map(c => renderCreative(c, 'sms')).join('');
+    
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab).classList.add('active');
+        });
+    });
+    
+    // Selection handling
+    function updateCount() {
+        const count = document.querySelectorAll('.creative-checkbox:checked').length;
+        document.getElementById('count').textContent = count;
+    }
+    
+    document.addEventListener('change', e => {
+        if (e.target.classList.contains('creative-checkbox')) {
+            const card = e.target.closest('.creative-card');
+            card.classList.toggle('selected', e.target.checked);
+            updateCount();
+        }
+    });
+    
+    document.getElementById('selectAll').addEventListener('click', () => {
+        const activeTab = document.querySelector('.tab-content.active');
+        activeTab.querySelectorAll('.creative-checkbox').forEach(cb => {
+            cb.checked = true;
+            cb.closest('.creative-card').classList.add('selected');
+        });
+        updateCount();
+    });
+    
+    document.getElementById('clearAll').addEventListener('click', () => {
+        document.querySelectorAll('.creative-checkbox').forEach(cb => {
+            cb.checked = false;
+            cb.closest('.creative-card').classList.remove('selected');
+        });
+        updateCount();
+    });
+    
+    // Copy functionality
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+    
+    document.addEventListener('click', e => {
+        if (e.target.classList.contains('copy-btn')) {
+            const text = decodeURIComponent(e.target.dataset.text);
+            navigator.clipboard.writeText(text).then(() => {
+                e.target.classList.add('copied');
+                e.target.textContent = '✓ Copied';
+                setTimeout(() => {
+                    e.target.classList.remove('copied');
+                    e.target.textContent = '📋 Copy';
+                }, 1500);
+            });
+        }
+    });
+    
+    document.getElementById('copySelected').addEventListener('click', () => {
+        const selected = document.querySelectorAll('.creative-checkbox:checked');
+        if (selected.length === 0) {
+            showToast('No creatives selected');
+            return;
+        }
+        
+        let output = '';
+        selected.forEach(cb => {
+            const card = cb.closest('.creative-card');
+            const id = card.dataset.id;
+            const text = card.querySelector('.creative-text').textContent;
+            const imageDir = card.querySelector('.image-direction');
+            output += `=== ${id} ===\n${text}\n`;
+            if (imageDir) output += `\n(Image: ${imageDir.textContent.replace('📷 ', '')})\n`;
+            output += '\n---\n\n';
+        });
+        
+        navigator.clipboard.writeText(output).then(() => {
+            showToast(`✓ Copied ${selected.length} creative(s)`);
+        });
+    });
+    </script>
+</body>
+</html>
