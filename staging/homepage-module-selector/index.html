@@ -183,13 +183,41 @@
     }
 
     async function loadInventory() {
-      // Pull the same curated source used by /projects/operator-toolkit/
-      const res = await fetch('/projects/operator-toolkit/index.html');
-      const html = await res.text();
-      const match = html.match(/const allItems = \[(.*?)\];\s*\/\/ Elements/s);
-      if (!match) throw new Error('Could not parse allItems from operator toolkit');
-      const parsed = Function(`"use strict"; return [${match[1]}];`)();
-      all = parsed.map((item, i) => ({ ...item, moduleId: createId(item, i) }));
+      // Source 1: full inventory page (manual canonical list)
+      const invRes = await fetch('/inventory.html');
+      const invHtml = await invRes.text();
+      const invMatch = invHtml.match(/const\s+pages\s*=\s*\[(.*?)\];\s*const\s+catLabels/s);
+      if (!invMatch) throw new Error('Could not parse pages[] from /inventory.html');
+      const invPages = Function(`"use strict"; return [${invMatch[1]}];`)();
+
+      // Source 2: operator toolkit curated list
+      const toolkitRes = await fetch('/projects/operator-toolkit/index.html');
+      const toolkitHtml = await toolkitRes.text();
+      const toolkitMatch = toolkitHtml.match(/const allItems = \[(.*?)\];\s*\/\/ Elements/s);
+      const toolkitItems = toolkitMatch ? Function(`"use strict"; return [${toolkitMatch[1]}];`)() : [];
+
+      const fromInventory = invPages.map(p => ({
+        title: p.title,
+        description: `Imported from inventory (${p.cat || 'misc'})`,
+        path: p.path,
+        category: p.cat || 'misc',
+        type: (p.tags || []).includes('tool') ? 'tool' : ((p.tags || []).includes('dashboard') ? 'dashboard' : 'module'),
+        tags: p.tags || [],
+        date: '2026-02-18',
+        source: 'inventory'
+      }));
+
+      const fromToolkit = toolkitItems.map(i => ({ ...i, source: 'toolkit' }));
+
+      // Merge + de-dupe by path (prefer inventory metadata first)
+      const merged = [...fromInventory, ...fromToolkit];
+      const byPath = new Map();
+      for (const item of merged) {
+        const key = (item.path || '').replace(/\/$/, '');
+        if (!byPath.has(key)) byPath.set(key, item);
+      }
+
+      all = Array.from(byPath.values()).map((item, i) => ({ ...item, moduleId: createId(item, i) }));
       hydrateFilters();
       render();
     }
