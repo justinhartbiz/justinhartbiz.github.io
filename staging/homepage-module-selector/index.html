@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homepage Module Selector | Justin Hart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --panel: #11141c;
+      --panel-2: #171b25;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --line: #262b38;
+      --accent: #7dd3fc;
+      --accent-2: #a78bfa;
+      --ok: #86efac;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 500px at 10% -10%, rgba(125,211,252,.12), transparent),
+                  radial-gradient(1200px 500px at 110% 20%, rgba(167,139,250,.10), transparent),
+                  var(--bg);
+      color: var(--text);
+      font-family: "Space Mono", monospace;
+    }
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 28px; }
+    h1, h2, h3 { font-family: "Syne", sans-serif; letter-spacing: .02em; }
+    h1 { margin: 0 0 8px; font-size: clamp(1.7rem, 2.5vw, 2.8rem); }
+    .sub { color: var(--muted); margin-bottom: 24px; }
+
+    .top {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border-radius: 14px;
+      padding: 16px;
+    }
+    input, select, textarea, button {
+      font: inherit;
+      color: inherit;
+      background: #0f131d;
+      border: 1px solid #2c3344;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    input, select { width: 100%; }
+    .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+    .small { font-size: .78rem; color: var(--muted); }
+    .stats { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 12px; }
+    .stat b { color: var(--accent); }
+
+    .picker {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      max-height: 240px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .idchip {
+      border: 1px dashed #334155;
+      border-radius: 9px;
+      padding: 8px;
+      font-size: .72rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.01);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #10141f, #0d1018);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 220px;
+    }
+    .card:hover { border-color: #3b4255; transform: translateY(-1px); }
+    .line { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    .badge { font-size: .68rem; padding: 2px 8px; border: 1px solid #334155; border-radius: 999px; color: #cbd5e1; }
+    .title { font-family: "Syne", sans-serif; font-size: 1.05rem; line-height: 1.2; }
+    .desc { color: var(--muted); font-size: .8rem; line-height: 1.4; min-height: 56px; }
+    .id { color: var(--ok); font-size: .72rem; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { font-size: .63rem; border: 1px solid #2f384d; padding: 2px 6px; border-radius: 999px; color: #d1d5db; }
+    .actions { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .actions a { color: var(--accent); text-decoration: none; font-size: .76rem; }
+    .actions a:hover { text-decoration: underline; }
+
+    .selected {
+      border-color: rgba(134,239,172,.45);
+      box-shadow: inset 0 0 0 1px rgba(134,239,172,.2);
+      background: linear-gradient(180deg, #101a17, #0d1412);
+    }
+
+    @media (max-width: 1120px) {
+      .top, .grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 760px) {
+      .top, .grid, .controls, .picker { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Homepage Module Selector</h1>
+    <div class="sub">One place to review the full toolkit inventory, pick modules, and copy IDs back into chat like: <b>"Use: MOD-DB-001, MOD-TLH-004..."</b></div>
+
+    <div class="top">
+      <section class="panel">
+        <div class="controls">
+          <input id="q" placeholder="Search title, tag, description…" />
+          <select id="category">
+            <option value="all">All categories</option>
+          </select>
+          <select id="type">
+            <option value="all">All types</option>
+          </select>
+        </div>
+        <div class="stats">
+          <div class="stat">Visible: <b id="visibleCount">0</b></div>
+          <div class="stat">Selected: <b id="selectedCount">0</b></div>
+          <div class="stat">Inventory source: <b>Operator Toolkit index</b></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="line" style="margin-bottom:8px;">
+          <h3 style="margin:0;">Selected IDs</h3>
+          <button id="clear">Clear</button>
+        </div>
+        <div id="selectedIds" class="picker"></div>
+        <textarea id="copyBox" rows="4" readonly placeholder="Selected IDs will appear here…" style="margin-top:10px;"></textarea>
+        <div class="line" style="margin-top:10px; gap:10px;">
+          <button id="copyCsv">Copy CSV</button>
+          <button id="copyPrompt">Copy chat-ready line</button>
+          <span class="small">Tip: paste back and say “build homepage using these.”</span>
+        </div>
+      </section>
+    </div>
+
+    <section id="cards" class="grid"></section>
+  </div>
+
+  <script>
+    const cardsEl = document.getElementById('cards');
+    const qEl = document.getElementById('q');
+    const catEl = document.getElementById('category');
+    const typeEl = document.getElementById('type');
+    const selectedIdsEl = document.getElementById('selectedIds');
+    const copyBox = document.getElementById('copyBox');
+    const selectedCount = document.getElementById('selectedCount');
+    const visibleCount = document.getElementById('visibleCount');
+
+    let all = [];
+    const selected = new Set();
+
+    const slug = (v='') => v.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+
+    function createId(item, index) {
+      const cat = (item.category || 'misc').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+      const n = String(index + 1).padStart(3, '0');
+      return `MOD-${cat}-${n}`;
+    }
+
+    async function loadInventory() {
+      // Pull the same curated source used by /projects/operator-toolkit/
+      const res = await fetch('/projects/operator-toolkit/index.html');
+      const html = await res.text();
+      const match = html.match(/const allItems = \[(.*?)\];\s*\/\/ Elements/s);
+      if (!match) throw new Error('Could not parse allItems from operator toolkit');
+      const parsed = Function(`"use strict"; return [${match[1]}];`)();
+      all = parsed.map((item, i) => ({ ...item, moduleId: createId(item, i) }));
+      hydrateFilters();
+      render();
+    }
+
+    function hydrateFilters() {
+      const cats = [...new Set(all.map(i => i.category).filter(Boolean))].sort();
+      const types = [...new Set(all.map(i => i.type).filter(Boolean))].sort();
+      cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; catEl.appendChild(o); });
+      types.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; typeEl.appendChild(o); });
+    }
+
+    function filtered() {
+      const q = qEl.value.trim().toLowerCase();
+      return all.filter(item => {
+        const inCat = catEl.value === 'all' || item.category === catEl.value;
+        const inType = typeEl.value === 'all' || item.type === typeEl.value;
+        const blob = `${item.title} ${item.description} ${(item.tags || []).join(' ')}`.toLowerCase();
+        const inQ = !q || blob.includes(q);
+        return inCat && inType && inQ;
+      });
+    }
+
+    function renderSelected() {
+      const picked = all.filter(i => selected.has(i.moduleId));
+      selectedIdsEl.innerHTML = picked.map(i => `<label class="idchip"><input type="checkbox" checked data-id="${i.moduleId}"/> <span>${i.moduleId}</span></label>`).join('');
+      copyBox.value = picked.map(i => i.moduleId).join(', ');
+      selectedCount.textContent = String(picked.length);
+      selectedIdsEl.querySelectorAll('input[data-id]').forEach(cb => cb.addEventListener('change', e => {
+        const id = e.target.getAttribute('data-id');
+        selected.delete(id);
+        render();
+      }));
+    }
+
+    function render() {
+      const list = filtered();
+      visibleCount.textContent = String(list.length);
+      cardsEl.innerHTML = list.map(item => {
+        const isOn = selected.has(item.moduleId);
+        return `
+          <article class="card ${isOn ? 'selected' : ''}" data-id="${item.moduleId}">
+            <div class="line">
+              <span class="badge">${item.category || 'misc'}</span>
+              <span class="badge">${item.type || 'module'}</span>
+            </div>
+            <div class="title">${item.title || 'Untitled Module'}</div>
+            <div class="desc">${item.description || 'No description yet.'}</div>
+            <div class="id">${item.moduleId}</div>
+            <div class="tags">${(item.tags || []).slice(0,5).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+            <div class="actions">
+              <label><input type="checkbox" ${isOn ? 'checked' : ''} data-toggle="${item.moduleId}"/> include</label>
+              <a href="${item.path || '#'}" target="_blank" rel="noopener">open</a>
+            </div>
+          </article>`;
+      }).join('');
+
+      cardsEl.querySelectorAll('input[data-toggle]').forEach(cb => cb.addEventListener('change', e => {
+        const id = e.target.getAttribute('data-toggle');
+        if (e.target.checked) selected.add(id); else selected.delete(id);
+        renderSelected();
+        const card = e.target.closest('.card');
+        card.classList.toggle('selected', e.target.checked);
+      }));
+
+      renderSelected();
+    }
+
+    document.getElementById('clear').addEventListener('click', () => { selected.clear(); render(); });
+    qEl.addEventListener('input', render);
+    catEl.addEventListener('change', render);
+    typeEl.addEventListener('change', render);
+
+    document.getElementById('copyCsv').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(copyBox.value);
+    });
+
+    document.getElementById('copyPrompt').addEventListener('click', async () => {
+      const text = copyBox.value.trim();
+      const out = text ? `Use these homepage modules: ${text}` : 'Use these homepage modules: '; 
+      await navigator.clipboard.writeText(out);
+    });
+
+    loadInventory().catch(err => {
+      cardsEl.innerHTML = `<div class="panel">Failed to load inventory: ${err.message}</div>`;
+    });
+  </script>
+</body>
+</html>
