@@ -75,13 +75,12 @@
       return Math.max(2, Math.ceil((tileHeight + gap) / (row + gap)));
     }
 
-    function tileHTML(src, poster, colSpan, rowSpan, featured=false) {
-      return `<article class="tile ${featured ? 'featured' : ''}" style="grid-column: span ${colSpan}; grid-row: span ${rowSpan};">
-        <video controls preload="metadata" poster="${poster}">
-          <source src="${src}" type="application/x-mpegURL" />
-          <source src="${src}" type="video/mp4" />
-        </video>
-      </article>`;
+    function tileHTML({ src, poster, colSpan, rowSpan, featured=false, uid=null }) {
+      const media = uid
+        ? `<iframe src="https://iframe.videodelivery.net/${uid}" loading="lazy" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" allowfullscreen style="width:100%;height:100%;border:0;background:#05070c"></iframe>`
+        : `<video controls preload="metadata" poster="${poster}"><source src="${src}" type="video/mp4" /></video>`;
+
+      return `<article class="tile ${featured ? 'featured' : ''}" style="grid-column: span ${colSpan}; grid-row: span ${rowSpan};">${media}</article>`;
     }
 
     let data = null;
@@ -93,13 +92,13 @@
 
       const fCols = spanFromAR(featured.ar, true);
       const fRows = computeRowSpan(fCols, featured.ar);
-      cards.push(tileHTML('./assets/featured-top.mp4', './assets/featured-top.jpg', fCols, fRows, true));
+      cards.push(tileHTML({ src:'./assets/featured-top.mp4', poster:'./assets/featured-top.jpg', colSpan:fCols, rowSpan:fRows, featured:true, uid:null }));
 
       videos.forEach(v => {
         const c = spanFromAR(v.ar, false);
         const r = computeRowSpan(c, v.ar);
-        const src = v.uid ? `https://videodelivery.net/${v.uid}/manifest/video.m3u8` : `./assets/${v.slug}.mp4`;
-        cards.push(tileHTML(src, `./assets/${v.slug}.jpg`, c, r, false));
+        const src = `./assets/${v.slug}.mp4`;
+        cards.push(tileHTML({ src, poster:`./assets/${v.slug}.jpg`, colSpan:c, rowSpan:r, featured:false, uid:v.uid }));
       });
 
       mosaic.innerHTML = cards.join('');
