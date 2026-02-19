@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>justinhart.biz — Full Inventory</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f8f9fa; color:#1a1a2e; padding:1.5rem; }
+        h1 { font-size:1.6rem; margin-bottom:0.25rem; }
+        .subtitle { color:#666; margin-bottom:1rem; font-size:0.9rem; }
+        .controls { display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center; margin-bottom:1.5rem; padding:1rem; background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+        .controls input[type="text"] { flex:1; min-width:200px; padding:0.5rem 0.75rem; border:1px solid #ddd; border-radius:6px; font-size:0.9rem; }
+        .controls select { padding:0.5rem; border:1px solid #ddd; border-radius:6px; font-size:0.85rem; }
+        .controls button { padding:0.5rem 1rem; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem; font-weight:600; }
+        .btn-copy { background:#0E3358; color:#fff; }
+        .btn-copy:hover { background:#1a4a7a; }
+        .btn-clear { background:#eee; color:#333; }
+        .btn-clear:hover { background:#ddd; }
+        .selected-count { font-weight:700; color:#0E3358; font-size:0.95rem; min-width:100px; }
+        .category { margin-bottom:1.5rem; }
+        .category-header { font-size:1.1rem; font-weight:700; color:#0E3358; padding:0.5rem 0; border-bottom:2px solid #F2AA1F; margin-bottom:0.75rem; display:flex; justify-content:space-between; align-items:center; }
+        .category-header .count { font-size:0.8rem; color:#888; font-weight:400; }
+        .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:0.75rem; }
+        .card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:0.75rem 1rem; display:flex; align-items:flex-start; gap:0.75rem; cursor:pointer; transition:all 0.15s; }
+        .card:hover { border-color:#0E3358; box-shadow:0 2px 8px rgba(14,51,88,0.1); }
+        .card.selected { border-color:#F2AA1F; background:#fffbf0; box-shadow:0 0 0 2px rgba(242,170,31,0.3); }
+        .card input[type="checkbox"] { margin-top:3px; accent-color:#F2AA1F; width:18px; height:18px; flex-shrink:0; }
+        .card-body { flex:1; min-width:0; }
+        .card-title { font-weight:600; font-size:0.9rem; color:#1a1a2e; margin-bottom:2px; }
+        .card-path { font-size:0.75rem; color:#888; word-break:break-all; }
+        .card-tag { display:inline-block; font-size:0.65rem; padding:1px 6px; border-radius:3px; font-weight:600; margin-right:4px; }
+        .tag-db { background:#e8f0fe; color:#0E3358; }
+        .tag-tlh { background:#e8f5e9; color:#2e7d32; }
+        .tag-personal { background:#f3e5f5; color:#7b1fa2; }
+        .tag-tool { background:#fff3e0; color:#e65100; }
+        .tag-speaking { background:#fce4ec; color:#c62828; }
+        .tag-consulting { background:#e0f7fa; color:#00695c; }
+        .tag-content { background:#f1f8e9; color:#558b2f; }
+        .tag-ops { background:#efebe9; color:#4e342e; }
+        .tag-product { background:#ede7f6; color:#4527a0; }
+        .tag-staging { background:#fff8e1; color:#f57f17; }
+        #output { display:none; margin-top:1rem; padding:1rem; background:#1a1a2e; color:#a5d6a7; border-radius:8px; font-family:monospace; font-size:0.8rem; white-space:pre-wrap; word-break:break-all; max-height:300px; overflow-y:auto; }
+        #output.visible { display:block; }
+    </style>
+</head>
+<body>
+    <h1>📦 justinhart.biz — Full Inventory</h1>
+    <p class="subtitle">Check the items you want on the front page. Copy the IDs when done.</p>
+
+    <div class="controls">
+        <input type="text" id="search" placeholder="Search pages...">
+        <select id="filter">
+            <option value="all">All Categories</option>
+            <option value="db">DonorBureau</option>
+            <option value="tlh">TLH</option>
+            <option value="personal">Personal</option>
+            <option value="tool">Tools</option>
+            <option value="speaking">Speaking</option>
+            <option value="consulting">Consulting</option>
+            <option value="content">Content</option>
+            <option value="ops">Ops</option>
+            <option value="product">Products</option>
+            <option value="staging">Staging</option>
+        </select>
+        <span class="selected-count" id="selectedCount">0 selected</span>
+        <button class="btn-copy" id="copyBtn">📋 Copy Selected</button>
+        <button class="btn-clear" id="clearBtn">Clear All</button>
+    </div>
+
+    <div id="categories"></div>
+    <div id="output"></div>
+
+<script>
+const pages = [
+    // === DONORBUREAU: Forensics ===
+    {id:"db-forensics-nrsc", title:"NRSC Creative Forensics", path:"/db/forensics/nrsc-creative-forensics.html", cat:"db", tags:["forensics","nrsc"]},
+    {id:"db-forensics-semperk9", title:"SemperK9 Creative Forensics", path:"/db/forensics/semperk9-creative-forensics.html", cat:"db", tags:["forensics","semperk9"]},
+    {id:"db-forensics-ncpd", title:"NCPD Creative Forensics", path:"/db/forensics/ncpd-creative-forensics.html", cat:"db", tags:["forensics","ncpd"]},
+    {id:"db-forensics-soldierstrong", title:"SoldierStrong Creative Forensics", path:"/db/forensics/soldierstrong-creative-forensics.html", cat:"db", tags:["forensics","soldierstrong"]},
+
+    // === DONORBUREAU: Shootouts ===
+    {id:"db-shootout-rnc-nrcc", title:"RNC + NRCC Shootout (Feb 18)", path:"/db/dashboards/rnc-nrcc-shootout-feb18.html", cat:"db", tags:["shootout"]},
+    {id:"db-shootout-semperk9", title:"SemperK9 Shootout (Feb 18)", path:"/db/dashboards/semperk9-shootout-feb18.html", cat:"db", tags:["shootout","semperk9"]},
+    {id:"db-shootout-herobox", title:"HeroBox Shootout (Feb 18)", path:"/db/dashboards/herobox-shootout-feb18.html", cat:"db", tags:["shootout","herobox"]},
+    {id:"db-shootout-ncpd", title:"NCPD Shootout (Feb 18)", path:"/db/dashboards/ncpd-shootout-feb18.html", cat:"db", tags:["shootout","ncpd"]},
+    {id:"db-shootout-membership", title:"NRCC Membership Shootout (Feb 18)", path:"/db/dashboards/shootout-membership-feb18.html", cat:"db", tags:["shootout","nrcc"]},
+    {id:"db-shootout-slf", title:"SLF Shootout (Feb 17)", path:"/db/dashboards/slf-shootout-feb17.html", cat:"db", tags:["shootout","slf"]},
+    {id:"db-shootout-slf-v2", title:"SLF Shootout V2 (Feb 17)", path:"/db/dashboards/slf-shootout-v2-feb17.html", cat:"db", tags:["shootout","slf"]},
+    {id:"db-shootout-herobox-val", title:"HeroBox Valentines Shootout", path:"/db/shootouts/herobox-valentines.html", cat:"db", tags:["shootout","herobox"]},
+    {id:"db-shootout-rnc-playbook", title:"RNC Shootout Playbook", path:"/db/shootouts/rnc-playbook.html", cat:"db", tags:["shootout","rnc"]},
+    {id:"db-shootout-rnc-vance", title:"RNC Vance Survey Shootout", path:"/db/shootouts/rnc-vance-survey.html", cat:"db", tags:["shootout","rnc"]},
+    {id:"db-shootout-whatley", title:"Whatley Survey Shootout", path:"/db/shootouts/whatley-survey.html", cat:"db", tags:["shootout"]},
+    {id:"db-shootout-semperk9-feb", title:"SemperK9 Feb Shootout", path:"/db/shootouts/semperk9-feb2026.html", cat:"db", tags:["shootout","semperk9"]},
+    {id:"db-shootout-ncpd-oldrati", title:"NCPD OldRati Shootout", path:"/db/shootouts/ncpd-oldrati.html", cat:"db", tags:["shootout","ncpd"]},
+    {id:"db-shootout-soldierstrong", title:"SoldierStrong Client Donors", path:"/db/shootouts/soldierstrong-client-donors.html", cat:"db", tags:["shootout","soldierstrong"]},
+    {id:"db-shootout-midterm", title:"NRSC Midterm Polling Shootout", path:"/db/nrsc/shootout-midterm-polling-2026-02-09.html", cat:"db", tags:["shootout","nrsc"]},
+
+    // === DONORBUREAU: Dashboards & Tools ===
+    {id:"db-creative-genome-v2", title:"Creative Genome V2", path:"/db/dashboards/creative-genome-v2.html", cat:"db", tags:["dashboard","genome"]},
+    {id:"db-creative-genome", title:"Creative Genome V1", path:"/db/dashboards/creative-genome.html", cat:"db", tags:["dashboard","genome"]},
+    {id:"db-donor-genome", title:"Donor Genome Project", path:"/db/dashboards/donor-genome.html", cat:"db", tags:["dashboard"]},
+    {id:"db-nrsc-expansion", title:"NRSC Expansion Rate Dashboard", path:"/db/dashboards/nrsc-expansion-rate.html", cat:"db", tags:["dashboard","nrsc"]},
+    {id:"db-synthetic-donor", title:"Synthetic Donor Simulator", path:"/db/synthetic-donor-simulator/index.html", cat:"db", tags:["tool","simulator"]},
+    {id:"db-synthetic-breakthrough", title:"Synthetic Donor Breakthrough", path:"/db/synthetic-donor-breakthrough.html", cat:"db", tags:["tool"]},
+    {id:"db-sms-analyzer", title:"SMS Creative Analyzer", path:"/db/dashboards/sms-creative-analyzer.html", cat:"db", tags:["tool"]},
+    {id:"db-creative-analyzer-v4", title:"Creative Analyzer V4", path:"/db/tools/creative-analyzer-v4.html", cat:"db", tags:["tool"]},
+    {id:"db-what-if", title:"What-If Machine", path:"/db/tools/what-if-machine.html", cat:"db", tags:["tool"]},
+    {id:"db-war-room", title:"War Room V2", path:"/db/dashboards/war-room-v2.html", cat:"db", tags:["dashboard"]},
+    {id:"db-command-center", title:"Command Center", path:"/db/dashboards/command-center.html", cat:"db", tags:["dashboard"]},
+    {id:"db-fundraising-intel", title:"Fundraising Intel Dashboard", path:"/db/dashboards/fundraising-intel-dashboard.html", cat:"db", tags:["dashboard"]},
+    {id:"db-performance", title:"Performance Dashboard", path:"/db/performance-dashboard.html", cat:"db", tags:["dashboard"]},
+    {id:"db-opening-lines-v2", title:"Opening Line Forensics V2", path:"/db/opening-line-forensics-v2.html", cat:"db", tags:["forensics"]},
+    {id:"db-opening-lines-nonprofit", title:"Opening Line Forensics (Nonprofit)", path:"/db/opening-line-forensics-nonprofit-v2.html", cat:"db", tags:["forensics"]},
+    {id:"db-nrsc-cr1243", title:"NRSC Cr-1243 Case Study", path:"/db/nrsc/cr1243-case-study.html", cat:"db", tags:["case-study","nrsc"]},
+    {id:"db-objection-library", title:"Objection Library", path:"/db/objection-library.html", cat:"db", tags:["tool"]},
+    {id:"db-demo-script", title:"Demo Script", path:"/db/demo-script.html", cat:"db", tags:["demo"]},
+    {id:"db-research-v4", title:"Research Strategy V4", path:"/db/research/strategy-dashboard-v4.html", cat:"db", tags:["strategy"]},
+    {id:"db-rnc-patriot-census", title:"RNC Patriot Census", path:"/db/dashboards/rnc-patriot-census.html", cat:"db", tags:["rnc"]},
+    {id:"db-soldierstrong-growth", title:"SoldierStrong Growth Dashboard", path:"/db/dashboards/soldierstrong-growth.html", cat:"db", tags:["soldierstrong"]},
+    {id:"db-soldierstrong-provenance", title:"SoldierStrong Provenance", path:"/db/dashboards/soldierstrong-provenance.html", cat:"db", tags:["soldierstrong"]},
+    {id:"db-decay-clock", title:"Decay Clock", path:"/db/dashboards/decay-clock.html", cat:"db", tags:["dashboard"]},
+
+    // === DONORBUREAU: MMS Images ===
+    {id:"db-rnc-mms-v2", title:"RNC MMS Images V2 (Feb 18)", path:"/db/dashboards/rnc-mms-images-feb18-v2.html", cat:"db", tags:["mms","rnc"]},
+    {id:"db-rnc-mms-recraft", title:"RNC MMS Images (Recraft)", path:"/db/dashboards/rnc-mms-images-recraft.html", cat:"db", tags:["mms","rnc"]},
+    {id:"db-nrcc-mms", title:"NRCC MMS Images (Feb 18)", path:"/db/dashboards/nrcc-mms-images-feb18.html", cat:"db", tags:["mms","nrcc"]},
+    {id:"db-slf-images", title:"SLF Images Gallery", path:"/slf-images/index.html", cat:"db", tags:["mms","slf"]},
+
+    // === DONORBUREAU: Client Reviews ===
+    {id:"db-review-herobox", title:"HeroBox Review", path:"/db/nonprofit/herobox/HEROBOX-REVIEW-2026-02-10.html", cat:"db", tags:["review","herobox"]},
+    {id:"db-review-soldierstrong", title:"SoldierStrong Review", path:"/db/nonprofit/soldierstrong/SOLDIERSTRONG-REVIEW-2026-02-10.html", cat:"db", tags:["review","soldierstrong"]},
+    {id:"db-review-sfl", title:"SFL Review", path:"/db/nonprofit/sfl/SFL-REVIEW-2026-02-11.html", cat:"db", tags:["review"]},
+    {id:"db-review-slf-shootout", title:"SLF Shootout Review", path:"/db/political/slf/SLF-SHOOTOUT-REVIEW-2026-02-10.html", cat:"db", tags:["review","slf"]},
+    {id:"db-review-aul", title:"AUL Review", path:"/db/political/aul/AUL-REVIEW-2026-02-11.html", cat:"db", tags:["review"]},
+    {id:"db-review-cae", title:"CAE Review", path:"/db/political/cae/CAE-REVIEW-2026-02-11.html", cat:"db", tags:["review"]},
+    {id:"db-review-nrsc-p2p", title:"NRSC P2P Review", path:"/db/political/nrsc/p2p/NRSC-P2P-REVIEW-2026-02-10.html", cat:"db", tags:["review","nrsc"]},
+    {id:"db-herobox-lp", title:"HeroBox Landing Page", path:"/db/lp/herobox-mission-feb2026.html", cat:"db", tags:["lp","herobox"]},
+    {id:"db-soldierstrong-growth-strategy", title:"SoldierStrong Growth Strategy", path:"/db/nonprofit/soldierstrong/soldierstrong-growth-strategy-dashboard.html", cat:"db", tags:["strategy","soldierstrong"]},
+    {id:"db-911-tshirt", title:"9/11 Legacy T-Shirt Campaign", path:"/db/nonprofit/911legacy/tshirt-campaign.html", cat:"db", tags:["campaign"]},
+
+    // === SPEAKING ===
+    {id:"speaking-shootout-demo", title:"AI Creative Shootout — Live Demo", path:"/speaking/ai-creative-shootout/demo/index.html", cat:"speaking", tags:["demo","shootout"]},
+    {id:"speaking-shootout-chat", title:"AI Creative Shootout — Chat UI", path:"/speaking/ai-creative-shootout/demo/chat.html", cat:"speaking", tags:["demo","chat"]},
+    {id:"speaking-shootout-comic", title:"AI Creative Shootout — Comic Strip", path:"/speaking/ai-creative-shootout/demo/comic.html", cat:"speaking", tags:["demo","comic"]},
+    {id:"speaking-shootout-comic-v2", title:"Comic Strip V2", path:"/speaking/ai-creative-shootout/demo/comic-v2.html", cat:"speaking", tags:["demo","comic"]},
+    {id:"speaking-shootout-comic-v3", title:"Comic Strip V3", path:"/speaking/ai-creative-shootout/demo/comic-v3.html", cat:"speaking", tags:["demo","comic"]},
+    {id:"speaking-shootout-landing", title:"AI Creative Shootout — Landing Page", path:"/speaking/ai-creative-shootout/index.html", cat:"speaking", tags:["landing"]},
+
+    // === CONSULTING ===
+    {id:"consulting-money-machine", title:"Money Machine Dashboard", path:"/consulting/money-machine-dashboard.html", cat:"consulting", tags:["dashboard"]},
+    {id:"consulting-roi-calc", title:"AI ROI Calculator", path:"/consulting/roi-calculator/index.html", cat:"consulting", tags:["calculator"]},
+
+    // === PRODUCTS ===
+    {id:"product-ai-operator", title:"AI Operator Product Page", path:"/products/ai-operator/index.html", cat:"product", tags:["product"]},
+    {id:"product-bountydialer", title:"BountyDialer", path:"/products/bountydialer/index.html", cat:"product", tags:["product"]},
+    {id:"product-launch-dashboard", title:"Launch Dashboard", path:"/products/launch-dashboard/index.html", cat:"product", tags:["product"]},
+    {id:"product-lead-iq", title:"Lead IQ Live", path:"/products/lead-iq-live/index.html", cat:"product", tags:["product"]},
+    {id:"product-probateflow", title:"ProbateFlow", path:"/products/probateflow/index.html", cat:"product", tags:["product"]},
+
+    // === TLH ===
+    {id:"tlh-exec-dashboard", title:"TLH Exec Dashboard", path:"/tlh/exec-dashboard.html", cat:"tlh", tags:["dashboard"]},
+    {id:"tlh-marketing-dashboard", title:"TLH Marketing Dashboard", path:"/tlh/marketing-dashboard/index.html", cat:"tlh", tags:["dashboard"]},
+    {id:"tlh-morning-dashboard", title:"TLH Morning Dashboard", path:"/tlh/morning-dashboard/index.html", cat:"tlh", tags:["dashboard"]},
+    {id:"tlh-strategy", title:"TLH Strategy", path:"/tlh/strategy/index.html", cat:"tlh", tags:["strategy"]},
+    {id:"tlh-strategic-brief", title:"TLH Strategic Brief", path:"/tlh/strategic-brief/index.html", cat:"tlh", tags:["strategy"]},
+    {id:"tlh-salesforce-audit", title:"TLH Salesforce Audit", path:"/tlh/tlh-salesforce/index.html", cat:"tlh", tags:["salesforce"]},
+    {id:"tlh-salesforce-report", title:"TLH Salesforce Report", path:"/tlh/salesforce-audit-report/index.html", cat:"tlh", tags:["salesforce"]},
+    {id:"tlh-ai-phone-agent", title:"TLH AI Phone Agent", path:"/tlh/ai-phone-agent/index.html", cat:"tlh", tags:["ai","phone"]},
+    {id:"tlh-ai-marketing", title:"TLH AI Marketing Team", path:"/tlh/ai-marketing-team/index.html", cat:"tlh", tags:["ai","marketing"]},
+    {id:"tlh-ai-marketing-ops", title:"TLH AI Marketing Team Ops", path:"/tlh/ai-marketing-team-ops/index.html", cat:"tlh", tags:["ai","marketing"]},
+    {id:"tlh-ai-content-pilot", title:"TLH AI Content Pilot", path:"/tlh/ai-content-pilot/index.html", cat:"tlh", tags:["ai","content"]},
+    {id:"tlh-agents", title:"TLH Agent Flows", path:"/tlh/agents/index.html", cat:"tlh", tags:["ai","agents"]},
+    {id:"tlh-gbp-strategy", title:"TLH GBP Strategy", path:"/tlh/gbp-strategy/index.html", cat:"tlh", tags:["gbp"]},
+    {id:"tlh-estate-sales", title:"TLH Estate Sales Platform", path:"/tlh/estate-sales-platform/index.html", cat:"tlh", tags:["estate-sales"]},
+    {id:"tlh-estatesales-intel", title:"Estate Sales Intel Dashboard", path:"/tlh/estatesales-intel/dashboard-v2.html", cat:"tlh", tags:["intel"]},
+    {id:"tlh-lead-scorecard", title:"TLH Lead Scorecard", path:"/tlh/dashboards/lead-scorecard.html", cat:"tlh", tags:["leads"]},
+    {id:"tlh-micro-conversions", title:"TLH Micro-Conversions", path:"/tlh/dashboards/micro-conversions.html", cat:"tlh", tags:["analytics"]},
+    {id:"tlh-ringcentral-audit", title:"TLH RingCentral Audit V2", path:"/tlh/dashboards/ringcentral-audit-v2.html", cat:"tlh", tags:["ringcentral"]},
+    {id:"tlh-review-automation", title:"TLH Review Automation", path:"/tlh/review-automation/index.html", cat:"tlh", tags:["reviews"]},
+    {id:"tlh-mailchimp-audit", title:"TLH Mailchimp Audit", path:"/tlh/mailchimp-audit/index.html", cat:"tlh", tags:["email"]},
+    {id:"tlh-adwords", title:"TLH AdWords Analysis", path:"/tlh/adwords-analysis/index.html", cat:"tlh", tags:["ads"]},
+    {id:"tlh-oc-la-strategy", title:"TLH OC/LA Strategy", path:"/tlh/oc-la-strategy/index.html", cat:"tlh", tags:["strategy"]},
+    {id:"tlh-reverse-funnel", title:"TLH Reverse Funnel", path:"/tlh/reverse-funnel.html", cat:"tlh", tags:["funnel"]},
+
+    // === TOOLS ===
+    {id:"tool-sms-command", title:"SMS Command Center", path:"/tools/sms-command-center/index.html", cat:"tool", tags:["sms"]},
+    {id:"tool-sms-creative-lab", title:"SMS Creative Lab", path:"/tools/sms-creative-lab/index.html", cat:"tool", tags:["sms"]},
+    {id:"tool-fundraising-lab", title:"Fundraising Creative Lab", path:"/tools/fundraising-creative-lab/index.html", cat:"tool", tags:["fundraising"]},
+    {id:"tool-proposal-gen", title:"AI Proposal Generator", path:"/tools/ai-proposal-generator/index.html", cat:"tool", tags:["proposals"]},
+    {id:"tool-model-thinker", title:"Model Thinker Dashboard", path:"/skills/model-thinker/model-thinker-dashboard.html", cat:"tool", tags:["thinking"]},
+
+    // === CONTENT ===
+    {id:"content-ai-operator-article", title:"AI Operator Article", path:"/blogs/ai-operator-article/article.html", cat:"content", tags:["blog"]},
+    {id:"content-sabotage", title:"Sabotage (WSJ Op-Ed)", path:"/sabotage/index.html", cat:"content", tags:["article"]},
+    {id:"content-dory-article", title:"Dory Memory Article", path:"/staging/dory-article/index.html", cat:"content", tags:["article"]},
+    {id:"content-screwtape", title:"Screwtape Curator", path:"/staging/screwtape-curator/index.html", cat:"content", tags:["creative"]},
+    {id:"content-screwtape-shootout", title:"Screwtape Shootout", path:"/staging/screwtape-shootout/index.html", cat:"content", tags:["creative"]},
+    {id:"content-rg-drafts", title:"Rational Ground Content Drafts", path:"/rg/content-drafts-dashboard.html", cat:"content", tags:["rg"]},
+    {id:"content-rg-arbitrage", title:"Rational Ground Content Arbitrage", path:"/rg/dashboards/content-arbitrage.html", cat:"content", tags:["rg"]},
+    {id:"content-superbowl", title:"Super Bowl Content", path:"/superbowl/index.html", cat:"content", tags:["creative"]},
+    {id:"content-podcast-pitch", title:"Podcast Pitch Playbook", path:"/podcast-pitch-playbook.html", cat:"content", tags:["speaking"]},
+    {id:"content-neural-sovereignty", title:"Neural Networks & Sovereignty", path:"/drafts/neural-networks-sovereignty.html", cat:"content", tags:["article"]},
+
+    // === PERSONAL ===
+    {id:"personal-ai-launch-kit", title:"AI Operator Launch Kit", path:"/personal/ai-operator-launch-kit/index.html", cat:"personal", tags:["career"]},
+    {id:"personal-armor-of-god", title:"Armor of God", path:"/personal/armor-of-god/index.html", cat:"personal", tags:["faith"]},
+    {id:"personal-screwtape", title:"Screwtape Letters", path:"/personal/screwtape/index.html", cat:"personal", tags:["faith"]},
+    {id:"personal-kolob", title:"Kolob Journey", path:"/personal/kolob-journey.html", cat:"personal", tags:["faith"]},
+    {id:"personal-hart-constellation", title:"Hart Constellation", path:"/personal/hart-constellation.html", cat:"personal", tags:["family"]},
+    {id:"personal-crm", title:"Personal CRM", path:"/personal/crm.html", cat:"personal", tags:["relationships"]},
+    {id:"personal-railstote", title:"Railstote Showcase", path:"/personal/railstote-showcase.html", cat:"personal", tags:["ai"]},
+    {id:"personal-gemini-railstote", title:"Gemini Railstote Showcase", path:"/personal/gemini-railstote-showcase.html", cat:"personal", tags:["ai"]},
+    {id:"personal-family-dashboard", title:"Hart Family Dashboard", path:"/family/hart-family-dashboard.html", cat:"personal", tags:["family"]},
+    {id:"personal-genealogy", title:"Family Explorer (Genealogy)", path:"/genealogy/family-explorer.html", cat:"personal", tags:["family"]},
+    {id:"personal-dory", title:"Dory Memory System", path:"/dory/index.html", cat:"personal", tags:["ai"]},
+    {id:"personal-morning-surprise", title:"Morning Surprise", path:"/morning-surprise/index.html", cat:"personal", tags:["family"]},
+
+    // === OPS ===
+    {id:"ops-mission-control", title:"Mission Control", path:"/ops/mission-control.html", cat:"ops", tags:["dashboard"]},
+    {id:"ops-leverage-dashboard", title:"Leverage Dashboard", path:"/ops/leverage-dashboard.html", cat:"ops", tags:["dashboard"]},
+    {id:"ops-leverage-analytics", title:"Leverage Analytics Suite", path:"/ops/leverage-analytics-suite/index.html", cat:"ops", tags:["analytics"]},
+    {id:"ops-content-calendar", title:"Content Calendar Planner", path:"/ops/content-calendar/content-calendar-planner.html", cat:"ops", tags:["calendar"]},
+    {id:"ops-creative-dna", title:"Creative DNA Extractor", path:"/ops/creative-dna-extractor/index.html", cat:"ops", tags:["tool"]},
+    {id:"ops-creative-emotion", title:"Creative Emotion Analyzer", path:"/ops/creative-emotion-analyzer/index.html", cat:"ops", tags:["tool"]},
+    {id:"ops-creative-test", title:"Creative Test Analyzer", path:"/ops/creative-test-analyzer/index.html", cat:"ops", tags:["tool"]},
+    {id:"ops-signal-scanner", title:"Signal Scanner", path:"/ops/signal-scanner.html", cat:"ops", tags:["monitoring"]},
+    {id:"ops-competitor-watch", title:"Competitor Watch", path:"/ops/competitor-watch.html", cat:"ops", tags:["monitoring"]},
+    {id:"ops-ideas-roadmap", title:"Ideas Roadmap Dashboard", path:"/ops/ideas-roadmap-dashboard.html", cat:"ops", tags:["planning"]},
+    {id:"ops-content-optimizer", title:"Content Conversion Optimizer", path:"/ops/content-conversion-optimizer/index.html", cat:"ops", tags:["tool"]},
+    {id:"ops-objection-library", title:"Universal Objection Library", path:"/ops/universal-objection-library/index.html", cat:"ops", tags:["tool"]},
+
+    // === PROJECTS (Horizon / Creative) ===
+    {id:"projects-horizon-v2", title:"Horizon V2 (Science Explorations)", path:"/projects/horizon-v2/index.html", cat:"personal", tags:["creative","science"]},
+    {id:"projects-horizon", title:"Horizon V1", path:"/projects/horizon/index.html", cat:"personal", tags:["creative","science"]},
+    {id:"projects-structural", title:"Structural Curiosities", path:"/projects/structural-curiosities/index.html", cat:"personal", tags:["creative"]},
+    {id:"projects-fec-shootout-opus", title:"FEC Shootout (Opus)", path:"/projects/fec-shootout/opus.html", cat:"consulting", tags:["demo"]},
+    {id:"projects-strategist-shootout", title:"Strategist Shootout", path:"/projects/strategist-shootout/opus.html", cat:"consulting", tags:["demo"]},
+
+    // === STAGING ===
+    {id:"staging-redfield", title:"Redfield", path:"/staging/redfield/index.html", cat:"staging", tags:["draft"]},
+    {id:"staging-wsj-sabotage", title:"WSJ Sabotage Article", path:"/staging/wsj-sabotage/index.html", cat:"staging", tags:["draft"]},
+
+    // === CRYPTO ===
+    {id:"crypto-portfolio", title:"Crypto Portfolio Dashboard", path:"/crypto/portfolio-dashboard.html", cat:"personal", tags:["crypto"]},
+];
+
+const catLabels = {
+    db: "DonorBureau",
+    tlh: "True Legacy Homes",
+    personal: "Personal",
+    tool: "Tools",
+    speaking: "Speaking & Demos",
+    consulting: "Consulting",
+    content: "Content & Articles",
+    ops: "Ops & Internal",
+    product: "Products",
+    staging: "Staging / Drafts"
+};
+
+const catOrder = ["db","speaking","consulting","product","tool","content","tlh","ops","personal","staging"];
+
+function render() {
+    const search = document.getElementById('search').value.toLowerCase();
+    const filter = document.getElementById('filter').value;
+
+    const filtered = pages.filter(p => {
+        if (filter !== 'all' && p.cat !== filter) return false;
+        if (search && !p.title.toLowerCase().includes(search) && !p.path.toLowerCase().includes(search) && !p.tags.some(t => t.includes(search))) return false;
+        return true;
+    });
+
+    const grouped = {};
+    filtered.forEach(p => {
+        if (!grouped[p.cat]) grouped[p.cat] = [];
+        grouped[p.cat].push(p);
+    });
+
+    const container = document.getElementById('categories');
+    container.innerHTML = '';
+
+    catOrder.forEach(cat => {
+        if (!grouped[cat]) return;
+        const div = document.createElement('div');
+        div.className = 'category';
+        div.innerHTML = `<div class="category-header">${catLabels[cat] || cat} <span class="count">${grouped[cat].length} items</span></div>`;
+        const cards = document.createElement('div');
+        cards.className = 'cards';
+
+        grouped[cat].forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'card' + (selected.has(p.id) ? ' selected' : '');
+            card.innerHTML = `
+                <input type="checkbox" ${selected.has(p.id)?'checked':''}>
+                <div class="card-body">
+                    <div class="card-title">${p.title}</div>
+                    <div><span class="card-tag tag-${p.cat}">${p.cat.toUpperCase()}</span>${p.tags.map(t=>'<span class="card-tag" style="background:#f0f0f0;color:#555;">'+t+'</span>').join('')}</div>
+                    <div class="card-path"><a href="https://justinhart.biz${p.path}" target="_blank">${p.path}</a></div>
+                </div>`;
+            card.addEventListener('click', (e) => {
+                if (e.target.tagName === 'A') return;
+                if (selected.has(p.id)) selected.delete(p.id); else selected.add(p.id);
+                render();
+            });
+            cards.appendChild(card);
+        });
+        div.appendChild(cards);
+        container.appendChild(div);
+    });
+    updateCount();
+}
+
+const selected = new Set();
+
+function updateCount() {
+    document.getElementById('selectedCount').textContent = selected.size + ' selected';
+}
+
+document.getElementById('search').addEventListener('input', render);
+document.getElementById('filter').addEventListener('change', render);
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+    const ids = Array.from(selected);
+    const output = document.getElementById('output');
+    if (ids.length === 0) { output.className=''; return; }
+    const text = ids.join('\n');
+    navigator.clipboard.writeText(text);
+    output.textContent = '✅ Copied ' + ids.length + ' IDs:\n\n' + text;
+    output.className = 'visible';
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+    selected.clear();
+    document.getElementById('output').className = '';
+    render();
+});
+
+render();
+</script>
+</body>
+</html>
