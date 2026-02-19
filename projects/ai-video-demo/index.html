@@ -78,6 +78,7 @@
     function tileHTML(src, poster, colSpan, rowSpan, featured=false) {
       return `<article class="tile ${featured ? 'featured' : ''}" style="grid-column: span ${colSpan}; grid-row: span ${rowSpan};">
         <video controls preload="metadata" poster="${poster}">
+          <source src="${src}" type="application/x-mpegURL" />
           <source src="${src}" type="video/mp4" />
         </video>
       </article>`;
@@ -97,7 +98,8 @@
       videos.forEach(v => {
         const c = spanFromAR(v.ar, false);
         const r = computeRowSpan(c, v.ar);
-        cards.push(tileHTML(`./assets/${v.slug}.mp4`, `./assets/${v.slug}.jpg`, c, r, false));
+        const src = v.uid ? `https://videodelivery.net/${v.uid}/manifest/video.m3u8` : `./assets/${v.slug}.mp4`;
+        cards.push(tileHTML(src, `./assets/${v.slug}.jpg`, c, r, false));
       });
 
       mosaic.innerHTML = cards.join('');
@@ -105,8 +107,11 @@
 
     Promise.all([
       fetch('./manifest.json').then(r => r.json()),
-      fetch('./featured.json').then(r => r.json())
-    ]).then(([videos, featured]) => {
+      fetch('./featured.json').then(r => r.json()),
+      fetch('./stream-map.json').then(r => r.json()).catch(() => [])
+    ]).then(([videos, featured, streamMap]) => {
+      const uidByFilename = new Map(streamMap.map(x => [x.filename, x.uid]));
+      videos = videos.map(v => ({ ...v, uid: uidByFilename.get(v.title) || null }));
       data = { videos, featured };
       render();
       window.addEventListener('resize', () => {
