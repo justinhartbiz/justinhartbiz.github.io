@@ -138,3 +138,59 @@ _Last updated: 2026-02-19_
 3. Direct mail verification/matchback rigor needs hardening.
 4. ISR coaching and handoff SLA tooling needs consistency.
 5. Integration monitoring should be unified under StackOps dashboard.
+
+---
+
+## 7) Strategic Truths to Anchor Every Agent
+
+1. **Home purchases are the economic engine** (~93% of revenue). Estate sales matter, but are also a trust bridge.
+2. **"One Call. Two Checks."** is the operating promise: estate sale proceeds + cash home offer.
+3. Optimize for **home acquisition outcomes**, not estate-sale volume alone.
+4. Primary market priority remains **OC turnaround** (high cost/win, low win rate) while defending SD performance.
+
+---
+
+## 8) Non-Negotiable Operating Rules (from TLH Master Context)
+
+- **Outreach cadence for Beacon-sourced grief leads:**
+  - Day 0–14: monitor only (no direct outreach)
+  - Day 10–14: resource guide mailed
+  - Day 21–28: handwritten card
+  - Day 30–45: "when you're ready" letter
+  - Day 60+: direct service pitch
+- **Never contact before funeral.**
+- **No "We Buy Houses" style messaging.**
+- **No PMAX / no phrase match for paid.**
+- **Circuit breaker:** if answer rate <60% for 7 rolling days, paid pauses until >65% for 3 straight days.
+- **VIP partner routing:** partner leads escalate to senior closer pathway immediately.
+
+---
+
+## 9) SLAs + Measurement Targets
+
+- **PPC lead response:** <5 minutes
+- **Partner referral response:** <2 hours
+- **Other inbound:** <4 business hours
+- **Core scoreboards to maintain:**
+  - answer rate
+  - speed-to-lead
+  - consult held rate
+  - consult-to-close
+  - cost per home purchase by market (SD/OC/LA)
+
+---
+
+## 10) System Ownership Notes Added from TLH Master Context
+
+- **Salesforce + Left Main + PropertySalesAI** are foundational for Beacon/Grace/Bridge.
+- **Lob + FirstAm IgniteRE** support postcard mass-mail workflows (Postman/Beacon).
+- **CallRail + RingCentral + Clarity + GA4** remain core measurement stack for Ledger/Concierge/Echo.
+- **Mailchimp** is critical to Piper/Lark nurture and referral workflows.
+
+---
+
+## 11) Team Roles to Keep Explicit in Agent Assignment
+
+- **Jamison**: consult/sales execution node (Ranger/Bridge adjacency)
+- **Jonathan + James**: operations throughput + handoff reliability (Piper/Echo/Bridge adjacency)
+- **Jeff**: senior closer pathway + deal execution (Ranger/Bridge escalation)
