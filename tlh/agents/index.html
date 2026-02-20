@@ -13,6 +13,9 @@
     .links a{color:#aee6e4;text-decoration:none;font-size:.8rem;margin-left:10px}
     .section{margin-top:20px}.head{display:flex;align-items:center;gap:9px;margin-bottom:10px}.head h2{margin:0;font-size:1.02rem;text-transform:uppercase;letter-spacing:.45px}
     .bar{height:4px;width:34px;border-radius:3px}.t{background:var(--teal)}.p{background:var(--purple)}.n{background:var(--navy)}
+    .collapse-btn{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:.72rem;cursor:pointer;color:#334155}
+    .block{overflow:hidden;transition:max-height .28s ease, opacity .2s ease;opacity:1}
+    .block.collapsed{max-height:0!important;opacity:0}
     .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
     .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,.06);padding:12px;cursor:pointer;transition:.2s}
     .card:hover{transform:translateY(-2px);border-color:var(--teal)} .line{font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
@@ -20,7 +23,7 @@
     .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.66rem;border:1px solid;margin-top:8px}
     .live{background:rgba(56,182,178,.14);color:#0e7f7b;border-color:var(--teal)} .build{background:rgba(255,165,0,.14);color:#8a5a06;border-color:#f2b14f} .plan{background:rgba(164,126,175,.14);color:#6f4a7a;border-color:var(--purple)}
     .details{max-height:0;overflow:hidden;transition:max-height .25s ease,padding .25s ease;border-top:0 solid var(--line);margin-top:0;padding-top:0}
-    .card.open .details{max-height:220px;border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
+    .card.open .details{max-height:260px;border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
     .details ul{margin:0;padding-left:16px}.details li{font-size:.75rem;line-height:1.45;color:#556172;margin:2px 0}
     .panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 4px 6px rgba(0,0,0,.06)}
     table{width:100%;border-collapse:collapse;font-size:.8rem} th,td{border-bottom:1px solid #edf1f5;padding:8px;text-align:left;vertical-align:top} th{font-size:.68rem;text-transform:uppercase;letter-spacing:.45px;color:#64748b;background:#f8fafc}
@@ -43,80 +46,81 @@ const groups=[
 ];
 
 const channels=[
-['Obituary hunting','Beacon','Scout, Grace','Partial','Beacon pulls and scores; still needs stronger address QA gate.','Qualified hunted leads/week','Address confidence before send'],
-['Probate/trust/high-equity hunting','Beacon','Scout, Grace','Partial','Property + deed signals are available but pipeline is not fully automated.','Leads surfaced/week','Normalization and dedupe'],
-['Partner hunting (attorneys/fiduciaries)','Scout','Maestro, Ranger','Partial','Top-20 targeting started; cadence needs consistent execution.','Partner meetings/month','Meeting-to-referral conversion'],
-['Earned media / podcasts / PR','Herald','Penny, Lark','Gap','Framework exists; outreach engine not yet running weekly.','Placements/month','No weekly pitch cadence'],
-['Google Search paid','Atlas','Ledger, Concierge','Partial','Execution owner defined; API/reporting and guardrails still maturing.','CPQL / CAC','Full automation + controls'],
-['Retargeting','Atlas','Ledger','Gap','No dedicated retargeting workflow active yet.','Return visits to consult rate','Audience + budget framework missing'],
-['Paid social','Atlas','Ledger, Penny','Gap','Not yet operationalized as a standing program.','Cost per qualified lead','Creative + attribution setup'],
-['Radio / OTT','Atlas','Ledger, Herald','Gap','No dedicated channel owner workflow in production.','Lift in branded demand','Attribution model not in place'],
-['Direct Mail','Postman','Beacon, Ledger, Grace','Partial','Lob path exists; needs verified-only send gates + matchback rigor.','Mail-to-consult CPA','Address quality and suppression logic'],
-['SEO / GBP / Content','Penny + Harbor','Lark, Ledger','Partial','Team map exists; output cadence needs enforcement.','Organic leads/month','Publishing cadence'],
-['Website / CRO','Ledger','Pulse, Atlas','Partial','Analytics side exists; experimentation rhythm not fully set.','Landing page CVR','Testing cadence'],
-['Email nurture','Piper','Grace, Penny','Partial','Templates and segments exist; rollouts need steady weekly cadence.','Nurture-to-consult conversion','Sustained send calendar'],
-['Alumni/referrals','Piper','Maestro, Ledger','Partial','Strong concept + assets; needs tight tracking loop.','Referral opps/month','Consistent launch + attribution'],
-['Listings/social distribution','Lark','Penny, Piper','Build','Defined owner, but not fully wired into weekly ops.','Assisted leads','Operational cadence'],
-['Inbound phone conversion','Concierge','Echo, Grace','Build','Queue + routing strategy defined; QA loop still forming.','Answer rate / booking rate','Call QA + SLA discipline']
+['Obituary hunting','Beacon','Scout, Grace','Partial','Beacon pulls and scores obituary leads; Grace validates routing and timing.','Qualified hunted leads/week','Address confidence + suppression pass'],
+['Probate/trust/high-equity hunting','Beacon','Scout, Grace','Partial','Property/deed sources feed hunting queue and CRM triage.','Qualified records/week','Source normalization + dedupe'],
+['Partner hunting (attorneys/fiduciaries)','Scout','Maestro, Ranger','Partial','Scout runs Top-20 partner outreach and referral meeting cadence.','Partner meetings/month','Inconsistent follow-up cadence'],
+['Earned media / podcasts / PR','Herald','Penny, Lark','Gap','No weekly media pitch engine live yet.','Placements/month','No repeatable pitch pipeline'],
+['Google Search paid','Atlas','Ledger, Concierge','Partial','Atlas executes; Ledger measures; Concierge answer-rate gating needed.','CPQL / CAC','API automation + circuit breakers'],
+['Retargeting','Atlas','Ledger','Gap','Channel not fully operationalized with clear audience tiers.','Retargeting CVR','Audience architecture missing'],
+['Paid social','Atlas','Ledger, Penny','Gap','No steady paid social operation loop yet.','Cost per qualified lead','Creative-testing rhythm'],
+['Radio / OTT','Atlas','Ledger, Herald','Gap','No active owner cadence or attribution loop.','Lift in branded demand','Attribution framework'],
+['Direct Mail','Postman','Beacon, Ledger, Grace','Partial','Lob exists; quality gates + tracking need hardening.','Mail-to-consult CPA','Verification rigor'],
+['SEO / GBP / Content','Penny + Harbor','Lark, Ledger','Partial','Owners set; publishing and local SEO cycles not locked weekly.','Organic leads/month','Cadence discipline'],
+['Website / CRO','Ledger','Pulse, Atlas','Partial','Measurement exists, experiment engine is immature.','LP conversion rate','A/B testing cadence'],
+['Email nurture','Piper','Grace, Penny','Partial','Sequences and segments exist; weekly execution needs consistency.','Nurture-to-consult rate','Calendar adherence'],
+['Alumni/referrals','Piper','Maestro, Ledger','Partial','Assets exist; referral loop needs tighter scoreboarding.','Referral opps/month','Attribution + consistency'],
+['Listings/social distribution','Lark','Penny, Piper','Build','Ownership defined; distribution calendar still in setup mode.','Assisted leads','Workflow maturity'],
+['Inbound phone conversion','Concierge','Echo, Grace','Build','Queue/routing exists; QA and coaching loop is not mature.','Answer rate / booking rate','Call QA adoption']
 ];
 
 const workflows=[
-['Obit lead-to-mail','Beacon → Grace verify → Postman/Lob → Ledger matchback','Beacon, Grace, Postman, Ledger','Obit feed + Left Main + Lob + Salesforce','5-send pilot then scale'],
-['Partner referral engine','Scout target list → outreach cadence → meeting → referral handoff','Scout, Bridge, Ranger','CRM partner objects + outreach templates','Weekly top-20 sprint'],
-['Paid search loop','Atlas launch/optimize → Concierge answer-rate gate → Ledger reallocation','Atlas, Concierge, Ledger','Google Ads + call data + CRM','Pause/adjust when answer rate dips'],
-['Nurture + alumni','Piper sequence → Grace segment hygiene → Ledger conversion tracking','Piper, Grace, Ledger','Mailchimp + Salesforce','Weekly send + monthly review'],
-['Consult conversion','Echo prep → Bridge handoff SLA → Ranger consult execution','Echo, Bridge, Ranger','Call QA + CRM stage tracking','Breach alerts daily'],
-['Thought leadership','Penny content seed → Herald pitches/podcasts → Lark distribution','Penny, Herald, Lark','CMS + media tracker + social scheduler','2 assets + 5 pitches weekly']
+['Obit lead-to-mail','Beacon finds lead → Grace verifies/suppresses → Postman sends via Lob → Ledger matchback','Beacon, Grace, Postman, Ledger','Obit feeds, Left Main, Salesforce, Lob','Daily queue + twice-weekly send windows','Address confidence >= threshold + county consistency','Mailed IDs, expected delivery, matchback CPA'],
+['Partner referral sprint','Scout selects Top-20 targets → outreach sequence → meeting booked → referral handoff via Bridge','Scout, Bridge, Ranger, Maestro','CRM partner objects, templates, calendar','Weekly sprint','10+ outreach touches/partner/month','Meetings booked, referrals generated'],
+['Paid search control loop','Atlas optimizes campaigns → Concierge monitors answer rate → Ledger applies spend rules','Atlas, Concierge, Ledger','Google Ads, call data, CRM outcomes','Daily','Answer-rate floor + CPQL cap','Budget shifts, pause recommendations'],
+['Nurture + alumni conversion','Piper runs sequence → Grace segment hygiene → Ledger conversion attribution','Piper, Grace, Ledger','Mailchimp, Salesforce, attribution dashboard','Weekly sends + monthly review','Segment freshness + deliverability benchmark','Referral opps, nurture conversion'],
+['Consult conversion path','Echo call prep + script QA → Bridge SLA handoff → Ranger consult execution','Echo, Bridge, Ranger, Grace','Call QA stack, CRM stage tracking','Daily/Weekly','Handoff SLA <= target','Consult held %, close %'],
+['Thought leadership engine','Penny drafts assets → Herald pitches podcasts/media → Lark distributes','Penny, Herald, Lark','CMS, media tracker, social scheduler','Weekly','2 assets + 5 pitches/week','Placements, authority traffic']
 ];
 
 const accountability=[
-['Maestro','Paul','Weekly priorities published; blocker list resolved','Weekly', 'Pending cadence hardening'],
-['Ledger','Justin / Peter / Brett','Channel scorecard + budget recs','Daily/Weekly','Ads API automation incomplete'],
-['Atlas','Jason','Search + retargeting execution','Daily','Retargeting not live'],
-['Beacon','Justin','Hunted leads with quality threshold','Daily','Address confidence gate'],
-['Scout','BD Owner','Partner outreach + meetings','Weekly','Consistency of follow-up'],
-['Postman','Ops','Verified direct-mail sends + matchback','Weekly','Verification rigor'],
-['Piper','Justin / Jonathan / James','Nurture sends + referral outcomes','Weekly','Send cadence discipline'],
-['Grace','Justin / Tran','Stale lead recovery + routing QA','Daily','Flow complexity'],
-['Echo','Justin / Jonathan / James','ISR call quality + set rate','Weekly','Rubric adoption'],
-['Ranger','Tanya / Jaelynn / Jonathan','Consult conversion + Two Checks compliance','Weekly','Template standardization'],
-['Bridge','Justin / Jonathan / Tanya / Jaelynn','Handoff SLA breach rate','Daily/Weekly','Alert tuning'],
-['Concierge','Justin','Answer rate + booking performance','Daily','Queue tuning + coaching'],
-['Herald','Justin / Tanya','Podcast/PR pipeline output','Weekly','No active cadence'],
-['StackOps','Justin / Tran','Integration uptime digest','Daily','Unified monitor not complete']
+['Maestro','Paul','Weekly priorities published + blocker resolution','Weekly','Priority drift'],
+['Ledger','Justin / Peter / Brett','Channel scorecard + budget recs shipped','Daily/Weekly','API coverage incomplete'],
+['Atlas','Jason','Paid channel execution and quality metrics','Daily','Retargeting gap'],
+['Beacon','Justin','Qualified hunted lead volume','Daily','Address quality gate'],
+['Scout','BD Owner','Partner outreach + meeting pipeline','Weekly','Follow-up consistency'],
+['Postman','Ops','Verified mail sends + matchback reporting','Weekly','Verification process'],
+['Piper','Justin / Jonathan / James','Nurture/referral output and conversion','Weekly','Cadence adherence'],
+['Grace','Justin / Tran','Routing QA + stale-lead recovery','Daily','Flow complexity'],
+['Echo','Justin / Jonathan / James','ISR quality and set-rate improvement','Weekly','Rubric usage'],
+['Ranger','Tanya / Jaelynn / Jonathan','Consult conversion + Two Checks compliance','Weekly','Standardization'],
+['Bridge','Justin / Jonathan / Tanya / Jaelynn','Handoff SLA breach reduction','Daily/Weekly','Alert tuning'],
+['Concierge','Justin','Answer-rate + booking-rate improvement','Daily','Queue tuning'],
+['Herald','Justin / Tanya','Podcast/PR output cadence','Weekly','No active cadence'],
+['StackOps','Justin / Tran','Integration uptime + incident visibility','Daily','Unified monitoring']
 ];
 
 const statusClass=s=>s==='Live'?'live':s==='Build'?'build':'plan';
 const app=document.getElementById('app');
 
-for(const g of groups){
- const sec=document.createElement('section'); sec.className='section';
- sec.innerHTML=`<div class="head"><div class="bar t"></div><div class="bar p"></div><div class="bar n"></div><h2>${g.title}</h2></div><div class="grid"></div>`;
- const grid=sec.querySelector('.grid');
- for(const c of g.cards){
-  const card=document.createElement('article'); card.className='card';
-  card.innerHTML=`<div class="line">Agent</div><div class="name">${c[0]}</div><div class="owner">Owner(s): ${c[1]}</div><div class="mission"><b>Mission:</b> ${c[2]}</div><span class="pill ${statusClass(c[3])}">${c[3]}</span><div class="details"><ul>${c[4].map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
-  card.onclick=()=>card.classList.toggle('open');
-  grid.appendChild(card);
- }
- app.appendChild(sec);
+function buildSection(title, innerHtml, collapsed=false){
+  const sec=document.createElement('section'); sec.className='section';
+  sec.innerHTML=`<div class="head"><div class="bar t"></div><div class="bar p"></div><div class="bar n"></div><h2>${title}</h2><button class="collapse-btn">${collapsed?'Expand':'Collapse'}</button></div><div class="block"></div>`;
+  const block=sec.querySelector('.block'); block.innerHTML=innerHtml;
+  if(collapsed){ block.classList.add('collapsed'); block.style.maxHeight='0px'; }
+  else { block.style.maxHeight= block.scrollHeight + 60 + 'px'; }
+  const btn=sec.querySelector('.collapse-btn');
+  btn.onclick=()=>{
+    const c=block.classList.toggle('collapsed');
+    if(c){ block.style.maxHeight='0px'; btn.textContent='Expand'; }
+    else { block.style.maxHeight=block.scrollHeight + 120 + 'px'; btn.textContent='Collapse'; }
+  };
+  app.appendChild(sec);
 }
 
-const wf=document.createElement('section'); wf.className='section';
-wf.innerHTML=`<div class="head"><div class="bar t"></div><div class="bar p"></div><div class="bar n"></div><h2>Primary Workflow Map</h2></div><div class="panel"><div class="workflow"><span class="node">Beacon</span><span class="arrow">→</span><span class="node">Scout / Postman</span><span class="arrow">→</span><span class="node">Grace</span><span class="arrow">→</span><span class="node">Concierge</span><span class="arrow">→</span><span class="node">Echo</span><span class="arrow">→</span><span class="node">Bridge</span><span class="arrow">→</span><span class="node">Ranger</span><span class="arrow">→</span><span class="node">Piper</span></div><div style="margin-top:10px;font-size:.78rem;color:var(--muted)">Control layer: Maestro (priority), Ledger (measurement), StackOps (reliability).</div></div>`;
-app.appendChild(wf);
+for(const g of groups){
+  const cards = g.cards.map(c=>`<article class="card"><div class="line">Agent</div><div class="name">${c[0]}</div><div class="owner">Owner(s): ${c[1]}</div><div class="mission"><b>Mission:</b> ${c[2]}</div><span class="pill ${statusClass(c[3])}">${c[3]}</span><div class="details"><ul>${c[4].map(x=>`<li>${x}</li>`).join('')}</ul></div></article>`).join('');
+  buildSection(g.title, `<div class="grid">${cards}</div>`);
+}
 
-const ch=document.createElement('section'); ch.className='section';
-ch.innerHTML=`<div class="head"><div class="bar t"></div><div class="bar p"></div><div class="bar n"></div><h2>Channels (All) — Coverage Map</h2></div><div class="panel"><table><thead><tr><th>Channel</th><th>Primary</th><th>Support</th><th>Coverage</th><th>How Covered</th><th>KPI</th><th>Bottleneck</th></tr></thead><tbody>${channels.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="status ${r[3].toLowerCase()==='covered'?'covered':r[3].toLowerCase()==='partial'?'partial':'gap'}">${r[3]}</span></td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('')}</tbody></table></div>`;
-app.appendChild(ch);
+document.addEventListener('click',e=>{ const card=e.target.closest('.card'); if(card) card.classList.toggle('open'); });
 
-const tw=document.createElement('section'); tw.className='section';
-tw.innerHTML=`<div class="head"><div class="bar t"></div><div class="bar p"></div><div class="bar n"></div><h2>Tactics & Workflows</h2></div><div class="panel"><table><thead><tr><th>Workflow</th><th>Flow</th><th>Owners</th><th>Systems</th><th>Execution Rhythm</th></tr></thead><tbody>${workflows.map(w=>`<tr><td>${w[0]}</td><td>${w[1]}</td><td>${w[2]}</td><td>${w[3]}</td><td>${w[4]}</td></tr>`).join('')}</tbody></table></div>`;
-app.appendChild(tw);
+buildSection('Primary Workflow Map', `<div class="panel"><div class="workflow"><span class="node">Beacon</span><span class="arrow">→</span><span class="node">Scout / Postman</span><span class="arrow">→</span><span class="node">Grace</span><span class="arrow">→</span><span class="node">Concierge</span><span class="arrow">→</span><span class="node">Echo</span><span class="arrow">→</span><span class="node">Bridge</span><span class="arrow">→</span><span class="node">Ranger</span><span class="arrow">→</span><span class="node">Piper</span></div><div style="margin-top:10px;font-size:.78rem;color:var(--muted)">Control layer: Maestro (priority), Ledger (measurement), StackOps (reliability).</div></div>`, true);
 
-const acc=document.createElement('section'); acc.className='section';
-acc.innerHTML=`<div class="head"><div class="bar t"></div><div class="bar p"></div><div class="bar n"></div><h2>Accountability</h2></div><div class="panel"><table><thead><tr><th>Agent</th><th>Owner(s)</th><th>Accountability Target</th><th>Cadence</th><th>Current Blocker</th></tr></thead><tbody>${accountability.map(a=>`<tr><td>${a[0]}</td><td>${a[1]}</td><td>${a[2]}</td><td>${a[3]}</td><td>${a[4]}</td></tr>`).join('')}</tbody></table></div>`;
-app.appendChild(acc);
+buildSection('Channels (All) — Coverage Map', `<div class="panel"><table><thead><tr><th>Channel</th><th>Primary</th><th>Support</th><th>Coverage</th><th>How Covered</th><th>KPI</th><th>Bottleneck</th></tr></thead><tbody>${channels.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="status ${r[3].toLowerCase()==='covered'?'covered':r[3].toLowerCase()==='partial'?'partial':'gap'}">${r[3]}</span></td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('')}</tbody></table></div>`);
+
+buildSection('Tactics & Workflows (Detailed)', `<div class="panel"><table><thead><tr><th>Workflow</th><th>Flow</th><th>Owners</th><th>Systems</th><th>Cadence</th><th>SLA / Guardrail</th><th>Output</th></tr></thead><tbody>${workflows.map(w=>`<tr><td>${w[0]}</td><td>${w[1]}</td><td>${w[2]}</td><td>${w[3]}</td><td>${w[4]}</td><td>${w[5]}</td><td>${w[6]}</td></tr>`).join('')}</tbody></table></div>`);
+
+buildSection('Accountability', `<div class="panel"><table><thead><tr><th>Agent</th><th>Owner(s)</th><th>Accountability Target</th><th>Cadence</th><th>Current Blocker</th></tr></thead><tbody>${accountability.map(a=>`<tr><td>${a[0]}</td><td>${a[1]}</td><td>${a[2]}</td><td>${a[3]}</td><td>${a[4]}</td></tr>`).join('')}</tbody></table></div>`);
 </script>
 </body>
 </html>
