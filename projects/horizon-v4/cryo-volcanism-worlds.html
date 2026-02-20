@@ -1,47 +1,7 @@
-<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cryovolcanism on Icy Moons — Horizon v4</title><style>
-:root{--bg:#0a0f1f;--card:#111833;--ink:#ecf2ff;--muted:#8ea0d7;--acc:#67f0ff;--acc2:#ffa5e0;}
-*{box-sizing:border-box}body{margin:0;font-family:Georgia, 'Times New Roman', serif;background:radial-gradient(circle at 10% 0%,#1b2752 0%,var(--bg) 45%,#05070f 100%);color:var(--ink);min-height:100vh;padding:28px}
-.wrap{max-width:980px;margin:0 auto}h1{font-size:clamp(2rem,4.2vw,3.5rem);margin:.2rem 0 .6rem;letter-spacing:.3px}
-p.lead{color:var(--muted);max-width:72ch;line-height:1.55}
-.panel{display:grid;grid-template-columns:290px 1fr;gap:18px;margin-top:20px}
-.card{background:linear-gradient(160deg,#11193a,#0d132c);border:1px solid #2a3970;border-radius:16px;padding:16px;box-shadow:0 18px 45px rgba(0,0,0,.35)}
-label{display:block;font-size:.85rem;color:#a8b7e3;margin:.45rem 0}
-input[type=range]{width:100%} .val{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--acc)}
-canvas{width:100%;height:520px;border-radius:14px;background:linear-gradient(180deg,#0c1230,#090f24);border:1px solid #2c3b71}
-a{color:var(--acc)}
-@media (max-width:840px){.panel{grid-template-columns:1fr}canvas{height:420px}}
-</style></head>
-<body><div class="wrap"><a href="./index.html">← Back to Horizon v4</a>
-<h1>Cryovolcanism on Icy Moons</h1><p class="lead">Tune subsurface pressure and salinity to trigger ice geysers.</p>
-<div class="panel">
-  <section class="card"><h3>Control Surface</h3>
-    <label>Primary force <span class="val" data-for="a"></span></label><input id="a" type="range" min="1" max="12" value="6">
-    <label>Secondary coupling <span class="val" data-for="b"></span></label><input id="b" type="range" min="1" max="12" value="5">
-    <label>Disturbance factor <span class="val" data-for="d"></span></label><input id="d" type="range" min="0" max="100" value="35">
-    <p style="color:#9caedf;font-size:.9rem;line-height:1.45;margin-top:12px">This is an intuition-builder, not a strict physics solver. Use it to feel how parameter shifts create phase transitions, thresholds, and emergent patterns.</p>
-  </section>
-  <section class="card"><canvas id="viz"></canvas></section>
-</div></div><script>
-const c = document.getElementById('viz'), ctx = c.getContext('2d');
-function fit(){c.width=c.clientWidth*devicePixelRatio;c.height=c.clientHeight*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}
-addEventListener('resize',fit);fit();
-const sliders=[...document.querySelectorAll('input[type=range]')];
-function val(id){return +document.getElementById(id).value}
-function paintBG(){const w=c.clientWidth,h=c.clientHeight;const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#0d173d');g.addColorStop(1,'#090f24');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)}
-function draw(){
- paintBG(); const w=c.clientWidth,h=c.clientHeight;
- const a=val('a'), b=val('b'), d=val('d');
- for(let i=0;i<220;i++){
-  const t=i/220*Math.PI*2;
-  const x=w/2+Math.sin(t*a+d/10)*Math.cos(t*b)*w*0.36;
-  const y=h/2+Math.cos(t*b-d/15)*Math.sin(t*a*0.7)*h*0.36;
-  ctx.beginPath();ctx.arc(x,y,1.2+(i%5)/4,0,Math.PI*2);
-  const hue=(i*2+a*30+b*25)%360;ctx.fillStyle=`hsla(${hue},90%,70%,0.72)`;ctx.fill();
- }
- requestAnimationFrame(draw);
-}
-for(const s of sliders){const out=document.querySelector(`[data-for="${s.id}"]`);const u=()=>out.textContent=s.value;s.addEventListener('input',u);u()}
-draw();
+<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Cryovolcanism</title><style>body{margin:0;background:#07121a;color:#e7fbff;font-family:Garamond,serif}.w{max-width:1080px;margin:auto;padding:24px}canvas{width:100%;height:560px;background:#081a24;border:1px solid #2f6f86;border-radius:12px}.r{display:grid;grid-template-columns:1fr 1fr;gap:10px}a{color:#7be8ff}</style></head><body><div class=w><a href=index.html>← Horizon v4</a><h1>Cryovolcanism on Icy Moons</h1><p>Insight: on Europa/Enceladus, eruption physics flips: ice behaves like rock, water/ammonia behaves like magma.</p><div class=r><div>Pressure <input id=p type=range min=0 max=100 value=45></div><div>Salinity <input id=s type=range min=0 max=100 value=30></div></div><canvas id=c></canvas></div><script>
+const c=document.getElementById('c'),x=c.getContext('2d');function fit(){c.width=c.clientWidth;c.height=c.clientHeight}addEventListener('resize',fit);fit();let parts=[];
+function vent(){let P=+p.value,S=+s.value;if(Math.random()<P/80)for(let i=0;i<3+P/18;i++)parts.push({x:c.width*.5+(Math.random()-.5)*12,y:c.height*.82,vx:(Math.random()-.5)*2,vy:-(3+Math.random()*4+P/30),life:120+Math.random()*90,s:S})}
+function draw(){x.fillStyle='rgba(8,26,36,.25)';x.fillRect(0,0,c.width,c.height);x.fillStyle='#b8e9ff';x.fillRect(0,c.height*.82,c.width,c.height*.2);vent();
+for(let i=parts.length-1;i>=0;i--){let a=parts[i];a.vy+=0.06;a.x+=a.vx;a.y+=a.vy;a.life--;if(a.life<0||a.y>c.height)parts.splice(i,1);else{x.fillStyle='hsla('+(190+a.s/4)+',85%,'+(70-a.s/3)+'%,.75)';x.beginPath();x.arc(a.x,a.y,1.6+a.s/80,0,7);x.fill()}}
+x.fillStyle='rgba(220,250,255,.85)';x.beginPath();x.moveTo(c.width*.46,c.height*.82);x.lineTo(c.width*.54,c.height*.82);x.lineTo(c.width*.5,c.height*.7);x.closePath();x.fill();requestAnimationFrame(draw)}draw();
 </script></body></html>
