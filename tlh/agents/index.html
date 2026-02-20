@@ -27,6 +27,15 @@
     .status{font-size:.68rem;padding:2px 7px;border-radius:999px;border:1px solid;display:inline-block}
     .covered{background:rgba(56,182,178,.14);color:#0e7f7b;border-color:var(--teal)} .partial{background:rgba(245,158,11,.14);color:#9a6400;border-color:#f3b34d} .gap{background:rgba(239,68,68,.12);color:#b42318;border-color:#ef4444}
     .workflow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.node{background:#eef4fb;border:1px solid #d8e4f2;border-radius:999px;padding:5px 10px;font-size:.78rem;font-weight:700}.arrow{color:#8292ac}
+.carousel-band{margin:18px 0 6px;background:linear-gradient(90deg,#0D3B66 0%, #1f5f8f 45%, #38B6B2 100%);border-radius:14px;padding:16px 14px;color:#fff;box-shadow:0 10px 24px rgba(13,59,102,.25)}
+.carousel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.carousel-title{font-size:1.05rem;font-weight:900;letter-spacing:.3px}
+.carousel-track{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(300px, 360px);gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
+.carousel-card{scroll-snap-align:start;background:rgba(255,255,255,.14);backdrop-filter: blur(3px);border:1px solid rgba(255,255,255,.35);border-radius:12px;padding:12px}
+.carousel-status{display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.65);margin-bottom:8px}
+.carousel-card h3{margin:2px 0 6px;font-size:.96rem}
+.carousel-meta{font-size:.75rem;opacity:.95;line-height:1.45}
+.carousel-flow{margin-top:8px;font-size:.78rem;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px}
     @media(max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
     @media(max-width:760px){.grid{grid-template-columns:1fr}.links a{display:block;margin:4px 0 0}}
   </style>
@@ -130,6 +139,14 @@ const systems=[
 ['DB Dashboard Client Calendar','Connected','DonorBureau side scheduling tool (cross-org)']
 ];
 
+const workflowCarousel=[
+  {status:'BUILT',name:'Obit Lead-to-Mail',owner:'Beacon + Postman + Grace',systems:'Lob, Salesforce, Left Main',kpi:'Verified sends + matchback',flow:'Signal capture → Verify/suppress → Send window → Matchback'},
+  {status:'BUILDING NOW',name:'Partner Top-20 Sprint',owner:'Scout',systems:'Partner CRM, Outreach Cadence',kpi:'Meetings booked / week',flow:'Target list → Outreach sequence → Meetings → Referral handoff'},
+  {status:'BUILDING NOW',name:'AI Receptionist Launch',owner:'Concierge + Echo',systems:'RingCentral, call routing, scripts',kpi:'Answered + booked rate',flow:'Call intake → Intent classify → Route/book → Escalation'},
+  {status:'NEXT',name:'Verified Direct Mail Matchback',owner:'Postman + Ledger',systems:'Lob, campaign IDs, CRM attribution',kpi:'Mail-to-consult CPA',flow:'Verified list → Batch send → Track outcomes → Reallocate'},
+  {status:'NEXT',name:'Two Checks Consult Discipline',owner:'Ranger',systems:'Consult checklist, CRM fields',kpi:'Consult-to-offer rate',flow:'Consult prep → Two Checks pitch → Offer request → Follow-through'}
+];
+
 const statusClass=s=>s==='Live'?'live':s==='Build'?'build':'plan';
 const agentEmoji={
   'Maestro':'🎼','Ledger':'📊','Atlas':'🎯','Beacon':'🔦','Scout':'🔍','Postman':'📮','Piper':'📬',
@@ -180,6 +197,10 @@ for(const g of groups){
  app.appendChild(sec);
 }
 
+
+const car=document.createElement('section'); car.className='section';
+car.innerHTML=`<div class="carousel-band"><div class="carousel-head"><div class="carousel-title">Workflow Navigator — Built / Building / Next</div><div style="font-size:.74rem;opacity:.9">Swipe horizontally</div></div><div class="carousel-track">${workflowCarousel.map(w=>`<article class="carousel-card"><span class="carousel-status">${w.status}</span><h3>${w.name}</h3><div class="carousel-meta"><b>Owner:</b> ${w.owner}<br/><b>Systems:</b> ${w.systems}<br/><b>KPI:</b> ${w.kpi}</div><div class="carousel-flow"><b>Flow:</b> ${w.flow}</div></article>`).join('')}</div></div>`;
+app.appendChild(car);
 
 const ch=document.createElement('section'); ch.className='section';
 ch.innerHTML=`<div class="head"><div class="bar t"></div><div class="bar p"></div><div class="bar n"></div><h2>Channels (All) — Coverage Map</h2></div><div class="panel"><table><thead><tr><th>Channel</th><th>Primary</th><th>Support</th><th>Coverage</th><th>How Covered</th><th>KPI</th><th>Bottleneck</th></tr></thead><tbody>${channels.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="status ${r[3].toLowerCase()==='covered'?'covered':r[3].toLowerCase()==='partial'?'partial':'gap'}">${r[3]}</span></td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('')}</tbody></table></div>`;
