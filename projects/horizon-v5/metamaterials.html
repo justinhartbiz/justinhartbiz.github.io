@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metamaterials — Engineering the Impossible</title>
+<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: #020408;
+    color: #b8d8f0;
+    font-family: 'Oxanium', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    padding: 2.5rem 3rem 2rem;
+    border-bottom: 1px solid rgba(0, 200, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .nav-back {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(0, 200, 255, 0.4);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.8rem;
+  }
+  .nav-back:hover { color: #00c8ff; }
+
+  .eyebrow {
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #00c8ff;
+    margin-bottom: 0.4rem;
+  }
+
+  h1 {
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 800;
+    color: #e8f4ff;
+    line-height: 1.1;
+    margin-bottom: 0.4rem;
+  }
+
+  .sub {
+    font-size: 0.88rem;
+    color: rgba(184, 216, 240, 0.5);
+    max-width: 500px;
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  .header-badge {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .badge-val {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #00c8ff;
+    line-height: 1;
+  }
+
+  .badge-lbl {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(0, 200, 255, 0.4);
+    display: block;
+    margin-top: 0.2rem;
+  }
+
+  /* Main layout */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 180px);
+  }
+
+  /* Left: simulation */
+  .sim-side {
+    border-right: 1px solid rgba(0, 200, 255, 0.08);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .sim-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .mode-btn {
+    background: rgba(0, 200, 255, 0.06);
+    border: 1px solid rgba(0, 200, 255, 0.15);
+    color: rgba(184, 216, 240, 0.6);
+    padding: 0.45rem 0.9rem;
+    border-radius: 4px;
+    font-family: 'Oxanium', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .mode-btn:hover, .mode-btn.active {
+    background: rgba(0, 200, 255, 0.18);
+    border-color: #00c8ff;
+    color: #e8f4ff;
+  }
+
+  #meta-canvas {
+    border: 1px solid rgba(0, 200, 255, 0.12);
+    border-radius: 6px;
+    background: #010306;
+    display: block;
+    cursor: crosshair;
+  }
+
+  .sim-desc {
+    font-size: 0.78rem;
+    color: rgba(184, 216, 240, 0.45);
+    line-height: 1.6;
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  /* Right: info */
+  .info-side {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+    overflow-y: auto;
+  }
+
+  .info-section {
+    border-bottom: 1px solid rgba(0, 200, 255, 0.06);
+    padding-bottom: 1.8rem;
+  }
+  .info-section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #00c8ff;
+    margin-bottom: 0.8rem;
+  }
+
+  .property-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .prop-item {
+    background: rgba(0, 200, 255, 0.04);
+    border: 1px solid rgba(0, 200, 255, 0.1);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .prop-item:hover, .prop-item.active {
+    background: rgba(0, 200, 255, 0.1);
+    border-color: rgba(0, 200, 255, 0.3);
+  }
+
+  .prop-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #e8f4ff;
+    margin-bottom: 0.2rem;
+  }
+
+  .prop-desc {
+    font-size: 0.75rem;
+    color: rgba(184, 216, 240, 0.5);
+    line-height: 1.55;
+    font-weight: 300;
+    display: none;
+  }
+  .prop-item.active .prop-desc { display: block; }
+
+  .prop-status {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .status-real { background: rgba(96, 200, 80, 0.2); color: #60c850; }
+  .status-lab { background: rgba(255, 165, 30, 0.2); color: #ffa51e; }
+  .status-theory { background: rgba(150, 100, 255, 0.2); color: #9664ff; }
+
+  .application-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+
+  .app-card {
+    background: rgba(0, 200, 255, 0.04);
+    border: 1px solid rgba(0, 200, 255, 0.08);
+    border-radius: 6px;
+    padding: 0.8rem;
+  }
+
+  .app-icon { font-size: 1.4rem; margin-bottom: 0.3rem; }
+  .app-name { font-size: 0.78rem; font-weight: 600; color: #e8f4ff; margin-bottom: 0.2rem; }
+  .app-detail { font-size: 0.7rem; color: rgba(184, 216, 240, 0.4); line-height: 1.5; font-weight: 300; }
+
+  .insight-box {
+    background: rgba(0, 200, 255, 0.05);
+    border: 1px solid rgba(0, 200, 255, 0.15);
+    border-top: 2px solid #00c8ff;
+    border-radius: 0 0 8px 8px;
+    padding: 1.1rem;
+  }
+  .ins-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #00c8ff;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+  .insight-box p {
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: rgba(184, 216, 240, 0.5);
+    font-style: italic;
+    font-weight: 300;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <a href="index.html" class="nav-back">← Horizon v5</a>
+    <div class="eyebrow">Engineered Physics</div>
+    <h1>Metamaterials</h1>
+    <p class="sub">Materials whose properties come not from chemistry, but from engineered geometry at sub-wavelength scales. You can build structures that bend light backward, block sound completely, or have negative mass density.</p>
+  </div>
+  <div class="header-badge">
+    <div class="badge-val" id="refr-index">n = −1</div>
+    <span class="badge-lbl">Refractive Index</span>
+  </div>
+</header>
+
+<div class="main">
+  <div class="sim-side">
+    <div>
+      <div class="section-label" style="margin-bottom:0.8rem;">Simulation Mode</div>
+      <div class="sim-controls">
+        <button class="mode-btn active" onclick="setMode('snell')" id="btn-snell">Light Bending</button>
+        <button class="mode-btn" onclick="setMode('cloak')" id="btn-cloak">Cloaking</button>
+        <button class="mode-btn" onclick="setMode('acoustic')" id="btn-acoustic">Acoustic</button>
+        <button class="mode-btn" onclick="setMode('auxetic')" id="btn-auxetic">Auxetic</button>
+      </div>
+    </div>
+
+    <canvas id="meta-canvas" width="560" height="400"></canvas>
+
+    <p class="sim-desc" id="sim-desc">Light entering a negative-index metamaterial bends backward — opposite to every natural material. Snell's Law still applies; the angle just goes the wrong way.</p>
+
+    <div style="display:flex; gap:1rem; font-size:0.72rem; color:rgba(0,200,255,0.4); font-family:'Oxanium',sans-serif;">
+      <div>n(normal) = <span style="color:#e8f4ff;">1.5</span></div>
+      <div>n(meta) = <span style="color:#00c8ff;" id="n-display">−1.0</span></div>
+    </div>
+  </div>
+
+  <aside class="info-side">
+    <div class="info-section">
+      <div class="section-label">Impossible Properties</div>
+      <div class="property-list">
+        <div class="prop-item active" onclick="toggleProp(this)">
+          <span class="prop-status status-lab">Lab Demonstrated</span>
+          <div class="prop-name">Negative Refractive Index</div>
+          <div class="prop-desc">Light bends the "wrong" way at the interface. A flat slab of negative-index material acts as a perfect lens with no curvature. First demonstrated by John Pendry (2000), fabricated by Smith (2001).</div>
+        </div>
+        <div class="prop-item" onclick="toggleProp(this)">
+          <span class="prop-status status-lab">Lab Demonstrated</span>
+          <div class="prop-name">Perfect Acoustic Absorption</div>
+          <div class="prop-desc">Structures of membrane resonators can absorb essentially 100% of sound at specific frequencies, despite being thinner than the wavelength. Standard soundproofing absorbs ~50–70%.</div>
+        </div>
+        <div class="prop-item" onclick="toggleProp(this)">
+          <span class="prop-status status-real">Commercially Available</span>
+          <div class="prop-name">Auxetic (Negative Poisson's Ratio)</div>
+          <div class="prop-desc">Most materials get thinner when stretched (positive Poisson). Auxetic metamaterials get fatter. Used in body armor, stents, and impact-absorbing foams. Re-entrant honeycomb is the classic geometry.</div>
+        </div>
+        <div class="prop-item" onclick="toggleProp(this)">
+          <span class="prop-status status-lab">Demonstrated (microwave)</span>
+          <div class="prop-name">Electromagnetic Cloaking</div>
+          <div class="prop-desc">By guiding waves around an object, metamaterials can make it electromagnetically invisible at specific frequencies. Demonstrated for microwaves in 2006 by Smith/Schurig. Visible light cloaking remains elusive.</div>
+        </div>
+        <div class="prop-item" onclick="toggleProp(this)">
+          <span class="prop-status status-theory">Theoretical</span>
+          <div class="prop-name">Near-Zero Refractive Index</div>
+          <div class="prop-desc">n ≈ 0 means light passes through the material as if space doesn't exist — the phase velocity becomes infinite. All points inside the material are synchronized in phase. Used for superdirectional antennas.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <div class="section-label">Real Applications</div>
+      <div class="application-grid">
+        <div class="app-card">
+          <div class="app-icon">🔬</div>
+          <div class="app-name">Superlens</div>
+          <p class="app-detail">Breaks the diffraction limit, enabling imaging at wavelengths below λ/2 — impossible with conventional optics.</p>
+        </div>
+        <div class="app-card">
+          <div class="app-icon">🛡️</div>
+          <div class="app-name">Body Armor</div>
+          <p class="app-detail">Auxetic foams used in helmets spread impact over a larger area by expanding under compression.</p>
+        </div>
+        <div class="app-card">
+          <div class="app-icon">📡</div>
+          <div class="app-name">Antennas</div>
+          <p class="app-card">Metamaterial ground planes make antennas work on conductive surfaces — enabling conformal antenna design.</p>
+        </div>
+        <div class="app-card">
+          <div class="app-icon">🌊</div>
+          <div class="app-name">Seismic Shield</div>
+          <p class="app-detail">2D metamaterial "forest" of trees around a structure demonstrated to redirect seismic waves. Experimental.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <span class="ins-label">The Reframe</span>
+      <p>Natural materials are limited by chemistry — by what atoms are available and how they bond. Metamaterials prove that the laws of physics allow properties that no atom can have. Geometry is a material. Structure is a substance. The periodic table isn't the last word.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+const canvas = document.getElementById('meta-canvas');
+const ctx = canvas.getContext('2d');
+let mode = 'snell';
+let t = 0;
+let rafId;
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + m).classList.add('active');
+  
+  const descs = {
+    snell: 'Light entering a negative-index metamaterial bends backward — opposite to every natural material. Snell\'s Law still applies; the angle just goes the wrong way.',
+    cloak: 'The metamaterial guides electromagnetic waves around the central object, reconstituting them on the other side as if nothing was there. The object is invisible.',
+    acoustic: 'A metamaterial acoustic barrier — thinner than the sound wavelength — achieves near-perfect sound isolation through locally resonant unit cells.',
+    auxetic: 'An auxetic (negative Poisson\'s ratio) metamaterial expands sideways when stretched. Click and drag to deform the lattice.'
+  };
+  const nVals = { snell: '−1.0', cloak: '0.0', acoustic: '—', auxetic: '−0.4' };
+  
+  document.getElementById('sim-desc').textContent = descs[m];
+  document.getElementById('n-display').textContent = nVals[m];
+  document.getElementById('refr-index').textContent = 'n = ' + nVals[m];
+}
+
+function resize() {
+  const side = canvas.parentElement;
+  const w = Math.min(side.clientWidth - 40, 600);
+  canvas.width = w;
+  canvas.height = Math.round(w * 0.7);
+}
+
+function drawSnell() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  
+  const midY = H / 2;
+  
+  // Background
+  ctx.fillStyle = '#010306';
+  ctx.fillRect(0, 0, W, H);
+  
+  // Regions
+  ctx.fillStyle = 'rgba(0, 100, 180, 0.08)';
+  ctx.fillRect(0, 0, W, midY);
+  
+  ctx.fillStyle = 'rgba(0, 200, 80, 0.06)';
+  ctx.fillRect(0, midY, W, H - midY);
+  
+  // Labels
+  ctx.fillStyle = 'rgba(0, 200, 255, 0.4)';
+  ctx.font = '11px Oxanium, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('Normal material (n = 1.5)', 12, midY - 10);
+  ctx.fillStyle = 'rgba(0, 255, 150, 0.4)';
+  ctx.fillText('Metamaterial (n = −1.0)', 12, midY + 18);
+  
+  // Interface line
+  ctx.beginPath();
+  ctx.moveTo(0, midY);
+  ctx.lineTo(W, midY);
+  ctx.strokeStyle = 'rgba(0, 200, 255, 0.25)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Animate incoming ray
+  const phase = (t * 0.8) % (Math.PI * 2);
+  const incidentAngle = Math.PI * 0.28; // ~50 degrees from vertical
+  
+  const hitX = W / 2;
+  const rayLength = midY * 1.1;
+  
+  // Incident ray (from top-left)
+  const incX = hitX - rayLength * Math.sin(incidentAngle);
+  const incY = midY - rayLength * Math.cos(incidentAngle);
+  
+  ctx.beginPath();
+  ctx.moveTo(incX, incY);
+  ctx.lineTo(hitX, midY);
+  ctx.strokeStyle = 'rgba(255, 220, 50, 0.8)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // Arrow
+  drawArrow(ctx, incX + (hitX - incX) * 0.5, incY + (midY - incY) * 0.5, hitX, midY, 'rgba(255, 220, 50, 0.8)');
+  
+  // Normal (dashed vertical)
+  ctx.beginPath();
+  ctx.moveTo(hitX, midY - 60);
+  ctx.lineTo(hitX, midY + 60);
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Refracted ray (NEGATIVE angle — backward refraction)
+  const refractedAngle = -incidentAngle; // negative-index = opposite side
+  const refractX = hitX + rayLength * 0.7 * Math.sin(refractedAngle);
+  const refractY = midY + rayLength * 0.7 * Math.cos(incidentAngle);
+  
+  ctx.beginPath();
+  ctx.moveTo(hitX, midY);
+  ctx.lineTo(refractX, refractY);
+  ctx.strokeStyle = 'rgba(0, 255, 150, 0.8)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  drawArrow(ctx, hitX, midY, refractX, refractY, 'rgba(0, 255, 150, 0.8)');
+  
+  // Label angles
+  ctx.fillStyle = 'rgba(255, 220, 50, 0.6)';
+  ctx.font = '10px Oxanium, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('θ₁ = 50°', hitX - 40, midY - 25);
+  ctx.fillStyle = 'rgba(0, 255, 150, 0.6)';
+  ctx.fillText('θ₂ = −50°', hitX - 45, midY + 30);
+  ctx.fillText('(same side!)', hitX - 45, midY + 42);
+  
+  // Normal-material refraction (faint, for comparison)
+  const normalRefractX = hitX + rayLength * 0.5 * Math.sin(incidentAngle * 0.65);
+  const normalRefractY = midY + rayLength * 0.5 * Math.cos(incidentAngle * 0.65);
+  ctx.beginPath();
+  ctx.moveTo(hitX, midY);
+  ctx.lineTo(normalRefractX, normalRefractY);
+  ctx.strokeStyle = 'rgba(100, 150, 255, 0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 5]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(100, 150, 255, 0.3)';
+  ctx.font = '9px Oxanium, sans-serif';
+  ctx.fillText('normal refraction', normalRefractX + 15, normalRefractY - 5);
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  const ux = dx/len, uy = dy/len;
+  const ax = x1 + ux * len * 0.65, ay = y1 + uy * len * 0.65;
+  const size = 7;
+  ctx.beginPath();
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(ax - size*ux + size*0.5*uy, ay - size*uy - size*0.5*ux);
+  ctx.lineTo(ax - size*ux - size*0.5*uy, ay - size*uy + size*0.5*ux);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function drawCloak() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#010306';
+  ctx.fillRect(0, 0, W, H);
+  
+  const cx = W/2, cy = H/2;
+  const innerR = 45, outerR = 90;
+  
+  // Draw incoming parallel rays
+  for (let y = 20; y < H; y += 18) {
+    const rays = computeCloak(W, H, cx, cy, innerR, outerR, y, t);
+    ctx.beginPath();
+    ctx.moveTo(rays[0].x, rays[0].y);
+    rays.forEach((pt, i) => { if (i > 0) ctx.lineTo(pt.x, pt.y); });
+    const dist = Math.abs(y - cy);
+    const alpha = dist < outerR ? 0.7 : 0.4;
+    ctx.strokeStyle = `rgba(0, 180, 255, ${alpha})`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+  
+  // Cloak shell
+  const grad = ctx.createRadialGradient(cx, cy, innerR, cx, cy, outerR);
+  grad.addColorStop(0, 'rgba(0, 200, 100, 0.05)');
+  grad.addColorStop(1, 'rgba(0, 200, 100, 0)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(0, 200, 100, 0.25)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  
+  // Object (invisible)
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 5]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.font = '10px Oxanium';
+  ctx.textAlign = 'center';
+  ctx.fillText('object', cx, cy + 3);
+  ctx.fillStyle = 'rgba(0, 200, 100, 0.5)';
+  ctx.fillText('metamaterial shell', cx, cy - outerR - 10);
+}
+
+function computeCloak(W, H, cx, cy, innerR, outerR, ry, t) {
+  const points = [];
+  const rayY = ry;
+  
+  for (let x = 0; x <= W; x += 6) {
+    const dx = x - cx, dy = rayY - cy;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    
+    let py = rayY;
+    
+    if (dist < outerR && dist > innerR) {
+      // Deflect the ray around the inner circle
+      const theta = Math.atan2(dy, dx);
+      const r = dist;
+      // Simple approximate cloaking: wrap angle
+      const deflect = (outerR - r) / (outerR - innerR);
+      const wrapY = cy + dist * Math.sin(theta + deflect * 0.5 * Math.sign(dy));
+      py = wrapY + (rayY - cy) * (1 - deflect);
+    } else if (dist <= innerR) {
+      continue; // object is hidden
+    }
+    
+    points.push({ x, y: py });
+  }
+  
+  return points;
+}
+
+function drawAcoustic() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#010306';
+  ctx.fillRect(0, 0, W, H);
+  
+  const metaX = W * 0.42;
+  const metaW = 18;
+  
+  // Left: traveling waves
+  for (let i = 0; i < 6; i++) {
+    const amp = 30 - i * 3;
+    const phase = t * 0.04 - i * 0.8;
+    ctx.beginPath();
+    for (let x = 0; x < metaX; x++) {
+      const y = H/2 + amp * Math.sin(2 * Math.PI * x / 80 + phase);
+      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = `rgba(0, 180, 255, ${0.5 - i * 0.06})`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  
+  // Metamaterial block
+  const gradient = ctx.createLinearGradient(metaX, 0, metaX + metaW, 0);
+  gradient.addColorStop(0, 'rgba(0, 200, 100, 0.3)');
+  gradient.addColorStop(0.5, 'rgba(0, 200, 100, 0.5)');
+  gradient.addColorStop(1, 'rgba(0, 200, 100, 0.3)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(metaX, H * 0.15, metaW, H * 0.7);
+  
+  // Unit cells inside barrier
+  for (let y = H * 0.18; y < H * 0.82; y += 14) {
+    ctx.beginPath();
+    ctx.arc(metaX + metaW/2, y + 7, 4, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0, 255, 150, 0.6)';
+    ctx.fill();
+  }
+  ctx.strokeStyle = 'rgba(0, 200, 100, 0.6)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(metaX, H * 0.15, metaW, H * 0.7);
+  
+  // Right: greatly attenuated
+  const attamp = 2;
+  for (let i = 0; i < 6; i++) {
+    const phase = t * 0.04 - i * 0.8;
+    ctx.beginPath();
+    for (let x = metaX + metaW; x < W; x++) {
+      const y = H/2 + attamp * Math.sin(2 * Math.PI * (x - metaX - metaW) / 80 + phase);
+      if (x === metaX + metaW) ctx.moveTo(x, y); else ctx.lineTo(x, y);    }
+    ctx.strokeStyle = `rgba(0, 180, 255, ${0.12 - i * 0.01})`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+  
+  // Labels
+  ctx.fillStyle = 'rgba(0, 180, 255, 0.5)';
+  ctx.font = '11px Oxanium';
+  ctx.textAlign = 'center';
+  ctx.fillText('incoming sound', metaX * 0.5, H * 0.12);
+  ctx.fillStyle = 'rgba(0, 200, 100, 0.6)';
+  ctx.fillText('meta-barrier', metaX + metaW / 2, H * 0.12);
+  ctx.fillStyle = 'rgba(0, 180, 255, 0.3)';
+  ctx.fillText('−40dB transmitted', (metaX + metaW + W) / 2, H * 0.12);
+}
+
+function drawAuxetic() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#010306';
+  ctx.fillRect(0, 0, W, H);
+  
+  const cx = W/2, cy = H/2;
+  const cols = 7, rows = 5;
+  const spacing = 55;
+  const pull = Math.sin(t * 0.03) * 0.3 + 0.3;
+  
+  // Draw re-entrant honeycomb cells
+  for (let row = -Math.floor(rows/2); row <= Math.floor(rows/2); row++) {
+    for (let col = -Math.floor(cols/2); col <= Math.floor(cols/2); col++) {
+      const bx = cx + col * spacing * (1 + pull * 0.4);
+      const by = cy + row * spacing * (1 - pull * 0.3);
+      drawAuxeticCell(bx, by, 18, pull);
+    }
+  }
+  
+  // Legend
+  ctx.fillStyle = 'rgba(0, 200, 255, 0.5)';
+  ctx.font = '11px Oxanium';
+  ctx.textAlign = 'left';
+  ctx.fillText('Auxetic lattice — stretches → expands', 12, 20);
+  ctx.fillStyle = 'rgba(0, 200, 100, 0.5)';
+  ctx.fillText(`Poisson ratio ≈ ${(-0.4 - pull * 0.3).toFixed(2)}`, 12, 36);
+}
+
+function drawAuxeticCell(cx, cy, r, pull) {
+  // Re-entrant arrow shape
+  const inward = r * (0.3 + pull * 0.4);
+  ctx.beginPath();
+  ctx.moveTo(cx - r, cy);
+  ctx.lineTo(cx - inward, cy - r);
+  ctx.lineTo(cx, cy);
+  ctx.lineTo(cx + inward, cy - r);
+  ctx.lineTo(cx + r, cy);
+  ctx.lineTo(cx + inward, cy + r);
+  ctx.lineTo(cx, cy);
+  ctx.lineTo(cx - inward, cy + r);
+  ctx.closePath();
+  
+  const hue = 160 + pull * 40;
+  ctx.strokeStyle = `hsla(${hue}, 80%, 55%, 0.7)`;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = `hsla(${hue}, 80%, 40%, 0.08)`;
+  ctx.fill();
+}
+
+function drawFrame() {
+  t++;
+  if (mode === 'snell') drawSnell();
+  else if (mode === 'cloak') drawCloak();
+  else if (mode === 'acoustic') drawAcoustic();
+  else if (mode === 'auxetic') drawAuxetic();
+  rafId = requestAnimationFrame(drawFrame);
+}
+
+function toggleProp(el) {
+  const wasActive = el.classList.contains('active');
+  document.querySelectorAll('.prop-item').forEach(p => p.classList.remove('active'));
+  if (!wasActive) el.classList.add('active');
+}
+
+window.addEventListener('resize', () => { resize(); });
+resize();
+drawFrame();
+</script>
+</body>
+</html>

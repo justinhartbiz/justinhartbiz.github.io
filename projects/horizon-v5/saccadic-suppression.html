@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saccadic Suppression — The Blink You Never See</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1c1f26;
+    color: #e8eaf0;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .page {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100vh;
+  }
+
+  header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    padding: 2.5rem 3rem 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .nav-back {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #5a6080;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: #7c9fff; }
+
+  .header-text h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    color: #e8eaf0;
+    margin-bottom: 0.4rem;
+  }
+
+  .header-text .sub {
+    font-size: 0.9rem;
+    color: #6875a0;
+    font-weight: 300;
+    max-width: 500px;
+  }
+
+  .counter-badge {
+    background: rgba(124, 159, 255, 0.1);
+    border: 1px solid rgba(124, 159, 255, 0.25);
+    border-radius: 999px;
+    padding: 0.5rem 1.2rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .counter-badge .count {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: #7c9fff;
+    display: block;
+    line-height: 1;
+  }
+  .counter-badge .label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #5a6080;
+    display: block;
+    margin-top: 0.2rem;
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    flex: 1;
+  }
+
+  .experiment-area {
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    border-right: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .phase-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: #c8d0e8;
+    margin-bottom: 0.4rem;
+  }
+
+  .phase-desc {
+    font-size: 0.88rem;
+    color: #6875a0;
+    line-height: 1.65;
+    max-width: 520px;
+  }
+
+  /* Experiment 1: the clock */
+  .clock-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  #clock-canvas {
+    border-radius: 50%;
+    cursor: pointer;
+    display: block;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .exp-instruction {
+    background: rgba(124, 159, 255, 0.07);
+    border: 1px solid rgba(124, 159, 255, 0.15);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    font-size: 0.84rem;
+    color: #9aa8cc;
+    text-align: center;
+    max-width: 420px;
+    line-height: 1.6;
+  }
+
+  /* Experiment 2: dot tracker */
+  .dot-wrapper {
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 200px;
+    background: #14161c;
+    cursor: none;
+  }
+
+  #dot-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* Experiment 3: text flicker */
+  .flicker-wrapper {
+    position: relative;
+    height: 160px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    background: #14161c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #flicker-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.5rem;
+    color: #e8eaf0;
+    text-align: center;
+    transition: none;
+    user-select: none;
+  }
+
+  .flicker-btn {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    background: rgba(124, 159, 255, 0.12);
+    border: 1px solid rgba(124, 159, 255, 0.25);
+    color: #7c9fff;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .flicker-btn:hover {
+    background: rgba(124, 159, 255, 0.22);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .info-block {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 2rem;
+  }
+
+  .info-block:last-child {
+    border-bottom: none;
+  }
+
+  .block-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #5a6080;
+    margin-bottom: 0.8rem;
+  }
+
+  .stat-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .stat-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    color: #7c9fff;
+    line-height: 1;
+  }
+
+  .stat-unit {
+    font-size: 0.8rem;
+    color: #5a6080;
+  }
+
+  .stat-desc {
+    font-size: 0.82rem;
+    color: #6875a0;
+    line-height: 1.6;
+  }
+
+  .insight-box {
+    background: rgba(124, 159, 255, 0.06);
+    border: 1px solid rgba(124, 159, 255, 0.15);
+    border-top: 3px solid #7c9fff;
+    border-radius: 0 0 10px 10px;
+    padding: 1.2rem;
+  }
+
+  .insight-box .label {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #7c9fff;
+    margin-bottom: 0.5rem;
+  }
+
+  .insight-box p {
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: #9aa8cc;
+    font-style: italic;
+  }
+
+  .phase-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    margin: 0 -3rem;
+  }
+
+  footer {
+    padding: 1.5rem 3rem;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    gap: 2rem;
+    font-size: 0.75rem;
+    color: #5a6080;
+  }
+
+  .footer-fact span {
+    color: #7c9fff;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <div class="header-text">
+      <a href="index.html" class="nav-back">← Horizon v5</a>
+      <h1>Saccadic Suppression</h1>
+      <p class="sub">Your brain blinds itself 3–5 times per second so you don't notice your own eye movements. You've been in the dark 40% of your waking hours.</p>
+    </div>
+    <div class="counter-badge">
+      <span class="count" id="total-saccades">0</span>
+      <span class="label">saccades today*</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="experiment-area">
+
+      <!-- Exp 1: Stopped clock illusion -->
+      <div>
+        <div class="phase-title">The Stopped Clock</div>
+        <p class="phase-desc">Look away from the clock, then snap your gaze back to it. The first "tick" will seem to last longer than normal — your brain backfills the blackout with the image it just landed on, stretching it in time.</p>
+        <div class="clock-wrapper">
+          <canvas id="clock-canvas" width="240" height="240"></canvas>
+          <div class="exp-instruction">
+            Look away → wait a beat → look back at the clock.<br>
+            The first tick feels <em>longer</em>. That's your brain filling the gap.
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-divider"></div>
+
+      <!-- Exp 2: The suppression window -->
+      <div>
+        <div class="phase-title">The Suppression Window</div>
+        <p class="phase-desc">During a saccade (rapid eye movement), your visual cortex is actively suppressed. Move your eyes across the dot field — you won't see them vanish even though they do.</p>
+        <div class="dot-wrapper">
+          <canvas id="dot-canvas"></canvas>
+        </div>
+        <p style="font-size:0.8rem; color:#5a6080; margin-top:0.6rem; font-style:italic;">Move your gaze quickly across the field. Dots briefly vanish mid-saccade — visible only to peripheral detection.</p>
+      </div>
+
+      <div class="phase-divider"></div>
+
+      <!-- Exp 3: Change blindness -->
+      <div>
+        <div class="phase-title">Change Blindness</div>
+        <p class="phase-desc">When a change occurs during a saccade, you often miss it entirely. The word below changes while your eyes move. Most people don't catch it without help.</p>
+        <div class="flicker-wrapper">
+          <div id="flicker-text">PERCEPTION</div>
+          <button class="flicker-btn" onclick="startFlicker()">Start</button>
+        </div>
+        <p style="font-size:0.8rem; color:#5a6080; margin-top:0.6rem; font-style:italic;" id="flicker-hint">The word changes every few seconds — but only during the flash. Did you catch all of them?</p>
+      </div>
+
+    </div>
+
+    <aside class="sidebar">
+      <div class="info-block">
+        <div class="block-label">The Mechanism</div>
+        <div class="stat-row">
+          <span class="stat-number">3–5×</span>
+          <span class="stat-unit">per second</span>
+        </div>
+        <p class="stat-desc">The number of saccades per second during normal reading or looking. Each saccade triggers a suppression signal that reaches the visual cortex before the eyes even start moving.</p>
+      </div>
+
+      <div class="info-block">
+        <div class="block-label">Duration</div>
+        <div class="stat-row">
+          <span class="stat-number">20–200</span>
+          <span class="stat-unit">milliseconds</span>
+        </div>
+        <p class="stat-desc">The blackout window. At the longer end, you're blind for a fifth of a second — but you experience seamless continuity. Your brain stitches the frames together.</p>
+      </div>
+
+      <div class="info-block">
+        <div class="block-label">In the Mirror</div>
+        <p class="stat-desc">You can never see your own eyes move in a mirror. Each time your gaze shifts to track the movement, suppression kicks in and erases it. Someone else can easily watch your eyes dart — you simply can't see it yourself.</p>
+      </div>
+
+      <div class="insight-box">
+        <div class="label">The Reframe</div>
+        <p>You are not watching the world like a camera. Your brain is actively constructing a fiction of continuity — stitching together snapshots across gaps it deliberately creates. What you experience as "seeing" is mostly memory and prediction.</p>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="footer-fact">*Estimated from <span>16 waking hours × 3 saccades/sec × 3600 = ~172,800</span> saccades/day</div>
+    <div class="footer-fact">Source: <span>Matin, 1974; Bridgeman et al., 1975</span> — saccadic suppression is well-established neuroscience</div>
+  </footer>
+</div>
+
+<script>
+// Counter animation
+const target = 172800;
+let counter = 0;
+const countEl = document.getElementById('total-saccades');
+const step = Math.ceil(target / 120);
+const timer = setInterval(() => {
+  counter = Math.min(counter + step, target);
+  countEl.textContent = counter.toLocaleString();
+  if (counter >= target) clearInterval(timer);
+}, 16);
+
+// ======== CLOCK ========
+const clockCanvas = document.getElementById('clock-canvas');
+const clockCtx = clockCanvas.getContext('2d');
+let clockRunning = true;
+
+function drawClock() {
+  const now = new Date();
+  const W = clockCanvas.width, H = clockCanvas.height;
+  const cx = W/2, cy = H/2, r = W/2 - 10;
+  
+  clockCtx.clearRect(0, 0, W, H);
+  
+  // Face
+  clockCtx.beginPath();
+  clockCtx.arc(cx, cy, r, 0, Math.PI*2);
+  clockCtx.fillStyle = '#0e1018';
+  clockCtx.fill();
+  clockCtx.strokeStyle = 'rgba(124, 159, 255, 0.2)';
+  clockCtx.lineWidth = 1.5;
+  clockCtx.stroke();
+
+  // Tick marks
+  for (let i = 0; i < 60; i++) {
+    const angle = (i / 60) * Math.PI * 2 - Math.PI/2;
+    const len = i % 5 === 0 ? 12 : 5;
+    const inner = r - len;
+    clockCtx.beginPath();
+    clockCtx.moveTo(cx + (r-2) * Math.cos(angle), cy + (r-2) * Math.sin(angle));
+    clockCtx.lineTo(cx + inner * Math.cos(angle), cy + inner * Math.sin(angle));
+    clockCtx.strokeStyle = i % 5 === 0 ? 'rgba(124,159,255,0.6)' : 'rgba(124,159,255,0.2)';
+    clockCtx.lineWidth = i % 5 === 0 ? 2 : 1;
+    clockCtx.stroke();
+  }
+
+  const sec = now.getSeconds() + now.getMilliseconds() / 1000;
+  const min = now.getMinutes() + sec / 60;
+  const hr = now.getHours() % 12 + min / 60;
+
+  // Hour hand
+  const hrAngle = (hr / 12) * Math.PI * 2 - Math.PI/2;
+  drawHand(clockCtx, cx, cy, hrAngle, r * 0.55, 3, '#7c9fff');
+  
+  // Minute hand
+  const minAngle = (min / 60) * Math.PI * 2 - Math.PI/2;
+  drawHand(clockCtx, cx, cy, minAngle, r * 0.75, 2, '#a8c0ff');
+  
+  // Second hand
+  const secAngle = (sec / 60) * Math.PI * 2 - Math.PI/2;
+  drawHand(clockCtx, cx, cy, secAngle, r * 0.85, 1, '#ff6b6b');
+  
+  // Center dot
+  clockCtx.beginPath();
+  clockCtx.arc(cx, cy, 4, 0, Math.PI*2);
+  clockCtx.fillStyle = '#e8eaf0';
+  clockCtx.fill();
+}
+
+function drawHand(ctx, cx, cy, angle, length, width, color) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + length * Math.cos(angle), cy + length * Math.sin(angle));
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+}
+
+setInterval(drawClock, 40);
+drawClock();
+
+// ======== DOT CANVAS ========
+const dotCanvas = document.getElementById('dot-canvas');
+const dotCtx = dotCanvas.getContext('2d');
+const dots = [];
+let rafDots;
+
+function initDots() {
+  dotCanvas.width = dotCanvas.offsetWidth;
+  dotCanvas.height = dotCanvas.offsetHeight;
+  dots.length = 0;
+  for (let i = 0; i < 35; i++) {
+    dots.push({
+      x: Math.random() * dotCanvas.width,
+      y: Math.random() * dotCanvas.height,
+      r: 3 + Math.random() * 4,
+      hue: 180 + Math.random() * 80,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.4 + Math.random() * 0.8,
+      visible: true,
+      flickerTimer: 0
+    });
+  }
+}
+
+let mouseX = 0;
+dotCanvas.addEventListener('mousemove', (e) => {
+  const dx = e.clientX - mouseX;
+  mouseX = e.clientX;
+  if (Math.abs(dx) > 6) {
+    // Simulate saccade suppression: briefly hide some dots
+    const count = Math.floor(Math.random() * 8) + 4;
+    const shuffled = [...dots].sort(() => Math.random() - 0.5);
+    for (let i = 0; i < count; i++) {
+      shuffled[i].visible = false;
+      shuffled[i].flickerTimer = 80 + Math.random() * 60;
+    }
+  }
+});
+
+function drawDots(ts) {
+  dotCtx.clearRect(0, 0, dotCanvas.width, dotCanvas.height);
+  
+  for (const d of dots) {
+    if (d.flickerTimer > 0) {
+      d.flickerTimer--;
+      if (d.flickerTimer <= 0) d.visible = true;
+    }
+    
+    if (!d.visible) continue;
+    
+    const pulse = 0.6 + 0.4 * Math.sin(ts * 0.001 * d.speed + d.phase);
+    
+    dotCtx.beginPath();
+    dotCtx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    const grad = dotCtx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.r);
+    grad.addColorStop(0, `hsla(${d.hue}, 70%, 75%, ${pulse})`);
+    grad.addColorStop(1, `hsla(${d.hue}, 70%, 55%, 0)`);
+    dotCtx.fillStyle = grad;
+    dotCtx.fill();
+  }
+  
+  rafDots = requestAnimationFrame(drawDots);
+}
+
+initDots();
+requestAnimationFrame(drawDots);
+window.addEventListener('resize', initDots);
+
+// ======== FLICKER ========
+const words = ['PERCEPTION', 'AWARENESS', 'REALITY', 'PRESENCE', 'VISION', 'COGNITION', 'ATTENTION', 'ILLUSION', 'CERTAINTY', 'CONSCIOUSNESS'];
+let flickerInterval;
+let flickerRunning = false;
+let wordIdx = 0;
+let changeCount = 0;
+
+function startFlicker() {
+  if (flickerRunning) {
+    clearInterval(flickerInterval);
+    flickerRunning = false;
+    event.target.textContent = 'Start';
+    document.getElementById('flicker-hint').textContent = `You saw ${changeCount} of ${wordIdx} changes. The word changed during brief flashes to simulate saccadic gaps.`;
+    return;
+  }
+  flickerRunning = true;
+  event.target.textContent = 'Stop';
+  wordIdx = 0; changeCount = 0;
+  
+  flickerInterval = setInterval(() => {
+    const el = document.getElementById('flicker-text');
+    // Flash to white (blank)
+    el.style.color = 'rgba(232, 234, 240, 0.03)';
+    setTimeout(() => {
+      wordIdx++;
+      el.textContent = words[wordIdx % words.length];
+      el.style.color = '#e8eaf0';
+      if (wordIdx >= words.length * 3) {
+        clearInterval(flickerInterval);
+        flickerRunning = false;
+        document.querySelector('.flicker-btn').textContent = 'Start';
+        document.getElementById('flicker-hint').textContent = `The word changed ${wordIdx} times during the flashes. How many did you consciously count?`;
+      }
+    }, 60);
+  }, 2200);
+}
+</script>
+</body>
+</html>

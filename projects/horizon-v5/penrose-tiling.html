@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Penrose Tiling — Order Without Repetition</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #0d0d14;
+    color: #e8e0d0;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  #canvas-container {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.85;
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .overlay {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 3rem 4rem 2rem;
+    max-width: 680px;
+  }
+
+  .eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c5a94e;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: #f5f0e8;
+    margin-bottom: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #a09888;
+    font-weight: 300;
+    max-width: 480px;
+  }
+
+  .controls {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .control-group {
+    background: rgba(13, 13, 20, 0.85);
+    border: 1px solid rgba(197, 169, 78, 0.25);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    backdrop-filter: blur(12px);
+    min-width: 220px;
+  }
+
+  .control-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #c5a94e;
+    margin-bottom: 0.6rem;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  button {
+    background: rgba(197, 169, 78, 0.12);
+    border: 1px solid rgba(197, 169, 78, 0.3);
+    color: #e8e0d0;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  button:hover, button.active {
+    background: rgba(197, 169, 78, 0.28);
+    border-color: #c5a94e;
+    color: #f5f0e8;
+  }
+
+  .depth-display {
+    font-size: 1.4rem;
+    font-family: 'Playfair Display', serif;
+    color: #c5a94e;
+    text-align: center;
+    margin-top: 0.4rem;
+  }
+
+  .insight {
+    position: fixed;
+    bottom: 2rem;
+    left: 4rem;
+    z-index: 20;
+    max-width: 420px;
+    background: rgba(13, 13, 20, 0.82);
+    border: 1px solid rgba(197, 169, 78, 0.2);
+    border-left: 3px solid #c5a94e;
+    border-radius: 0 12px 12px 0;
+    padding: 1.25rem 1.5rem;
+    backdrop-filter: blur(12px);
+  }
+
+  .insight-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #c5a94e;
+    margin-bottom: 0.6rem;
+  }
+
+  .insight p {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: #c8bfb0;
+    font-style: italic;
+  }
+
+  .stats {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 20;
+    background: rgba(13, 13, 20, 0.7);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.75rem;
+    color: #706860;
+    backdrop-filter: blur(8px);
+  }
+
+  .stats span {
+    color: #c5a94e;
+  }
+
+  .nav-back {
+    position: fixed;
+    top: 2rem;
+    left: 4rem;
+    z-index: 20;
+    font-size: 0.75rem;
+    color: #706860;
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: #c5a94e; }
+</style>
+</head>
+<body>
+
+<a href="index.html" class="nav-back">← Horizon v5</a>
+
+<div id="canvas-container">
+  <canvas id="penrose"></canvas>
+</div>
+
+<div class="overlay">
+  <header>
+    <div class="eyebrow">Aperiodic Geometry</div>
+    <h1>Penrose Tiling</h1>
+    <p class="subtitle">Two simple shapes. Infinite, non-repeating patterns. The universe's rarest kind of order.</p>
+  </header>
+</div>
+
+<div class="stats" id="stats">
+  Tiles: <span id="tile-count">0</span> &nbsp;|&nbsp; Depth: <span id="depth-display">0</span>
+</div>
+
+<div class="insight">
+  <div class="insight-title">The Reframe</div>
+  <p>Penrose tiling proves that a pattern can be perfectly rule-governed yet never repeat — shattering the assumption that order requires periodicity. Your eye keeps searching for the repeat that isn't there.</p>
+</div>
+
+<div class="controls">
+  <div class="control-group">
+    <div class="control-label">Color Mode</div>
+    <div class="btn-row">
+      <button class="active" onclick="setColorMode('gold')" id="btn-gold">Gold</button>
+      <button onclick="setColorMode('spectrum')" id="btn-spectrum">Spectrum</button>
+      <button onclick="setColorMode('mono')" id="btn-mono">Mono</button>
+    </div>
+  </div>
+  <div class="control-group">
+    <div class="control-label">Subdivision Depth</div>
+    <div class="btn-row">
+      <button onclick="changeDepth(-1)">−</button>
+      <button onclick="changeDepth(1)">+</button>
+      <button onclick="resetView()">Reset</button>
+    </div>
+    <div class="depth-display" id="depth-num">6</div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('penrose');
+const ctx = canvas.getContext('2d');
+
+let colorMode = 'gold';
+let subdivDepth = 6;
+let tiles = [];
+let tileCount = 0;
+
+const PHI = (1 + Math.sqrt(5)) / 2;
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  generate();
+}
+
+// Penrose P2 tiling (kite and dart) via subdivision
+// Uses complex number arithmetic for clean rotation
+
+function complex(r, theta) {
+  return { re: r * Math.cos(theta), im: r * Math.sin(theta) };
+}
+function cadd(a, b) { return { re: a.re + b.re, im: a.im + b.im }; }
+function csub(a, b) { return { re: a.re - b.re, im: a.im - b.im }; }
+function cmul(a, b) { return { re: a.re*b.re - a.im*b.im, im: a.re*b.im + a.im*b.re }; }
+function cscale(a, s) { return { re: a.re*s, im: a.im*s }; }
+
+// Each tile is: { type: 'kite'|'dart', A, B, C } (triangle representation)
+// We use the half-tile (triangles) approach for clean subdivision
+
+function initTiles() {
+  const w = canvas.width, h = canvas.height;
+  const cx = w / 2, cy = h / 2;
+  const size = Math.min(w, h) * 0.55;
+  const triangles = [];
+
+  // Start with 10 triangles arranged in a wheel (sun pattern)
+  for (let i = 0; i < 10; i++) {
+    const angle1 = (2 * i - 1) * Math.PI / 10;
+    const angle2 = (2 * i + 1) * Math.PI / 10;
+    const A = { re: cx, im: cy };
+    const B = { re: cx + size * Math.cos(angle1), im: cy + size * Math.sin(angle1) };
+    const C = { re: cx + size * Math.cos(angle2), im: cy + size * Math.sin(angle2) };
+    
+    if (i % 2 === 0) {
+      triangles.push({ type: 'A', A, B, C }); // thin triangle
+    } else {
+      triangles.push({ type: 'A', A: C, B: A, C: B });
+    }
+  }
+  return triangles;
+}
+
+function subdivide(triangles) {
+  const result = [];
+  for (const tri of triangles) {
+    const { type, A, B, C } = tri;
+    if (type === 'A') {
+      // Type A (thin golden gnomon): subdivide into 1 A + 1 B
+      const P = cadd(A, cscale(csub(B, A), 1/PHI));
+      result.push({ type: 'A', A: C, B: P, C: B });
+      result.push({ type: 'B', A: P, B: C, C: B });
+    } else {
+      // Type B (thick golden triangle): subdivide into 2 A + 1 B
+      const Q = cadd(B, cscale(csub(A, B), 1/PHI));
+      const R = cadd(B, cscale(csub(C, B), 1/PHI));
+      result.push({ type: 'B', A: R, B: C, C: A });
+      result.push({ type: 'A', A: Q, B: R, C: B });
+      result.push({ type: 'B', A: R, B: Q, C: A });
+    }
+  }
+  return result;
+}
+
+function generate() {
+  let triangles = initTiles();
+  for (let i = 0; i < subdivDepth; i++) {
+    triangles = subdivide(triangles);
+  }
+  tiles = triangles;
+  tileCount = triangles.length;
+  document.getElementById('tile-count').textContent = tileCount.toLocaleString();
+  document.getElementById('depth-display').textContent = subdivDepth;
+  document.getElementById('depth-num').textContent = subdivDepth;
+  draw();
+}
+
+let hueOffset = 0;
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  for (const tri of tiles) {
+    const { type, A, B, C } = tri;
+    
+    ctx.beginPath();
+    ctx.moveTo(A.re, A.im);
+    ctx.lineTo(B.re, B.im);
+    ctx.lineTo(C.re, C.im);
+    ctx.closePath();
+
+    let fill;
+    if (colorMode === 'gold') {
+      if (type === 'A') {
+        fill = 'rgba(197, 169, 78, 0.18)';
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = 'rgba(197, 169, 78, 0.55)';
+      } else {
+        ctx.fillStyle = 'rgba(160, 130, 50, 0.08)';
+        ctx.strokeStyle = 'rgba(197, 169, 78, 0.35)';
+      }
+    } else if (colorMode === 'spectrum') {
+      // Color by centroid angle from center
+      const centX = (A.re + B.re + C.re) / 3;
+      const centY = (A.im + B.im + C.im) / 3;
+      const angle = Math.atan2(centY - canvas.height/2, centX - canvas.width/2);
+      const dist = Math.sqrt((centX-canvas.width/2)**2 + (centY-canvas.height/2)**2);
+      const hue = ((angle / Math.PI * 180) + 360 + hueOffset) % 360;
+      const sat = type === 'A' ? 70 : 50;
+      const lit = 25 + Math.min(dist / 5, 15);
+      ctx.fillStyle = `hsla(${hue}, ${sat}%, ${lit}%, 0.65)`;
+      ctx.strokeStyle = `hsla(${hue}, ${sat}%, ${lit+20}%, 0.4)`;
+    } else {
+      // mono
+      ctx.fillStyle = type === 'A' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    }
+
+    ctx.fill();
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+  }
+}
+
+// Animate hue for spectrum mode
+let rafId;
+function animate() {
+  if (colorMode === 'spectrum') {
+    hueOffset = (hueOffset + 0.3) % 360;
+    draw();
+  }
+  rafId = requestAnimationFrame(animate);
+}
+animate();
+
+function setColorMode(mode) {
+  colorMode = mode;
+  document.querySelectorAll('.btn-row button').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + mode).classList.add('active');
+  draw();
+}
+
+function changeDepth(delta) {
+  subdivDepth = Math.max(1, Math.min(8, subdivDepth + delta));
+  generate();
+}
+
+function resetView() {
+  subdivDepth = 6;
+  colorMode = 'gold';
+  setColorMode('gold');
+  generate();
+}
+
+window.addEventListener('resize', resize);
+
+// Click to animate a brief rotation burst
+canvas.addEventListener('click', (e) => {
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  // Brief pulse animation
+  let pulse = 0;
+  const pulseid = setInterval(() => {
+    pulse++;
+    hueOffset = (hueOffset + 5) % 360;
+    draw();
+    if (pulse > 30) clearInterval(pulseid);
+  }, 16);
+});
+
+resize();
+</script>
+</body>
+</html>

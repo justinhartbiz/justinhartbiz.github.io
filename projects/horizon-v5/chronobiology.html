@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chronobiology — Time Inside Every Cell</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --dawn: #ff9060;
+    --day: #ffe080;
+    --dusk: #8060c0;
+    --night: #1a1030;
+    --bg: #0f0820;
+    --text: #e8d8f8;
+    --muted: #7060a0;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Raleway', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    position: relative;
+    padding: 2.5rem 3rem 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .nav-back {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.8rem;
+  }
+  .nav-back:hover { color: var(--dawn); }
+
+  .eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dawn);
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 600;
+    color: #f8f0ff;
+    margin-bottom: 0.4rem;
+  }
+
+  .sub {
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 300;
+    max-width: 480px;
+    line-height: 1.65;
+  }
+
+  .time-display {
+    text-align: right;
+  }
+
+  .current-time {
+    font-family: 'Cinzel', serif;
+    font-size: 2.8rem;
+    color: #f8f0ff;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
+  .time-phase {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+    transition: color 0.5s;
+  }
+
+  /* Main layout */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    min-height: calc(100vh - 140px);
+  }
+
+  /* Left: the 24h wheel */
+  .wheel-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+  }
+
+  #circadian-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+  }
+
+  .hover-info {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 8, 32, 0.9);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.8rem;
+    color: var(--text);
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    white-space: nowrap;
+    backdrop-filter: blur(8px);
+    text-align: center;
+    max-width: 380px;
+    white-space: normal;
+  }
+  .hover-info.visible { opacity: 1; }
+
+  /* Right: info panel */
+  .panel {
+    padding: 2rem 1.8rem;
+    border-left: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+    overflow-y: auto;
+  }
+
+  .panel-section {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 1.8rem;
+  }
+  .panel-section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dawn);
+    margin-bottom: 0.8rem;
+  }
+
+  .body-clock-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .clock-event {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+  .clock-event:hover, .clock-event.active {
+    background: rgba(255, 144, 96, 0.08);
+    border-color: rgba(255, 144, 96, 0.2);
+  }
+
+  .event-time {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    color: var(--dawn);
+    min-width: 40px;
+    letter-spacing: 0.05em;
+  }
+
+  .event-text {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  .gene-display {
+    background: rgba(128, 96, 192, 0.1);
+    border: 1px solid rgba(128, 96, 192, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .gene-display strong {
+    color: var(--text);
+    font-style: normal;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+  }
+
+  .insight-box {
+    background: rgba(255, 144, 96, 0.07);
+    border: 1px solid rgba(255, 144, 96, 0.18);
+    border-top: 3px solid var(--dawn);
+    border-radius: 0 0 10px 10px;
+    padding: 1.1rem;
+  }
+  .ins-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dawn);
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .insight-box p {
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: #a898c8;
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  .jetlag-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .tz-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .tz-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    position: relative;
+    overflow: visible;
+  }
+  .tz-marker {
+    position: absolute;
+    top: -4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    transition: left 1s;
+    border: 2px solid var(--bg);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <a href="index.html" class="nav-back">← Horizon v5</a>
+    <div class="eyebrow">Circadian Biology</div>
+    <h1>Chronobiology</h1>
+    <p class="sub">Your body runs on a 24-hour clock encoded in nearly every cell — not just the brain. Light is the master synchronizer. Jetlag is two clocks out of phase.</p>
+  </div>
+  <div class="time-display">
+    <div class="current-time" id="current-time">00:00</div>
+    <div class="time-phase" id="time-phase">Loading...</div>
+    <div style="font-size:0.65rem; color:var(--muted); margin-top:0.4rem;">Your local time</div>
+  </div>
+</header>
+
+<div class="main">
+  <div class="wheel-area">
+    <canvas id="circadian-canvas" width="540" height="540"></canvas>
+    <div class="hover-info" id="hover-info">Hover over the wheel</div>
+  </div>
+
+  <aside class="panel">
+    <div class="panel-section">
+      <div class="section-label">Body Clock Events</div>
+      <div class="body-clock-list" id="event-list"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-label">The Molecular Loop</div>
+      <div class="gene-display">
+        The core clock is a <strong>transcription-translation feedback loop</strong>:
+        CLOCK and BMAL1 proteins activate PER and CRY genes. PER/CRY proteins accumulate and then inhibit CLOCK/BMAL1. The cycle takes ~24 hours and runs in virtually every nucleated cell in your body — independently of the brain.
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-label">Timezone Misalignment</div>
+      <div class="jetlag-demo" id="jetlag-demo">
+        <p style="font-size:0.78rem; color:var(--muted); margin-bottom:0.4rem; font-weight:300;">The body clock lags behind external time by up to 1 hour per day of travel:</p>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <span class="ins-label">The Reframe</span>
+      <p>You are not one clock — you are a coordinated orchestra of ~37 trillion clocks. Your liver has its own circadian rhythm, independent of your brain. The master clock in your suprachiasmatic nucleus only synchronizes them. Mess with the conductor and the orchestra slowly drifts.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+const canvas = document.getElementById('circadian-canvas');
+const ctx = canvas.getContext('2d');
+const hoverInfo = document.getElementById('hover-info');
+
+// Circadian events with hours (0-24), label, description, phase color
+const EVENTS = [
+  { h: 2,   label: 'Lowest body temp', desc: 'Core temperature hits its daily minimum around 2–4 AM — part of why early AM wakeups feel brutal.', color: '#4060c0' },
+  { h: 4.5, label: 'Cortisol surge begins', desc: 'Cortisol (the stress/wake hormone) starts rising 1–2 hours before waking, preparing you to face the day.', color: '#8060c0' },
+  { h: 6,   label: 'Blood pressure rises', desc: 'Cardiovascular tone increases sharply. Highest risk period for heart attacks and strokes occurs in this window.', color: '#c06080' },
+  { h: 7,   label: 'Melatonin drops', desc: 'The "darkness hormone" stops being secreted as light hits your retina. Light is the master clock signal.', color: '#e08040' },
+  { h: 9,   label: 'Peak testosterone', desc: 'Testosterone peaks in the morning (in men). Reaction time and alertness are near their best.', color: '#e0a040' },
+  { h: 10,  label: 'High alertness', desc: 'Cognitive performance is at a daily peak. Best time for analytical thinking and problem solving.', color: '#f0c030' },
+  { h: 12,  label: 'Coordination peak', desc: 'Cardiovascular efficiency and fine motor control reach their daily maximum.', color: '#f0e030' },
+  { h: 14.5,label: 'Post-lunch dip', desc: 'A circadian trough in alertness — this dip is biological, not caused by the meal. Napping is evolutionarily normal here.', color: '#d0b020' },
+  { h: 17,  label: 'Fastest reaction time', desc: 'Muscle strength, lung function, and cardiovascular performance peak around 5 PM. Best time for athletic performance.', color: '#e06020' },
+  { h: 19,  label: 'Highest blood pressure', desc: 'Blood pressure reaches its daily peak in late afternoon/early evening.', color: '#c04020' },
+  { h: 21,  label: 'Melatonin secretion', desc: 'Darkness triggers the pineal gland to release melatonin. Blue light at this time suppresses it and delays sleep.', color: '#6040a0' },
+  { h: 22.5,label: 'Bowel movement suppressed', desc: 'Circadian signals actively inhibit gut motility at night — the body consolidates the "no go" phase for digestion.', color: '#3050a0' },
+  { h: 0,   label: 'Deepest sleep', desc: 'Slow-wave (deep) sleep stages are concentrated in the first half of the night. Memory consolidation happens here.', color: '#2040c0' },
+];
+
+const PHASE_COLORS = [
+  { start: 5, end: 8, color: '#ff9060', label: 'Dawn' },
+  { start: 8, end: 17, color: '#ffe080', label: 'Day' },
+  { start: 17, end: 20, color: '#c080e0', label: 'Dusk' },
+  { start: 20, end: 5, color: '#1a1030', label: 'Night' },
+];
+
+let currentHover = null;
+let now = new Date();
+
+function updateClock() {
+  now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const timeStr = h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0');
+  document.getElementById('current-time').textContent = timeStr;
+  
+  const phases = [
+    { start: 5, end: 8, label: 'Dawn Phase', color: '#ff9060' },
+    { start: 8, end: 12, label: 'Morning Peak', color: '#ffe080' },
+    { start: 12, end: 14, label: 'Solar Noon', color: '#f0d040' },
+    { start: 14, end: 17, label: 'Afternoon', color: '#e0a020' },
+    { start: 17, end: 20, label: 'Dusk Phase', color: '#c080e0' },
+    { start: 20, end: 24, label: 'Evening', color: '#8060c0' },
+    { start: 0, end: 5, label: 'Deep Night', color: '#4050a0' },
+  ];
+  
+  let curPhase = phases[phases.length-1];
+  for (const p of phases) {
+    if (h >= p.start && h < p.end) { curPhase = p; break; }
+    if (p.start === 0 && h < p.end) { curPhase = p; break; }
+  }
+  const phaseEl = document.getElementById('time-phase');
+  phaseEl.textContent = curPhase.label;
+  phaseEl.style.color = curPhase.color;
+}
+
+function draw() {
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  const outerR = Math.min(W,H)/2 - 20;
+  const innerR = outerR * 0.38;
+  const labelR = outerR * 0.82;
+  const dotR = outerR * 0.72;
+  
+  ctx.clearRect(0, 0, W, H);
+  
+  // Phase arcs (background)
+  const phases = [
+    { start: 20, end: 29, color: 'rgba(100, 80, 180, 0.15)', label: 'Night' },
+    { start: 5, end: 8, color: 'rgba(255, 144, 96, 0.15)', label: 'Dawn' },
+    { start: 8, end: 17, color: 'rgba(255, 224, 80, 0.08)', label: 'Day' },
+    { start: 17, end: 20, color: 'rgba(192, 128, 224, 0.15)', label: 'Dusk' },
+  ];
+  
+  // Draw 24h background segments
+  for (let h = 0; h < 24; h++) {
+    const startAngle = (h/24) * Math.PI*2 - Math.PI/2;
+    const endAngle = ((h+1)/24) * Math.PI*2 - Math.PI/2;
+    
+    let segColor = 'rgba(30, 20, 60, 0.6)';
+    if (h >= 5 && h < 8) segColor = 'rgba(255, 144, 96, 0.12)';
+    else if (h >= 8 && h < 17) segColor = 'rgba(255, 224, 80, 0.07)';
+    else if (h >= 17 && h < 20) segColor = 'rgba(192, 128, 224, 0.12)';
+    else segColor = 'rgba(20, 16, 50, 0.7)';
+    
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, outerR, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = segColor;
+    ctx.fill();
+    
+    // Hour tick
+    ctx.beginPath();
+    const tickAngle = startAngle;
+    ctx.moveTo(cx + (outerR - 15) * Math.cos(tickAngle), cy + (outerR - 15) * Math.sin(tickAngle));
+    ctx.lineTo(cx + outerR * Math.cos(tickAngle), cy + outerR * Math.sin(tickAngle));
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    
+    // Hour label
+    if (h % 3 === 0) {
+      const angle = startAngle;
+      const r2 = outerR + 14;
+      ctx.fillStyle = 'rgba(200, 180, 255, 0.5)';
+      ctx.font = '10px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(h.toString().padStart(2,'0'), cx + r2 * Math.cos(angle), cy + r2 * Math.sin(angle));
+    }
+  }
+  
+  // Ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, Math.PI*2);
+  ctx.fillStyle = '#0f0820';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  
+  // Center label
+  ctx.fillStyle = '#e8d8f8';
+  ctx.font = 'bold 13px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('BODY CLOCK', cx, cy - 8);
+  ctx.fillStyle = 'rgba(200, 180, 255, 0.5)';
+  ctx.font = '10px Raleway, sans-serif';
+  ctx.fillText('24-hour cycle', cx, cy + 10);
+  
+  // Current time hand
+  const nowH = now.getHours() + now.getMinutes()/60;
+  const handAngle = (nowH/24) * Math.PI*2 - Math.PI/2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + dotR * Math.cos(handAngle), cy + dotR * Math.sin(handAngle));
+  ctx.strokeStyle = '#ff9060';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx + dotR * Math.cos(handAngle), cy + dotR * Math.sin(handAngle), 5, 0, Math.PI*2);
+  ctx.fillStyle = '#ff9060';
+  ctx.fill();
+  
+  // Events
+  EVENTS.forEach((ev, i) => {
+    const angle = (ev.h/24) * Math.PI*2 - Math.PI/2;
+    const x = cx + dotR * Math.cos(angle);
+    const y = cy + dotR * Math.sin(angle);
+    
+    const isHighlighted = currentHover === i;
+    const r = isHighlighted ? 9 : 6;
+    
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = isHighlighted ? '#fff' : ev.color;
+    ctx.globalAlpha = isHighlighted ? 1 : 0.8;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    
+    if (isHighlighted) {
+      ctx.beginPath();
+      ctx.arc(x, y, r + 5, 0, Math.PI*2);
+      ctx.strokeStyle = ev.color;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.5;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  });
+}
+
+// Mouse hover
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+  const cx = canvas.width/2, cy = canvas.height/2;
+  const outerR = Math.min(canvas.width, canvas.height)/2 - 20;
+  const dotR = outerR * 0.72;
+  
+  let found = -1, minDist = 18;
+  EVENTS.forEach((ev, i) => {
+    const angle = (ev.h/24) * Math.PI*2 - Math.PI/2;
+    const x = cx + dotR * Math.cos(angle);
+    const y = cy + dotR * Math.sin(angle);
+    const d = Math.sqrt((mx-x)**2 + (my-y)**2);
+    if (d < minDist) { minDist = d; found = i; }
+  });
+  
+  if (found !== currentHover) {
+    currentHover = found;
+    if (found >= 0) {
+      const ev = EVENTS[found];
+      hoverInfo.innerHTML = `<strong>${ev.label}</strong> (${Math.floor(ev.h).toString().padStart(2,'0')}:${Math.round((ev.h%1)*60).toString().padStart(2,'0')})<br>${ev.desc}`;
+      hoverInfo.classList.add('visible');
+      highlightEventList(found);
+    } else {
+      hoverInfo.classList.remove('visible');
+      highlightEventList(-1);
+    }
+    draw();
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  currentHover = null;
+  hoverInfo.classList.remove('visible');
+  highlightEventList(-1);
+  draw();
+});
+
+// Build event list
+function buildEventList() {
+  const list = document.getElementById('event-list');
+  EVENTS.forEach((ev, i) => {
+    const div = document.createElement('div');
+    div.className = 'clock-event';
+    div.id = 'ev-' + i;
+    div.innerHTML = `
+      <div class="event-time">${Math.floor(ev.h).toString().padStart(2,'0')}h</div>
+      <div class="event-text">${ev.label}</div>
+    `;
+    div.onclick = () => {
+      currentHover = currentHover === i ? null : i;
+      if (currentHover !== null) {
+        hoverInfo.innerHTML = `<strong>${ev.label}</strong><br>${ev.desc}`;
+        hoverInfo.classList.add('visible');
+        highlightEventList(i);
+      } else {
+        hoverInfo.classList.remove('visible');
+        highlightEventList(-1);
+      }
+      draw();
+    };
+    list.appendChild(div);
+  });
+}
+
+function highlightEventList(idx) {
+  document.querySelectorAll('.clock-event').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+}
+
+// Jetlag demo
+function buildJetlagDemo() {
+  const container = document.getElementById('jetlag-demo');
+  const zones = [
+    { name: 'Los Angeles', offset: -8, color: '#ff9060' },
+    { name: 'New York', offset: -5, color: '#ffd060' },
+    { name: 'London', offset: 0, color: '#80c0ff' },
+    { name: 'Tokyo', offset: 9, color: '#c080ff' },
+  ];
+  
+  const nowUTC = new Date();
+  nowUTC.setUTCHours(nowUTC.getUTCHours()); // UTC time
+  
+  zones.forEach(z => {
+    const div = document.createElement('div');
+    div.className = 'tz-row';
+    const localH = ((nowUTC.getUTCHours() + z.offset + 24) % 24);
+    const pct = localH / 24 * 100;
+    div.innerHTML = `
+      <span style="min-width: 80px; font-size:0.72rem;">${z.name}</span>
+      <div class="tz-bar">
+        <div class="tz-marker" style="left:${pct}%; background:${z.color};"></div>
+      </div>
+      <span style="min-width:35px; text-align:right; font-size:0.72rem; color:${z.color};">${localH.toString().padStart(2,'0')}h</span>
+    `;
+    container.appendChild(div);
+  });
+}
+
+updateClock();
+buildEventList();
+buildJetlagDemo();
+draw();
+setInterval(() => { updateClock(); draw(); }, 30000);
+</script>
+</body>
+</html>

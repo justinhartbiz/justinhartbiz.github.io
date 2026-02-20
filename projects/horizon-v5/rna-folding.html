@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RNA Folding — The Molecule That Thinks</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: #0a0f1a;
+    color: #c8d8f0;
+    font-family: 'Fira Code', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    min-height: 100vh;
+  }
+
+  /* Left: canvas + sequence editor */
+  .canvas-side {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  #rna-canvas {
+    flex: 1;
+    display: block;
+    min-height: 500px;
+  }
+
+  .seq-bar {
+    background: #0d1220;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding: 1rem 1.5rem;
+  }
+
+  .seq-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #3a5a8a;
+    margin-bottom: 0.5rem;
+  }
+
+  .seq-display {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    line-height: 1.8;
+    color: #8ab8f0;
+    word-break: break-all;
+    min-height: 2.4rem;
+  }
+
+  .seq-display span { cursor: pointer; padding: 1px 2px; border-radius: 2px; transition: all 0.1s; }
+  .seq-display span.A { color: #ff6b6b; }
+  .seq-display span.U { color: #ffd93d; }
+  .seq-display span.G { color: #6bcb77; }
+  .seq-display span.C { color: #4d96ff; }
+  .seq-display span.paired { text-decoration: underline; opacity: 0.9; }
+  .seq-display span:hover { background: rgba(255,255,255,0.1); }
+
+  /* Right panel */
+  .info-panel {
+    background: #050810;
+    border-left: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 2rem 1.5rem;
+    gap: 1.8rem;
+  }
+
+  .nav-back {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #3a5a8a;
+    text-decoration: none;
+  }
+  .nav-back:hover { color: #4d96ff; }
+
+  .eyebrow {
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #4d96ff;
+    margin-bottom: 0.4rem;
+  }
+
+  h1 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.9rem;
+    color: #e8f0ff;
+    line-height: 1.2;
+  }
+
+  .section {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 1.8rem;
+  }
+  .section:last-child { border-bottom: none; }
+
+  .section-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #3a5a8a;
+    margin-bottom: 0.8rem;
+  }
+
+  .desc {
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: #7888a8;
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+  }
+
+  .preset-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .preset-btn {
+    background: rgba(77, 150, 255, 0.07);
+    border: 1px solid rgba(77, 150, 255, 0.18);
+    border-radius: 6px;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    color: #8ab8f0;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.78rem;
+  }
+  .preset-btn:hover, .preset-btn.active {
+    background: rgba(77, 150, 255, 0.16);
+    border-color: rgba(77, 150, 255, 0.4);
+    color: #c8d8f0;
+  }
+  .preset-btn .name {
+    font-size: 0.7rem;
+    color: #4d96ff;
+    display: block;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .base-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .base-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #7888a8;
+  }
+
+  .base-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .pairing-rules {
+    font-size: 0.75rem;
+    line-height: 1.8;
+    color: #5a7090;
+  }
+  .pairing-rules strong { color: #8ab8f0; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+
+  .stat-item {
+    background: rgba(77, 150, 255, 0.06);
+    border: 1px solid rgba(77, 150, 255, 0.1);
+    border-radius: 6px;
+    padding: 0.8rem;
+  }
+  .stat-val {
+    font-size: 1.6rem;
+    color: #4d96ff;
+    line-height: 1;
+    font-weight: 500;
+  }
+  .stat-lbl {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #3a5a8a;
+    margin-top: 0.2rem;
+    display: block;
+  }
+
+  .insight-box {
+    background: rgba(77, 150, 255, 0.06);
+    border: 1px solid rgba(77, 150, 255, 0.15);
+    border-left: 3px solid #4d96ff;
+    border-radius: 0 8px 8px 0;
+    padding: 1.1rem;
+  }
+  .ins-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #4d96ff;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .insight-box p {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: #7888a8;
+    font-style: italic;
+  }
+
+  .energy-bar-wrap {
+    margin-top: 0.8rem;
+  }
+  .energy-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #3a5a8a;
+    margin-bottom: 0.3rem;
+  }
+  .energy-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .energy-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4d96ff, #6bcb77);
+    border-radius: 2px;
+    transition: width 0.4s;
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <div class="canvas-side">
+    <canvas id="rna-canvas"></canvas>
+    <div class="seq-bar">
+      <div class="seq-label">Sequence (5' → 3') — click bases to highlight pairs</div>
+      <div class="seq-display" id="seq-display"></div>
+    </div>
+  </div>
+
+  <aside class="info-panel">
+    <a href="index.html" class="nav-back">← Horizon v5</a>
+
+    <div class="section">
+      <div class="eyebrow">Molecular Biology</div>
+      <h1>RNA Folding</h1>
+      <p class="desc">A single-stranded molecule collapses in on itself, base-pairing with complementary positions, finding minimum free energy in milliseconds. The sequence is the instructions; the shape is the machine.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Example Sequences</div>
+      <div class="preset-list">
+        <button class="preset-btn active" onclick="loadPreset('hairpin')" id="pr-hairpin">
+          <span class="name">Hairpin Loop</span>
+          GCGCAAAGCGC — simplest structure, stem + loop
+        </button>
+        <button class="preset-btn" onclick="loadPreset('tRNA')" id="pr-tRNA">
+          <span class="name">tRNA-like (simplified)</span>
+          Cloverleaf — anticodon arm + acceptor stem
+        </button>
+        <button class="preset-btn" onclick="loadPreset('pseudoknot')" id="pr-pseudoknot">
+          <span class="name">Pseudoknot</span>
+          Bases skip over loops to pair — can't be drawn flat
+        </button>
+        <button class="preset-btn" onclick="loadPreset('bulge')" id="pr-bulge">
+          <span class="name">Bulge + Interior Loop</span>
+          Imperfect stem creates a structural bulge
+        </button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Base Legend</div>
+      <div class="base-legend">
+        <div class="base-item"><div class="base-dot" style="background:#ff6b6b;"></div>A — Adenine</div>
+        <div class="base-item"><div class="base-dot" style="background:#ffd93d;"></div>U — Uracil</div>
+        <div class="base-item"><div class="base-dot" style="background:#6bcb77;"></div>G — Guanine</div>
+        <div class="base-item"><div class="base-dot" style="background:#4d96ff;"></div>C — Cytosine</div>
+      </div>
+      <div class="pairing-rules" style="margin-top:0.8rem;">
+        Watson-Crick pairs: <strong>A–U</strong> &nbsp;·&nbsp; <strong>G–C</strong><br>
+        Wobble pair: <strong>G–U</strong> (weaker, but valid)<br>
+        Only anti-parallel strands can pair
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Fold Statistics</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-val" id="stat-len">0</div>
+          <span class="stat-lbl">Bases</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-pairs">0</div>
+          <span class="stat-lbl">Pairs</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-loops">0</div>
+          <span class="stat-lbl">Loops</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-energy">0</div>
+          <span class="stat-lbl">–ΔG (kcal)</span>
+        </div>
+      </div>
+      <div class="energy-bar-wrap">
+        <div class="energy-label"><span>Folding energy</span><span id="energy-pct">0%</span></div>
+        <div class="energy-bar"><div class="energy-fill" id="energy-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <span class="ins-label">The Reframe</span>
+      <p>RNA does not need a separate machine to fold — it IS the machine. The sequence encodes both the information AND the shape that carries out a function. A string of letters becomes a catalyst with no protein required. Life found computation before brains did.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+const canvas = document.getElementById('rna-canvas');
+const ctx = canvas.getContext('2d');
+
+const BASE_COLORS = { A: '#ff6b6b', U: '#ffd93d', G: '#6bcb77', C: '#4d96ff' };
+const PAIR_VALID = { 'A-U':true,'U-A':true,'G-C':true,'C-G':true,'G-U':true,'U-G':true };
+
+const PRESETS = {
+  hairpin: {
+    seq: 'GCGCAAAGCGC',
+    pairs: [[0,10],[1,9],[2,8],[3,7]] // explicitly defined for display
+  },
+  tRNA: {
+    seq: 'GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA',
+    pairs: null // computed
+  },
+  pseudoknot: {
+    seq: 'GGAAACCCUUUGGAAACCC',
+    pairs: [[0,8],[1,7],[2,6],[3,5],[9,17],[10,16],[11,15],[12,14]]
+  },
+  bulge: {
+    seq: 'GGGCAACUGCCC',
+    pairs: [[0,11],[1,10],[2,9],[4,8],[5,7]]
+  }
+};
+
+let currentSeq = '';
+let currentPairs = [];
+let nodePositions = [];
+let highlightedPair = null;
+
+function canPair(a, b) {
+  return PAIR_VALID[a + '-' + b] || false;
+}
+
+// Simple greedy RNA folding (Nussinov-like approximation)
+function foldRNA(seq) {
+  const n = seq.length;
+  const dp = Array.from({length: n}, () => new Array(n).fill(0));
+  const bt = Array.from({length: n}, () => new Array(n).fill(-1));
+  
+  for (let l = 4; l < n; l++) {
+    for (let i = 0; i < n - l; i++) {
+      const j = i + l;
+      dp[i][j] = dp[i][j-1];
+      bt[i][j] = -2; // j unpaired
+      
+      for (let k = i; k < j - 3; k++) {
+        if (canPair(seq[k], seq[j])) {
+          const val = (k > i ? dp[i][k-1] : 0) + 1 + dp[k+1][j-1];
+          if (val > dp[i][j]) {
+            dp[i][j] = val;
+            bt[i][j] = k;
+          }
+        }
+      }
+    }
+  }
+  
+  const pairs = [];
+  function traceback(i, j) {
+    if (i >= j) return;
+    if (bt[i][j] === -1 || bt[i][j] === -2) {
+      traceback(i, j-1);
+    } else {
+      const k = bt[i][j];
+      pairs.push([k, j]);
+      if (k > i) traceback(i, k-1);
+      traceback(k+1, j-1);
+    }
+  }
+  traceback(0, n-1);
+  return pairs;
+}
+
+// Layout algorithm: circular with paired bases pulled together
+function computeLayout(seq, pairs) {
+  const n = seq.length;
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  const R = Math.min(W, H) * 0.36;
+  
+  const pos = [];
+  for (let i = 0; i < n; i++) {
+    const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+    pos.push({ x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle) });
+  }
+  
+  // Relax positions based on pairs
+  const pairMap = {};
+  pairs.forEach(([a, b]) => { pairMap[a] = b; pairMap[b] = a; });
+  
+  for (let iter = 0; iter < 200; iter++) {
+    const forces = pos.map(() => ({ fx: 0, fy: 0 }));
+    
+    // Chain bonds (adjacent bases stay close)
+    for (let i = 0; i < n-1; i++) {
+      const dx = pos[i+1].x - pos[i].x, dy = pos[i+1].y - pos[i].y;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      const rest = 20;
+      if (d > 0.001) {
+        const f = (d - rest) * 0.08;
+        forces[i].fx += f * dx/d; forces[i].fy += f * dy/d;
+        forces[i+1].fx -= f * dx/d; forces[i+1].fy -= f * dy/d;
+      }
+    }
+    
+    // Pair bonds (pull paired bases together)
+    pairs.forEach(([a, b]) => {
+      const dx = pos[b].x - pos[a].x, dy = pos[b].y - pos[a].y;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      const rest = 30;
+      if (d > 0.001) {
+        const f = (d - rest) * 0.15;
+        forces[a].fx += f * dx/d; forces[a].fy += f * dy/d;
+        forces[b].fx -= f * dx/d; forces[b].fy -= f * dy/d;
+      }
+    });
+    
+    // Repulsion
+    for (let i = 0; i < n; i++) {
+      for (let j = i+2; j < n; j++) {
+        const dx = pos[j].x - pos[i].x, dy = pos[j].y - pos[i].y;
+        const d = Math.sqrt(dx*dx+dy*dy);
+        if (d < 35 && d > 0.001) {
+          const f = (35 - d) * 0.04;
+          forces[i].fx -= f * dx/d; forces[i].fy -= f * dy/d;
+          forces[j].fx += f * dx/d; forces[j].fy += f * dy/d;
+        }
+      }
+    }
+    
+    // Attract to center
+    pos.forEach((p, i) => {
+      forces[i].fx += (cx - p.x) * 0.002;
+      forces[i].fy += (cy - p.y) * 0.002;
+    });
+    
+    pos.forEach((p, i) => {
+      p.x += forces[i].fx;
+      p.y += forces[i].fy;
+    });
+  }
+  
+  return pos;
+}
+
+let animProgress = 0;
+let animTarget = 0;
+let rafId;
+
+function loadPreset(name) {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pr-' + name).classList.add('active');
+  
+  const preset = PRESETS[name];
+  currentSeq = preset.seq;
+  currentPairs = preset.pairs || foldRNA(preset.seq);
+  
+  resize();
+  nodePositions = computeLayout(currentSeq, currentPairs);
+  
+  // Stats
+  document.getElementById('stat-len').textContent = currentSeq.length;
+  document.getElementById('stat-pairs').textContent = currentPairs.length;
+  // Count loops (unpaired segments)
+  const paired = new Set(currentPairs.flat());
+  let loops = 0, inUnpaired = false;
+  for (let i = 0; i < currentSeq.length; i++) {
+    if (!paired.has(i)) {
+      if (!inUnpaired) { loops++; inUnpaired = true; }
+    } else inUnpaired = false;
+  }
+  document.getElementById('stat-loops').textContent = loops;
+  const energy = (currentPairs.length * 2.1).toFixed(1);
+  document.getElementById('stat-energy').textContent = energy;
+  const pct = Math.min(100, Math.round(currentPairs.length / (currentSeq.length / 2) * 100));
+  document.getElementById('energy-fill').style.width = pct + '%';
+  document.getElementById('energy-pct').textContent = pct + '%';
+  
+  // Render sequence display
+  renderSeqDisplay();
+  
+  highlightedPair = null;
+  animProgress = 0; animTarget = 1;
+  if (rafId) cancelAnimationFrame(rafId);
+  animate();
+}
+
+function renderSeqDisplay() {
+  const el = document.getElementById('seq-display');
+  const pairMap = {};
+  currentPairs.forEach(([a, b], idx) => { pairMap[a] = idx; pairMap[b] = idx; });
+  
+  el.innerHTML = currentSeq.split('').map((base, i) => {
+    const cls = [base, pairMap[i] !== undefined ? 'paired' : ''].filter(Boolean).join(' ');
+    return `<span class="${cls}" data-idx="${i}" onclick="highlightPair(${i})">${base}</span>`;
+  }).join('');
+}
+
+function highlightPair(idx) {
+  const pairMap = {};
+  currentPairs.forEach(([a, b]) => { pairMap[a] = b; pairMap[b] = a; });
+  if (pairMap[idx] !== undefined) {
+    highlightedPair = [idx, pairMap[idx]];
+  } else {
+    highlightedPair = null;
+  }
+  draw(animProgress);
+}
+
+function resize() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+
+function draw(progress = 1) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!nodePositions.length) return;
+  
+  const n = currentSeq.length;
+  const pairMap = {};
+  currentPairs.forEach(([a, b]) => { pairMap[a] = b; pairMap[b] = a; });
+  
+  // Draw backbone
+  ctx.strokeStyle = 'rgba(100, 130, 180, 0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const p = nodePositions[i];
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  }
+  ctx.stroke();
+
+  // Draw base pairs (hydrogen bonds)
+  ctx.setLineDash([3, 4]);
+  currentPairs.forEach(([a, b], idx) => {
+    const pa = nodePositions[a], pb = nodePositions[b];
+    const isHighlighted = highlightedPair && (highlightedPair.includes(a) || highlightedPair.includes(b));
+    const alpha = progress * (isHighlighted ? 1 : 0.45);
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    ctx.lineTo(pb.x, pb.y);
+    ctx.strokeStyle = isHighlighted ? '#ffd93d' : `rgba(100, 200, 150, ${alpha})`;
+    ctx.lineWidth = isHighlighted ? 2.5 : 1.2;
+    ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // Draw bases
+  for (let i = 0; i < n; i++) {
+    if (i / n > progress + 0.02) continue;
+    const p = nodePositions[i];
+    const base = currentSeq[i];
+    const col = BASE_COLORS[base] || '#888';
+    const isPaired = pairMap[i] !== undefined;
+    const isHL = highlightedPair && highlightedPair.includes(i);
+    
+    const r = isHL ? 9 : isPaired ? 7 : 5;
+    
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI*2);
+    ctx.fillStyle = col;
+    ctx.globalAlpha = 0.7 + (i/n < progress ? 0.3 : 0);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    
+    if (isHL || n <= 30) {
+      ctx.fillStyle = '#0a0f1a';
+      ctx.font = `${isHL ? 'bold ' : ''}${n <= 20 ? 10 : 8}px Fira Code, monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(base, p.x, p.y);
+    }
+    
+    if (i === 0 || i === n-1) {
+      ctx.fillStyle = 'rgba(200, 216, 240, 0.6)';
+      ctx.font = '10px Fira Code, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(i === 0 ? "5'" : "3'", p.x, p.y + 18);
+    }
+  }
+}
+
+function animate() {
+  animProgress = Math.min(animProgress + 0.025, 1);
+  draw(animProgress);
+  if (animProgress < 1) rafId = requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', () => {
+  resize();
+  nodePositions = computeLayout(currentSeq, currentPairs);
+  draw(1);
+});
+
+loadPreset('hairpin');
+</script>
+</body>
+</html>

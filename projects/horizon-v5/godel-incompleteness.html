@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gödel's Incompleteness — The Unprovable Truth</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Source+Code+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: #fffef8;
+    color: #1e1c14;
+    font-family: 'EB Garamond', serif;
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 2rem 4rem;
+  }
+
+  .nav-back {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: #8a8070;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 2rem;
+  }
+  .nav-back:hover { color: #c0392b; }
+
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+    margin-bottom: 3rem;
+  }
+
+  .eyebrow {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #c0392b;
+    margin-bottom: 0.6rem;
+  }
+
+  h1 {
+    font-size: 3rem;
+    font-weight: 600;
+    line-height: 1.1;
+    color: #1e1c14;
+    margin-bottom: 0.8rem;
+  }
+
+  .intro-text {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: #4a4638;
+    font-style: italic;
+  }
+
+  .year-block {
+    background: #1e1c14;
+    color: #fffef8;
+    padding: 2rem;
+    border-radius: 4px;
+  }
+
+  .year {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3.5rem;
+    font-weight: 600;
+    color: #c0392b;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .year-sub {
+    font-size: 0.82rem;
+    color: #8a8070;
+    line-height: 1.5;
+  }
+
+  /* The core proof walkthrough */
+  .steps-section {
+    margin-bottom: 3rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e1c14;
+    margin-bottom: 0.3rem;
+    border-bottom: 2px solid #1e1c14;
+    padding-bottom: 0.4rem;
+  }
+
+  .section-sub {
+    font-size: 0.9rem;
+    color: #8a8070;
+    font-style: italic;
+    margin-bottom: 2rem;
+  }
+
+  .step-card {
+    border: 1px solid #e0d8c0;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .step-card:hover { border-color: #c0392b; }
+  .step-card.active { border-color: #c0392b; }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1rem 1.5rem;
+    background: #faf8f0;
+    user-select: none;
+  }
+
+  .step-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #c0392b;
+    min-width: 2rem;
+    line-height: 1;
+  }
+
+  .step-title-text {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1e1c14;
+    flex: 1;
+  }
+
+  .step-arrow {
+    font-size: 0.9rem;
+    color: #c0c0a8;
+    transition: transform 0.2s;
+  }
+  .step-card.active .step-arrow { transform: rotate(90deg); }
+
+  .step-body {
+    display: none;
+    padding: 1.2rem 1.5rem 1.5rem;
+    border-top: 1px solid #e0d8c0;
+    animation: fadeIn 0.2s;
+  }
+  .step-card.active .step-body { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .step-body p {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: #4a4638;
+    margin-bottom: 1rem;
+  }
+
+  .code-block {
+    background: #1e1c14;
+    color: #c8e0b8;
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    margin: 1rem 0;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  .code-block .keyword { color: #c0392b; }
+  .code-block .string { color: #f0c040; }
+  .code-block .comment { color: #6a6858; font-style: italic; }
+
+  .analog-box {
+    background: #fdf8f0;
+    border: 1px solid #e8d8b0;
+    border-left: 4px solid #c0392b;
+    border-radius: 0 4px 4px 0;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+
+  .analog-box .analog-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #c0392b;
+    margin-bottom: 0.4rem;
+  }
+
+  .analog-box p {
+    font-size: 0.9rem;
+    color: #4a4638;
+    font-style: italic;
+    margin: 0;
+  }
+
+  /* Interactive: build your own Gödel sentence */
+  .interactive-section {
+    border: 2px solid #1e1c14;
+    border-radius: 4px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .interactive-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+
+  .interactive-desc {
+    font-size: 0.9rem;
+    color: #8a8070;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+  }
+
+  .godel-machine {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .godel-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .godel-input label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8a8070;
+  }
+
+  .godel-input select, .godel-input input {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #c8c0a8;
+    border-radius: 3px;
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem;
+    background: #fffef8;
+    color: #1e1c14;
+    width: 100%;
+  }
+
+  .godel-input select:focus, .godel-input input:focus {
+    outline: none;
+    border-color: #c0392b;
+  }
+
+  .godel-output {
+    background: #1e1c14;
+    padding: 1.5rem;
+    border-radius: 3px;
+  }
+
+  .godel-sentence {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.85rem;
+    color: #c8e0b8;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+
+  .godel-verdict {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 0.8rem;
+    font-size: 0.8rem;
+    color: #8a8878;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  .godel-verdict strong {
+    color: #c0392b;
+    font-style: normal;
+  }
+
+  /* Consequences */
+  .consequence-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .cons-card {
+    border: 1px solid #e0d8c0;
+    border-radius: 4px;
+    padding: 1.2rem;
+  }
+
+  .cons-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .cons-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  .cons-text {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #6a6050;
+  }
+
+  .insight-band {
+    background: #1e1c14;
+    color: #fffef8;
+    padding: 2rem;
+    border-radius: 4px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .ins-quote {
+    font-size: 4rem;
+    color: #c0392b;
+    line-height: 1;
+    font-family: 'EB Garamond', serif;
+  }
+
+  .ins-text {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: #c8bfa8;
+    font-style: italic;
+  }
+
+  .ins-label-small {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #c0392b;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a href="index.html" class="nav-back">← Horizon v5</a>
+
+  <div class="intro-grid">
+    <div>
+      <div class="eyebrow">Mathematical Logic</div>
+      <h1>Gödel's Incompleteness Theorems</h1>
+      <p class="intro-text">Any consistent formal system powerful enough to express basic arithmetic contains true statements that cannot be proven within that system. Mathematical truth exceeds mathematical proof.</p>
+    </div>
+    <div class="year-block">
+      <div class="year">1931</div>
+      <p class="year-sub">Kurt Gödel, age 25, publishes "On Formally Undecidable Propositions of Principia Mathematica and Related Systems." Hilbert's dream of a complete, consistent foundation for all mathematics is shattered in 24 pages.</p>
+    </div>
+  </div>
+
+  <!-- Proof walkthrough -->
+  <div class="steps-section">
+    <div class="section-title">The Proof Intuition</div>
+    <p class="section-sub">Click each step to expand — a path through the most profound mathematical discovery of the 20th century</p>
+
+    <div class="step-card active" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">01</div>
+        <div class="step-title-text">Gödel Numbering — Making Statements Self-Referential</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Gödel's first genius move: encode every symbol, statement, and proof in arithmetic as a unique natural number. Every formula becomes a number. Every proof becomes a number.</p>
+        <div class="code-block"><span class="comment">// Assign numbers to symbols</span>
+0 → 1 | + → 5 | × → 7 | ∀ → 9 | ¬ → 11 | ( → 13
+
+<span class="comment">// A formula like "0 = 0" gets a Gödel number via primes:</span>
+<span class="keyword">gödel_number</span>(<span class="string">"0 = 0"</span>) = 2¹ × 3³ × 5¹ = 2 × 27 × 5 = 270
+
+<span class="comment">// Decode uniquely using prime factorization</span></div>
+        <div class="analog-box">
+          <div class="analog-label">The Analogy</div>
+          <p>Imagine every English sentence can be turned into a unique ZIP code. Now you can write sentences <em>about</em> ZIP codes — and those sentences can refer to themselves, since they also have ZIP codes.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">02</div>
+        <div class="step-title-text">The Self-Reference — The Statement That Names Itself</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Now Gödel constructs a statement G within the system that effectively says: <em>"The formula with Gödel number [my own number] is not provable."</em></p>
+        <div class="code-block"><span class="comment">// G in English (very roughly):</span>
+<span class="string">"This statement is not provable in this system."</span>
+
+<span class="comment">// But it's written in pure arithmetic — no English!</span>
+<span class="comment">// It refers to its own Gödel number using the encoding.</span></div>
+        <p>This is not magic — it's a rigorous construction using the machinery of arithmetic. The system can talk about its own statements precisely because of the numbering scheme.</p>
+        <div class="analog-box">
+          <div class="analog-label">The Analogy</div>
+          <p>A liar's paradox: "This sentence is false." Gödel's version is: "This sentence is unprovable." The liar's version breaks consistency. Gödel's breaks completeness.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">03</div>
+        <div class="step-title-text">The Trap — G Can't Be Proven OR Disproven</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Now the logic becomes inescapable:</p>
+        <div class="code-block"><span class="comment">// Case 1: G is provable</span>
+<span class="keyword">IF</span> G is provable in S:
+  G says "I am not provable"
+  ∴ G is FALSE — but we just proved it!
+  ∴ S is <span class="keyword">inconsistent</span> (can prove false things)
+
+<span class="comment">// Case 2: G is disprovable</span>
+<span class="keyword">IF</span> ¬G is provable in S:
+  ¬G says "G IS provable"
+  ∴ G really IS provable
+  ∴ S is <span class="keyword">inconsistent</span>
+
+<span class="comment">// Assuming S is consistent:</span>
+<span class="keyword">THEREFORE</span>: G is neither provable nor disprovable.
+G is a <span class="keyword">TRUE</span> statement that cannot be <span class="keyword">PROVEN</span>.</div>
+        <p>If the system is consistent, G must be true (since proving it would cause a contradiction) — but the system cannot prove it.</p>
+      </div>
+    </div>
+
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-num">04</div>
+        <div class="step-title-text">The Second Theorem — Systems Can't Prove Their Own Consistency</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Gödel went further: if a system is consistent, it cannot prove its own consistency. This shattered Hilbert's program of providing secure foundations for all mathematics.</p>
+        <div class="code-block"><span class="comment">// You cannot bootstrap trust</span>
+<span class="keyword">For any</span> consistent system S strong enough for arithmetic:
+  S ⊬ Con(S)
+
+<span class="comment">// "Con(S)" = the statement "S is consistent"</span>
+<span class="comment">// S can talk about S, but cannot certify itself</span>
+<span class="comment">// Any proof of Con(S) requires a STRONGER system</span></div>
+        <div class="analog-box">
+          <div class="analog-label">The Analogy</div>
+          <p>A judge cannot rule on the legitimacy of their own court. Any legal system that tries to certify its own validity is either circular or appeals to a higher authority.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Gödel sentence builder -->
+  <div class="interactive-section">
+    <div class="interactive-title">Build a Gödel-Like Statement</div>
+    <p class="interactive-desc">Construct a self-referential statement and see why it becomes undecidable</p>
+
+    <div class="godel-machine">
+      <div class="godel-input">
+        <label>Subject</label>
+        <select id="sel-subject" onchange="buildSentence()">
+          <option value="this_statement">This statement</option>
+          <option value="this_theorem">This theorem</option>
+          <option value="this_claim">This claim</option>
+          <option value="the_sentence_you_are_reading">The sentence you are reading</option>
+        </select>
+
+        <label>Predicate</label>
+        <select id="sel-pred" onchange="buildSentence()">
+          <option value="cannot_be_proven">cannot be proven in this system</option>
+          <option value="is_unprovable">is unprovable</option>
+          <option value="has_no_proof">has no valid proof</option>
+          <option value="is_true_but_unprovable">is true but unprovable</option>
+        </select>
+
+        <label>Optional prefix</label>
+        <select id="sel-prefix" onchange="buildSentence()">
+          <option value="">—</option>
+          <option value="in_any_consistent_system">In any consistent system,</option>
+          <option value="within_this_formal_system">Within this formal system,</option>
+          <option value="assuming_consistency">Assuming consistency,</option>
+        </select>
+      </div>
+
+      <div class="godel-output">
+        <div class="godel-sentence" id="godel-sentence"></div>
+        <div class="godel-verdict" id="godel-verdict"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consequences -->
+  <div class="section-title" style="margin-bottom:1.5rem;">Consequences</div>
+  <div class="consequence-grid">
+    <div class="cons-card">
+      <div class="cons-icon">🤖</div>
+      <div class="cons-title">AI Cannot Prove Everything</div>
+      <p class="cons-text">No computer program — however fast — can systematically prove all mathematical truths. There will always be true statements it cannot verify.</p>
+    </div>
+    <div class="cons-card">
+      <div class="cons-icon">🔐</div>
+      <div class="cons-title">Hilbert's Program Failed</div>
+      <p class="cons-text">David Hilbert wanted to put all mathematics on an unassailable axiomatic foundation. Gödel proved this is impossible in 1931, before the program was even complete.</p>
+    </div>
+    <div class="cons-card">
+      <div class="cons-icon">∞</div>
+      <div class="cons-title">Infinite Hierarchy of Systems</div>
+      <p class="cons-text">To prove G, you add it as an axiom. The new system has its own G'. To prove that one, add more axioms. This tower never ends.</p>
+    </div>
+  </div>
+
+  <div class="insight-band">
+    <div class="ins-quote">"</div>
+    <div>
+      <span class="ins-label-small">The Reframe</span>
+      <p class="ins-text">Gödel didn't find a flaw in mathematics. He found a feature of reality: any system rich enough to reason about itself will contain truths it cannot verify. This applies to formal logic, to computers, and possibly to minds. The universe may be too large for any part of it to fully understand itself from within.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleStep(card) {
+  const wasActive = card.classList.contains('active');
+  document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+  if (!wasActive) card.classList.add('active');
+}
+
+const SUBJECTS = {
+  'this_statement': 'This statement',
+  'this_theorem': 'This theorem',
+  'this_claim': 'This claim',
+  'the_sentence_you_are_reading': 'The sentence you are reading'
+};
+
+const PREDS = {
+  'cannot_be_proven': 'cannot be proven in this system',
+  'is_unprovable': 'is unprovable',
+  'has_no_proof': 'has no valid proof',
+  'is_true_but_unprovable': 'is true but unprovable'
+};
+
+const PREFIXES = {
+  '': '',
+  'in_any_consistent_system': 'In any consistent system,',
+  'within_this_formal_system': 'Within this formal system,',
+  'assuming_consistency': 'Assuming consistency,'
+};
+
+const VERDICTS = {
+  'cannot_be_proven': {
+    verdict: '<strong>Verdict: Classic Gödel structure.</strong> If provable → contradiction (it says it can\'t be). If disprovable → the negation is provable but then it IS provable → contradiction. Result: undecidable in a consistent system.',
+    color: '#c0392b'
+  },
+  'is_unprovable': {
+    verdict: '<strong>Verdict: Same trap, different phrasing.</strong> The statement\'s truth and its provability are irreconcilable within the same system. Adding it as an axiom just creates a new, richer system with its own undecidable statement.',
+    color: '#c0392b'
+  },
+  'has_no_proof': {
+    verdict: '<strong>Verdict: Equivalent Gödel form.</strong> If the system could prove "there is no proof of this," that proof would itself be a proof — direct contradiction. So this statement escapes all proof attempts.',
+    color: '#c0392b'
+  },
+  'is_true_but_unprovable': {
+    verdict: '<strong>Verdict: This is the <em>external</em> characterization.</strong> We can see from outside the system that it\'s true (because if it were false, it would be provable, making it true — contradiction). But inside the system, this is invisible.',
+    color: '#e08020'
+  }
+};
+
+function buildSentence() {
+  const subj = document.getElementById('sel-subject').value;
+  const pred = document.getElementById('sel-pred').value;
+  const prefix = document.getElementById('sel-prefix').value;
+  
+  const p = PREFIXES[prefix];
+  const s = SUBJECTS[subj];
+  const pr = PREDS[pred];
+  
+  const sentence = (p ? p + ' ' : '') + s.toLowerCase() + ' ' + pr + '.';
+  
+  document.getElementById('godel-sentence').textContent = '"' + (p ? PREFIXES[prefix] + ' ' : '') + SUBJECTS[subj] + ' ' + PREDS[pred] + '."';
+  
+  const v = VERDICTS[pred];
+  document.getElementById('godel-verdict').innerHTML = v.verdict;
+}
+
+buildSentence();
+</script>
+</body>
+</html>

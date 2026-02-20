@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Mpemba Effect — Why Hot Water Freezes First</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;700;900&family=Lato:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: #e8f4fe;
+    color: #0a1a2e;
+    font-family: 'Lato', sans-serif;
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+
+  .header-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .nav-back {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #4a88b8;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 1rem;
+  }
+  .nav-back:hover { color: #0a4a8a; }
+
+  .eyebrow {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #2a7abe;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 900;
+    line-height: 1.05;
+    color: #0a1a2e;
+    margin-bottom: 0.6rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: #3a6890;
+    font-weight: 300;
+    max-width: 520px;
+  }
+
+  .history-chip {
+    background: #0a1a2e;
+    color: #e8f4fe;
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    max-width: 220px;
+    text-align: center;
+  }
+  .chip-year {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #5aa8f8;
+    line-height: 1;
+  }
+  .chip-text {
+    font-size: 0.75rem;
+    color: #6898c8;
+    line-height: 1.5;
+    margin-top: 0.4rem;
+  }
+
+  /* Main layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .sim-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 20px rgba(0, 50, 120, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .card-label {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+  }
+
+  .temp-readout {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    transition: color 0.4s;
+  }
+
+  .beaker-wrap {
+    position: relative;
+    height: 200px;
+    border: 2px solid rgba(0, 80, 160, 0.15);
+    border-radius: 4px 4px 12px 12px;
+    overflow: hidden;
+    background: #f0f8ff;
+  }
+
+  .water-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transition: background 0.5s, height 0.5s;
+  }
+
+  .ice-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem;
+  }
+
+  .steam-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .temp-slider-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .slider-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: #4a88b8;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .sim-controls {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .sim-btn {
+    flex: 1;
+    padding: 0.7rem;
+    border: 2px solid #0a1a2e;
+    border-radius: 8px;
+    background: transparent;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #0a1a2e;
+    text-transform: uppercase;
+  }
+  .sim-btn.go {
+    background: #0a1a2e;
+    color: white;
+  }
+  .sim-btn:hover {
+    background: #2a7abe;
+    border-color: #2a7abe;
+    color: white;
+  }
+
+  /* Chart area */
+  .chart-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 2px 20px rgba(0, 50, 120, 0.08);
+    margin-bottom: 2rem;
+  }
+
+  .chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .chart-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #0a1a2e;
+    font-weight: 400;
+  }
+
+  .winner-badge {
+    background: #0a1a2e;
+    color: white;
+    border-radius: 6px;
+    padding: 0.3rem 0.8rem;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    display: none;
+  }
+
+  canvas#chart {
+    width: 100%;
+    max-width: 100%;
+    height: 280px;
+    display: block;
+  }
+
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.8rem;
+    font-size: 0.78rem;
+    color: #4a88b8;
+  }
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .leg-line {
+    width: 24px; height: 3px;
+    border-radius: 2px;
+  }
+
+  /* Bottom info */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,50,120,0.06);
+  }
+
+  .info-card-label {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #2a7abe;
+    margin-bottom: 0.5rem;
+  }
+
+  .info-card p {
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: #3a5878;
+    font-weight: 300;
+  }
+
+  .insight-band {
+    background: #0a1a2e;
+    color: #e8f4fe;
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-top: 2rem;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+  .ins-label {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #5aa8f8;
+    margin-bottom: 0.5rem;
+    display: block;
+    white-space: nowrap;
+  }
+  .insight-band p {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: #8ab8e8;
+    font-style: italic;
+    font-weight: 300;
+  }
+  .disputed-tag {
+    background: rgba(255, 100, 60, 0.15);
+    border: 1px solid rgba(255, 100, 60, 0.3);
+    border-radius: 6px;
+    padding: 0.3rem 0.7rem;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.6rem;
+    color: #ff8060;
+    white-space: nowrap;
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header-grid">
+    <div>
+      <a href="index.html" class="nav-back">← Horizon v5</a>
+      <div class="eyebrow">Thermodynamics</div>
+      <h1>The Mpemba Effect</h1>
+      <p class="subtitle">In 1969, a Tanzanian schoolboy asked why his hot ice cream mix froze faster than his classmates' cold mix. The answer is still debated by physicists today.</p>
+    </div>
+    <div class="history-chip">
+      <div class="chip-year">1969</div>
+      <p class="chip-text">Erasto Mpemba noticed it at age 13. Denis Osborne published the study.</p>
+    </div>
+  </div>
+
+  <!-- Two beakers -->
+  <div class="main-grid">
+    <div class="sim-card" id="card-hot">
+      <div>
+        <div class="card-label" style="color:#e05030;">🔥 Hot Sample</div>
+        <div class="temp-readout" id="temp-hot" style="color:#e05030;">80°C</div>
+      </div>
+      <div class="temp-slider-wrap">
+        <div class="slider-head"><span>Start Temp</span><span id="slider-hot-val">80°C</span></div>
+        <input type="range" id="slider-hot" min="30" max="100" value="80"
+          style="background: linear-gradient(90deg, #aad4ff, #ff6040);"
+          oninput="updateHotSlider()">
+        <style>#slider-hot::-webkit-slider-thumb{background:#e05030;}</style>
+      </div>
+      <div class="beaker-wrap">
+        <canvas class="steam-canvas" id="steam-canvas"></canvas>
+        <div class="water-fill" id="water-hot" style="height:80%; background: rgba(255, 120, 60, 0.35);"></div>
+        <div class="ice-overlay" id="ice-hot" style="font-size: 3rem;">🧊</div>
+      </div>
+    </div>
+
+    <div class="sim-card" id="card-cold">
+      <div>
+        <div class="card-label" style="color:#2a7abe;">❄️ Cold Sample</div>
+        <div class="temp-readout" id="temp-cold" style="color:#2a7abe;">20°C</div>
+      </div>
+      <div class="temp-slider-wrap">
+        <div class="slider-head"><span>Start Temp</span><span id="slider-cold-val">20°C</span></div>
+        <input type="range" id="slider-cold" min="1" max="30" value="20"
+          style="background: linear-gradient(90deg, #c0d8ff, #6ab0ff);"
+          oninput="updateColdSlider()">
+        <style>#slider-cold::-webkit-slider-thumb{background:#2a7abe;}</style>
+      </div>
+      <div class="beaker-wrap">
+        <div class="water-fill" id="water-cold" style="height:80%; background: rgba(80, 160, 255, 0.3);"></div>
+        <div class="ice-overlay" id="ice-cold" style="font-size: 3rem;">🧊</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:0.8rem; margin-bottom:2rem;">
+    <button class="sim-btn go" onclick="runSimulation()">▶ Run Simulation</button>
+    <button class="sim-btn" onclick="resetSim()">↺ Reset</button>
+    <span class="disputed-tag">Contested Science</span>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-head">
+      <div class="chart-title">Cooling Curves — Temperature vs. Time</div>
+      <div class="winner-badge" id="winner-badge">🏆 Hot froze first!</div>
+    </div>
+    <canvas id="chart" width="900" height="280"></canvas>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-line" style="background:#e05030;"></div>Hot sample</div>
+      <div class="leg-item"><div class="leg-line" style="background:#2a7abe;"></div>Cold sample</div>
+      <div class="leg-item"><div class="leg-line" style="background:#aaa; border-top: 2px dashed #aaa; height:0;"></div>Freezing point (0°C)</div>
+    </div>
+  </div>
+
+  <div class="bottom-grid">
+    <div class="info-card">
+      <div class="info-card-label">Proposed Mechanisms</div>
+      <p>Evaporation reduces hot water mass. Convection currents form differently. Dissolved gases escape. Supercooling is easier. None is universally accepted.</p>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Why It's Disputed</div>
+      <p>The effect is highly sensitive to container shape, water purity, freezer air flow, and initial conditions. Many labs reproduce it; many can't. Replication is the whole problem.</p>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">2016 Study (Burridge)</div>
+      <p>A Cambridge study found no robust evidence for the Mpemba effect under controlled conditions — reigniting debate. Other teams still claim to observe it consistently.</p>
+    </div>
+  </div>
+
+  <div class="insight-band">
+    <div>
+      <span class="ins-label">The Reframe</span>
+      <p>A schoolboy's question in 1969 still doesn't have a settled answer in 2024. Science doesn't always resolve cleanly — sometimes the most reproducible result is the disagreement itself.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Simulation
+let hotTemp, coldTemp, simRunning = false;
+let hotHistory = [], coldHistory = [];
+const FREEZE_POINT = 0;
+let hotFrozen = false, coldFrozen = false;
+let hotFreezeTime = null, coldFreezeTime = null;
+
+function updateHotSlider() {
+  const v = parseInt(document.getElementById('slider-hot').value);
+  document.getElementById('slider-hot-val').textContent = v + '°C';
+  document.getElementById('temp-hot').textContent = v + '°C';
+  hotTemp = v;
+  updateBeakerColor('hot', v);
+}
+
+function updateColdSlider() {
+  const v = parseInt(document.getElementById('slider-cold').value);
+  document.getElementById('slider-cold-val').textContent = v + '°C';
+  document.getElementById('temp-cold').textContent = v + '°C';
+  coldTemp = v;
+  updateBeakerColor('cold', v);
+}
+
+function updateBeakerColor(which, temp) {
+  const el = document.getElementById('water-' + which);
+  const normalized = Math.max(0, Math.min(1, temp / 100));
+  if (which === 'hot') {
+    const r = Math.round(80 + normalized * 175);
+    const g = Math.round(120 + normalized * 20);
+    const b = Math.round(255 - normalized * 200);
+    el.style.background = `rgba(${r},${g},${b}, 0.4)`;
+  } else {
+    const r = Math.round(80 + normalized * 100);
+    const g = Math.round(160 + normalized * 20);
+    const b = 255;
+    el.style.background = `rgba(${r},${g},${b}, 0.35)`;
+  }
+}
+
+function resetSim() {
+  simRunning = false;
+  hotFrozen = false; coldFrozen = false;
+  hotFreezeTime = null; coldFreezeTime = null;
+  hotHistory = []; coldHistory = [];
+  document.getElementById('ice-hot').style.display = 'none';
+  document.getElementById('ice-cold').style.display = 'none';
+  document.getElementById('winner-badge').style.display = 'none';
+  
+  const hv = parseInt(document.getElementById('slider-hot').value);
+  const cv = parseInt(document.getElementById('slider-cold').value);
+  hotTemp = hv; coldTemp = cv;
+  document.getElementById('temp-hot').textContent = hv + '°C';
+  document.getElementById('temp-cold').textContent = cv + '°C';
+  updateBeakerColor('hot', hv);
+  updateBeakerColor('cold', cv);
+  
+  const chart = document.getElementById('chart');
+  const ctx = chart.getContext('2d');
+  ctx.clearRect(0, 0, chart.width, chart.height);
+  drawChartBase(ctx, chart.width, chart.height);
+}
+
+function drawChartBase(ctx, W, H) {
+  const pad = { t: 20, r: 30, b: 50, l: 60 };
+  ctx.clearRect(0, 0, W, H);
+  
+  // Grid
+  ctx.strokeStyle = '#e0e8f0';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = pad.t + (i/5) * (H - pad.t - pad.b);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    const temp = Math.round(100 - i * 20);
+    ctx.fillStyle = '#8ab0c8';
+    ctx.font = '11px Lato';
+    ctx.textAlign = 'right';
+    ctx.fillText(temp + '°C', pad.l - 8, y + 4);
+  }
+  
+  // Freezing line
+  const freezeY = pad.t + (1 - (0 - (-20)) / 120) * (H - pad.t - pad.b);
+  const fy = pad.t + (100 / 120) * (H - pad.t - pad.b);
+  ctx.beginPath();
+  ctx.moveTo(pad.l, fy);
+  ctx.lineTo(W - pad.r, fy);
+  ctx.strokeStyle = 'rgba(100, 160, 220, 0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#8ab0c8';
+  ctx.textAlign = 'left';
+  ctx.font = '10px Lato';
+  ctx.fillText('0°C — Freezing', pad.l + 5, fy - 5);
+  
+  // Axes
+  ctx.fillStyle = '#3a5878';
+  ctx.textAlign = 'center';
+  ctx.font = '12px Lato';
+  ctx.fillText('Time (minutes)', W/2, H - 8);
+}
+
+function runSimulation() {
+  if (simRunning) return;
+  simRunning = true;
+  
+  const startHot = parseInt(document.getElementById('slider-hot').value);
+  const startCold = parseInt(document.getElementById('slider-cold').value);
+  hotTemp = startHot; coldTemp = startCold;
+  hotHistory = [[0, startHot]]; coldHistory = [[0, startCold]];
+  hotFrozen = false; coldFrozen = false;
+  hotFreezeTime = null; coldFreezeTime = null;
+  document.getElementById('ice-hot').style.display = 'none';
+  document.getElementById('ice-cold').style.display = 'none';
+  document.getElementById('winner-badge').style.display = 'none';
+
+  const envTemp = -18; // freezer temp
+  
+  // Newton's Law of Cooling: dT/dt = -k(T - Tenv)
+  // But Mpemba effect: hot water sometimes has enhanced evaporative cooling
+  // and slightly higher k (more convective heat loss at high T)
+  
+  let t = 0;
+  const dt = 0.1;
+  
+  function step() {
+    if (!simRunning) return;
+    
+    t += dt;
+    
+    // k(T) — slightly higher for hot water at high temps (experimental)
+    const kBase = 0.008;
+    const kHot = kBase * (1 + Math.max(0, (hotTemp - 50) / 50) * 0.25);
+    const kCold = kBase;
+    
+    hotTemp += dt * (-kHot * (hotTemp - envTemp));
+    coldTemp += dt * (-kCold * (coldTemp - envTemp));
+    
+    // Latent heat of fusion: slow down near 0°C
+    const latentSlowHot = hotTemp < 5 && hotTemp > 0 ? 0.4 : 1;
+    const latentSlowCold = coldTemp < 5 && coldTemp > 0 ? 0.4 : 1;
+    hotTemp += dt * (-kHot * (hotTemp - envTemp)) * (latentSlowHot - 1);
+    coldTemp += dt * (-kCold * (coldTemp - envTemp)) * (latentSlowCold - 1);
+    
+    hotHistory.push([t, hotTemp]);
+    coldHistory.push([t, coldTemp]);
+    
+    document.getElementById('temp-hot').textContent = hotTemp.toFixed(1) + '°C';
+    document.getElementById('temp-cold').textContent = coldTemp.toFixed(1) + '°C';
+    updateBeakerColor('hot', hotTemp);
+    updateBeakerColor('cold', coldTemp);
+    
+    // Freeze check
+    if (!hotFrozen && hotTemp <= 0) {
+      hotFrozen = true;
+      hotFreezeTime = t;
+      document.getElementById('ice-hot').style.display = 'flex';
+    }
+    if (!coldFrozen && coldTemp <= 0) {
+      coldFrozen = true;
+      coldFreezeTime = t;
+      document.getElementById('ice-cold').style.display = 'flex';
+    }
+    
+    drawChart();
+    
+    if (hotFrozen && coldFrozen) {
+      simRunning = false;
+      const badge = document.getElementById('winner-badge');
+      if (hotFreezeTime < coldFreezeTime) {
+        badge.textContent = '🏆 Hot froze first! (Mpemba effect)';
+        badge.style.background = '#e05030';
+      } else if (coldFreezeTime < hotFreezeTime) {
+        badge.textContent = '❄️ Cold froze first (expected)';
+        badge.style.background = '#2a7abe';
+      } else {
+        badge.textContent = '🤝 Tied!';
+      }
+      badge.style.display = 'block';
+      return;
+    }
+    
+    if (t < 200) setTimeout(step, 30);
+    else simRunning = false;
+  }
+  step();
+}
+
+function drawChart() {
+  const chart = document.getElementById('chart');
+  const ctx = chart.getContext('2d');
+  const W = chart.width, H = chart.height;
+  const pad = { t: 20, r: 30, b: 50, l: 60 };
+  
+  const maxT = Math.max(hotHistory[hotHistory.length-1]?.[0] || 1, 20);
+  const minTemp = -20, maxTemp = 100;
+  
+  const xScale = t => pad.l + (t / maxT) * (W - pad.l - pad.r);
+  const yScale = t => pad.t + (1 - (t - minTemp) / (maxTemp - minTemp)) * (H - pad.t - pad.b);
+  
+  drawChartBase(ctx, W, H);
+  
+  // X axis ticks
+  ctx.fillStyle = '#8ab0c8';
+  ctx.font = '11px Lato';
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 5; i++) {
+    const t2 = (i/5) * maxT;
+    ctx.fillText(Math.round(t2) + 'm', xScale(t2), H - pad.b + 16);
+  }
+  
+  // Hot curve
+  if (hotHistory.length > 1) {
+    ctx.beginPath();
+    hotHistory.forEach(([t, temp], i) => {
+      const x = xScale(t), y = yScale(temp);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = '#e05030';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+  
+  // Cold curve
+  if (coldHistory.length > 1) {
+    ctx.beginPath();
+    coldHistory.forEach(([t, temp], i) => {
+      const x = xScale(t), y = yScale(temp);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = '#2a7abe';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+  
+  // Freeze markers
+  if (hotFreezeTime) {
+    ctx.beginPath();
+    ctx.arc(xScale(hotFreezeTime), yScale(0), 6, 0, Math.PI*2);
+    ctx.fillStyle = '#e05030';
+    ctx.fill();
+  }
+  if (coldFreezeTime) {
+    ctx.beginPath();
+    ctx.arc(xScale(coldFreezeTime), yScale(0), 6, 0, Math.PI*2);
+    ctx.fillStyle = '#2a7abe';
+    ctx.fill();
+  }
+}
+
+// Steam animation
+const steamCanvas = document.getElementById('steam-canvas');
+const steamCtx = steamCanvas.getContext('2d');
+const particles = [];
+for (let i = 0; i < 12; i++) {
+  particles.push({
+    x: Math.random(),
+    y: Math.random() * 0.5,
+    size: 4 + Math.random() * 6,
+    speed: 0.3 + Math.random() * 0.4,
+    alpha: Math.random() * 0.4,
+    phase: Math.random() * Math.PI * 2
+  });
+}
+
+function drawSteam() {
+  steamCanvas.width = steamCanvas.offsetWidth;
+  steamCanvas.height = steamCanvas.offsetHeight;
+  steamCtx.clearRect(0, 0, steamCanvas.width, steamCanvas.height);
+  
+  const startTemp = parseInt(document.getElementById('slider-hot').value);
+  const intensity = hotTemp ? Math.max(0, (hotTemp - 30) / 100) : (startTemp - 30) / 100;
+  
+  particles.forEach(p => {
+    p.y -= p.speed * 0.01 * intensity;
+    p.x += Math.sin(Date.now() * 0.002 + p.phase) * 0.002;
+    if (p.y < 0) p.y = 1;
+    
+    steamCtx.beginPath();
+    steamCtx.arc(p.x * steamCanvas.width, p.y * steamCanvas.height, p.size, 0, Math.PI*2);
+    steamCtx.fillStyle = `rgba(200, 220, 255, ${p.alpha * intensity})`;
+    steamCtx.fill();
+  });
+  
+  requestAnimationFrame(drawSteam);
+}
+drawSteam();
+
+// Init
+const initChart = document.getElementById('chart');
+const initCtx = initChart.getContext('2d');
+drawChartBase(initCtx, initChart.width, initChart.height);
+updateHotSlider();
+updateColdSlider();
+</script>
+</body>
+</html>

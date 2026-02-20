@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semantic Satiation — When Words Lose Their Meaning</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,300&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: #f5f0e8;
+    color: #2a2018;
+    font-family: 'Fraunces', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+  }
+
+  .nav-back {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: #a09080;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 2.5rem;
+  }
+  .nav-back:hover { color: #d04030; }
+
+  .intro {
+    margin-bottom: 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #d04030;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1.08;
+    color: #1a1010;
+    margin-bottom: 0.8rem;
+    font-style: italic;
+  }
+
+  .intro-text {
+    font-size: 1.05rem;
+    line-height: 1.78;
+    color: #5a4838;
+    font-weight: 300;
+  }
+
+  .mechanism-box {
+    background: #2a2018;
+    color: #f5f0e8;
+    padding: 2rem;
+    border-radius: 8px;
+  }
+
+  .mbox-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #d04030;
+    margin-bottom: 1rem;
+  }
+
+  .mbox-text {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: #c8b8a8;
+    font-weight: 300;
+  }
+
+  /* The main experiment */
+  .experiment-zone {
+    background: white;
+    border: 1px solid #e0d4c0;
+    border-radius: 12px;
+    padding: 3rem;
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+
+  .exp-instruction {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #a09080;
+    margin-bottom: 2rem;
+  }
+
+  .satiation-word {
+    font-size: clamp(4rem, 12vw, 8rem);
+    font-weight: 900;
+    font-style: italic;
+    color: #2a2018;
+    cursor: pointer;
+    user-select: none;
+    display: block;
+    margin: 0 auto 2rem;
+    line-height: 1;
+    transition: color 0.15s, transform 0.1s;
+    letter-spacing: -0.02em;
+  }
+
+  .satiation-word:active { transform: scale(0.97); }
+
+  .press-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: #a09080;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.08em;
+  }
+
+  .satiation-bar-wrap {
+    max-width: 400px;
+    margin: 0 auto 1rem;
+  }
+
+  .bar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: #a09080;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+  }
+
+  .satiation-bar {
+    height: 8px;
+    background: #e8e0d0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .satiation-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s, background 0.5s;
+    background: #2a2018;
+  }
+
+  .satiation-message {
+    font-size: 1rem;
+    color: #a09080;
+    font-style: italic;
+    min-height: 1.5rem;
+    margin-top: 1rem;
+    font-weight: 300;
+    transition: color 0.5s;
+  }
+
+  .word-picker {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e8e0d0;
+  }
+
+  .word-choice {
+    background: transparent;
+    border: 1px solid #c8b8a0;
+    border-radius: 20px;
+    padding: 0.35rem 1rem;
+    font-family: 'Fraunces', serif;
+    font-size: 0.88rem;
+    color: #5a4838;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-style: italic;
+  }
+  .word-choice:hover, .word-choice.active {
+    background: #2a2018;
+    color: #f5f0e8;
+    border-color: #2a2018;
+  }
+
+  /* Timer section */
+  .timer-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .timed-card {
+    background: white;
+    border: 1px solid #e0d4c0;
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+  }
+
+  .card-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #a09080;
+    margin-bottom: 1rem;
+  }
+
+  .timer-word {
+    font-size: 2.5rem;
+    font-weight: 900;
+    font-style: italic;
+    display: block;
+    margin-bottom: 1rem;
+    transition: opacity 0.3s;
+  }
+
+  .timer-display {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 2rem;
+    font-weight: 400;
+    color: #d04030;
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+  }
+
+  .timer-btn {
+    background: #2a2018;
+    color: #f5f0e8;
+    border: none;
+    padding: 0.6rem 1.4rem;
+    border-radius: 6px;
+    font-family: 'Fraunces', serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .timer-btn:hover { background: #d04030; }
+
+  .timer-result {
+    font-size: 0.82rem;
+    color: #a09080;
+    font-style: italic;
+    margin-top: 0.8rem;
+    min-height: 1.2rem;
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  /* Facts section */
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .fact-card {
+    background: white;
+    border: 1px solid #e0d4c0;
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+  }
+
+  .fact-num {
+    font-size: 2rem;
+    font-weight: 900;
+    font-style: italic;
+    color: #d04030;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .fact-text {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #7a6858;
+    font-weight: 300;
+  }
+
+  .insight-band {
+    background: #2a2018;
+    color: #f5f0e8;
+    border-radius: 10px;
+    padding: 2rem 2.5rem;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .ins-accent {
+    font-size: 5rem;
+    font-weight: 900;
+    font-style: italic;
+    color: #d04030;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .ins-content { flex: 1; }
+
+  .ins-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #d04030;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .ins-text {
+    font-size: 1rem;
+    line-height: 1.72;
+    color: #c8b8a8;
+    font-style: italic;
+    font-weight: 300;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a href="index.html" class="nav-back">← Horizon v5</a>
+
+  <div class="intro">
+    <div>
+      <div class="eyebrow">Cognitive Psychology</div>
+      <h1>Semantic Satiation</h1>
+      <p class="intro-text">Say the word "moon" 50 times in a row. Somewhere around word 20, it stops sounding like a word. The sounds detach from the meaning. You're left holding a phoneme.</p>
+    </div>
+    <div class="mechanism-box">
+      <div class="mbox-title">The Mechanism</div>
+      <p class="mbox-text">Rapid, repeated activation of a word's neural pattern causes reactive inhibition — the neurons that encode the word's meaning fatigue, while the neurons encoding its sound continue firing. Described by Leon James (1960s) as "temporary satiation of the neural activity that arouses the semantic encoding."</p>
+    </div>
+  </div>
+
+  <!-- Main experiment: click the word -->
+  <div class="experiment-zone">
+    <p class="exp-instruction">Click the word rapidly — as fast as you can say it — until it stops meaning anything</p>
+    
+    <span class="satiation-word" id="target-word" onclick="clickWord()">moon</span>
+    
+    <div class="press-count">
+      <span id="click-num">0</span> times &nbsp;|&nbsp; threshold ~<span id="threshold-num">30</span>
+    </div>
+
+    <div class="satiation-bar-wrap">
+      <div class="bar-labels"><span>Meaning intact</span><span>Satiated</span></div>
+      <div class="satiation-bar">
+        <div class="satiation-fill" id="sat-fill" style="width:0%;"></div>
+      </div>
+    </div>
+
+    <div class="satiation-message" id="sat-message">Start clicking...</div>
+
+    <div class="word-picker">
+      <button class="word-choice active" onclick="setWord('moon', this)">moon</button>
+      <button class="word-choice" onclick="setWord('door', this)">door</button>
+      <button class="word-choice" onclick="setWord('fork', this)">fork</button>
+      <button class="word-choice" onclick="setWord('bread', this)">bread</button>
+      <button class="word-choice" onclick="setWord('Tuesday', this)">Tuesday</button>
+      <button class="word-choice" onclick="setWord('green', this)">green</button>
+      <button class="word-choice" onclick="setWord('think', this)">think</button>
+    </div>
+  </div>
+
+  <!-- Timed experiments -->
+  <div class="timer-section">
+    <div class="timed-card">
+      <div class="card-title">Reading Rate — Before</div>
+      <span class="timer-word" id="normal-word" style="color:#2a2018;">house</span>
+      <div class="timer-display" id="timer-before">0.0s</div>
+      <button class="timer-btn" onclick="startNormalTest()">Start Test</button>
+      <div class="timer-result" id="result-before">Read the word 20 times, then stop</div>
+    </div>
+
+    <div class="timed-card">
+      <div class="card-title">Reading Rate — After Satiation</div>
+      <span class="timer-word" id="satiated-word" style="color:#d04030; opacity:0.4;">house</span>
+      <div class="timer-display" id="timer-after">0.0s</div>
+      <button class="timer-btn" onclick="startSatiatedTest()">Start After 60×</button>
+      <div class="timer-result" id="result-after">Saturate first, then test comprehension speed</div>
+    </div>
+  </div>
+
+  <!-- Facts -->
+  <div class="facts-grid">
+    <div class="fact-card">
+      <div class="fact-num">~3s</div>
+      <p class="fact-text">Time to begin noticing satiation in adults, with rapid repetition. Children show it faster.</p>
+    </div>
+    <div class="fact-card">
+      <div class="fact-num">1962</div>
+      <p class="fact-text">Leon Jakobovits James coins the term "semantic satiation" in his doctoral thesis. The phenomenon was observed earlier but unnamed.</p>
+    </div>
+    <div class="fact-card">
+      <div class="fact-num">∞</div>
+      <p class="fact-text">The effect is temporary. Meaning returns after ~60 seconds of rest. The neural circuits recover through reactive disinhibition.</p>
+    </div>
+  </div>
+
+  <div class="insight-band">
+    <div class="ins-accent">"</div>
+    <div class="ins-content">
+      <span class="ins-label">The Reframe</span>
+      <p class="ins-text">Semantic satiation proves that language is not stored as a simple lookup table. Words are patterns of activation in neural tissue — and activation has limits. When a word loses its meaning, you're watching neurons tire in real time. Meaning is not in the word. It's in the firing.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+let clickCount = 0;
+let currentWord = 'moon';
+let threshold = 30;
+let isSatiated = false;
+
+const messages = [
+  [0, 'Start clicking...'],
+  [5, 'Say it out loud as you click.'],
+  [10, 'Keep going...'],
+  [15, 'Notice anything yet?'],
+  [20, 'Does it still sound like a word?'],
+  [25, 'The meaning is starting to slip...'],
+  [30, 'Something changes here for most people.'],
+  [35, 'Just sounds now — no meaning.'],
+  [40, 'Completely detached. You\'re experiencing satiation.'],
+  [50, 'The word has become abstract phonemes.'],
+  [70, 'Maximum satiation. Stop and wait 60 seconds — meaning returns.']
+];
+
+const colors = [
+  [0, '#2a2018'],
+  [15, '#6a4838'],
+  [25, '#a04028'],
+  [35, '#c04030'],
+  [50, '#d04030'],
+];
+
+function interpolateColor(count) {
+  let prev = colors[0];
+  for (const c of colors) {
+    if (count >= c[0]) prev = c;
+    else break;
+  }
+  return prev[1];
+}
+
+function clickWord() {
+  clickCount++;
+  document.getElementById('click-num').textContent = clickCount;
+  
+  const pct = Math.min(100, (clickCount / (threshold * 2.5)) * 100);
+  document.getElementById('sat-fill').style.width = pct + '%';
+  
+  const col = interpolateColor(clickCount);
+  document.getElementById('sat-fill').style.background = col;
+  document.getElementById('target-word').style.color = col;
+  
+  // Message
+  let msg = messages[0][1];
+  for (const m of messages) {
+    if (clickCount >= m[0]) msg = m[1];
+  }
+  document.getElementById('sat-message').textContent = msg;
+  document.getElementById('sat-message').style.color = pct > 50 ? '#d04030' : '#a09080';
+  
+  // Brief visual pulse
+  const el = document.getElementById('target-word');
+  el.style.transform = 'scale(0.96)';
+  setTimeout(() => el.style.transform = '', 80);
+}
+
+function setWord(word, btn) {
+  currentWord = word;
+  clickCount = 0;
+  threshold = 25 + Math.floor(Math.random() * 15);
+  document.getElementById('click-num').textContent = '0';
+  document.getElementById('threshold-num').textContent = threshold;
+  document.getElementById('target-word').textContent = word;
+  document.getElementById('target-word').style.color = '#2a2018';
+  document.getElementById('sat-fill').style.width = '0%';
+  document.getElementById('sat-fill').style.background = '#2a2018';
+  document.getElementById('sat-message').textContent = 'Start clicking...';
+  document.getElementById('sat-message').style.color = '#a09080';
+  document.querySelectorAll('.word-choice').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Timer tests
+let timerRunning = false;
+let timerStart = 0;
+let timerInterval;
+let normalCount = 0;
+let satiatedCount = 0;
+
+function startNormalTest() {
+  if (timerRunning) return;
+  normalCount = 0;
+  timerRunning = true;
+  timerStart = Date.now();
+  document.getElementById('result-before').textContent = 'Read aloud — click when done with 20 repetitions';
+  document.getElementById('timer-before').textContent = '0.0s';
+  
+  timerInterval = setInterval(() => {
+    const elapsed = (Date.now() - timerStart) / 1000;
+    document.getElementById('timer-before').textContent = elapsed.toFixed(1) + 's';
+  }, 100);
+  
+  const btn = event.target;
+  btn.textContent = 'Done (20×)';
+  btn.onclick = () => {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    const elapsed = (Date.now() - timerStart) / 1000;
+    document.getElementById('timer-before').textContent = elapsed.toFixed(2) + 's';
+    document.getElementById('result-before').textContent = `${elapsed.toFixed(2)}s for 20 reads = ${(elapsed/20*1000).toFixed(0)}ms/word`;
+    btn.textContent = 'Start Test';
+    btn.onclick = startNormalTest;
+  };
+}
+
+function startSatiatedTest() {
+  // First saturate (60 rapid flashes), then time comprehension
+  const wordEl = document.getElementById('satiated-word');
+  let reps = 0;
+  const interval = setInterval(() => {
+    reps++;
+    wordEl.style.opacity = reps % 2 === 0 ? '1' : '0.2';
+    if (reps >= 120) {
+      clearInterval(interval);
+      wordEl.style.opacity = '0.6';
+      wordEl.style.color = '#d04030';
+      
+      // Now time reading
+      document.getElementById('result-after').textContent = 'Now read it 20 times — measure your comprehension speed';
+      let start = Date.now();
+      const ti = setInterval(() => {
+        const elapsed = (Date.now() - start) / 1000;
+        document.getElementById('timer-after').textContent = elapsed.toFixed(1) + 's';
+      }, 100);
+      
+      const btn = document.querySelector('[onclick="startSatiatedTest()"]');
+      btn.textContent = 'Done (20×)';
+      btn.onclick = () => {
+        clearInterval(ti);
+        const elapsed = (Date.now() - start) / 1000;
+        document.getElementById('timer-after').textContent = elapsed.toFixed(2) + 's';
+        const before = parseFloat(document.getElementById('timer-before').textContent);
+        const after = elapsed;
+        let comparison = '';
+        if (before > 0) {
+          const diff = ((after - before) / before * 100).toFixed(0);
+          comparison = diff > 0 ? ` (+${diff}% slower — satiation confirmed)` : ` (${diff}% — interesting)`;
+        }
+        document.getElementById('result-after').textContent = `${elapsed.toFixed(2)}s for 20 reads${comparison}`;
+        btn.textContent = 'Start After 60×';
+        btn.onclick = startSatiatedTest;
+        wordEl.style.color = '#2a2018';
+        wordEl.style.opacity = '1';
+      };
+    }
+  }, 50);
+  
+  document.getElementById('result-after').textContent = 'Saturating the word... 60 flashes';
+}
+</script>
+</body>
+</html>

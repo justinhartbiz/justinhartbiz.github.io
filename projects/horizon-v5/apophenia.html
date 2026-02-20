@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apophenia — The Brain That Can't Stop Seeing Patterns</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: #111016;
+    color: #f0ece4;
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .page-wrap {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: 100vh;
+  }
+
+  .left-rail {
+    background: #0c0a12;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .nav-back {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.68rem;
+    color: #5a5880;
+    text-decoration: none;
+    letter-spacing: 0.08em;
+  }
+  .nav-back:hover { color: #ff6b9d; }
+
+  .eyebrow {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #ff6b9d;
+    margin-bottom: 0.4rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #f8f4ec;
+    margin-bottom: 0.6rem;
+  }
+
+  .desc {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: #7a7890;
+    font-weight: 400;
+  }
+
+  .section-label {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #5a5880;
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 0.4rem;
+  }
+
+  .score-display {
+    text-align: center;
+    padding: 1.2rem;
+    background: rgba(255, 107, 157, 0.06);
+    border: 1px solid rgba(255, 107, 157, 0.15);
+    border-radius: 10px;
+  }
+
+  .score-num {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ff6b9d;
+    line-height: 1;
+  }
+
+  .score-lbl {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #5a5880;
+    display: block;
+    margin-top: 0.3rem;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: #7a7890;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .stat-row span:last-child {
+    color: #f0ece4;
+    font-family: 'Syne Mono', monospace;
+  }
+
+  .insight-box {
+    background: rgba(255, 107, 157, 0.06);
+    border: 1px solid rgba(255, 107, 157, 0.15);
+    border-left: 3px solid #ff6b9d;
+    border-radius: 0 8px 8px 0;
+    padding: 1rem;
+    flex-shrink: 0;
+  }
+  .ins-label {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #ff6b9d;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+  .insight-box p {
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: #9a9898;
+    font-style: italic;
+  }
+
+  /* Main area */
+  .main-area {
+    padding: 2rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .experiment-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #f8f4ec;
+    margin-bottom: 0.3rem;
+  }
+
+  .experiment-desc {
+    font-size: 0.82rem;
+    color: #5a5880;
+    line-height: 1.55;
+    margin-bottom: 1.2rem;
+  }
+
+  /* Noise experiment */
+  .noise-wrap {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: crosshair;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  #noise-canvas {
+    display: block;
+    width: 100%;
+  }
+
+  .click-counter {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(0,0,0,0.7);
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.75rem;
+    color: #ff6b9d;
+    backdrop-filter: blur(8px);
+  }
+
+  .noise-reveal-btn {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    background: rgba(255, 107, 157, 0.15);
+    border: 1px solid rgba(255, 107, 157, 0.3);
+    color: #ff6b9d;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: all 0.15s;
+  }
+  .noise-reveal-btn:hover { background: rgba(255, 107, 157, 0.3); }
+
+  /* Coin flip test */
+  .coin-test {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 1.5rem;
+  }
+
+  .coin-sequence {
+    font-family: 'Syne Mono', monospace;
+    font-size: 1.2rem;
+    letter-spacing: 0.2em;
+    color: #f0ece4;
+    margin: 0.8rem 0;
+    min-height: 2rem;
+    word-break: break-all;
+    line-height: 1.8;
+  }
+
+  .seq-H { color: #60c0ff; }
+  .seq-T { color: #ff9060; }
+
+  .coin-controls {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .coin-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: #f0ece4;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .coin-btn:hover { background: rgba(255,255,255,0.1); }
+  .coin-btn.go { background: rgba(255, 107, 157, 0.2); border-color: rgba(255, 107, 157, 0.4); color: #ff6b9d; }
+  .coin-btn.go:hover { background: rgba(255, 107, 157, 0.35); }
+
+  .coin-analysis {
+    margin-top: 1rem;
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.75rem;
+    color: #7a7890;
+    line-height: 1.8;
+  }
+  .coin-analysis .highlight { color: #ff6b9d; }
+  .coin-analysis .good { color: #60c0a0; }
+
+  /* Face in noise */
+  .grid-section {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .noise-tile {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .noise-tile:hover { border-color: rgba(255, 107, 157, 0.4); }
+  .noise-tile.has-signal { border-color: rgba(96, 192, 160, 0.5) !important; }
+
+  .noise-tile canvas {
+    display: block;
+    width: 100%;
+  }
+
+  .tile-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.85);
+    padding: 0.4rem 0.5rem;
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.62rem;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+    color: #f0ece4;
+  }
+  .noise-tile:hover .tile-overlay { opacity: 1; }
+
+  .find-signal-instruction {
+    font-size: 0.78rem;
+    color: #5a5880;
+    font-style: italic;
+    margin-bottom: 0.8rem;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+  <aside class="left-rail">
+    <a href="index.html" class="nav-back">← Horizon v5</a>
+
+    <div>
+      <div class="eyebrow">Cognitive Bias</div>
+      <h1>Apophenia</h1>
+      <p class="desc">The tendency to perceive meaningful connections between unrelated things. Your brain is a pattern-finding machine — and it can't turn off.</p>
+    </div>
+
+    <div>
+      <div class="section-label">Your Pattern Score</div>
+      <div class="score-display">
+        <div class="score-num" id="pattern-score">0</div>
+        <span class="score-lbl">patterns found</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Session Stats</div>
+      <div class="stat-row"><span>Noise clicks</span><span id="st-noise">0</span></div>
+      <div class="stat-row"><span>Coin runs spotted</span><span id="st-runs">0</span></div>
+      <div class="stat-row"><span>Signal tiles found</span><span id="st-signal">0</span></div>
+      <div class="stat-row"><span>Correct guesses</span><span id="st-correct">—</span></div>
+    </div>
+
+    <div>
+      <div class="section-label">Why This Happens</div>
+      <p style="font-size:0.78rem; line-height:1.65; color:#7a7890; font-weight:400;">A false positive (seeing a pattern that isn't there) cost our ancestors almost nothing. A false negative (missing a predator in the bushes) cost them everything. Evolution tuned the dial toward over-detection.</p>
+    </div>
+
+    <div class="insight-box" style="margin-top:auto;">
+      <span class="ins-label">The Reframe</span>
+      <p>Apophenia isn't a malfunction — it's the engine of both superstition and science. Conspiracy theories and scientific hypotheses both start with the same cognitive act: "these things are connected." The difference is what you do next.</p>
+    </div>
+  </aside>
+
+  <main class="main-area">
+    <!-- Exp 1: Click the noise -->
+    <div>
+      <div class="experiment-title">Experiment 1 — Click Where You See a Pattern</div>
+      <p class="experiment-desc">This canvas is pure random noise. Click anywhere you perceive a shape, face, symbol, or pattern. There are none — but your visual cortex will find them anyway.</p>
+      <div class="noise-wrap">
+        <canvas id="noise-canvas" width="700" height="280"></canvas>
+        <div class="click-counter" id="click-count">0 patterns</div>
+        <button class="noise-reveal-btn" onclick="regenerateNoise()">New Noise</button>
+      </div>
+      <div id="noise-result" style="margin-top:0.6rem; font-family:'Syne Mono',monospace; font-size:0.72rem; color:#5a5880; height:1.2rem;"></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Exp 2: The Gambler's Fallacy in real time -->
+    <div>
+      <div class="experiment-title">Experiment 2 — Is This a Fair Coin?</div>
+      <p class="experiment-desc">Two sequences below — one is truly random, one was designed by a human trying to look random. Which looks "more random"? Click Reveal to see the truth.</p>
+
+      <div class="coin-test">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+          <div>
+            <div style="font-family:'Syne Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; color:#5a5880; margin-bottom:0.4rem;">SEQUENCE A</div>
+            <div class="coin-sequence" id="seq-A"></div>
+          </div>
+          <div>
+            <div style="font-family:'Syne Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; color:#5a5880; margin-bottom:0.4rem;">SEQUENCE B</div>
+            <div class="coin-sequence" id="seq-B"></div>
+          </div>
+        </div>
+        <div class="coin-analysis" id="coin-analysis"></div>
+        <div class="coin-controls">
+          <button class="coin-btn" onclick="generateSequences()">New Sequences</button>
+          <button class="coin-btn go" onclick="revealSequences()" id="reveal-btn">Reveal</button>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Exp 3: Signal in the noise grid -->
+    <div>
+      <div class="experiment-title">Experiment 3 — Find the Signal</div>
+      <p class="find-signal-instruction">One of these 8 tiles contains a faint hidden shape embedded in the noise. Click what you think contains the signal. Hover to check.</p>
+      <div class="grid-section" id="signal-grid"></div>
+      <div id="grid-result" style="margin-top:0.8rem; font-family:'Syne Mono',monospace; font-size:0.75rem; height:1.5rem; color:#5a5880;"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+let noiseClicks = 0, runsSpotted = 0, signalFound = 0, correctGuesses = 0;
+let seqReveal = null;
+let signalTile = -1;
+let gridRevealed = false;
+let patternScore = 0;
+
+function updateScore() {
+  patternScore = noiseClicks + runsSpotted + signalFound;
+  document.getElementById('pattern-score').textContent = patternScore;
+  document.getElementById('st-noise').textContent = noiseClicks;
+  document.getElementById('st-runs').textContent = runsSpotted;
+  document.getElementById('st-signal').textContent = signalFound;
+  document.getElementById('st-correct').textContent = correctGuesses > 0 ? correctGuesses : '—';
+}
+
+// Experiment 1: noise
+const noiseCanvas = document.getElementById('noise-canvas');
+const noiseCtx = noiseCanvas.getContext('2d');
+const clickDots = [];
+
+function generateNoise() {
+  const W = noiseCanvas.width, H = noiseCanvas.height;
+  const img = noiseCtx.createImageData(W, H);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = Math.random() * 255;
+    img.data[i] = v * 0.3;
+    img.data[i+1] = v * 0.25;
+    img.data[i+2] = v * 0.4;
+    img.data[i+3] = 255;
+  }
+  noiseCtx.putImageData(img, 0, 0);
+}
+
+function regenerateNoise() {
+  clickDots.length = 0;
+  generateNoise();
+  document.getElementById('noise-result').textContent = '';
+}
+
+function redrawNoise() {
+  generateNoise();
+  clickDots.forEach(d => {
+    noiseCtx.beginPath();
+    noiseCtx.arc(d.x, d.y, 8, 0, Math.PI*2);
+    noiseCtx.strokeStyle = '#ff6b9d';
+    noiseCtx.lineWidth = 2;
+    noiseCtx.stroke();
+    noiseCtx.beginPath();
+    noiseCtx.arc(d.x, d.y, 2, 0, Math.PI*2);
+    noiseCtx.fillStyle = '#ff6b9d';
+    noiseCtx.fill();
+  });
+}
+
+noiseCanvas.addEventListener('click', (e) => {
+  const rect = noiseCanvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (noiseCanvas.width / rect.width);
+  const y = (e.clientY - rect.top) * (noiseCanvas.height / rect.height);
+  clickDots.push({ x, y });
+  noiseClicks++;
+  document.getElementById('click-count').textContent = noiseClicks + ' pattern' + (noiseClicks !== 1 ? 's' : '');
+  redrawNoise();
+  updateScore();
+  
+  const quips = [
+    'Your visual cortex is working overtime.',
+    'No pattern — but you saw one anyway.',
+    'Pareidolia confirmed.',
+    'The brain finds what it seeks.',
+    'Completely random. Your click was not.',
+    'There is nothing there. You knew that.'
+  ];
+  document.getElementById('noise-result').textContent = quips[noiseClicks % quips.length];
+});
+
+generateNoise();
+
+// Experiment 2: Coin sequences
+let trueRandomIdx = -1;
+
+function generateSequences() {
+  seqReveal = null;
+  document.getElementById('reveal-btn').textContent = 'Reveal';
+  document.getElementById('coin-analysis').innerHTML = '';
+  
+  // Generate truly random sequence
+  const trueRandom = Array.from({length: 30}, () => Math.random() < 0.5 ? 'H' : 'T');
+  
+  // Generate "human random" — avoid long runs, slightly alternating
+  const humanRandom = [];
+  let lastFlip = null, runLen = 0;
+  for (let i = 0; i < 30; i++) {
+    let bias = 0.5;
+    if (lastFlip === 'H' && runLen >= 2) bias = 0.65; // avoid runs
+    if (lastFlip === 'T' && runLen >= 2) bias = 0.35;
+    const flip = Math.random() < bias ? 'H' : 'T';
+    humanRandom.push(flip);
+    if (flip === lastFlip) runLen++; else runLen = 1;
+    lastFlip = flip;
+  }
+  
+  trueRandomIdx = Math.random() < 0.5 ? 0 : 1; // 0 = A is true random, 1 = B is true random
+  
+  const seqA = trueRandomIdx === 0 ? trueRandom : humanRandom;
+  const seqB = trueRandomIdx === 1 ? trueRandom : humanRandom;
+  
+  seqReveal = { trueRandomIdx, seqA, seqB, trueRandom, humanRandom };
+  
+  renderSeq('seq-A', seqA);
+  renderSeq('seq-B', seqB);
+}
+
+function renderSeq(id, seq) {
+  const el = document.getElementById(id);
+  el.innerHTML = seq.map(c => `<span class="seq-${c}">${c}</span>`).join(' ');
+}
+
+function revealSequences() {
+  if (!seqReveal) { generateSequences(); return; }
+  
+  const { trueRandomIdx, seqA, seqB } = seqReveal;
+  document.getElementById('reveal-btn').textContent = 'New Round';
+  seqReveal = null;
+  
+  // Count max run in each
+  function maxRun(seq) {
+    let max = 1, run = 1;
+    for (let i = 1; i < seq.length; i++) {
+      if (seq[i] === seq[i-1]) { run++; max = Math.max(max, run); }
+      else run = 1;
+    }
+    return max;
+  }
+  
+  function countRuns(seq) {
+    let runs = 1;
+    for (let i = 1; i < seq.length; i++) if (seq[i] !== seq[i-1]) runs++;
+    return runs;
+  }
+  
+  const realLabel = trueRandomIdx === 0 ? 'A' : 'B';
+  const humanLabel = trueRandomIdx === 0 ? 'B' : 'A';
+  const realSeq = trueRandomIdx === 0 ? seqA : seqB;
+  const humSeq = trueRandomIdx === 0 ? seqB : seqA;
+  
+  document.getElementById('coin-analysis').innerHTML = `
+<span class="highlight">Sequence ${realLabel}</span> was truly random | <span class="good">Sequence ${humanLabel}</span> was human-made
+
+True random: longest run = <span class="highlight">${maxRun(realSeq)}</span>, alternations = ${countRuns(realSeq)}
+Human-made: longest run = <span class="highlight">${maxRun(humSeq)}</span>, alternations = ${countRuns(humSeq)}
+
+<span style="color:#9a9898; font-style:italic;">Truly random sequences have longer runs (≥4-5 in 30 flips is expected).
+Human "random" sequences avoid long runs — which is itself a pattern.</span>`;
+  
+  runsSpotted++;
+  updateScore();
+}
+
+generateSequences();
+
+// Experiment 3: Signal in noise grid
+function buildSignalGrid() {
+  const container = document.getElementById('signal-grid');
+  container.innerHTML = '';
+  gridRevealed = false;
+  document.getElementById('grid-result').textContent = '';
+  
+  signalTile = Math.floor(Math.random() * 8);
+  
+  for (let i = 0; i < 8; i++) {
+    const tile = document.createElement('div');
+    tile.className = 'noise-tile';
+    const c = document.createElement('canvas');
+    c.width = 120; c.height = 120;
+    tile.appendChild(c);
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'tile-overlay';
+    overlay.textContent = i === signalTile ? '◉ Signal embedded' : '○ Pure noise';
+    tile.appendChild(overlay);
+    
+    drawNoiseCanvas(c, i === signalTile);
+    
+    tile.onclick = () => selectTile(i, tile);
+    container.appendChild(tile);
+  }
+}
+
+function drawNoiseCanvas(canvas, withSignal) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const img = ctx.createImageData(W, H);
+  
+  // Noise layer
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = Math.floor(Math.random() * 120);
+    img.data[i] = v;
+    img.data[i+1] = v;
+    img.data[i+2] = v + 30;
+    img.data[i+3] = 255;
+  }
+  
+  // Embed faint circle signal
+  if (withSignal) {
+    const cx = W/2 + (Math.random()-0.5)*20;
+    const cy = H/2 + (Math.random()-0.5)*20;
+    const r = 25 + Math.random()*10;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const d = Math.sqrt((x-cx)**2 + (y-cy)**2);
+        if (Math.abs(d - r) < 2.5) {
+          const idx = (y * W + x) * 4;
+          img.data[idx] = Math.min(255, img.data[idx] + 40);
+          img.data[idx+1] = Math.min(255, img.data[idx+1] + 20);
+          img.data[idx+2] = Math.min(255, img.data[idx+2] + 10);
+        }
+      }
+    }
+  }
+  
+  ctx.putImageData(img, 0, 0);
+}
+
+function selectTile(idx, tile) {
+  if (gridRevealed) {
+    buildSignalGrid();
+    return;
+  }
+  gridRevealed = true;
+  
+  const correct = idx === signalTile;
+  if (correct) {
+    tile.classList.add('has-signal');
+    signalFound++;
+    correctGuesses++;
+    document.getElementById('grid-result').textContent = '✓ You found the signal! (Click grid to try again)';
+    document.getElementById('grid-result').style.color = '#60c0a0';
+  } else {
+    document.getElementById('grid-result').textContent = `✗ Signal was in tile ${signalTile + 1}. (Click grid to try again)`;
+    document.getElementById('grid-result').style.color = '#ff6b9d';
+    // Show the real signal tile
+    const tiles = document.querySelectorAll('.noise-tile');
+    tiles[signalTile].classList.add('has-signal');
+  }
+  
+  // Show all overlays
+  document.querySelectorAll('.tile-overlay').forEach(o => o.style.opacity = '1');
+  updateScore();
+}
+
+buildSignalGrid();
+</script>
+</body>
+</html>

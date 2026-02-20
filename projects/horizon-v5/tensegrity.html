@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tensegrity — Floating in Compression</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #faf7f2;
+    color: #1a1712;
+    font-family: 'Barlow', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    border-bottom: 2px solid #1a1712;
+    flex-shrink: 0;
+    background: #faf7f2;
+    z-index: 10;
+  }
+
+  .left-group {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .nav-back {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+    text-decoration: none;
+  }
+  .nav-back:hover { color: #e05020; }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    letter-spacing: 0.04em;
+    color: #1a1712;
+    line-height: 1;
+  }
+
+  .tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #e05020;
+    background: rgba(224, 80, 32, 0.1);
+    padding: 0.25rem 0.6rem;
+    border-radius: 3px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .stress-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: #e05020;
+    letter-spacing: 0.05em;
+  }
+
+  .stress-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #aaa;
+    display: block;
+    line-height: 1;
+    margin-top: -0.1rem;
+  }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  #sim-canvas {
+    flex: 1;
+    display: block;
+    cursor: grab;
+    background: #faf7f2;
+  }
+  #sim-canvas:active { cursor: grabbing; }
+
+  .side-panel {
+    width: 280px;
+    border-left: 2px solid #1a1712;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow-y: auto;
+    background: #faf7f2;
+    flex-shrink: 0;
+  }
+
+  .panel-section {
+    border-bottom: 1px solid #e8e0d8;
+    padding-bottom: 1.5rem;
+  }
+  .panel-section:last-child { border-bottom: none; }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+    color: #1a1712;
+    margin-bottom: 0.8rem;
+  }
+
+  .info-text {
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: #5a5450;
+    font-weight: 300;
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: 2px solid #1a1712;
+    background: transparent;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #1a1712;
+    margin-bottom: 0.5rem;
+    text-align: left;
+  }
+  .btn:hover {
+    background: #1a1712;
+    color: #faf7f2;
+  }
+  .btn.active {
+    background: #e05020;
+    border-color: #e05020;
+    color: white;
+  }
+
+  .slider-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 2px;
+    background: #d0c8c0;
+    outline: none;
+    border-radius: 2px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #e05020;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .insight-box {
+    background: #1a1712;
+    color: #faf7f2;
+    padding: 1.2rem;
+    border-radius: 4px;
+  }
+  .insight-box .ins-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #e05020;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .insight-box p {
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: #c8bfb0;
+    font-style: italic;
+    font-weight: 300;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="left-group">
+    <a href="index.html" class="nav-back">← Horizon v5</a>
+    <h1>Tensegrity</h1>
+    <span class="tag">Structural Engineering</span>
+  </div>
+  <div class="topbar-right">
+    <div>
+      <span class="stress-display" id="stress-val">0%</span>
+      <span class="stress-label">System Stress</span>
+    </div>
+    <div>
+      <span class="stress-display" id="node-count">0</span>
+      <span class="stress-label">Nodes</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <canvas id="sim-canvas"></canvas>
+
+  <aside class="side-panel">
+    <div class="panel-section">
+      <div class="section-title">How It Works</div>
+      <p class="info-text">In tensegrity, rigid struts float in a web of continuous tension. No strut touches another — yet the whole structure is rigid. Buckminster Fuller's insight: compression islands in a sea of tension.</p>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-title">Structures</div>
+      <button class="btn active" onclick="loadStructure('simplex')" id="btn-simplex">3-Strut Simplex</button>
+      <button class="btn" onclick="loadStructure('prism')" id="btn-prism">Tensegrity Prism</button>
+      <button class="btn" onclick="loadStructure('needle')" id="btn-needle">Needle Tower</button>
+      <button class="btn" onclick="loadStructure('body')" id="btn-body">Biotensegrity (Spine)</button>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-title">Parameters</div>
+      <div class="slider-row">
+        <div class="slider-label"><span>Tension</span><span id="tension-val">0.4</span></div>
+        <input type="range" id="tension" min="0.1" max="1.0" step="0.05" value="0.4" oninput="updateParams()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label"><span>Gravity</span><span id="gravity-val">0.3</span></div>
+        <input type="range" id="gravity" min="0" max="1" step="0.05" value="0.3" oninput="updateParams()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label"><span>Damping</span><span id="damping-val">0.85</span></div>
+        <input type="range" id="damping" min="0.5" max="0.99" step="0.01" value="0.85" oninput="updateParams()">
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <p class="info-text" style="font-style:italic; color:#888;">Drag any node to stress the structure. Watch how tension redistributes globally — no local failure.</p>
+    </div>
+
+    <div class="insight-box">
+      <span class="ins-label">The Reframe</span>
+      <p>Your skeleton is a tensegrity structure. Bones don't stack like bricks — they float in a continuous web of fascia and muscle tension. This is why posture is a whole-body phenomenon, not a local one.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+const canvas = document.getElementById('sim-canvas');
+const ctx = canvas.getContext('2d');
+
+let nodes = [];
+let struts = []; // compression (rigid) {a, b, restLength}
+let cables = []; // tension (elastic) {a, b, restLength, stiffness}
+let dragging = null;
+let dragOffX = 0, dragOffY = 0;
+let tension = 0.4;
+let gravity = 0.3;
+let damping = 0.85;
+
+function resize() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+
+function createNode(x, y, pinned = false) {
+  return { x, y, vx: 0, vy: 0, pinned, fx: 0, fy: 0 };
+}
+
+// STRUCTURES
+
+function loadStructure(type) {
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + type).classList.add('active');
+
+  nodes = []; struts = []; cables = [];
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+
+  if (type === 'simplex') {
+    // 3-strut tensegrity simplex
+    const R = Math.min(W, H) * 0.22;
+    const top = [
+      createNode(cx + R * Math.cos(-Math.PI/2), cy + R * 0.3 * Math.sin(-Math.PI/2) - R*0.5),
+      createNode(cx + R * Math.cos(-Math.PI/2 + 2*Math.PI/3), cy + R * 0.3 * Math.sin(-Math.PI/2 + 2*Math.PI/3) - R*0.5),
+      createNode(cx + R * Math.cos(-Math.PI/2 + 4*Math.PI/3), cy + R * 0.3 * Math.sin(-Math.PI/2 + 4*Math.PI/3) - R*0.5),
+    ];
+    const bot = [
+      createNode(cx + R * 0.8 * Math.cos(-Math.PI/2 + Math.PI/3), cy + R * 0.3 * Math.sin(-Math.PI/2 + Math.PI/3) + R*0.5),
+      createNode(cx + R * 0.8 * Math.cos(-Math.PI/2 + Math.PI), cy + R * 0.3 * Math.sin(-Math.PI/2 + Math.PI) + R*0.5),
+      createNode(cx + R * 0.8 * Math.cos(-Math.PI/2 + 5*Math.PI/3), cy + R * 0.3 * Math.sin(-Math.PI/2 + 5*Math.PI/3) + R*0.5),
+    ];
+    // Fix bottom nodes
+    bot.forEach(n => n.pinned = false);
+    nodes = [...top, ...bot];
+    
+    // Struts (compression): connect top[i] to bot[i]
+    for (let i = 0; i < 3; i++) {
+      struts.push({ a: i, b: i + 3, restLength: dist(nodes[i], nodes[i+3]) });
+    }
+    // Cables (tension): top ring + bottom ring + cross-connections
+    for (let i = 0; i < 3; i++) {
+      cables.push({ a: i, b: (i+1)%3, restLength: dist(nodes[i], nodes[(i+1)%3]) * 0.9, stiffness: 1 });
+      cables.push({ a: i+3, b: ((i+1)%3)+3, restLength: dist(nodes[i+3], nodes[((i+1)%3)+3]) * 0.9, stiffness: 1 });
+      // Cross cables
+      cables.push({ a: i, b: ((i+1)%3)+3, restLength: dist(nodes[i], nodes[((i+1)%3)+3]) * 0.88, stiffness: 0.8 });
+    }
+
+  } else if (type === 'prism') {
+    const R = Math.min(W, H) * 0.2;
+    for (let layer = 0; layer < 3; layer++) {
+      const ly = cy + (layer - 1) * R * 1.1;
+      const offset = layer % 2 === 0 ? 0 : Math.PI/3;
+      for (let i = 0; i < 3; i++) {
+        const a = offset + (i / 3) * Math.PI * 2;
+        nodes.push(createNode(cx + R * Math.cos(a), ly + R * 0.3 * Math.sin(a)));
+      }
+    }
+    // Struts: vertical connections (skipped by 1)
+    for (let i = 0; i < 3; i++) {
+      struts.push({ a: i, b: i + 3 + ((i+1)%3) - i, restLength: 0 });
+    }
+    // Redo properly
+    struts = [];
+    for (let i = 0; i < 3; i++) {
+      struts.push({ a: i, b: 3 + (i+1)%3, restLength: dist(nodes[i], nodes[3 + (i+1)%3]) });
+      struts.push({ a: 3+i, b: 6 + (i+2)%3, restLength: dist(nodes[3+i], nodes[6 + (i+2)%3]) });
+    }
+    // Cables: rings
+    for (let layer = 0; layer < 3; layer++) {
+      for (let i = 0; i < 3; i++) {
+        const a = layer*3+i, b = layer*3+(i+1)%3;
+        cables.push({ a, b, restLength: dist(nodes[a], nodes[b]) * 0.9, stiffness: 1 });
+      }
+    }
+    // Vertical cables
+    for (let i = 0; i < 3; i++) {
+      cables.push({ a: i, b: 3+i, restLength: dist(nodes[i], nodes[3+i]) * 0.9, stiffness: 0.7 });
+      cables.push({ a: 3+i, b: 6+i, restLength: dist(nodes[3+i], nodes[6+i]) * 0.9, stiffness: 0.7 });
+    }
+
+  } else if (type === 'needle') {
+    // Vertical needle tower with 4 stacked modules
+    const levels = 5;
+    const R = 80, H2 = canvas.height * 0.7;
+    const startY = cy - H2/2;
+    for (let l = 0; l < levels; l++) {
+      const ly = startY + (l / (levels-1)) * H2;
+      const twist = l * Math.PI / 4;
+      nodes.push(createNode(cx + R * Math.cos(twist), ly));
+      nodes.push(createNode(cx + R * Math.cos(twist + 2*Math.PI/3), ly));
+      nodes.push(createNode(cx + R * Math.cos(twist + 4*Math.PI/3), ly));
+    }
+    for (let l = 0; l < levels - 1; l++) {
+      // Struts
+      for (let i = 0; i < 3; i++) {
+        struts.push({ a: l*3+i, b: (l+1)*3+(i+1)%3, restLength: dist(nodes[l*3+i], nodes[(l+1)*3+(i+1)%3]) });
+      }
+      // Cables
+      for (let i = 0; i < 3; i++) {
+        cables.push({ a: l*3+i, b: l*3+(i+1)%3, restLength: dist(nodes[l*3+i], nodes[l*3+(i+1)%3])*0.9, stiffness: 1 });
+        cables.push({ a: l*3+i, b: (l+1)*3+i, restLength: dist(nodes[l*3+i], nodes[(l+1)*3+i])*0.9, stiffness: 0.7 });
+      }
+    }
+    // Ring at top
+    for (let i = 0; i < 3; i++) {
+      cables.push({ a: (levels-1)*3+i, b: (levels-1)*3+(i+1)%3, restLength: dist(nodes[(levels-1)*3+i], nodes[(levels-1)*3+(i+1)%3])*0.9, stiffness: 1 });
+    }
+    nodes[0].pinned = true;
+    nodes[1].pinned = true;
+    nodes[2].pinned = true;
+
+  } else if (type === 'body') {
+    // Simplified biotensegrity: spine with ribs
+    const cols = 5;
+    const spacing = Math.min(W, H) / 7;
+    // Vertebrae as compression elements, discs as tension
+    for (let i = 0; i < cols; i++) {
+      const x = cx + (i - 2) * spacing;
+      nodes.push(createNode(x, cy - spacing)); // top
+      nodes.push(createNode(x, cy)); // middle
+      nodes.push(createNode(x, cy + spacing)); // bottom
+    }
+    // Rib cable arcs
+    for (let i = 0; i < cols; i++) {
+      struts.push({ a: i*3, b: i*3+2, restLength: dist(nodes[i*3], nodes[i*3+2]) });
+    }
+    for (let i = 0; i < cols-1; i++) {
+      cables.push({ a: i*3+1, b: (i+1)*3+1, restLength: dist(nodes[i*3+1], nodes[(i+1)*3+1])*0.9, stiffness: 0.9 });
+      cables.push({ a: i*3, b: (i+1)*3, restLength: dist(nodes[i*3], nodes[(i+1)*3])*0.9, stiffness: 0.7 });
+      cables.push({ a: i*3+2, b: (i+1)*3+2, restLength: dist(nodes[i*3+2], nodes[(i+1)*3+2])*0.9, stiffness: 0.7 });
+      cables.push({ a: i*3, b: (i+1)*3+2, restLength: dist(nodes[i*3], nodes[(i+1)*3+2])*0.88, stiffness: 0.5 });
+      cables.push({ a: i*3+2, b: (i+1)*3, restLength: dist(nodes[i*3+2], nodes[(i+1)*3])*0.88, stiffness: 0.5 });
+    }
+    // Fix leftmost nodes
+    nodes[0].pinned = true;
+    nodes[2].pinned = true;
+  }
+
+  // Fix up any zero rest lengths
+  struts.forEach(s => { if (!s.restLength) s.restLength = dist(nodes[s.a], nodes[s.b]); });
+  
+  document.getElementById('node-count').textContent = nodes.length;
+}
+
+function dist(a, b) {
+  return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
+}
+
+function updateParams() {
+  tension = parseFloat(document.getElementById('tension').value);
+  gravity = parseFloat(document.getElementById('gravity').value);
+  damping = parseFloat(document.getElementById('damping').value);
+  document.getElementById('tension-val').textContent = tension.toFixed(2);
+  document.getElementById('gravity-val').textContent = gravity.toFixed(2);
+  document.getElementById('damping-val').textContent = damping.toFixed(2);
+}
+
+function simulate() {
+  // Reset forces
+  nodes.forEach(n => { n.fx = 0; n.fy = gravity * 0.4; });
+
+  // Cable forces (only pull when stretched)
+  let totalStress = 0;
+  for (const c of cables) {
+    const a = nodes[c.a], b = nodes[c.b];
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if (d < 0.001) continue;
+    const stretch = d - c.restLength;
+    if (stretch > 0) {
+      const f = tension * c.stiffness * stretch;
+      totalStress += Math.abs(f);
+      const nx = dx/d, ny = dy/d;
+      if (!a.pinned) { a.fx += f * nx; a.fy += f * ny; }
+      if (!b.pinned) { b.fx -= f * nx; b.fy -= f * ny; }
+    }
+  }
+
+  // Strut forces (push apart)
+  for (const s of struts) {
+    const a = nodes[s.a], b = nodes[s.b];
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if (d < 0.001) continue;
+    const compression = s.restLength - d;
+    if (compression > 0) {
+      const f = 0.8 * compression;
+      totalStress += Math.abs(f);
+      const nx = dx/d, ny = dy/d;
+      if (!a.pinned) { a.fx -= f * nx * 1.5; a.fy -= f * ny * 1.5; }
+      if (!b.pinned) { b.fx += f * nx * 1.5; b.fy += f * ny * 1.5; }
+    }
+  }
+
+  // Update positions
+  const maxStress = Math.max(1, cables.length * 10);
+  const stressPct = Math.min(100, Math.round(totalStress / maxStress * 100));
+  document.getElementById('stress-val').textContent = stressPct + '%';
+
+  nodes.forEach(n => {
+    if (n === dragging || n.pinned) return;
+    n.vx = (n.vx + n.fx) * damping;
+    n.vy = (n.vy + n.fy) * damping;
+    n.x += n.vx;
+    n.y += n.vy;
+    // Boundary
+    n.x = Math.max(20, Math.min(canvas.width - 20, n.x));
+    n.y = Math.max(20, Math.min(canvas.height - 20, n.y));
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw cables (tension - thin lines)
+  for (const c of cables) {
+    const a = nodes[c.a], b = nodes[c.b];
+    const d = dist(a, b);
+    const stretch = Math.max(0, d - c.restLength) / c.restLength;
+    const alpha = 0.3 + Math.min(stretch, 1) * 0.5;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = `rgba(80, 100, 180, ${alpha})`;
+    ctx.lineWidth = 1 + stretch * 2;
+    ctx.stroke();
+  }
+
+  // Draw struts (compression - thick bold lines)
+  for (const s of struts) {
+    const a = nodes[s.a], b = nodes[s.b];
+    const d = dist(a, b);
+    const compression = Math.max(0, s.restLength - d) / s.restLength;
+    
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    // Gradient effect
+    const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    grad.addColorStop(0, 'rgba(26, 23, 18, 0.9)');
+    grad.addColorStop(0.5, `rgba(224, 80, 32, ${0.3 + compression * 0.7})`);
+    grad.addColorStop(1, 'rgba(26, 23, 18, 0.9)');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 8;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    // Outer glow
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = `rgba(26, 23, 18, 0.15)`;
+    ctx.lineWidth = 12;
+    ctx.stroke();
+  }
+
+  // Draw nodes
+  nodes.forEach((n, i) => {
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n === dragging ? 10 : n.pinned ? 8 : 6, 0, Math.PI*2);
+    ctx.fillStyle = n.pinned ? '#1a1712' : n === dragging ? '#e05020' : '#faf7f2';
+    ctx.fill();
+    ctx.strokeStyle = '#1a1712';
+    ctx.lineWidth = n === dragging ? 3 : 1.5;
+    ctx.stroke();
+  });
+}
+
+function loop() {
+  simulate();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// Mouse interaction
+canvas.addEventListener('mousedown', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  let closest = null, minD = 25;
+  nodes.forEach(n => {
+    const d = Math.sqrt((n.x-mx)**2 + (n.y-my)**2);
+    if (d < minD) { minD = d; closest = n; }
+  });
+  if (closest && !closest.pinned) {
+    dragging = closest;
+    canvas.style.cursor = 'grabbing';
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!dragging) return;
+  const rect = canvas.getBoundingClientRect();
+  dragging.x = e.clientX - rect.left;
+  dragging.y = e.clientY - rect.top;
+  dragging.vx = 0; dragging.vy = 0;
+});
+
+canvas.addEventListener('mouseup', () => {
+  dragging = null;
+  canvas.style.cursor = 'grab';
+});
+
+window.addEventListener('resize', () => {
+  const prev = { w: canvas.width, h: canvas.height };
+  resize();
+  const sx = canvas.width / prev.w, sy = canvas.height / prev.h;
+  nodes.forEach(n => { n.x *= sx; n.y *= sy; });
+});
+
+resize();
+loadStructure('simplex');
+loop();
+</script>
+</body>
+</html>
