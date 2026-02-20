@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>TLH Partner Top-20 Sprint Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--navy:#0D3B66;--teal:#38B6B2;--purple:#A47EAF;--bg:#f7f9fc;--line:#e4e8ef;--text:#1f2937}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Lato,sans-serif}
+    .top{background:linear-gradient(100deg,var(--navy),#1b5684 55%,var(--teal));color:#fff;padding:22px 24px}
+    .top .row{max-width:1240px;margin:0 auto;display:flex;justify-content:space-between;align-items:end;gap:16px}
+    h1{margin:0;font-family:'Playfair Display',serif;font-size:2rem}
+    .sub{opacity:.9;font-size:.9rem;margin-top:6px}
+    .wrap{max-width:1240px;margin:18px auto;padding:0 16px 28px}
+    .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+    .k{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 4px 10px rgba(13,59,102,.08)}
+    .k .n{font-size:1.7rem;font-weight:900;color:var(--navy)} .k .l{font-size:.72rem;text-transform:uppercase;color:#6b7280}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    select,input{padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    .layout{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
+    .panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 4px 10px rgba(13,59,102,.06)}
+    h2{margin:2px 0 10px;font-size:1rem;color:var(--navy)}
+    table{width:100%;border-collapse:collapse;font-size:.82rem}
+    th,td{padding:8px;border-bottom:1px solid #eef2f7;text-align:left;vertical-align:top}
+    th{font-size:.68rem;text-transform:uppercase;color:#64748b;background:#f8fafc}
+    .chip{display:inline-block;padding:2px 7px;border-radius:999px;background:#e8fbfa;color:#0f766e;border:1px solid #8ee2db;font-size:.66rem}
+    .cadence{max-height:420px;overflow:auto}
+    .note{font-size:.75rem;color:#6b7280;margin-top:8px}
+    @media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="row"><div><h1>TLH Partner Top-20 Sprint</h1><div class="sub">OC-first local CRM draft · no-call outreach cadence · test mode</div></div><img src="https://www.truelegacyhomes.com/wp-content/uploads/2022/10/tlhLOGO.png" style="height:42px;filter:brightness(0) invert(1)"></div></header>
+  <main class="wrap">
+    <section class="kpis" id="kpis"></section>
+    <section class="controls">
+      <select id="typeFilter"><option value="all">All Partner Types</option></select>
+      <input id="q" placeholder="Search name/org..." />
+    </section>
+    <section class="layout">
+      <article class="panel">
+        <h2>Top-20 Draft Candidates</h2>
+        <div style="max-height:480px;overflow:auto"><table><thead><tr><th>Name</th><th>Org</th><th>Type</th><th>Score</th><th>Contact</th><th>Notes</th></tr></thead><tbody id="rows"></tbody></table></div>
+      </article>
+      <article class="panel">
+        <h2>No-Call Cadence Plan</h2>
+        <div class="cadence"><table><thead><tr><th>Partner</th><th>Day</th><th>Channel</th><th>Objective</th></tr></thead><tbody id="cadence"></tbody></table></div>
+        <div class="note">Cadence: Day 1 email · Day 2 LinkedIn · Day 4 postcard · Day 6 email · Day 9 LinkedIn · Day 11 text (if compliant) · Day 14 close-loop email.</div>
+      </article>
+    </section>
+  </main>
+
+<script>
+async function loadCSV(path){
+  const text = await (await fetch(path)).text();
+  const [h,...lines]=text.trim().split(/\r?\n/);
+  const headers=h.split(',');
+  return lines.map(l=>{const v=l.match(/("[^"]*"|[^,]+)/g)||[];const o={};headers.forEach((k,i)=>o[k]=((v[i]||'').replace(/^"|"$/g,'')));return o;});
+}
+function esc(s=''){return s.replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))}
+
+(async()=>{
+  const data=await loadCSV('oc_top20_draft_v1.csv');
+  const cadence=await loadCSV('oc_top20_cadence_v1.csv');
+  const typeFilter=document.getElementById('typeFilter');
+  const q=document.getElementById('q');
+  const rows=document.getElementById('rows');
+  const cad=document.getElementById('cadence');
+
+  const types=[...new Set(data.map(r=>r.partner_type).filter(Boolean))].sort();
+  types.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;typeFilter.appendChild(o)});
+
+  function render(){
+    const f=typeFilter.value, term=q.value.toLowerCase();
+    const filtered=data.filter(r=>(f==='all'||r.partner_type===f) && (`${r.name} ${r.org}`.toLowerCase().includes(term)));
+    rows.innerHTML=filtered.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.org)}</td><td><span class='chip'>${esc(r.partner_type)}</span></td><td>${esc(r.total_score||'')}</td><td>${esc(r.email||'')}<br>${esc(r.phone||'')}</td><td>${esc(r.notes||'')}</td></tr>`).join('');
+
+    const ids=new Set(filtered.map(r=>r.name));
+    const c2=cadence.filter(r=>ids.has(r.name));
+    cad.innerHTML=c2.slice(0,220).map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.touch_day)}</td><td>${esc(r.channel)}</td><td>${esc(r.objective)}</td></tr>`).join('');
+
+    const k=document.getElementById('kpis');
+    const missingEmail=filtered.filter(r=>!r.email).length;
+    const avg=(filtered.reduce((a,b)=>a+Number(b.total_score||0),0)/(filtered.length||1)).toFixed(1);
+    k.innerHTML=`
+      <div class='k'><div class='n'>${filtered.length}</div><div class='l'>Visible Candidates</div></div>
+      <div class='k'><div class='n'>${types.length}</div><div class='l'>Partner Types</div></div>
+      <div class='k'><div class='n'>${avg}</div><div class='l'>Avg Score</div></div>
+      <div class='k'><div class='n'>${missingEmail}</div><div class='l'>Missing Email</div></div>
+      <div class='k'><div class='n'>${c2.length}</div><div class='l'>Cadence Rows</div></div>`;
+  }
+
+  typeFilter.onchange=render; q.oninput=render; render();
+})();
+</script>
+</body>
+</html>
