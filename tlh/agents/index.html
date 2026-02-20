@@ -12,8 +12,7 @@
 .switch{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}.switch button{border:1px solid #cfd8e3;background:#fff;border-radius:999px;padding:6px 12px;font-size:.78rem;cursor:pointer}.switch button.active{background:var(--teal);color:#fff;border-color:var(--teal)}
 .section{margin-top:18px}.head{display:flex;align-items:center;gap:9px;margin-bottom:10px}.head h2{margin:0;font-size:1.02rem;text-transform:uppercase;letter-spacing:.45px}
 .bar{height:4px;width:34px;border-radius:3px}.t{background:var(--teal)}.p{background:var(--purple)}.n{background:var(--navy)}
-.collapse-btn{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:.72rem;cursor:pointer;color:#334155}
-.block{overflow:hidden;transition:max-height .25s ease}
+.block{overflow:visible}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,.06);padding:12px;cursor:pointer;transition:.2s}
 .card:hover{transform:translateY(-2px);border-color:var(--teal)} .line{font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
@@ -46,13 +45,15 @@ function render(){
  container.innerHTML=''; [...switcher.querySelectorAll('button')].forEach(b=>b.classList.toggle('active',b.dataset.v===view));
  sections.forEach(s=>{
   const sec=document.createElement('section'); sec.className='section';
-  sec.innerHTML=`<div class="head"><div class="bar t"></div><div class="bar p"></div><div class="bar n"></div><h2>${s.title}</h2><button class="collapse-btn">Collapse</button></div><div class="block"></div>`;
+  sec.innerHTML=`<div class="head"><div class="bar t"></div><div class="bar p"></div><div class="bar n"></div><h2>${s.title}</h2></div><div class="block"></div>`;
   const block=sec.querySelector('.block');
-  const showAgents=view==='agents'||view==='all'; const showTac=view==='tactics'||view==='all';
+  const showAgents=view==='agents'||view==='all';
+  const showTac=view==='tactics'||view==='all';
+  const showAcc=true;
   const agents=showAgents?`<div class="grid">${s.agents.map(c=>`<article class="card open"><div class="line">Agent</div><div class="name">${c[0]}</div><div class="owner">Owner(s): ${c[1]}</div><div class="mission"><b>Mission:</b> ${c[2]}</div><span class="pill ${statusClass(c[3])}">${c[3]}</span><div class="details"><ul>${c[4].map(x=>`<li>${x}</li>`).join('')}</ul></div></article>`).join('')}</div>`:'';
-  const tac=showTac?`<div class="panel tactics" style="margin-top:${showAgents?12:0}px"><div class="line" style="margin-bottom:8px">High-Level Tactics & Workflows</div><ul>${s.tactics.map(t=>`<li>${t}</li>`).join('')}</ul><div class="line" style="margin:12px 0 8px">Accountability</div><ul>${s.accountability.map(a=>`<li>${a}</li>`).join('')}</ul></div>`:'';
-  block.innerHTML=agents+tac; block.style.maxHeight=block.scrollHeight+120+'px';
-  sec.querySelector('.collapse-btn').onclick=()=>{ if(block.style.maxHeight==='0px'){block.style.maxHeight=block.scrollHeight+120+'px'; sec.querySelector('.collapse-btn').textContent='Collapse';} else {block.style.maxHeight='0px'; sec.querySelector('.collapse-btn').textContent='Expand';}};
+  const tac=showTac?`<div class="panel tactics" style="margin-top:${showAgents?12:0}px"><div class="line" style="margin-bottom:8px">High-Level Tactics & Workflows</div><ul>${s.tactics.map(t=>`<li>${t}</li>`).join('')}</ul></div>`:'';
+  const acc=showAcc?`<div class="panel tactics" style="margin-top:${(showAgents||showTac)?12:0}px"><div class="line" style="margin-bottom:8px">Accountability</div><ul>${s.accountability.map(a=>`<li>${a}</li>`).join('')}</ul></div>`:'';
+  block.innerHTML=agents+tac+acc;
   container.appendChild(sec);
  });
  document.querySelectorAll('.card').forEach(c=>c.onclick=()=>c.classList.toggle('open'));
