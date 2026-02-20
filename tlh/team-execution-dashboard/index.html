@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TLH Team Execution Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--teal:#38B6B2;--purple:#A47EAF;--navy:#0D3B66;--blue:#0F4676;--light:#F8F9FA;--line:#E5E5E5;--muted:#6B6B78}
+    body{font-family:Lato,sans-serif;background:var(--light);color:#333}
+    .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,.07)}
+    .kpi{border-left:4px solid var(--teal)}
+    .dot{width:10px;height:10px;border-radius:999px;display:inline-block}
+    .done{background:#16a34a}.wip{background:#f59e0b}.todo{background:#9ca3af}
+  </style>
+</head>
+<body>
+  <header class="bg-[#0D3B66] text-white px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="https://www.truelegacyhomes.com/wp-content/uploads/2022/10/tlhLOGO.png" class="h-10" style="filter:brightness(0) invert(1)">
+        <div>
+          <div class="font-black tracking-wide">TLH TEAM EXECUTION DASHBOARD</div>
+          <div class="text-xs opacity-80">Operator view: owners, priorities, blockers, ship list</div>
+        </div>
+      </div>
+      <a href="https://justinhart.biz/tlh/" class="text-sm text-teal-200">TLH Hub</a>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-6 space-y-6">
+    <section class="grid md:grid-cols-4 gap-4">
+      <div class="card p-4 kpi"><div class="text-xs text-gray-500">Critical this week</div><div class="text-3xl font-black" id="kpiCritical">5</div></div>
+      <div class="card p-4 kpi"><div class="text-xs text-gray-500">In Progress</div><div class="text-3xl font-black" id="kpiWip">0</div></div>
+      <div class="card p-4 kpi"><div class="text-xs text-gray-500">Completed</div><div class="text-3xl font-black" id="kpiDone">0</div></div>
+      <div class="card p-4 kpi"><div class="text-xs text-gray-500">Primary owners</div><div class="text-3xl font-black">8</div></div>
+    </section>
+
+    <section class="grid lg:grid-cols-3 gap-6">
+      <div class="card p-5 lg:col-span-2">
+        <h2 class="font-black text-xl mb-3">Owner Breakdown (Who does what)</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-left text-xs uppercase text-gray-500 border-b">
+              <tr><th class="py-2">Owner</th><th>Role</th><th>Current focus</th><th>Next action</th></tr>
+            </thead>
+            <tbody class="divide-y">
+              <tr><td class="py-2 font-bold">Paul</td><td>CEO</td><td>DealSignals / Left Main decisions</td><td>Confirm DealSignals active + data rights</td></tr>
+              <tr><td class="py-2 font-bold">Jeff</td><td>COO</td><td>Acquisition ops & close quality</td><td>Enforce “Two Checks” consult discipline</td></tr>
+              <tr><td class="py-2 font-bold">Justin</td><td>CMO</td><td>AI systems + reporting</td><td>Approve sprint priorities + unblock creds</td></tr>
+              <tr><td class="py-2 font-bold">Jamison</td><td>Sales / Consults</td><td>In-home conversion</td><td>Use consult checklist every appointment</td></tr>
+              <tr><td class="py-2 font-bold">Jonathan</td><td>Ops</td><td>Sales/ops handoff</td><td>Tighten follow-up SLA adherence</td></tr>
+              <tr><td class="py-2 font-bold">James</td><td>Field Ops</td><td>Execution quality</td><td>Feed close reasons back into CRM</td></tr>
+              <tr><td class="py-2 font-bold">Tran</td><td>IT/Admin</td><td>System support</td><td>Assist API/OAuth + infra access</td></tr>
+              <tr><td class="py-2 font-bold">Brett / Debbie</td><td>Content / Listings</td><td>Distribution consistency</td><td>Launch content + listing cadence</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <h2 class="font-black text-xl mb-3">Agent Coverage</h2>
+        <ul class="space-y-2 text-sm">
+          <li><span class="dot wip"></span> Maestro — partial</li>
+          <li><span class="dot done"></span> Beacon — live</li>
+          <li><span class="dot wip"></span> Scout — partial</li>
+          <li><span class="dot wip"></span> Grace — partial</li>
+          <li><span class="dot todo"></span> Penny — not built</li>
+          <li><span class="dot todo"></span> Lark — not built</li>
+          <li><span class="dot wip"></span> Ledger — partial</li>
+          <li><span class="dot wip"></span> Piper — partial</li>
+        </ul>
+        <a class="text-sm text-blue-700 mt-3 inline-block" href="https://justinhart.biz/tlh/agents/">Open full Agent Orchestra →</a>
+      </div>
+    </section>
+
+    <section class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-black text-xl">Execution Board (Knock-off list)</h2>
+        <button onclick="resetBoard()" class="text-xs px-2 py-1 border rounded">Reset</button>
+      </div>
+      <div id="board" class="grid md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+    </section>
+  </main>
+
+  <script>
+    const tasks=[
+      {id:'t1',owner:'Paul',prio:'P0',text:'Confirm DealSignals is active + accessible',status:'todo'},
+      {id:'t2',owner:'Ledger',prio:'P1',text:'Complete Google Ads OAuth and daily pull',status:'todo'},
+      {id:'t3',owner:'Grace',prio:'P1',text:'Inside-sales answer-rate baseline',status:'todo'},
+      {id:'t4',owner:'Scout',prio:'P1',text:'Top 20 probate attorneys (SD + OC)',status:'todo'},
+      {id:'t5',owner:'Piper',prio:'P1',text:'Export alumni list + launch referral sequence',status:'todo'},
+      {id:'t6',owner:'Grace',prio:'P2',text:'Stale-lead alert cron >7 days',status:'todo'},
+      {id:'t7',owner:'Jamison',prio:'P2',text:'Apply Two Checks checklist in every consult',status:'todo'},
+      {id:'t8',owner:'Lark',prio:'P2',text:'Review/listing cadence standardization',status:'todo'},
+      {id:'t9',owner:'Maestro',prio:'P2',text:'Weekly rollup format (Justin/Paul/ops)',status:'todo'}
+    ];
+    const saved=JSON.parse(localStorage.getItem('tlh_exec_board')||'{}');
+    tasks.forEach(t=>{if(saved[t.id])t.status=saved[t.id]});
+
+    function cls(s){return s==='done'?'done':s==='wip'?'wip':'todo'}
+    function render(){
+      const board=document.getElementById('board'); board.innerHTML='';
+      tasks.forEach(t=>{
+        const el=document.createElement('div'); el.className='border rounded-lg p-3 bg-white';
+        el.innerHTML=`<div class="flex justify-between items-center mb-2"><span class="text-xs font-bold px-2 py-1 rounded bg-gray-100">${t.prio}</span><span class="text-xs text-gray-500">${t.owner}</span></div>
+        <div class="text-sm font-semibold mb-3">${t.text}</div>
+        <div class="flex gap-2 text-xs">
+          <button data-s="todo" class="px-2 py-1 border rounded ${t.status==='todo'?'bg-gray-100':''}">Todo</button>
+          <button data-s="wip" class="px-2 py-1 border rounded ${t.status==='wip'?'bg-amber-100':''}">WIP</button>
+          <button data-s="done" class="px-2 py-1 border rounded ${t.status==='done'?'bg-green-100':''}">Done</button>
+          <span class="ml-auto dot ${cls(t.status)}"></span>
+        </div>`;
+        el.querySelectorAll('button').forEach(b=>b.onclick=()=>{t.status=b.dataset.s;persist();render()});
+        board.appendChild(el);
+      });
+      document.getElementById('kpiWip').textContent=tasks.filter(t=>t.status==='wip').length;
+      document.getElementById('kpiDone').textContent=tasks.filter(t=>t.status==='done').length;
+      document.getElementById('kpiCritical').textContent=tasks.filter(t=>t.prio==='P0'||t.prio==='P1').length;
+    }
+    function persist(){const o={};tasks.forEach(t=>o[t.id]=t.status);localStorage.setItem('tlh_exec_board',JSON.stringify(o));}
+    function resetBoard(){localStorage.removeItem('tlh_exec_board');location.reload()}
+    render();
+  </script>
+</body>
+</html>
