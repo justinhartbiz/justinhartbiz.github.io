@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{--teal:#38B6B2;--purple:#A47EAF;--navy:#0D3B66;--light:#F8F9FA;--line:#E5E5E5;--muted:#6B6B78}
+  :root{--status-new:#3b82f6;--status-t1:#f59e0b;--status-t2:#f97316;--status-t3:#8b5cf6;--status-partner:#16a34a;--status-pass:#6b7280}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--light);color:#333;font-family:Lato,sans-serif}
   .top{background:var(--navy);color:#fff;padding:14px 22px}
@@ -80,6 +81,7 @@
   .firm-name{font-weight:700;font-size:.88rem;color:#1e293b}
   .firm-sub{font-size:.7rem;color:var(--teal);font-weight:700;margin-top:1px}
   .firm-addr{font-size:.73rem;color:#475569;margin-top:3px;line-height:1.45}
+  .firm-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
   .rpill{display:inline-flex;align-items:center;gap:3px;font-size:.74rem;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:20px;padding:2px 8px;white-space:nowrap}
   .kws{display:flex;flex-wrap:wrap;gap:3px}
@@ -94,6 +96,30 @@
   
   .city-view{display:none}
   .city-view.active{display:block}
+
+  /* Status Pill */
+  .status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:.68rem;font-weight:700;cursor:pointer;transition:all .15s;border:1px solid transparent}
+  .status-pill:hover{transform:scale(1.05);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+  .status-pill.s-new{background:#dbeafe;color:#1d4ed8;border-color:#3b82f6}
+  .status-pill.s-touch1{background:#fef3c7;color:#b45309;border-color:#f59e0b}
+  .status-pill.s-touch2{background:#ffedd5;color:#c2410c;border-color:#f97316}
+  .status-pill.s-touch3{background:#ede9fe;color:#6d28d9;border-color:#8b5cf6}
+  .status-pill.s-partner{background:#dcfce7;color:#15803d;border-color:#16a34a}
+  .status-pill.s-pass{background:#f3f4f6;color:#4b5563;border-color:#6b7280}
+  .status-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+  /* Status Dropdown Popover */
+  .status-dropdown{position:absolute;z-index:100;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);padding:6px;min-width:140px;display:none}
+  .status-dropdown.show{display:block}
+  .status-option{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;transition:all .1s}
+  .status-option:hover{background:#f1f5f9}
+  .status-option .status-dot{width:8px;height:8px;border-radius:50%}
+  .status-option .sd-new{background:var(--status-new)}
+  .status-option .sd-t1{background:var(--status-t1)}
+  .status-option .sd-t2{background:var(--status-t2)}
+  .status-option .sd-t3{background:var(--status-t3)}
+  .status-option .sd-partner{background:var(--status-partner)}
+  .status-option .sd-pass{background:var(--status-pass)}
 
   /* Modal */
   .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;padding:20px}
@@ -130,6 +156,63 @@
   .tooltip{position:relative}
   .tooltip::after{content:attr(data-tooltip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:.7rem;padding:4px 8px;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;margin-bottom:5px}
   .tooltip:hover::after{opacity:1}
+
+  /* Archive Section */
+  .archive-section{margin-bottom:24px}
+  .archive-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-radius:10px 10px 0 0;font-weight:700;font-size:.85rem}
+  .archive-header.partners{background:#dcfce7;color:#15803d;border:1px solid #86efac}
+  .archive-header.passes{background:#f3f4f6;color:#4b5563;border:1px solid #d1d5db}
+  .archive-table{width:100%;border-collapse:collapse}
+  .archive-table th{background:#f8f9fa;font-size:.65rem}
+  .archive-table td{padding:10px 14px;font-size:.8rem}
+  .archive-table .firm-col{min-width:200px}
+  .archive-table .notes-col{width:100%}
+  .archive-table .action-col{white-space:nowrap}
+  .inline-notes{border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:.75rem;width:100%;font-family:Lato}
+  .inline-notes:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+  .inline-reason{border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:.75rem;width:100%;font-family:Lato}
+  .inline-reason:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+  .btn-restore{background:var(--status-new);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:.72rem;font-weight:700;cursor:pointer}
+  .btn-restore:hover{background:#2563eb}
+
+  /* Queue Tab */
+  .queue-stats{display:flex;gap:16px;padding:14px 18px;background:#fff;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .queue-stat{display:flex;align-items:center;gap:8px}
+  .queue-stat-num{font-size:1.2rem;font-weight:900}
+  .queue-stat-num.overdue{color:#ef4444}
+  .queue-stat-num.new{color:var(--status-new)}
+  .queue-stat-num.recent{color:#f59e0b}
+  .queue-stat-label{font-size:.7rem;color:var(--muted);text-transform:uppercase}
+  .queue-table th{white-space:nowrap}
+  .queue-table .priority-col{width:80px}
+  .queue-table .firm-col{min-width:180px}
+  .queue-table .city-col{width:90px}
+  .queue-table .type-col{width:90px}
+  .queue-table .score-col{width:70px}
+  .queue-table .status-col{width:90px}
+  .queue-table .last-touch-col{width:100px}
+  .queue-table .action-col{min-width:140px}
+  .priority-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.68rem;font-weight:700}
+  .priority-badge.overdue{background:#fee2e2;color:#dc2626}
+  .priority-badge.is-new{background:#dbeafe;color:#1d4ed8}
+  .priority-badge.recent{background:#fef3c7;color:#b45309}
+  .action-text{font-size:.72rem;color:var(--muted)}
+  .action-text urgent{color:#dc2626;font-weight:700}
+
+  /* Archive Tab Specific */
+  .archive-stats{display:flex;gap:16px;padding:14px 18px;background:#fff;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .archive-stat{display:flex;align-items:center;gap:8px}
+  .archive-stat-num{font-size:1.2rem;font-weight:900}
+  .archive-stat-num.partners{color:var(--status-partner)}
+  .archive-stat-num.passes{color:var(--status-pass)}
+
+  /* Show filter in console */
+  .cc-show-filter{display:flex;align-items:center;gap:6px}
+  .cc-show-filter label{color:#aee6e4;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .cc-show-filter select{background:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:.8rem;font-family:Lato;font-weight:600;color:var(--navy);cursor:pointer;min-width:100px}
+
+  /* Row visibility for filters */
+  tr.hidden-by-filter{display:none !important}
 </style>
 </head>
 <body>
@@ -160,7 +243,7 @@
   <div class="campaign-console">
     <div class="cc-left">
       <span class="cc-label">Template:</span>
-      <select class="="templateSelect"cc-select" id onchange="updateTemplatePreview()">
+      <select class="cc-select" id="templateSelect" onchange="updateTemplatePreview()">
         <option value="touch1">Intro Letter — Touch 1</option>
         <option value="touch2">Follow-up Postcard — Touch 2</option>
         <option value="touch3">Partner Invite — Touch 3</option>
@@ -180,6 +263,14 @@
         <option value="sd">San Diego</option>
         <option value="oc">Orange County</option>
       </select>
+      <div class="cc-show-filter">
+        <label>Show:</label>
+        <select id="showFilter" onchange="filterTable()">
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="archive">Archive</option>
+        </select>
+      </div>
     </div>
     <div class="cc-right">
       <div class="selected-count" id="selectedCount">0 firms selected</div>
@@ -205,6 +296,8 @@
       <button class="tab" onclick="showTab('sd','elder',this)">👴 Elder Law</button>
       <button class="tab" onclick="showTab('sd','fiduciary',this)">🏦 Fiduciaries</button>
       <button class="tab" onclick="showTab('sd','assisted',this)">🏠 Assisted Living</button>
+      <button class="tab" onclick="showTab('sd','queue',this)">📋 Queue</button>
+      <button class="tab" onclick="showTab('sd','archive',this)">🗂 Archive</button>
     </div>
 
     <!-- SD Estate Attorneys -->
@@ -218,16 +311,16 @@
       <table>
         <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllInPanel(this,'sd-panel-estate')"></th><th>#</th><th>Score</th><th>Firm + Address</th><th>Rating</th><th>Keywords</th><th>Contact</th></tr></thead>
         <tbody data-city="sd" data-type="estate">
-          <tr data-firm="San Diego Probate Attorneys" data-email="info@sandiegoprobateattorneys.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:100%"></div></div><span class="score-val">100</span></div></td><td><div class="firm-name">San Diego Probate Attorneys</div><div class="firm-addr">📍 4445 Eastgate Mall #200, San Diego, CA 92121</div></td><td><span class="rpill">★ 4.9 · 110</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">senior</span></div></td><td><div class="contact"><a href="tel:+18583338877">858-333-8877</a><br><a href="https://www.sandiegoprobateattorneys.com" target="_blank">sandiegoprobateattorneys.com</a><br><span class="predicted">info@sandiegoprobateattorneys.com ✦ predicted</span></div></td></tr>
-          <tr data-firm="San Diego Probate Law" data-email="info@sandiegoprobatelaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥈 2</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:85%"></div></div><span class="score-val">85</span></div></td><td><div class="firm-name">San Diego Probate Law</div><div class="firm-addr">📍 3914 Murphy Canyon Rd, San Diego, CA 92123</div></td><td><span class="rpill">★ 5.0 · 217</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+18582782800">858-278-2800</a><br><a href="https://sandiegoprobatelaw.com" target="_blank">sandiegoprobatelaw.com</a><br><span class="predicted">info@sandiegoprobatelaw.com ✦ predicted</span></div></td></tr>
-          <tr data-firm="Lawyer In Blue Jeans Group" data-email="frontdesk@lawyerinbluejeans.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥉 3</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:85%"></div></div><span class="score-val">85</span></div></td><td><div class="firm-name">Lawyer In Blue Jeans Group</div><div class="firm-addr">📍 3990 Old Town Ave A-102, San Diego, CA 92110</div></td><td><span class="rpill">★ 4.6 · 53</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">senior</span></div></td><td><div class="contact"><a href="tel:+16196832545">619-683-2545</a><br><a href="https://www.lawyerinbluejeans.com" target="_blank">lawyerinbluejeans.com</a><br><a href="mailto:frontdesk@lawyerinbluejeans.com">frontdesk@lawyerinbluejeans.com</a></div></td></tr>
-          <tr data-firm="Jenkins & Jenkins, Estate Planning" data-email="support@jjlawca.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">4</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:80%"></div></div><span class="score-val">80</span></div></td><td><div class="firm-name">Jenkins &amp; Jenkins, Estate Planning</div><div class="firm-addr">📍 9619 Chesapeake Dr #200, San Diego, CA 92123</div></td><td><span class="rpill">★ 5.0 · 160</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+18587662170">858-766-2170</a><br><a href="https://www.jjlawca.com" target="_blank">jjlawca.com</a><br><a href="mailto:support@jjlawca.com">support@jjlawca.com</a></div></td></tr>
-          <tr data-firm="San Diego Legacy Law, PC" data-email="info@sdlegacylaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">5</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:80%"></div></div><span class="score-val">80</span></div></td><td><div class="firm-name">San Diego Legacy Law, PC</div><div class="firm-addr">📍 3517 Camino del Rio S #406, San Diego, CA 92108</div></td><td><span class="rpill">★ 4.9 · 52</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+16195503080">619-550-3080</a><br><a href="https://www.sdlegacylaw.com" target="_blank">sdlegacylaw.com</a><br><span class="predicted">info@sdlegacylaw.com ✦ predicted</span></div></td></tr>
-          <tr data-firm="Lancier Legal, PC" data-email="info@lancierlegal.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">6</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-name">Lancier Legal, PC</div><div class="firm-addr">📍 501 W Broadway Ste 1620, San Diego, CA 92101</div></td><td><span class="rpill">★ 5.0 · 63</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+16193335344">619-333-5344</a><br><a href="https://estateplanningattorneyca.com" target="_blank">estateplanningattorneyca.com</a><br><a href="mailto:info@lancierlegal.com">info@lancierlegal.com</a></div></td></tr>
-          <tr data-firm="Shaw Legal Office, APC" data-email="info@shawlegaloffice.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">7</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-name">Shaw Legal Office, APC</div><div class="firm-addr">📍 San Diego, CA</div></td><td><span class="rpill">★ 5.0 · 145</span></td><td><div class="kws">—</div></td><td><div class="contact"><a href="tel:+16194311080">619-431-1080</a><br><a href="https://www.shawlegaloffice.com" target="_blank">shawlegaloffice.com</a><br><span class="predicted">info@shawlegaloffice.com ✦ predicted</span></div></td></tr>
-          <tr data-firm="Mellman & Mellman, LLP" data-email="info@mellmanlaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">8</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-name">Mellman &amp; Mellman, LLP</div><div class="firm-addr">📍 San Diego, CA</div></td><td><span class="rpill">★ 4.9 · 210</span></td><td><div class="kws">—</div></td><td><div class="contact"><a href="tel:+16193040606">619-304-0606</a><br><span class="predicted">info@mellmanlaw.com ✦ predicted</span></div></td></tr>
-          <tr data-firm="Mark Ignacio Law, APC" data-email="info@ignaciolaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">9</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:65%"></div></div><span class="score-val">65</span></div></td><td><div class="firm-name">Mark Ignacio Law, APC</div><div class="firm-addr">📍 San Diego, CA</div></td><td><span class="rpill">★ 5.0 · 175</span></td><td><div class="kws">—</div></td><td><div class="contact"><a href="tel:+16198104647">619-810-4647</a><br><a href="https://www.ignaciolaw.com" target="_blank">ignaciolaw.com</a><br><span class="predicted">info@ignaciolaw.com ✦ predicted</span></div></td></tr>
-          <tr data-firm="Brierton, Jones & Jones, LLP" data-email="info@brierton.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">10</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:65%"></div></div><span class="score-val">65</span></div></td><td><div class="firm-name">Brierton, Jones &amp; Jones, LLP</div><div class="firm-addr">📍 San Diego, CA</div></td><td><span class="rpill">★ 5.0 · 20</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+16196967066">619-696-7066</a><br><span class="predicted">info@brierton.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="San Diego Probate Attorneys" data-email="info@sandiegoprobateattorneys.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:100%"></div></div><span class="score-val">100</span></div></td><td><div class="firm-row"><span class="firm-name">San Diego Probate Attorneys</span></div><div class="firm-addr">📍 4445 Eastgate Mall #200, San Diego, CA 92121</div></td><td><span class="rpill">★ 4.9 · 110</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">senior</span></div></td><td><div class="contact"><a href="tel:+18583338877">858-333-8877</a><br><a href="https://www.sandiegoprobateattorneys.com" target="_blank">sandiegoprobateattorneys.com</a><br><span class="predicted">info@sandiegoprobateattorneys.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="San Diego Probate Law" data-email="info@sandiegoprobatelaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥈 2</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:85%"></div></div><span class="score-val">85</span></div></td><td><div class="firm-row"><span class="firm-name">San Diego Probate Law</span></div><div class="firm-addr">📍 3914 Murphy Canyon Rd, San Diego, CA 92123</div></td><td><span class="rpill">★ 5.0 · 217</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+18582782800">858-278-2800</a><br><a href="https://sandiegoprobatelaw.com" target="_blank">sandiegoprobatelaw.com</a><br><span class="predicted">info@sandiegoprobatelaw.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Lawyer In Blue Jeans Group" data-email="frontdesk@lawyerinbluejeans.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥉 3</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:85%"></div></div><span class="score-val">85</span></div></td><td><div class="firm-row"><span class="firm-name">Lawyer In Blue Jeans Group</span></div><div class="firm-addr">📍 3990 Old Town Ave A-102, San Diego, CA 92110</div></td><td><span class="rpill">★ 4.6 · 53</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">senior</span></div></td><td><div class="contact"><a href="tel:+16196832545">619-683-2545</a><br><a href="https://www.lawyerinbluejeans.com" target="_blank">lawyerinbluejeans.com</a><br><a href="mailto:frontdesk@lawyerinbluejeans.com">frontdesk@lawyerinbluejeans.com</a></div></td></tr>
+          <tr data-firm="Jenkins & Jenkins, Estate Planning" data-email="support@jjlawca.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">4</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:80%"></div></div><span class="score-val">80</span></div></td><td><div class="firm-row"><span class="firm-name">Jenkins &amp; Jenkins, Estate Planning</span></div><div class="firm-addr">📍 9619 Chesapeake Dr #200, San Diego, CA 92123</div></td><td><span class="rpill">★ 5.0 · 160</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+18587662170">858-766-2170</a><br><a href="https://www.jjlawca.com" target="_blank">jjlawca.com</a><br><a href="mailto:support@jjlawca.com">support@jjlawca.com</a></div></td></tr>
+          <tr data-firm="San Diego Legacy Law, PC" data-email="info@sdlegacylaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">5</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:80%"></div></div><span class="score-val">80</span></div></td><td><div class="firm-row"><span class="firm-name">San Diego Legacy Law, PC</span></div><div class="firm-addr">📍 3517 Camino del Rio S #406, San Diego, CA 92108</div></td><td><span class="rpill">★ 4.9 · 52</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+16195503080">619-550-3080</a><br><a href="https://www.sdlegacylaw.com" target="_blank">sdlegacylaw.com</a><br><span class="predicted">info@sdlegacylaw.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Lancier Legal, PC" data-email="info@lancierlegal.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">6</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-row"><span class="firm-name">Lancier Legal, PC</span></div><div class="firm-addr">📍 501 W Broadway Ste 1620, San Diego, CA 92101</div></td><td><span class="rpill">★ 5.0 · 63</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+16193335344">619-333-5344</a><br><a href="https://estateplanningattorneyca.com" target="_blank">estateplanningattorneyca.com</a><br><a href="mailto:info@lancierlegal.com">info@lancierlegal.com</a></div></td></tr>
+          <tr data-firm="Shaw Legal Office, APC" data-email="info@shawlegaloffice.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">7</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-row"><span class="firm-name">Shaw Legal Office, APC</span></div><div class="firm-addr">📍 San Diego, CA</div></td><td><span class="rpill">★ 5.0 · 145</span></td><td><div class="kws">—</div></td><td><div class="contact"><a href="tel:+16194311080">619-431-1080</a><br><a href="https://www.shawlegaloffice.com" target="_blank">shawlegaloffice.com</a><br><span class="predicted">info@shawlegaloffice.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Mellman & Mellman, LLP" data-email="info@mellmanlaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">8</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-row"><span class="firm-name">Mellman &amp; Mellman, LLP</span></div><div class="firm-addr">📍 San Diego, CA</div></td><td><span class="rpill">★ 4.9 · 210</span></td><td><div class="kws">—</div></td><td><div class="contact"><a href="tel:+16193040606">619-304-0606</a><br><span class="predicted">info@mellmanlaw.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Mark Ignacio Law, APC" data-email="info@ignaciolaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">9</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:65%"></div></div><span class="score-val">65</span></div></td><td><div class="firm-row"><span class="firm-name">Mark Ignacio Law, APC</span></div><div class="firm-addr">📍 San Diego, CA</div></td><td><span class="rpill">★ 5.0 · 175</span></td><td><div class="kws">—</div></td><td><div class="contact"><a href="tel:+16198104647">619-810-4647</a><br><a href="https://www.ignaciolaw.com" target="_blank">ignaciolaw.com</a><br><span class="predicted">info@ignaciolaw.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Brierton, Jones & Jones, LLP" data-email="info@brierton.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">10</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:65%"></div></div><span class="score-val">65</span></div></td><td><div class="firm-row"><span class="firm-name">Brierton, Jones &amp; Jones, LLP</span></div><div class="firm-addr">📍 San Diego, CA</div></td><td><span class="rpill">★ 5.0 · 20</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+16196967066">619-696-7066</a><br><span class="predicted">info@brierton.com ✦ predicted</span></div></td></tr>
         </tbody>
       </table>
     </div>
@@ -243,9 +336,9 @@
       <table>
         <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllInPanel(this,'sd-panel-elder')"></th><th>#</th><th>Score</th><th>Firm + Address</th><th>Rating</th><th>Keywords</th><th>Contact</th></tr></thead>
         <tbody data-city="sd" data-type="elder">
-          <tr data-firm="Lancier Legal, PC" data-email="info@lancierlegal.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:80%"></div></div><span class="score-val">80</span></div></td><td><div class="firm-name">Lancier Legal, PC</div><div class="firm-addr">📍 501 W Broadway Ste 1620, San Diego, CA 92101</div></td><td><span class="rpill">★ 5.0 · 63</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+16193335344">619-333-5344</a><br><a href="mailto:info@lancierlegal.com">info@lancierlegal.com</a></div></td></tr>
-          <tr data-firm="Bryant Dieringer & Wilson" data-email="info@bdwlaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥈 2</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:80%"></div></div><span class="score-val">80</span></div></td><td><div class="firm-name">Bryant Dieringer &amp; Wilson <span class="new-tag">NEW</span></div><div class="firm-addr">📍 402 W Broadway #2700, San Diego, CA 92101</div></td><td><span class="rpill">★ 4.6 · 13</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">senior</span></div></td><td><div class="contact"><a href="tel:+16196932700">619-693-2700</a><br><a href="https://www.californiaelderabuselawyer.com" target="_blank">californiaelderabuselawyer.com</a><br><span class="predicted">info@bdwlaw.com ✦ predicted</span></div></td></tr>
-          <tr data-firm="San Diego Elder Law Center" data-email="info@sandiegoelderlaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥉 3</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:75%"></div></div><span class="score-val">75</span></div></td><td><div class="firm-name">San Diego Elder Law Center <span class="new-tag">NEW</span></div><div class="firm-addr">📍 7880 Golfcrest Dr, San Diego, CA 92119</div></td><td><span class="rpill">★ 4.7 · 42</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+16192354357">619-235-4357</a><br><a href="https://www.sandiegoelderlaw.com" target="_blank">sandiegoelderlaw.com</a><br><a href="mailto:info@sandiegoelderlaw.com">info@sandiegoelderlaw.com</a></div></td></tr>
+          <tr data-firm="Lancier Legal, PC" data-email="info@lancierlegal.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:80%"></div></div><span class="score-val">80</span></div></td><td><div class="firm-row"><span class="firm-name">Lancier Legal, PC</span></div><div class="firm-addr">📍 501 W Broadway #2700, San Diego, CA 92101</div></td><td><span class="rpill">★ 5.0 · 63</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+16193335344">619-333-5344</a><br><a href="mailto:info@lancierlegal.com">info@lancierlegal.com</a></div></td></tr>
+          <tr data-firm="Bryant Dieringer & Wilson" data-email="info@bdwlaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥈 2</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:80%"></div></div><span class="score-val">80</span></div></td><td><div class="firm-row"><span class="firm-name">Bryant Dieringer &amp; Wilson <span class="new-tag">NEW</span></span></div><div class="firm-addr">📍 402 W Broadway #2700, San Diego, CA 92101</div></td><td><span class="rpill">★ 4.6 · 13</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">senior</span></div></td><td><div class="contact"><a href="tel:+16196932700">619-693-2700</a><br><a href="https://www.californiaelderabuselawyer.com" target="_blank">californiaelderabuselawyer.com</a><br><span class="predicted">info@bdwlaw.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="San Diego Elder Law Center" data-email="info@sandiegoelderlaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥉 3</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:75%"></div></div><span class="score-val">75</span></div></td><td><div class="firm-row"><span class="firm-name">San Diego Elder Law Center <span class="new-tag">NEW</span></span></div><div class="firm-addr">📍 7880 Golfcrest Dr, San Diego, CA 92119</div></td><td><span class="rpill">★ 4.7 · 42</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+16192354357">619-235-4357</a><br><a href="https://www.sandiegoelderlaw.com" target="_blank">sandiegoelderlaw.com</a><br><a href="mailto:info@sandiegoelderlaw.com">info@sandiegoelderlaw.com</a></div></td></tr>
         </tbody>
       </table>
     </div>
@@ -261,8 +354,8 @@
       <table>
         <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllInPanel(this,'sd-panel-fiduciary')"></th><th>#</th><th>Score</th><th>Firm + Address</th><th>Rating</th><th>Keywords</th><th>Contact</th></tr></thead>
         <tbody data-city="sd" data-type="fiduciary">
-          <tr data-firm="Finest City Fiduciary" data-email="Dion@FinestCityFiduciary.com" data-contact="Dion"><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-name">Finest City Fiduciary</div><div class="firm-addr">📍 3245 University Ave, San Diego, CA 92104</div></td><td><span class="rpill">★ 4.7 · 12</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">trust</span><span class="kw">fiduciary</span></div></td><td><div class="contact"><a href="tel:+16195017902">619-501-7902</a><br><a href="https://finestcityfiduciary.com" target="_blank">finestcityfiduciary.com</a><br><a href="mailto:Dion@FinestCityFiduciary.com">Dion@FinestCityFiduciary.com</a></div></td></tr>
-          <tr data-firm="Platt Wealth Management" data-email="info@plattwm.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥈 2</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-name">Platt Wealth Management</div><div class="firm-addr">📍 San Diego, CA</div></td><td><span class="rpill">★ 5.0 · 22</span></td><td><div class="kws"><span class="kw">estate</span><span class="kw">trust</span><span class="kw">fiduciary</span></div></td><td><div class="contact"><a href="tel:+16192559550">619-255-9550</a><br><a href="https://plattwm.com" target="_blank">plattwm.com</a><br><span class="predicted">info@plattwm.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Finest City Fiduciary" data-email="Dion@FinestCityFiduciary.com" data-contact="Dion"><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-row"><span class="firm-name">Finest City Fiduciary</span></div><div class="firm-addr">📍 3245 University Ave, San Diego, CA 92104</div></td><td><span class="rpill">★ 4.7 · 12</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">trust</span><span class="kw">fiduciary</span></div></td><td><div class="contact"><a href="tel:+16195017902">619-501-7902</a><br><a href="https://finestcityfiduciary.com" target="_blank">finestcityfiduciary.com</a><br><a href="mailto:Dion@FinestCityFiduciary.com">Dion@FinestCityFiduciary.com</a></div></td></tr>
+          <tr data-firm="Platt Wealth Management" data-email="info@plattwm.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥈 2</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-row"><span class="firm-name">Platt Wealth Management</span></div><div class="firm-addr">📍 San Diego, CA</div></td><td><span class="rpill">★ 5.0 · 22</span></td><td><div class="kws"><span class="kw">estate</span><span class="kw">trust</span><span class="kw">fiduciary</span></div></td><td><div class="contact"><a href="tel:+16192559550">619-255-9550</a><br><a href="https://plattwm.com" target="_blank">plattwm.com</a><br><span class="predicted">info@plattwm.com ✦ predicted</span></div></td></tr>
         </tbody>
       </table>
     </div>
@@ -278,10 +371,51 @@
       <table>
         <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllInPanel(this,'sd-panel-assisted')"></th><th>#</th><th>Score</th><th>Facility + Address</th><th>Rating</th><th>Keywords</th><th>Contact</th></tr></thead>
         <tbody data-city="sd" data-type="assisted">
-          <tr data-firm="Wesley Palms Retirement Community" data-email="info@wesleypalms.org" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:75%"></div></div><span class="score-val">75</span></div></td><td><div class="firm-name">Wesley Palms Retirement Community</div><div class="firm-addr">📍 2404 Loring St, San Diego, CA 92109</div></td><td><span class="rpill">★ 4.7 · 118</span></td><td><div class="kws"><span class="kw">senior</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+18583586054">858-358-6054</a><br><a href="https://frontporch.net/community/wesley-palms" target="_blank">wesleypalms.org</a><br><span class="predicted">info@wesleypalms.org ✦ predicted</span></div></td></tr>
-          <tr data-firm="Merrill Gardens at Bankers Hill" data-email="sandiego@merrillgardens.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥈 2</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-name">Merrill Gardens at Bankers Hill</div><div class="firm-addr">📍 2567 Second Ave, San Diego, CA 92103</div></td><td><span class="rpill">★ 4.7 · 41</span></td><td><div class="kws"><span class="kw">senior</span><span class="kw">downsizing</span></div></td><td><div class="contact"><a href="tel:+16194711839">619-471-1839</a><br><a href="https://www.merrillgardens.com" target="_blank">merrillgardens.com</a><br><span class="predicted">sandiego@merrillgardens.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Wesley Palms Retirement Community" data-email="info@wesleypalms.org" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:75%"></div></div><span class="score-val">75</span></div></td><td><div class="firm-row"><span class="firm-name">Wesley Palms Retirement Community</span></div><div class="firm-addr">📍 2404 Loring St, San Diego, CA 92109</div></td><td><span class="rpill">★ 4.7 · 118</span></td><td><div class="kws"><span class="kw">senior</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+18583586054">858-358-6054</a><br><a href="https://frontporch.net/community/wesley-palms" target="_blank">wesleypalms.org</a><br><span class="predicted">info@wesleypalms.org ✦ predicted</span></div></td></tr>
+          <tr data-firm="Merrill Gardens at Bankers Hill" data-email="sandiego@merrillgardens.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥈 2</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:70%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-row"><span class="firm-name">Merrill Gardens at Bankers Hill</span></div><div class="firm-addr">📍 2567 Second Ave, San Diego, CA 92103</div></td><td><span class="rpill">★ 4.7 · 41</span></td><td><div class="kws"><span class="kw">senior</span><span class="kw">downsizing</span></div></td><td><div class="contact"><a href="tel:+16194711839">619-471-1839</a><br><a href="https://www.merrillgardens.com" target="_blank">merrillgardens.com</a><br><span class="predicted">sandiego@merrillgardens.com ✦ predicted</span></div></td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- SD Queue Panel -->
+    <div class="panel" id="sd-panel-queue">
+      <div class="queue-stats">
+        <div class="queue-stat"><span class="queue-stat-num overdue" id="queueOverdue">0</span><span class="queue-stat-label">🔥 Overdue</span></div>
+        <div class="queue-stat"><span class="queue-stat-num new" id="queueNew">0</span><span class="queue-stat-label">⚡ New</span></div>
+        <div class="queue-stat"><span class="queue-stat-num recent" id="queueRecent">0</span><span class="queue-stat-label">🕐 Recent</span></div>
+      </div>
+      <div style="padding:12px 18px;border-bottom:1px solid var(--line)">
+        <button class="btn-email" onclick="openQueueEmailModal()">📧 Send to Selected (Overdue/New)</button>
+      </div>
+      <table class="queue-table">
+        <thead><tr><th class="priority-col">Priority</th><th class="firm-col">Firm</th><th class="city-col">City</th><th class="type-col">Type</th><th class="score-col">Score</th><th class="status-col">Status</th><th class="last-touch-col">Last Touch</th><th class="action-col">Next Action</th></tr></thead>
+        <tbody id="queueTableBody">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SD Archive Panel -->
+    <div class="panel" id="sd-panel-archive">
+      <div class="archive-stats">
+        <div class="archive-stat"><span class="archive-stat-num partners" id="archivePartners">0</span><span class="archive-stat-label">🟢 Partners</span></div>
+        <div class="archive-stat"><span class="archive-stat-num passes" id="archivePasses">0</span><span class="archive-stat-label">⚫ Passed</span></div>
+      </div>
+      <div class="archive-section">
+        <div class="archive-header partners">🟢 Partner Firms</div>
+        <table class="archive-table">
+          <thead><tr><th class="firm-col">Firm</th><th class="city-col">City</th><th class="type-col">Type</th><th class="score-col">Score</th><th class="notes-col">Notes</th><th class="action-col">Action</th></tr></thead>
+          <tbody id="archivePartnersBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="archive-section">
+        <div class="archive-header passes">⚫ Passed Firms</div>
+        <table class="archive-table">
+          <thead><tr><th class="firm-col">Firm</th><th class="city-col">City</th><th class="type-col">Type</th><th class="score-col">Score</th><th class="notes-col">Reason / Notes</th><th class="action-col">Action</th></tr></thead>
+          <tbody id="archivePassesBody">
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -292,6 +426,8 @@
       <button class="tab" onclick="showTab('oc','elder',this)">👴 Elder Law</button>
       <button class="tab" onclick="showTab('oc','fiduciary',this)">🏦 Fiduciaries</button>
       <button class="tab" onclick="showTab('oc','assisted',this)">🏠 Assisted Living</button>
+      <button class="tab" onclick="showTab('oc','queue',this)">📋 Queue</button>
+      <button class="tab" onclick="showTab('oc','archive',this)">🗂 Archive</button>
     </div>
 
     <!-- OC Estate Attorneys -->
@@ -305,9 +441,9 @@
       <table>
         <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllInPanel(this,'oc-panel-estate')"></th><th>#</th><th>Score</th><th>Firm + Address</th><th>Rating</th><th>Keywords</th><th>Contact</th></tr></thead>
         <tbody data-city="oc" data-type="estate">
-          <tr data-firm="Snyder Law, PC" data-email="info@snyderlaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:100%"></div></div><span class="score-val">75</span></div></td><td><div class="firm-name">Snyder Law, PC</div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 5.0 · 131</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">senior</span></div></td><td><div class="contact"><a href="tel:+19493333701">949-333-3701</a><br><a href="https://snyderlaw.com" target="_blank">snyderlaw.com</a><br><span class="predicted">info@snyderlaw.com ✦ predicted</span></div></td></tr>
-          <tr data-firm="Mortensen & Reinheimer, PC" data-email="info@oc-probate.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥈 2</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:93%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-name">Mortensen &amp; Reinheimer, PC</div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 4.9 · 88</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+17143846053">714-384-6053</a><br><a href="https://oc-probate.com" target="_blank">oc-probate.com</a><br><span class="predicted">info@oc-probate.com ✦ predicted</span></div></td></tr>
-          <tr data-firm="Patrick D'Arcy Law Offices" data-email="info@oc-attorneys.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥉 3</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:93%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-name">Patrick D'Arcy Law Offices</div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 5.0 · 58</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+19499887647">949-988-7647</a><br><a href="https://oc-attorneys.com" target="_blank">oc-attorneys.com</a><br><span class="predicted">info@oc-attorneys.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Snyder Law, PC" data-email="info@snyderlaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:100%"></div></div><span class="score-val">75</span></div></td><td><div class="firm-row"><span class="firm-name">Snyder Law, PC</span></div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 5.0 · 131</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">senior</span></div></td><td><div class="contact"><a href="tel:+19493333701">949-333-3701</a><br><a href="https://snyderlaw.com" target="_blank">snyderlaw.com</a><br><span class="predicted">info@snyderlaw.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Mortensen & Reinheimer, PC" data-email="info@oc-probate.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥈 2</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:93%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-row"><span class="firm-name">Mortensen &amp; Reinheimer, PC</span></div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 4.9 · 88</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+17143846053">714-384-6053</a><br><a href="https://oc-probate.com" target="_blank">oc-probate.com</a><br><span class="predicted">info@oc-probate.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Patrick D'Arcy Law Offices" data-email="info@oc-attorneys.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥉 3</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:93%"></div></div><span class="score-val">70</span></div></td><td><div class="firm-row"><span class="firm-name">Patrick D'Arcy Law Offices</span></div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 5.0 · 58</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">trust</span></div></td><td><div class="contact"><a href="tel:+19499887647">949-988-7647</a><br><a href="https://oc-attorneys.com" target="_blank">oc-attorneys.com</a><br><span class="predicted">info@oc-attorneys.com ✦ predicted</span></div></td></tr>
         </tbody>
       </table>
     </div>
@@ -323,7 +459,7 @@
       <table>
         <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllInPanel(this,'oc-panel-elder')"></th><th>#</th><th>Score</th><th>Firm + Address</th><th>Rating</th><th>Keywords</th><th>Contact</th></tr></thead>
         <tbody data-city="oc" data-type="elder">
-          <tr data-firm="Snyder Law, PC" data-email="info@snyderlaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:100%"></div></div><span class="score-val">75</span></div></td><td><div class="firm-name">Snyder Law, PC</div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 5.0 · 131</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">senior</span></div></td><td><div class="contact"><a href="tel:+19493333701">949-333-3701</a><br><a href="https://snyderlaw.com" target="_blank">snyderlaw.com</a><br><span class="predicted">info@snyderlaw.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Snyder Law, PC" data-email="info@snyderlaw.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-high" style="width:100%"></div></div><span class="score-val">75</span></div></td><td><div class="firm-row"><span class="firm-name">Snyder Law, PC</span></div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 5.0 · 131</span></td><td><div class="kws"><span class="kw">probate</span><span class="kw">estate</span><span class="kw">senior</span></div></td><td><div class="contact"><a href="tel:+19493333701">949-333-3701</a><br><a href="https://snyderlaw.com" target="_blank">snyderlaw.com</a><br><span class="predicted">info@snyderlaw.com ✦ predicted</span></div></td></tr>
         </tbody>
       </table>
     </div>
@@ -339,7 +475,7 @@
       <table>
         <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllInPanel(this,'oc-panel-fiduciary')"></th><th>#</th><th>Score</th><th>Firm + Address</th><th>Rating</th><th>Keywords</th><th>Contact</th></tr></thead>
         <tbody data-city="oc" data-type="fiduciary">
-          <tr data-firm="Falcon Wealth Planning" data-email="info@falconwealthplanning.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:100%"></div></div><span class="score-val">60</span></div></td><td><div class="firm-name">Falcon Wealth Planning</div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 5.0 · 76</span></td><td><div class="kws"><span class="kw">estate</span><span class="kw">trust</span><span class="kw">fiduciary</span></div></td><td><div class="contact"><a href="tel:+18559632523">855-963-2523</a><br><a href="https://falconwealthplanning.com" target="_blank">falconwealthplanning.com</a><br><span class="predicted">info@falconwealthplanning.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Falcon Wealth Planning" data-email="info@falconwealthplanning.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:100%"></div></div><span class="score-val">60</span></div></td><td><div class="firm-row"><span class="firm-name">Falcon Wealth Planning</span></div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 5.0 · 76</span></td><td><div class="kws"><span class="kw">estate</span><span class="kw">trust</span><span class="kw">fiduciary</span></div></td><td><div class="contact"><a href="tel:+18559632523">855-963-2523</a><br><a href="https://falconwealthplanning.com" target="_blank">falconwealthplanning.com</a><br><span class="predicted">info@falconwealthplanning.com ✦ predicted</span></div></td></tr>
         </tbody>
       </table>
     </div>
@@ -355,15 +491,66 @@
       <table>
         <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllInPanel(this,'oc-panel-assisted')"></th><th>#</th><th>Score</th><th>Facility + Address</th><th>Rating</th><th>Keywords</th><th>Contact</th></tr></thead>
         <tbody data-city="oc" data-type="assisted">
-          <tr data-firm="Meridian at Laguna Hills" data-email="info@meridianseniorliving.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:100%"></div></div><span class="score-val">50</span></div></td><td><div class="firm-name">Meridian at Laguna Hills</div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 4.6 · 79</span></td><td><div class="kws"><span class="kw">estate</span></div></td><td><div class="contact"><a href="tel:+19499986290">949-998-6290</a><br><a href="https://meridianseniorliving.com" target="_blank">meridianseniorliving.com</a><br><span class="predicted">info@meridianseniorliving.com ✦ predicted</span></div></td></tr>
+          <tr data-firm="Meridian at Laguna Hills" data-email="info@meridianseniorliving.com" data-contact=""><td class="rank-num"><input type="checkbox" class="row-checkbox" onchange="updateSelection()"></td><td class="rank-num">🥇 1</td><td><div class="score-cell"><div class="score-bg"><div class="score-fill s-mid" style="width:100%"></div></div><span class="score-val">50</span></div></td><td><div class="firm-row"><span class="firm-name">Meridian at Laguna Hills</span></div><div class="firm-addr">📍 Orange County, CA</div></td><td><span class="rpill">★ 4.6 · 79</span></td><td><div class="kws"><span class="kw">estate</span></div></td><td><div class="contact"><a href="tel:+19499986290">949-998-6290</a><br><a href="https://meridianseniorliving.com" target="_blank">meridianseniorliving.com</a><br><span class="predicted">info@meridianseniorliving.com ✦ predicted</span></div></td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- OC Queue Panel -->
+    <div class="panel" id="oc-panel-queue">
+      <div class="queue-stats">
+        <div class="queue-stat"><span class="queue-stat-num overdue" id="ocQueueOverdue">0</span><span class="queue-stat-label">🔥 Overdue</span></div>
+        <div class="queue-stat"><span class="queue-stat-num new" id="ocQueueNew">0</span><span class="queue-stat-label">⚡ New</span></div>
+        <div class="queue-stat"><span class="queue-stat-num recent" id="ocQueueRecent">0</span><span class="queue-stat-label">🕐 Recent</span></div>
+      </div>
+      <div style="padding:12px 18px;border-bottom:1px solid var(--line)">
+        <button class="btn-email" onclick="openQueueEmailModal()">📧 Send to Selected (Overdue/New)</button>
+      </div>
+      <table class="queue-table">
+        <thead><tr><th class="priority-col">Priority</th><th class="firm-col">Firm</th><th class="city-col">City</th><th class="type-col">Type</th><th class="score-col">Score</th><th class="status-col">Status</th><th class="last-touch-col">Last Touch</th><th class="action-col">Next Action</th></tr></thead>
+        <tbody id="ocQueueTableBody">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- OC Archive Panel -->
+    <div class="panel" id="oc-panel-archive">
+      <div class="archive-stats">
+        <div class="archive-stat"><span class="archive-stat-num partners" id="ocArchivePartners">0</span><span class="archive-stat-label">🟢 Partners</span></div>
+        <div class="archive-stat"><span class="archive-stat-num passes" id="ocArchivePasses">0</span><span class="archive-stat-label">⚫ Passed</span></div>
+      </div>
+      <div class="archive-section">
+        <div class="archive-header partners">🟢 Partner Firms</div>
+        <table class="archive-table">
+          <thead><tr><th class="firm-col">Firm</th><th class="city-col">City</th><th class="type-col">Type</th><th class="score-col">Score</th><th class="notes-col">Notes</th><th class="action-col">Action</th></tr></thead>
+          <tbody id="ocArchivePartnersBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="archive-section">
+        <div class="archive-header passes">⚫ Passed Firms</div>
+        <table class="archive-table">
+          <thead><tr><th class="firm-col">Firm</th><th class="city-col">City</th><th class="type-col">Type</th><th class="score-col">Score</th><th class="notes-col">Reason / Notes</th><th class="action-col">Action</th></tr></thead>
+          <tbody id="ocArchivePassesBody">
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <div style="text-align:center;margin-top:20px;color:var(--muted);font-size:.72rem;padding-bottom:20px">
     TLH Scout · San Diego + Orange County Partner Search · Feb 20, 2026 · Powered by Google Places API · <em>✦ = email predicted from domain pattern</em>
   </div>
+</div>
+
+<!-- Status Dropdown (single instance, repositioned) -->
+<div class="status-dropdown" id="statusDropdown">
+  <div class="status-option" data-status="new"><span class="status-dot sd-new"></span> 🔵 New</div>
+  <div class="status-option" data-status="touch1"><span class="status-dot sd-t1"></span> 🟡 Touch 1</div>
+  <div class="status-option" data-status="touch2"><span class="status-dot sd-t2"></span> 🟠 Touch 2</div>
+  <div class="status-option" data-status="touch3"><span class="status-dot sd-t3"></span> 🟣 Touch 3</div>
+  <div class="status-option" data-status="partner"><span class="status-dot sd-partner"></span> 🟢 Partner</div>
+  <div class="status-option" data-status="pass"><span class="status-dot sd-pass"></span> ⚫ Pass</div>
 </div>
 
 <!-- Email Modal -->
@@ -379,7 +566,6 @@
         <div class="modal-template-name" id="modalTemplateName">Intro Letter — Touch 1</div>
       </div>
       <div class="modal-firms" id="modalFirms">
-        <!-- Firms populated dynamically -->
       </div>
       <div class="form-group">
         <label class="form-label">Subject Line</label>
@@ -413,7 +599,45 @@ truelegacyhomes.com</textarea>
 </div>
 
 <script>
-// Email templates
+// ===== LOCALSTORAGE KEYS =====
+const STATUS_KEY = 'tlh_scout_status';
+const TOUCHES_KEY = 'tlh_scout_touches';
+const NOTES_KEY = 'tlh_scout_notes';
+const REASONS_KEY = 'tlh_scout_reasons';
+const SHEET_URL_KEY = 'tlh_scout_sheet_url';
+
+// ===== STATUS CONFIG =====
+const STATUS_CONFIG = {
+  new: { label: 'New', class: 's-new', color: '#3b82f6' },
+  touch1: { label: 'Touch 1', class: 's-touch1', color: '#f59e0b' },
+  touch2: { label: 'Touch 2', class: 's-touch2', color: '#f97316' },
+  touch3: { label: 'Touch 3', class: 's-touch3', color: '#8b5cf6' },
+  partner: { label: 'Partner', class: 's-partner', color: '#16a34a' },
+  pass: { label: 'Pass', class: 's-pass', color: '#6b7280' }
+};
+
+const STATUS_LABELS = {
+  new: '🔵 New',
+  touch1: '🟡 Touch 1',
+  touch2: '🟠 Touch 2',
+  touch3: '🟣 Touch 3',
+  partner: '🟢 Partner',
+  pass: '⚫ Pass'
+};
+
+const TYPE_ICONS = {
+  estate: '⚖️ Estate',
+  elder: '👴 Elder Law',
+  fiduciary: '🏦 Fiduciary',
+  assisted: '🏠 Assisted'
+};
+
+const CITY_NAMES = {
+  sd: 'San Diego',
+  oc: 'Orange County'
+};
+
+// ===== EMAIL TEMPLATES =====
 const emailTemplates = {
   touch1: {
     name: "Intro Letter — Touch 1",
@@ -457,9 +681,386 @@ Justin Hart | True Legacy Homes | (619) 937-3816`
   }
 };
 
-// Track selected firms
+// ===== TRACKING STATE =====
 let selectedFirms = [];
+let queueSelectedFirms = [];
+let currentDropdownFirm = null;
 
+// ===== INITIALIZE =====
+document.addEventListener('DOMContentLoaded', function() {
+  renderAllStatusPills();
+  renderQueue();
+  renderArchive();
+  setupStatusDropdown();
+});
+
+// ===== LOCALSTORAGE HELPERS =====
+function getStatuses() {
+  try {
+    return JSON.parse(localStorage.getItem(STATUS_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveStatuses(statuses) {
+  localStorage.setItem(STATUS_KEY, JSON.stringify(statuses));
+}
+
+function getTouches() {
+  try {
+    return JSON.parse(localStorage.getItem(TOUCHES_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveTouches(touches) {
+  localStorage.setItem(TOUCHES_KEY, JSON.stringify(touches));
+}
+
+function getNotes() {
+  try {
+    return JSON.parse(localStorage.getItem(NOTES_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveNotes(notes) {
+  localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+}
+
+function getReasons() {
+  try {
+    return JSON.parse(localStorage.getItem(REASONS_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveReasons(reasons) {
+  localStorage.setItem(REASONS_KEY, JSON.stringify(reasons));
+}
+
+// ===== STATUS PILL RENDERING =====
+function renderAllStatusPills() {
+  const statuses = getStatuses();
+  document.querySelectorAll('tbody tr[data-firm]').forEach(row => {
+    const firmName = row.dataset.firm;
+    const status = statuses[firmName] || 'new';
+    addStatusPillToRow(row, firmName, status);
+  });
+}
+
+function addStatusPillToRow(row, firmName, status) {
+  const firmRow = row.querySelector('.firm-row');
+  if (!firmRow) return;
+  
+  // Remove existing pill if any
+  const existingPill = firmRow.querySelector('.status-pill');
+  if (existingPill) existingPill.remove();
+  
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.new;
+  const pill = document.createElement('span');
+  pill.className = `status-pill ${config.class}`;
+  pill.dataset.firm = firmName;
+  pill.dataset.status = status;
+  pill.innerHTML = `<span class="status-dot"></span>${config.label}`;
+  pill.onclick = (e) => showStatusDropdown(e, firmName);
+  
+  firmRow.appendChild(pill);
+}
+
+// ===== STATUS DROPDOWN =====
+function setupStatusDropdown() {
+  const dropdown = document.getElementById('statusDropdown');
+  
+  document.querySelectorAll('.status-option').forEach(opt => {
+    opt.onclick = () => {
+      if (currentDropdownFirm) {
+        changeStatus(currentDropdownFirm, opt.dataset.status);
+        hideStatusDropdown();
+      }
+    };
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.status-pill') && !e.target.closest('.status-dropdown')) {
+      hideStatusDropdown();
+    }
+  });
+}
+
+function showStatusDropdown(e, firmName) {
+  e.stopPropagation();
+  currentDropdownFirm = firmName;
+  
+  const dropdown = document.getElementById('statusDropdown');
+  const pill = e.target.closest('.status-pill');
+  
+  // Position dropdown near the pill
+  const rect = pill.getBoundingClientRect();
+  dropdown.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  dropdown.style.left = rect.left + 'px';
+  
+  dropdown.classList.add('show');
+}
+
+function hideStatusDropdown() {
+  document.getElementById('statusDropdown').classList.remove('show');
+  currentDropdownFirm = null;
+}
+
+function changeStatus(firmName, newStatus) {
+  const statuses = getStatuses();
+  const oldStatus = statuses[firmName] || 'new';
+  statuses[firmName] = newStatus;
+  saveStatuses(statuses);
+  
+  // Update pill in all rows with this firm
+  document.querySelectorAll(`.status-pill[data-firm="${firmName}"]`).forEach(pill => {
+    const config = STATUS_CONFIG[newStatus];
+    pill.className = `status-pill ${config.class}`;
+    pill.dataset.status = newStatus;
+    pill.innerHTML = `<span class="status-dot"></span>${config.label}`;
+  });
+  
+  // Refresh queue and archive
+  renderQueue();
+  renderArchive();
+  
+  // Sync to Google Sheet if URL exists
+  syncToSheet(firmName, newStatus);
+}
+
+function syncToSheet(firmName, status) {
+  const sheetUrl = localStorage.getItem(SHEET_URL_KEY);
+  if (!sheetUrl) return;
+  
+  fetch(sheetUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ firm: firmName, status: status })
+  }).catch(() => {}); // Fail silently
+}
+
+// ===== QUEUE RENDERING =====
+function getAllFirms() {
+  const firms = [];
+  document.querySelectorAll('tbody tr[data-firm]').forEach(row => {
+    const tbody = row.closest('tbody');
+    firms.push({
+      name: row.dataset.firm,
+      email: row.dataset.email,
+      contact: row.dataset.contact || row.dataset.firm.split(' ')[0],
+      city: tbody.dataset.city,
+      type: tbody.dataset.type,
+      score: parseInt(row.querySelector('.score-val')?.textContent || '0')
+    });
+  });
+  return firms;
+}
+
+function getLastTouchDate(firmName) {
+  const touches = getTouches();
+  const firmTouches = touches[firmName] || [];
+  if (firmTouches.length === 0) return null;
+  
+  const dates = firmTouches.map(t => new Date(t.date));
+  return new Date(Math.max.apply(null, dates));
+}
+
+function isOverdue(firmName) {
+  const lastTouch = getLastTouchDate(firmName);
+  if (!lastTouch) return false;
+  
+  const daysSince = (new Date() - lastTouch) / (1000 * 60 * 60 * 24);
+  return daysSince >= 14;
+}
+
+function getDaysSinceTouch(firmName) {
+  const lastTouch = getLastTouchDate(firmName);
+  if (!lastTouch) return null;
+  return Math.floor((new Date() - lastTouch) / (1000 * 60 * 60 * 24));
+}
+
+function getStatus(firmName) {
+  const statuses = getStatuses();
+  return statuses[firmName] || 'new';
+}
+
+function getNextAction(firmName) {
+  const status = getStatus(firmName);
+  const daysSince = getDaysSinceTouch(firmName);
+  
+  if (status === 'new') return { text: 'Send Touch 1', urgent: true };
+  if (status === 'touch1') {
+    if (isOverdue(firmName)) return { text: 'Send Touch 2', urgent: true };
+    return { text: `Wait ${14 - daysSince} more days`, urgent: false };
+  }
+  if (status === 'touch2') {
+    if (isOverdue(firmName)) return { text: 'Send Touch 3', urgent: true };
+    return { text: `Wait ${14 - daysSince} more days`, urgent: false };
+  }
+  if (status === 'touch3') {
+    if (isOverdue(firmName)) return { text: 'Follow up personally', urgent: true };
+    return { text: `Wait ${14 - daysSince} more days`, urgent: false };
+  }
+  return { text: '—', urgent: false };
+}
+
+function getQueuePriority(firmName) {
+  const status = getStatus(firmName);
+  const overdue = isOverdue(firmName);
+  
+  if (overdue && ['touch1', 'touch2', 'touch3'].includes(status)) return 1; // Overdue
+  if (status === 'new') return 2; // New
+  if (getLastTouchDate(firmName)) return 3; // Recently touched
+  return 4;
+}
+
+function renderQueue() {
+  const statuses = getStatuses();
+  const firms = getAllFirms();
+  
+  // Filter to active firms only (not partner/pass)
+  const activeFirms = firms.filter(f => {
+    const status = getStatus(f.name);
+    return status !== 'partner' && status !== 'pass';
+  });
+  
+  // Sort by priority
+  activeFirms.sort((a, b) => getQueuePriority(a.name) - getQueuePriority(b.name));
+  
+  // Count stats
+  let overdue = 0, isNew = 0, recent = 0;
+  activeFirms.forEach(f => {
+    const priority = getQueuePriority(f.name);
+    if (priority === 1) overdue++;
+    else if (priority === 2) isNew++;
+    else if (priority === 3) recent++;
+  });
+  
+  // Update stats
+  document.getElementById('queueOverdue').textContent = overdue;
+  document.getElementById('queueNew').textContent = isNew;
+  document.getElementById('queueRecent').textContent = recent;
+  document.getElementById('ocQueueOverdue').textContent = overdue;
+  document.getElementById('ocQueueNew').textContent = isNew;
+  document.getElementById('ocQueueRecent').textContent = recent;
+  
+  // Render SD and OC queue tables
+  renderQueueTable('queueTableBody', activeFirms.filter(f => f.city === 'sd'));
+  renderQueueTable('ocQueueTableBody', activeFirms.filter(f => f.city === 'oc'));
+}
+
+function renderQueueTable(tbodyId, firms) {
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = '';
+  
+  firms.forEach(f => {
+    const status = getStatus(f.name);
+    const priority = getQueuePriority(f.name);
+    const lastTouch = getLastTouchDate(f.name);
+    const daysSince = getDaysSinceTouch(f.name);
+    const nextAction = getNextAction(f.name);
+    
+    let priorityBadge, priorityLabel;
+    if (priority === 1) {
+      priorityBadge = 'overdue';
+      priorityLabel = '🔥 Overdue';
+    } else if (priority === 2) {
+      priorityBadge = 'is-new';
+      priorityLabel = '⚡ New';
+    } else {
+      priorityBadge = 'recent';
+      priorityLabel = '🕐 Recent';
+    }
+    
+    const row = document.createElement('tr');
+    row.dataset.firm = f.name;
+    row.innerHTML = `
+      <td><span class="priority-badge ${priorityBadge}">${priorityLabel}</span></td>
+      <td><div class="firm-row"><span class="firm-name">${f.name}</span></div></td>
+      <td>${CITY_NAMES[f.city]}</td>
+      <td>${TYPE_ICONS[f.type]}</td>
+      <td>${f.score}</td>
+      <td><span class="status-pill s-${status}" style="cursor:default">${STATUS_LABELS[status]}</span></td>
+      <td>${lastTouch ? (daysSince === 0 ? 'Today' : `${daysSince}d ago`) : '—'}</td>
+      <td><span class="action-text ${nextAction.urgent ? 'urgent' : ''}">${nextAction.text}</span></td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// ===== ARCHIVE RENDERING =====
+function renderArchive() {
+  const firms = getAllFirms();
+  const partners = firms.filter(f => getStatus(f.name) === 'partner');
+  const passes = firms.filter(f => getStatus(f.name) === 'pass');
+  
+  // Update stats
+  document.getElementById('archivePartners').textContent = partners.length;
+  document.getElementById('archivePasses').textContent = passes.length;
+  document.getElementById('ocArchivePartners').textContent = partners.filter(f => f.city === 'oc').length;
+  document.getElementById('ocArchivePasses').textContent = passes.filter(f => f.city === 'oc').length;
+  
+  // Render tables
+  renderArchiveTable('archivePartnersBody', partners.filter(f => f.city === 'sd'), 'partner');
+  renderArchiveTable('ocArchivePartnersBody', partners.filter(f => f.city === 'oc'), 'partner');
+  renderArchiveTable('archivePassesBody', passes.filter(f => f.city === 'sd'), 'pass');
+  renderArchiveTable('ocArchivePassesBody', passes.filter(f => f.city === 'oc'), 'pass');
+}
+
+function renderArchiveTable(tbodyId, firms, type) {
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = '';
+  
+  const notes = getNotes();
+  const reasons = getReasons();
+  
+  firms.forEach(f => {
+    const note = notes[f.name] || '';
+    const reason = reasons[f.name] || '';
+    
+    const row = document.createElement('tr');
+    row.dataset.firm = f.name;
+    
+    if (type === 'partner') {
+      row.innerHTML = `
+        <td><span class="firm-name">${f.name}</span></td>
+        <td>${CITY_NAMES[f.city]}</td>
+        <td>${TYPE_ICONS[f.type]}</td>
+        <td>${f.score}</td>
+        <td><input type="text" class="inline-notes" value="${note}" placeholder="Add notes..." onchange="saveNote('${f.name}', this.value)"></td>
+        <td class="action-col"><button class="btn-restore" onclick="restoreFirm('${f.name}')">↩️ Restore</button></td>
+      `;
+    } else {
+      row.innerHTML = `
+        <td><span class="firm-name">${f.name}</span></td>
+        <td>${CITY_NAMES[f.city]}</td>
+        <td>${TYPE_ICONS[f.type]}</td>
+        <td>${f.score}</td>
+        <td><input type="text" class="inline-reason" value="${reason}" placeholder="Reason for passing..." onchange="saveReason('${f.name}', this.value)"></td>
+        <td class="action-col"><button class="btn-restore" onclick="restoreFirm('${f.name}')">↩️ Restore</button></td>
+      `;
+    }
+    
+    tbody.appendChild(row);
+  });
+}
+
+function saveNote(firmName, value) {
+  const notes = getNotes();
+  notes[firmName] = value;
+  saveNotes(notes);
+}
+
+function saveReason(firmName, value) {
+  const reasons = getReasons();
+  reasons[firmName] = value;
+  saveReasons(reasons);
+}
+
+function restoreFirm(firmName) {
+  changeStatus(firmName, 'new');
+}
+
+// ===== CITY/TAB SWITCHING =====
 function showCity(cityId, btn) {
   document.querySelectorAll('.city-view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.city-btn').forEach(b => b.classList.remove('active'));
@@ -474,6 +1075,7 @@ function showTab(cityId, name, el) {
   document.getElementById(cityId + '-panel-' + name).classList.add('active');
 }
 
+// ===== SELECTION =====
 function updateSelection() {
   const checkboxes = document.querySelectorAll('.row-checkbox:checked');
   selectedFirms = [];
@@ -487,7 +1089,6 @@ function updateSelection() {
     row.classList.add('selected');
   });
   
-  // Remove selection from unchecked rows
   document.querySelectorAll('.row-checkbox:not(:checked)').forEach(cb => {
     cb.closest('tr').classList.remove('selected');
   });
@@ -506,14 +1107,12 @@ function toggleAllInPanel(checkbox, panelId) {
 
 function toggleSelectAll() {
   const selectAll = document.getElementById('selectAll').checked;
-  const statusFilter = document.getElementById('statusFilter').value;
   const cityFilter = document.getElementById('cityFilter').value;
   
   document.querySelectorAll('.row-checkbox').forEach(cb => {
     const row = cb.closest('tr');
     const tbody = row.closest('tbody');
     
-    // Apply filters
     let visible = true;
     if (cityFilter !== 'all' && tbody.dataset.city !== cityFilter) visible = false;
     
@@ -524,23 +1123,33 @@ function toggleSelectAll() {
   updateSelection();
 }
 
+// ===== FILTERING =====
 function filterTable() {
   const statusFilter = document.getElementById('statusFilter').value;
   const cityFilter = document.getElementById('cityFilter').value;
+  const showFilter = document.getElementById('showFilter').value;
   
-  document.querySelectorAll('tbody tr').forEach(row => {
+  document.querySelectorAll('tbody tr[data-firm]').forEach(row => {
     const tbody = row.closest('tbody');
+    const firmName = row.dataset.firm;
+    const firmStatus = getStatus(firmName);
+    
     let visible = true;
     
+    // City filter
     if (cityFilter !== 'all' && tbody.dataset.city !== cityFilter) visible = false;
+    
+    // Show filter (Active/Archive/All)
+    if (showFilter === 'active' && (firmStatus === 'partner' || firmStatus === 'pass')) visible = false;
+    if (showFilter === 'archive' && firmStatus !== 'partner' && firmStatus !== 'pass') visible = false;
     
     row.style.display = visible ? '' : 'none';
   });
   
-  // Reset select all
   document.getElementById('selectAll').checked = false;
 }
 
+// ===== EMAIL MODAL =====
 function updateTemplatePreview() {
   const template = document.getElementById('templateSelect').value;
   const tmpl = emailTemplates[template];
@@ -558,7 +1167,6 @@ function openEmailModal() {
   
   updateTemplatePreview();
   
-  // Populate firms list
   const firmsList = document.getElementById('modalFirms');
   firmsList.innerHTML = selectedFirms.map(f => 
     `<div class="modal-firm">
@@ -578,20 +1186,15 @@ function sendViaGmail() {
   const subject = encodeURIComponent(document.getElementById('emailSubject').value);
   let body = document.getElementById('emailBody').value;
   
-  // Replace merge fields
-  const template = document.getElementById('templateSelect').value;
-  
   if (selectedFirms.length === 1) {
-    // Single recipient - open mailto
     const firm = selectedFirms[0];
     const personalizedBody = body.replace(/{{firm_name}}/g, firm.name)
                                   .replace(/{{contact_name}}/g, firm.contact);
     const mailto = `mailto:${firm.email}?subject=${subject}&body=${encodeURIComponent(personalizedBody)}`;
     window.open(mailto);
   } else {
-    // Multiple - create CSV for mail merge
     exportCSV();
-    alert('Multiple firms selected. CSV downloaded for mail merge. You can paste the data into Gmail\'s mail merge or use a tool like Yet Another Mail Merge.');
+    alert('Multiple firms selected. CSV downloaded for mail merge.');
   }
   
   closeEmailModal();
@@ -599,7 +1202,6 @@ function sendViaGmail() {
 
 function exportCSV() {
   const template = document.getElementById('templateSelect').value;
-  const tmpl = emailTemplates[template];
   const subject = document.getElementById('emailSubject').value;
   const body = document.getElementById('emailBody').value;
   
@@ -630,24 +1232,89 @@ function logSends() {
   const touchNumber = template === 'touch1' ? 1 : template === 'touch2' ? 2 : 3;
   const touchType = template === 'touch1' ? 'Intro Email' : template === 'touch2' ? 'Follow-up Email' : 'Partner Invite';
   
-  // Note: This requires the Apps Script web app to be deployed
-  // For now, we'll show a message about the data that would be logged
-  const logData = {
-    firms: selectedFirms.map((f, i) => ({ name: f.name, row_index: i + 2 })),
-    touch_number: touchNumber,
-    touch_type: touchType,
-    date: today
-  };
+  // Store touches in localStorage
+  const touches = getTouches();
+  selectedFirms.forEach(firm => {
+    if (!touches[firm.name]) touches[firm.name] = [];
+    touches[firm.name].push({
+      type: touchType,
+      date: today,
+      template: template
+    });
+  });
+  saveTouches(touches);
   
-  console.log('Log data (send to Apps Script):', JSON.stringify(logData, null, 2));
+  // Also update status if it's a touch
+  const statuses = getStatuses();
+  selectedFirms.forEach(firm => {
+    const currentStatus = statuses[firm.name] || 'new';
+    if (touchNumber === 1 && currentStatus === 'new') statuses[firm.name] = 'touch1';
+    else if (touchNumber === 2 && currentStatus === 'touch1') statuses[firm.name] = 'touch2';
+    else if (touchNumber === 3 && currentStatus === 'touch2') statuses[firm.name] = 'touch3';
+  });
+  saveStatuses(statuses);
   
-  alert(`Ready to log ${selectedFirms.length} firm(s) to Google Sheet:\n\n` +
-        `Touch ${touchNumber}: ${touchType}\n` +
-        `Date: ${today}\n` +
-        `Firms: ${selectedFirms.map(f => f.name).join(', ')}\n\n` +
-        `See console for JSON payload to send to Apps Script web app.`);
+  // Update UI
+  selectedFirms.forEach(firm => {
+    const row = document.querySelector(`tr[data-firm="${firm.name}"]`);
+    if (row) {
+      addStatusPillToRow(row, firm.name, statuses[firm.name] || 'touch' + touchNumber);
+    }
+  });
+  
+  renderQueue();
+  renderArchive();
+  
+  // Try to sync to Google Sheet
+  const sheetUrl = localStorage.getItem(SHEET_URL_KEY);
+  if (sheetUrl) {
+    fetch(sheetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firms: selectedFirms.map(f => ({ name: f.name })),
+        touch_number: touchNumber,
+        touch_type: touchType,
+        date: today
+      })
+    }).catch(() => {});
+  }
+  
+  alert(`📊 Logged ${selectedFirms.length} firm(s):\n\nTouch ${touchNumber}: ${touchType}\nDate: ${today}\n\nStatus updated and Queue refreshed.`);
   
   closeEmailModal();
+}
+
+// ===== QUEUE EMAIL MODAL =====
+function openQueueEmailModal() {
+  // Get overdue and new firms
+  const firms = getAllFirms().filter(f => {
+    const priority = getQueuePriority(f.name);
+    return priority === 1 || priority === 2;
+  });
+  
+  if (firms.length === 0) {
+    alert('No overdue or new firms to contact.');
+    return;
+  }
+  
+  selectedFirms = firms.map(f => ({
+    name: f.name,
+    email: f.email,
+    contact: f.contact
+  }));
+  
+  updateTemplatePreview();
+  
+  const firmsList = document.getElementById('modalFirms');
+  firmsList.innerHTML = selectedFirms.map(f => 
+    `<div class="modal-firm">
+      <span class="modal-firm-name">${f.name}</span>
+      <span class="modal-firm-email">${f.email}</span>
+    </div>`
+  ).join('');
+  
+  document.getElementById('emailModal').classList.add('active');
 }
 
 // Close modal on escape
