@@ -73,64 +73,44 @@ tr:hover td{background:#f8fbff}
 </main>
 
 <script>
-const demoRows = [
-  {name:'Incident A', daysSinceSignal:12, severity:1, confirmed:1, propertyMatch:1, medicalOnly:0, lastContactDays:99, dnc:0, sensitive:0},
-  {name:'Incident B', daysSinceSignal:3,  severity:1, confirmed:1, propertyMatch:0, medicalOnly:1, lastContactDays:99, dnc:0, sensitive:0},
-  {name:'Incident C', daysSinceSignal:22, severity:1, confirmed:0, propertyMatch:1, medicalOnly:0, lastContactDays:8,  dnc:0, sensitive:0},
-  {name:'Incident D', daysSinceSignal:17, severity:0, confirmed:1, propertyMatch:1, medicalOnly:0, lastContactDays:99, dnc:1, sensitive:0},
-  {name:'Incident E', daysSinceSignal:15, severity:1, confirmed:1, propertyMatch:0, medicalOnly:0, lastContactDays:99, dnc:0, sensitive:1}
-];
+async function load(){
+  const res = await fetch('./data/incidents.json', {cache:'no-store'});
+  const payload = await res.json();
+  const rows = payload.records || [];
 
-function recencyPts(d){ if(d<7) return 0; if(d<=21) return 10; if(d<=45) return 6; return 2; }
-function score(r){ return (r.severity?45:0) + (r.confirmed?25:0) + (r.propertyMatch?20:0) + recencyPts(r.daysSinceSignal); }
-function cooldownClear(r){ return r.daysSinceSignal >= 7; }
-function decide(r){
-  if(r.dnc) return ['suppress','DNC_FLAG'];
-  if(r.sensitive) return ['suppress','SENSITIVITY_FLAG'];
-  if(r.medicalOnly) return ['suppress','MEDICAL_ONLY_NO_PROPERTY'];
-  if(r.lastContactDays < 30) return ['wait','RECENT_OUTREACH_30D'];
-  const s=score(r);
-  if(!cooldownClear(r)) return ['wait','COOLDOWN_LT_7D'];
-  if(s>=70) return ['ready_now','SCORE_GTE_70'];
-  if(s>=55) return ['wait','SCORE_55_69'];
-  return ['wait','LOW_SIGNAL_SCORE'];
+  const rowsHTML = rows.map(r=>{
+    const badge = r.decision==='ready_now'
+      ? '<span class="badge badge-ready">ready_now</span>'
+      : r.decision==='suppress'
+        ? '<span class="badge badge-suppress">suppress</span>'
+        : '<span class="badge badge-wait">wait</span>';
+    return `<tr>
+      <td><strong>${r.name}</strong><div class="small">${r.source||''}</div></td>
+      <td>${r.eventType||''}<div class="small">${r.address||''} ${r.location?('• '+r.location):''}</div></td>
+      <td class="score">${r.score ?? ''}</td>
+      <td>${r.cooldownClear?'clear':'active'}<div class="small">${r.daysSinceSignal ?? ''}d</div></td>
+      <td>${badge}</td>
+      <td><span class="badge badge-gray">${r.reasonCode||''}</span></td>
+      <td>${r.nextAction||''}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('rows').innerHTML = rowsHTML || '<tr><td colspan="7" class="small">No incidents loaded.</td></tr>';
+
+  const ready = rows.filter(r=>r.decision==='ready_now').length;
+  const wait = rows.filter(r=>r.decision==='wait').length;
+  const suppress = rows.filter(r=>r.decision==='suppress').length;
+
+  document.getElementById('kpis').innerHTML = `
+    <div class="box"><div class="l">Records</div><div class="n blue">${rows.length}</div></div>
+    <div class="box"><div class="l">Ready Now</div><div class="n green">${ready}</div></div>
+    <div class="box"><div class="l">Wait</div><div class="n amber">${wait}</div></div>
+    <div class="box"><div class="l">Suppress</div><div class="n red">${suppress}</div></div>
+    <div class="box"><div class="l">Feed Updated</div><div class="n purple" style="font-size:1rem">${new Date(payload.updatedAt).toLocaleTimeString()}</div></div>`;
+
+  document.getElementById('meta').textContent = `Public-signal model only • SD Fire/EMS + SD Sheriff feeds • updated ${new Date(payload.updatedAt).toLocaleString()}`;
 }
-
-const rowsHTML = demoRows.map(r=>{
-  const s=score(r);
-  const [decision, reason]=decide(r);
-  const badge = decision==='ready_now'
-    ? '<span class="badge badge-ready">ready_now</span>'
-    : decision==='suppress'
-      ? '<span class="badge badge-suppress">suppress</span>'
-      : '<span class="badge badge-wait">wait</span>';
-  const nextAction = decision==='ready_now' ? 'queue_care_first_postcard' : (decision==='suppress' ? 'none' : 'recheck_next_cycle');
-  return `<tr>
-    <td><strong>${r.name}</strong></td>
-    <td>severity:${r.severity} • confirmed:${r.confirmed} • property:${r.propertyMatch}</td>
-    <td class="score">${s}</td>
-    <td>${cooldownClear(r)?'clear':'active'}</td>
-    <td>${badge}</td>
-    <td><span class="badge badge-gray">${reason}</span></td>
-    <td>${nextAction}</td>
-  </tr>`;
-}).join('');
-
-document.getElementById('rows').innerHTML = rowsHTML;
-
-const decisions = demoRows.map(decide);
-const ready = decisions.filter(d=>d[0]==='ready_now').length;
-const wait = decisions.filter(d=>d[0]==='wait').length;
-const suppress = decisions.filter(d=>d[0]==='suppress').length;
-
-document.getElementById('kpis').innerHTML = `
-  <div class="box"><div class="l">Records</div><div class="n blue">${demoRows.length}</div></div>
-  <div class="box"><div class="l">Ready Now</div><div class="n green">${ready}</div></div>
-  <div class="box"><div class="l">Wait</div><div class="n amber">${wait}</div></div>
-  <div class="box"><div class="l">Suppress</div><div class="n red">${suppress}</div></div>
-  <div class="box"><div class="l">Mode</div><div class="n purple">SD v1</div></div>`;
-
-document.getElementById('meta').textContent = `Public-signal model only • no live emergency interception • updated ${new Date().toLocaleString()}`;
+load();
 </script>
 </body>
 </html>
