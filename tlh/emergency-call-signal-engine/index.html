@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TLH Emergency Call Signal Engine — SD</title>
+<title>TLH Care Transition Router — SD</title>
 <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -29,6 +29,9 @@ tr:hover td{background:#f8fbff}
 .badge-ready{background:#dcfce7;color:#15803d}
 .badge-wait{background:#fef3c7;color:#b45309}
 .badge-suppress{background:#fee2e2;color:#991b1b}
+.badge-care{background:#e0f2fe;color:#0c4a6e}
+.badge-estate{background:#ede9fe;color:#5b21b6}
+.badge-cash{background:#ecfccb;color:#365314}
 .badge-gray{background:#f3f4f6;color:#6b7280}
 .score{font-weight:900;color:#0D3B66}
 .meta{font-size:.75rem;color:#64748b;padding:0 2px 12px 2px}
@@ -40,77 +43,101 @@ tr:hover td{background:#f8fbff}
 </head>
 <body>
 <header>
-  <h1>🚨 TLH Emergency Call Signal Engine — SD</h1>
+  <h1>🧭 TLH Care Transition Router — SD (Standalone)</h1>
   <a href="/tlh/agents/">← Agent OS</a>
 </header>
 <main>
-  <div class="meta" id="meta">Public-signal model only • no live emergency interception • loading…</div>
+  <div class="meta" id="meta">Care-first model • non-crisis, consent-safe signals • loading…</div>
 
   <div class="kpi" id="kpis"></div>
 
   <section>
-    <h2>📏 Model + Safeguards</h2>
+    <h2>📏 Routing Model + Guardrails</h2>
     <ul class="list">
-      <li><strong>Signal Score (0-100):</strong> Emergency Severity (45) + Incident Confirmation (25) + Property Ownership Match (20) + Recency Fit (10).</li>
-      <li><strong>Decision gates:</strong> <code>ready_now</code> requires score ≥ 70 and cooldown clear.</li>
-      <li><strong>Cooldown:</strong> minimum 7 days from qualifying incident before any outreach.</li>
-      <li><strong>Suppress:</strong> if medical-only/no property signal, DNC/sensitivity flags, or recent outreach within 30 days.</li>
-      <li><strong>Every row requires reason code</strong> for auditability.</li>
+      <li><strong>Allowed signal classes:</strong> obituary/probate/public transition records, inbound requests, partner referrals.</li>
+      <li><strong>Service routes:</strong> <code>care_placement</code>, <code>estate_sale</code>, <code>cash_offer</code>.</li>
+      <li><strong>Decision gates:</strong> score ≥ 70 and cooldown clear for outreach queueing.</li>
+      <li><strong>Cooldown:</strong> 7–21 days by signal type; no immediate event-trigger contact.</li>
+      <li><strong>Suppress:</strong> DNC/sensitivity/recent outreach &lt;30d.</li>
+      <li><strong>All rows include reason code + route rationale</strong> for auditability.</li>
     </ul>
   </section>
 
   <section>
-    <h2>📊 Decision Queue</h2>
+    <h2>📊 Transition Queue</h2>
     <div class="table-wrap"><table>
-      <thead><tr><th>Record</th><th>Signals</th><th>Score</th><th>Cooldown</th><th>Decision</th><th>Reason Code</th><th>Next Action</th></tr></thead>
+      <thead><tr><th>Lead</th><th>Signals</th><th>Score</th><th>Decision</th><th>Service Route</th><th>Reason Code</th><th>Next Action</th></tr></thead>
       <tbody id="rows"></tbody>
     </table></div>
   </section>
 
   <div style="text-align:center;color:#94a3b8;font-size:.72rem;padding:16px 0">
-    Emergency Call Signal Engine · SD First · Standalone App
+    Care Transition Router · Standalone App · TLH Ethical Operations Model
   </div>
 </main>
 
 <script>
-async function load(){
-  const res = await fetch('./data/incidents.json', {cache:'no-store'});
-  const payload = await res.json();
-  const rows = payload.records || [];
+const rows = [
+  {lead:'Household A', signals:{obit:1, probate:1, inbound:0, partner:0}, days:12, recent:99, dnc:0, sensitive:0},
+  {lead:'Household B', signals:{obit:1, probate:0, inbound:1, partner:0}, days:9,  recent:99, dnc:0, sensitive:0},
+  {lead:'Household C', signals:{obit:1, probate:0, inbound:0, partner:1}, days:4,  recent:99, dnc:0, sensitive:0},
+  {lead:'Household D', signals:{obit:0, probate:1, inbound:0, partner:0}, days:16, recent:8,  dnc:0, sensitive:0},
+  {lead:'Household E', signals:{obit:1, probate:1, inbound:0, partner:0}, days:18, recent:99, dnc:1, sensitive:0}
+];
 
-  const rowsHTML = rows.map(r=>{
-    const badge = r.decision==='ready_now'
-      ? '<span class="badge badge-ready">ready_now</span>'
-      : r.decision==='suppress'
-        ? '<span class="badge badge-suppress">suppress</span>'
-        : '<span class="badge badge-wait">wait</span>';
-    return `<tr>
-      <td><strong>${r.name}</strong><div class="small">${r.source||''}</div></td>
-      <td>${r.eventType||''}<div class="small">${r.address||''} ${r.location?('• '+r.location):''}</div></td>
-      <td class="score">${r.score ?? ''}</td>
-      <td>${r.cooldownClear?'clear':'active'}<div class="small">${r.daysSinceSignal ?? ''}d</div></td>
-      <td>${badge}</td>
-      <td><span class="badge badge-gray">${r.reasonCode||''}</span></td>
-      <td>${r.nextAction||''}</td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('rows').innerHTML = rowsHTML || '<tr><td colspan="7" class="small">No incidents loaded.</td></tr>';
-
-  const ready = rows.filter(r=>r.decision==='ready_now').length;
-  const wait = rows.filter(r=>r.decision==='wait').length;
-  const suppress = rows.filter(r=>r.decision==='suppress').length;
-
-  document.getElementById('kpis').innerHTML = `
-    <div class="box"><div class="l">Records</div><div class="n blue">${rows.length}</div></div>
-    <div class="box"><div class="l">Ready Now</div><div class="n green">${ready}</div></div>
-    <div class="box"><div class="l">Wait</div><div class="n amber">${wait}</div></div>
-    <div class="box"><div class="l">Suppress</div><div class="n red">${suppress}</div></div>
-    <div class="box"><div class="l">Feed Updated</div><div class="n purple" style="font-size:1rem">${new Date(payload.updatedAt).toLocaleTimeString()}</div></div>`;
-
-  document.getElementById('meta').textContent = `Public-signal model only • SD Fire/EMS + SD Sheriff feeds • updated ${new Date(payload.updatedAt).toLocaleString()}`;
+function score(r){
+  const s = r.signals;
+  return (s.obit?35:0) + (s.probate?30:0) + (s.inbound?25:0) + (s.partner?20:0) + (r.days>=7?10:0);
 }
-load();
+function route(r){
+  const s = r.signals;
+  if (s.inbound || s.partner) return 'care_placement';
+  if (s.obit && s.probate) return 'estate_sale';
+  if (s.probate && !s.obit) return 'cash_offer';
+  return 'estate_sale';
+}
+function decide(r){
+  if (r.dnc) return ['suppress','DNC_FLAG'];
+  if (r.sensitive) return ['suppress','SENSITIVITY_FLAG'];
+  if (r.recent < 30) return ['wait','RECENT_OUTREACH_30D'];
+  if (r.days < 7) return ['wait','COOLDOWN_LT_7D'];
+  const s = score(r);
+  if (s >= 70) return ['ready_now','SCORE_GTE_70'];
+  if (s >= 55) return ['wait','SCORE_55_69'];
+  return ['wait','LOW_SIGNAL_SCORE'];
+}
+function routeBadge(r){
+  const rt = route(r);
+  if (rt==='care_placement') return '<span class="badge badge-care">care_placement</span>';
+  if (rt==='cash_offer') return '<span class="badge badge-cash">cash_offer</span>';
+  return '<span class="badge badge-estate">estate_sale</span>';
+}
+
+const table = rows.map(r=>{
+  const s = score(r);
+  const [d,reason] = decide(r);
+  const decision = d==='ready_now' ? '<span class="badge badge-ready">ready_now</span>' : d==='suppress' ? '<span class="badge badge-suppress">suppress</span>' : '<span class="badge badge-wait">wait</span>';
+  const next = d==='ready_now' ? 'queue_route_specific_postcard' : d==='suppress' ? 'none' : 'recheck_next_cycle';
+  const sig = `obit:${r.signals.obit} • probate:${r.signals.probate} • inbound:${r.signals.inbound} • partner:${r.signals.partner}`;
+  return `<tr><td><strong>${r.lead}</strong><div class='small'>days:${r.days}</div></td><td>${sig}</td><td class='score'>${s}</td><td>${decision}</td><td>${routeBadge(r)}</td><td><span class='badge badge-gray'>${reason}</span></td><td>${next}</td></tr>`;
+}).join('');
+
+document.getElementById('rows').innerHTML = table;
+
+const decisions = rows.map(decide);
+const ready = decisions.filter(x=>x[0]==='ready_now').length;
+const wait = decisions.filter(x=>x[0]==='wait').length;
+const suppress = decisions.filter(x=>x[0]==='suppress').length;
+const care = rows.filter(r=>route(r)==='care_placement').length;
+
+document.getElementById('kpis').innerHTML = `
+  <div class='box'><div class='l'>Records</div><div class='n blue'>${rows.length}</div></div>
+  <div class='box'><div class='l'>Ready Now</div><div class='n green'>${ready}</div></div>
+  <div class='box'><div class='l'>Wait</div><div class='n amber'>${wait}</div></div>
+  <div class='box'><div class='l'>Suppress</div><div class='n red'>${suppress}</div></div>
+  <div class='box'><div class='l'>Care Route</div><div class='n purple'>${care}</div></div>`;
+
+document.getElementById('meta').textContent = `Care-first model • non-crisis signals only • updated ${new Date().toLocaleString()}`;
 </script>
 </body>
 </html>
