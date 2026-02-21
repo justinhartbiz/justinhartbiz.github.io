@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hebbian Learning — Horizon v6</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #0d0a14;
+    --text: #e8e4f0;
+    --accent: #8b5cf6;
+    --accent-dim: rgba(139,92,246,0.15);
+    --muted: #6b6280;
+    --synapse-low: rgba(139,92,246,0.2);
+    --synapse-high: #c084fc;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+    line-height: 1.7;
+    background-image: radial-gradient(ellipse at 30% 20%, rgba(139,92,246,0.08) 0%, transparent 50%);
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 300;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    padding: 2rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .back {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .domain {
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  main {
+    max-width: 950px;
+    margin: 0 auto;
+    padding: 3rem;
+  }
+
+  h1 {
+    font-size: 2.8rem;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 3rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin: 2.5rem 0 1rem;
+    font-weight: 400;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .highlight {
+    background: var(--accent-dim);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+
+  .demo-container {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(139,92,246,0.15);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .demo-title {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .network-container {
+    position: relative;
+    height: 350px;
+    background: radial-gradient(circle at 50% 50%, #151020 0%, #0d0a14 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    cursor: crosshair;
+  }
+
+  .neuron {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.15s;
+  }
+
+  .neuron.sensory {
+    background: #22d3ee;
+    box-shadow: 0 0 10px #22d3ee;
+  }
+
+  .neuron.hidden {
+    background: #a78bfa;
+    box-shadow: 0 0 8px #a78bfa;
+  }
+
+  .neuron.motor {
+    background: #f472b6;
+    box-shadow: 0 0 10px #f472b6;
+  }
+
+  .neuron.firing {
+    transform: translate(-50%, -50%) scale(1.5);
+    box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+  }
+
+  .synapse {
+    position: absolute;
+    height: 2px;
+    transform-origin: left center;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .pulse {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: pulse 0.5s linear forwards;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  .network-legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .legend-dot.sensory { background: #22d3ee; box-shadow: 0 0 6px #22d3ee; }
+  .legend-dot.hidden { background: #a78bfa; box-shadow: 0 0 6px #a78bfa; }
+  .legend-dot.motor { background: #f472b6; box-shadow: 0 0 6px #f472b6; }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .control-panel {
+    background: rgba(0,0,0,0.3);
+    padding: 1.5rem;
+    border-radius: 8px;
+  }
+
+  .control-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Source Serif 4', serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .action-btn:hover {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+
+  .action-btn.primary {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .metric {
+    text-align: center;
+  }
+
+  .metric-value {
+    font-size: 1.2rem;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .metric-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 0.25rem;
+  }
+
+  .info-box {
+    background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(192,132,252,0.08));
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .info-box h3 {
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    font-weight: 400;
+  }
+
+  .concept-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+  }
+
+  .concept-step {
+    background: rgba(0,0,0,0.3);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .concept-step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .concept-step-text {
+    font-size: 0.85rem;
+    color: var(--text);
+  }
+
+  .concept-arrow {
+    color: var(--accent);
+    font-size: 1.2rem;
+  }
+
+  @media (max-width: 800px) {
+    header { padding: 1.5rem; flex-direction: column; gap: 1rem; }
+    main { padding: 2rem 1.5rem; }
+    h1 { font-size: 2rem; }
+    .controls { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .network-legend { flex-wrap: wrap; gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back">← Horizon v6</a>
+  <span class="domain">Neuroscience / Synaptic Plasticity</span>
+</header>
+
+<main>
+  <h1>Hebbian Learning</h1>
+  <p class="tagline">Your brain rewires itself with every thought.</p>
+
+  <p>In 1949, a Canadian psychologist named Donald Hebb proposed one of the most influential ideas in neuroscience. He wrote: "Neurons that fire together wire together." That's it. That's the principle. And it explains how your brain learns, remembers, and changes throughout your life.</p>
+
+  <p>What Hebb understood is that the brain isn't fixed hardware. It's software made flesh—rewiring itself with every experience, every thought, every memory. The connections between neurons aren't static cables. They're living, breathing relationships that strengthen when activated together and weaken when neglected.</p>
+
+  <div class="info-box">
+    <h3>The Hebbian Principle</h3>
+    <div class="concept-flow">
+      <div class="concept-step">
+        <div class="concept-step-num">01</div>
+        <div class="concept-step-text">Neuron A fires</div>
+      </div>
+      <div class="concept-arrow">→</div>
+      <div class="concept-step">
+        <div class="concept-step-num">02</div>
+        <div class="concept-step-text">Neuron B fires</div>
+      </div>
+      <div class="concept-arrow">→</div>
+      <div class="concept-step">
+        <div class="concept-step-num">03</div>
+        <div class="concept-step-text">Synapse strengthens</div>
+      </div>
+    </div>
+    <p style="font-size: 0.9rem; color: var(--muted); margin: 0; text-align: center;">"Cells that fire together, wire together."</p>
+  </div>
+
+  <h2>Build Your Own Neural Pathways</h2>
+
+  <p>Click on sensory neurons (cyan) to activate them. Watch the signal propagate through hidden neurons (purple) to motor neurons (pink). When you repeatedly activate neurons in sequence, their connections strengthen. Over time, the circuit "learns"—signals flow faster and more reliably.</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive Neural Network</div>
+
+    <div class="network-legend">
+      <div class="legend-item">
+        <div class="legend-dot sensory"></div>
+        <span>Sensory (input)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot hidden"></div>
+        <span>Hidden (processing)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot motor"></div>
+        <span>Motor (output)</span>
+      </div>
+    </div>
+
+    <div class="network-container" id="network">
+    </div>
+
+    <div class="controls">
+      <div class="control-panel">
+        <div class="control-label">Actions</div>
+        <div class="action-btns">
+          <button class="action-btn" id="stimulateBtn">⚡ Stimulate Random</button>
+          <button class="action-btn primary" id="learnBtn">🧠 Learn Pattern</button>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-top: 0.75rem; margin-bottom: 0;">Click on cyan neurons or use buttons</p>
+      </div>
+      <div class="control-panel">
+        <div class="control-label">Network State</div>
+        <div class="action-btns">
+          <button class="action-btn" id="resetBtn">↺ Reset</button>
+          <button class="action-btn" id="decayBtn">📉 Decay Connections</button>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-top: 0.75rem; margin-bottom: 0;">Decay weakens unused connections</p>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-value" id="synapseCount">12</div>
+        <div class="metric-label">Active Synapses</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="avgStrength">0.3</div>
+        <div class="metric-label">Avg Strength</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="pathwaysFormed">0</div>
+        <div class="metric-label">Pathways Formed</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="firingRate">0</div>
+        <div class="metric-label">Firing Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>What You're Seeing</h2>
+
+  <p><strong>Synaptic Weights:</strong> The lines between neurons represent synapses. Thicker/brighter lines have stronger connections. When two connected neurons fire together, their connection strengthens (LTP—Long-Term Potentiation). When they don't fire together, the connection weakens (LTD—Long-Term Depression).</p>
+
+  <p><strong>Signal Propagation:</strong> When you click a sensory neuron, it fires. If the connection to the next neuron is strong enough, that neuron fires too. This cascades through the network. Stronger pathways conduct signals more reliably.</p>
+
+  <p><strong>Learning:</strong> Click "Learn Pattern" to activate a specific sequence of neurons repeatedly. Watch how the connections between those neurons grow stronger. That's learning at the cellular level.</p>
+
+  <h2>Forgetting Is Active</h2>
+
+  <p>Here's something surprising: forgetting isn't passive. Your brain doesn't just lose connections over time. It actively prunes them. The "decay" button simulates synaptic depression—unused connections get weaker.</p>
+
+  <p>This is why practice matters. Neurons that don't fire together gradually unwire. Skills you don't use, memories you don't recall, knowledge you don't apply—all gradually fade as their neural pathways decay.</p>
+
+  <p>But it's also why recovery is possible. The brain can form new connections at any age (neuroplasticity). Old pathways can be strengthened through practice. New pathways can be built through learning. Your brain is always changing—you just have to give it reasons to change.</p>
+
+  <h2>The Deeper Implication</h2>
+
+  <p>Hebbian learning suggests that identity itself is not fixed. Your sense of self, your memories, your skills—all are patterns of neural connectivity. Change those patterns, and you change who you are.</p>
+
+  <p>This is both empowering and unsettling. Empowering because it means you can change. Unsettling because it means you're less fixed than you might think. The self is not a thing—it's a process, a pattern, a set of relationships between 86 billion neurons.</p>
+
+  <p>The question becomes: what do you want to wire together?</p>
+
+</main>
+
+<script>
+  const network = document.getElementById('network');
+  let neurons = [];
+  let synapses = [];
+  let firingRate = 0;
+  let pathwaysFormed = 0;
+  let animationId = null;
+
+  // Create network structure
+  function createNetwork() {
+    network.innerHTML = '';
+    neurons = [];
+    synapses = [];
+    
+    const rect = network.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    
+    // Sensory layer (input)
+    const sensoryNeurons = [];
+    for (let i = 0; i < 4; i++) {
+      const neuron = {
+        x: w * 0.15,
+        y: h * (0.2 + i * 0.2),
+        type: 'sensory',
+        firing: false,
+        layer: 0,
+        index: i
+      };
+      neurons.push(neuron);
+      sensoryNeurons.push(neuron);
+    }
+    
+    // Hidden layer
+    const hiddenNeurons = [];
+    for (let i = 0; i < 6; i++) {
+      const neuron = {
+        x: w * 0.5,
+        y: h * (0.1 + i * 0.16),
+        type: 'hidden',
+        firing: false,
+        layer: 1,
+        index: i
+      };
+      neurons.push(neuron);
+      hiddenNeurons.push(neuron);
+    }
+    
+    // Motor layer (output)
+    const motorNeurons = [];
+    for (let i = 0; i < 3; i++) {
+      const neuron = {
+        x: w * 0.85,
+        y: h * (0.25 + i * 0.25),
+        type: 'motor',
+        firing: false,
+        layer: 2,
+        index: i
+      };
+      neurons.push(neuron);
+      motorNeurons.push(neuron);
+    }
+    
+    // Create synapses
+    // Sensory to Hidden
+    sensoryNeurons.forEach(s => {
+      hiddenNeurons.forEach(h => {
+        synapses.push({
+          from: s,
+          to: h,
+          strength: 0.2 + Math.random() * 0.2
+        });
+      });
+    });
+    
+    // Hidden to Motor
+    hiddenNeurons.forEach(h => {
+      motorNeurons.forEach(m => {
+        synapses.push({
+          from: h,
+          to: m,
+          strength: 0.2 + Math.random() * 0.2
+        });
+      });
+    });
+    
+    // Draw synapses
+    synapses.forEach(syn => {
+      const line = document.createElement('div');
+      line.className = 'synapse';
+      line.dataset.from = neurons.indexOf(syn.from);
+      line.dataset.to = neurons.indexOf(syn.to);
+      network.appendChild(line);
+    });
+    
+    // Draw neurons
+    neurons.forEach((n, i) => {
+      const el = document.createElement('div');
+      el.className = 'neuron ' + n.type;
+      el.style.left = n.x + 'px';
+      el.style.top = n.y + 'px';
+      el.dataset.index = i;
+      
+      if (n.type === 'sensory') {
+        el.addEventListener('click', () => fireNeuron(i));
+      }
+      
+      network.appendChild(el);
+      n.element = el;
+    });
+    
+    updateNetwork();
+  }
+
+  function updateNetwork() {
+    const rect = network.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    
+    // Update synapse positions and appearance
+    const synapseElements = network.querySelectorAll('.synapse');
+    synapseElements.forEach(el => {
+      const fromIdx = parseInt(el.dataset.from);
+      const toIdx = parseInt(el.dataset.to);
+      const from = neurons[fromIdx];
+      const to = neurons[toIdx];
+      
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+      
+      el.style.width = length + 'px';
+      el.style.left = from.x + 'px';
+      el.style.top = from.y + 'px';
+      el.style.transform = `rotate(${angle}deg)`;
+      
+      // Get synapse strength
+      const syn = synapses.find(s => s.from === from && s.to === to);
+      if (syn) {
+        const opacity = 0.2 + syn.strength * 0.8;
+        el.style.opacity = opacity;
+        el.style.background = syn.strength > 0.5 ? '#c084fc' : 'rgba(139,92,246,0.4)';
+      }
+    });
+    
+    // Update metrics
+    const activeSynapses = synapses.filter(s => s.strength > 0.3).length;
+    const avgStrength = synapses.reduce((a, s) => a + s.strength, 0) / synapses.length;
+    const strongPathways = synapses.filter(s => s.strength > 0.6).length;
+    
+    document.getElementById('synapseCount').textContent = activeSynapses;
+    document.getElementById('avgStrength').textContent = avgStrength.toFixed(2);
+    document.getElementById('pathwaysFormed').textContent = strongPathways;
+    document.getElementById('firingRate').textContent = firingRate;
+  }
+
+  function fireNeuron(index) {
+    const neuron = neurons[index];
+    if (neuron.firing) return;
+    
+    neuron.firing = true;
+    neuron.element.classList.add('firing');
+    firingRate++;
+    
+    setTimeout(() => {
+      neuron.firing = false;
+      neuron.element.classList.remove('firing');
+    }, 150);
+    
+    // Propagate to connected neurons
+    if (neuron.layer < 2) {
+      const outgoing = synapses.filter(s => s.from === neuron);
+      outgoing.forEach(syn => {
+        // Hebbian learning: strengthen if both fire
+        if (syn.to.firing) {
+          syn.strength = Math.min(1, syn.strength + 0.1);
+        }
+        
+        // Propagate if strong enough
+        if (syn.strength > 0.25 && Math.random() < syn.strength) {
+          setTimeout(() => {
+            fireNeuron(neurons.indexOf(syn.to));
+          }, 100 + Math.random() * 100);
+        }
+      });
+    }
+    
+    updateNetwork();
+  }
+
+  // Button handlers
+  document.getElementById('stimulateBtn').addEventListener('click', () => {
+    const sensoryIndices = neurons.filter(n => n.type === 'sensory').map((_, i) => i);
+    const randomIdx = sensoryIndices[Math.floor(Math.random() * sensoryIndices.length)];
+    fireNeuron(randomIdx);
+  });
+
+  document.getElementById('learnBtn').addEventListener('click', () => {
+    // Learn a pattern: fire sensory -> hidden -> motor in sequence
+    const pattern = [0, 1, 2]; // First three sensory neurons
+    let delay = 0;
+    
+    pattern.forEach((sensoryIdx, i) => {
+      setTimeout(() => {
+        fireNeuron(sensoryIdx);
+      }, delay);
+      delay += 200;
+    });
+    
+    pathwaysFormed++;
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    createNetwork();
+    firingRate = 0;
+    pathwaysFormed = 0;
+  });
+
+  document.getElementById('decayBtn').addEventListener('click', () => {
+    synapses.forEach(syn => {
+      syn.strength = Math.max(0.1, syn.strength - 0.1);
+    });
+    updateNetwork();
+  });
+
+  // Initialize
+  createNetwork();
+  window.addEventListener('resize', createNetwork);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leidenfrost Effect — Horizon v6</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #050a14;
+    --text: #e0e8f0;
+    --accent: #3b82f6;
+    --accent-dim: rgba(59,130,246,0.15);
+    --muted: #5a6a80;
+    --hot: #ef4444;
+    --warm: #f59e0b;
+    --cool: #10b981;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+    line-height: 1.7;
+    background-image: radial-gradient(ellipse at 50% 80%, rgba(59,130,246,0.08) 0%, transparent 50%);
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 300;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    padding: 2rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .back {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .domain {
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem;
+  }
+
+  h1 {
+    font-size: 2.8rem;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 3rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin: 2.5rem 0 1rem;
+    font-weight: 400;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .highlight {
+    background: var(--accent-dim);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+
+  .demo-container {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(59,130,246,0.15);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .demo-title {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .chamber {
+    position: relative;
+    height: 280px;
+    background: linear-gradient(to bottom, #0a0f1a 0%, #1a1520 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .heat-source {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(to top, var(--hot), transparent);
+    opacity: 0.6;
+    transition: opacity 0.3s;
+  }
+
+  .heat-indicator {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    color: var(--hot);
+    text-shadow: 0 0 20px var(--hot);
+    transition: color 0.3s, text-shadow 0.3s;
+  }
+
+  .droplet {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(100,180,255,0.8), rgba(59,130,246,0.6));
+    box-shadow: 0 0 15px rgba(59,130,246,0.5), inset 0 0 10px rgba(255,255,255,0.3);
+    transition: all 0.3s;
+  }
+
+  .droplet-vapor {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    opacity: 0;
+    animation: none;
+    transition: opacity 0.3s;
+  }
+
+  .droplet-vapor.active {
+    opacity: 1;
+    animation: vapor 1s infinite ease-out;
+  }
+
+  @keyframes vapor {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 0.8; }
+    100% { transform: translateX(-50%) scale(2); opacity: 0; }
+  }
+
+  .phase-indicator {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(0,0,0,0.6);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .phase-name {
+    color: var(--accent);
+    font-weight: bold;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .dial-container {
+    flex: 1;
+  }
+
+  .dial-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .dial {
+    width: 100%;
+    height: 12px;
+    -webkit-appearance: none;
+    background: linear-gradient(to right, var(--cool), var(--warm), var(--hot));
+    border-radius: 6px;
+    outline: none;
+  }
+
+  .dial::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+
+  .temp-display {
+    text-align: center;
+    min-width: 120px;
+  }
+
+  .temp-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    color: var(--accent);
+    text-shadow: 0 0 20px var(--accent);
+  }
+
+  .temp-unit {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .behavior-phases {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .phase-card {
+    background: rgba(0,0,0,0.3);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    opacity: 0.4;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+  }
+
+  .phase-card.active {
+    opacity: 1;
+    border-color: var(--accent);
+    background: rgba(59,130,246,0.1);
+  }
+
+  .phase-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .phase-title {
+    font-size: 0.75rem;
+    color: #fff;
+    margin-bottom: 0.25rem;
+    font-weight: 400;
+  }
+
+  .phase-range {
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .applications {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .app-card {
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border-top: 3px solid var(--accent);
+  }
+
+  .app-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .app-title {
+    font-size: 1rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+  }
+
+  .app-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 800px) {
+    header { padding: 1.5rem; flex-direction: column; gap: 1rem; }
+    main { padding: 2rem 1.5rem; }
+    h1 { font-size: 2rem; }
+    .controls { flex-direction: column; }
+    .behavior-phases { grid-template-columns: repeat(2, 1fr); }
+    .applications { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back">← Horizon v6</a>
+  <span class="domain">Thermodynamics / Fluid Dynamics</span>
+</header>
+
+<main>
+  <h1>Leidenfrost Effect</h1>
+  <p class="tagline">Extreme heat can protect rather than destroy.</p>
+
+  <p>Drop water on a hot pan and it sizzles and evaporates within seconds. But drop water on a <em>very</em> hot pan—over 200°C—and something strange happens. The water droplet doesn't sizzle. It hovers, dancing across the surface, lasting 10 times longer than it would on a warm pan. This is the Leidenfrost effect, and it's one of the most counterintuitive phenomena in physics.</p>
+
+  <h2>Play with Fire and Water</h2>
+
+  <p>Drag the temperature dial below to see how water droplets behave at different temperatures. Watch what happens when you cross the Leidenfrost threshold.</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Droplet Behavior Simulator</div>
+
+    <div class="chamber" id="chamber">
+      <div class="heat-source" id="heatSource"></div>
+      <div class="droplet" id="droplet"></div>
+      <div class="droplet-vapor" id="dropletVapor"></div>
+      <div class="phase-indicator">
+        Phase: <span class="phase-name" id="phaseName">Liquid Contact</span>
+      </div>
+      <div class="heat-indicator" id="heatIndicator">25°C</div>
+    </div>
+
+    <div class="controls">
+      <div class="dial-container">
+        <div class="dial-label">
+          <span>Cold Plate</span>
+          <span>Leidenfrost Zone</span>
+          <span>Extreme Heat</span>
+        </div>
+        <input type="range" class="dial" id="tempDial" min="0" max="300" value="25">
+      </div>
+      <div class="temp-display">
+        <div class="temp-value" id="tempValue">25</div>
+        <div class="temp-unit">°C</div>
+      </div>
+    </div>
+
+    <div class="behavior-phases">
+      <div class="phase-card active" id="phase1">
+        <div class="phase-icon">💧</div>
+        <div class="phase-title">Direct Contact</div>
+        <div class="phase-range">0-150°C</div>
+      </div>
+      <div class="phase-card" id="phase2">
+        <div class="phase-icon">✨</div>
+        <div class="phase-title">Nucleate Boiling</div>
+        <div class="phase-range">100-200°C</div>
+      </div>
+      <div class="phase-card" id="phase3">
+        <div class="phase-icon">🛸</div>
+        <div class="phase-title">Leidenfrost</div>
+        <div class="phase-range">200-300°C</div>
+      </div>
+      <div class="phase-card" id="phase4">
+        <div class="phase-icon">💥</div>
+        <div class="phase-title">Film Boiling</div>
+        <div class="phase-range">>280°C</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>What's Happening?</h2>
+
+  <p>At ordinary temperatures, water droplets contact the hot surface directly and transfer heat efficiently through conduction. The droplet heats rapidly and evaporates.</p>
+
+  <p>But above a critical temperature—the <span class="highlight">Leidenfrost point</span>—something magical happens. The surface temperature is so hot that the bottom of the droplet instantly vaporizes, creating a thin cushion of steam. This steam layer insulates the rest of the droplet from the heat, dramatically slowing evaporation.</p>
+
+  <p>The droplet now rides on a cushion of its own vapor, like a microscopic hovercraft. It can slide across the surface with almost no friction, lasting 10-100 times longer than at lower temperatures.</p>
+
+  <h2>Real-World Applications</h2>
+
+  <div class="applications">
+    <div class="app-card">
+      <div class="app-icon">🏗️</div>
+      <div class="app-title">Foundry Work</div>
+      <div class="app-desc">Metalworkers dip wet hands in molten metal without burns. The moisture instantly vaporizes, creating a protective steam layer for a few seconds.</div>
+    </div>
+    <div class="app-card">
+      <div class="app-icon">🍳</div>
+      <div class="app-title">Cooking</div>
+      <div class="app-desc">The "blanching" technique works because extremely hot oil creates a steam cushion that prevents sticking and gives crispy results.</div>
+    </div>
+    <div class="app-card">
+      <div class="app-icon">🚀</div>
+      <div class="app-title">Rocket Engines</div>
+      <div class="app-desc">Fuel injectors use the Leidenfrost effect to prevent combustion chamber damage. The fuel film vaporizes instantly, protecting metal walls.</div>
+    </div>
+  </div>
+
+  <h2>The Dance of the Droplets</h2>
+
+  <p>If you watch Leidenfrost droplets carefully, you'll notice they don't just sit still. They move—sometimes in straight lines, sometimes in spirals, sometimes in figure-8s. These movements are driven by subtle temperature variations on the surface and tiny asymmetries in the droplet shape.</p>
+
+  <p>Researchers have shown that droplets can be "programmed" to move in specific patterns by controlling the surface temperature gradient. This has led to proposals for <span class="highlight">droplet computers</span>—computing devices that use moving droplets instead of electrons.</p>
+
+  <h2>The Finger Test</h2>
+
+  <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 1.5rem; margin: 2rem 0;">
+    <p style="margin: 0; font-size: 0.95rem;"><strong style="color: #ef4444;">⚠️ Warning:</strong> This is for demonstration only. The traditional "lick your finger and touch a hot stove" trick works because moisture instantly vaporizes. But timing is critical—too slow and you'll get burned. Don't try this at home.</p>
+  </div>
+
+  <p>The finger test is the most dramatic demonstration of the Leidenfrost effect. If you quickly flick your wet finger across a very hot surface, the moisture vaporizes instantly, creating a protective steam layer. Your finger passes through without contact—briefly.</p>
+
+  <h2>The Shape of Science</h2>
+
+  <p>The Leidenfrost effect teaches us something profound about phase transitions: they're not simple on/off switches. There's a complex landscape of behaviors as temperature changes, with different physical mechanisms dominating in different regimes.</p>
+
+  <p>Understanding this landscape matters not just for cooking or rocket engines, but for everything from nuclear reactor safety to cryogenics to understanding how life might exist on worlds with vastly different temperatures than Earth.</p>
+
+  <p>The next time you see water bead up on a hot surface, watch carefully. You might be witnessing one of the most elegant demonstrations of phase transitions in the universe.</p>
+
+</main>
+
+<script>
+  const chamber = document.getElementById('chamber');
+  const droplet = document.getElementById('droplet');
+  const dropletVapor = document.getElementById('dropletVapor');
+  const heatSource = document.getElementById('heatSource');
+  const heatIndicator = document.getElementById('heatIndicator');
+  const tempDial = document.getElementById('tempDial');
+  const tempValue = document.getElementById('tempValue');
+  const phaseName = document.getElementById('phaseName');
+
+  const phaseCards = [
+    document.getElementById('phase1'),
+    document.getElementById('phase2'),
+    document.getElementById('phase3'),
+    document.getElementById('phase4')
+  ];
+
+  let temperature = 25;
+  let dropletX = 50;
+  let dropletY = 50;
+  let velocityX = 0;
+  let velocityY = 0;
+  let wobble = 0;
+  let bounceTime = 0;
+
+  function updateDroplet() {
+    const rect = chamber.getBoundingClientRect();
+    const chamberWidth = rect.width;
+    const chamberHeight = rect.height;
+
+    // Droplet physics based on temperature
+    if (temperature < 100) {
+      // Direct contact - small, sitting low
+      droplet.style.width = '30px';
+      droplet.style.height = '30px';
+      dropletY = chamberHeight - 80;
+      droplet.style.opacity = '1';
+      dropletVapor.classList.remove('active');
+      phaseName.textContent = 'Direct Contact';
+      phaseCards.forEach((c, i) => c.classList.toggle('active', i === 0));
+    } else if (temperature < 180) {
+      // Nucleate boiling - bubbling, jumping
+      droplet.style.width = '25px';
+      droplet.style.height = '25px';
+      dropletY = chamberHeight - 70 - Math.sin(bounceTime * 10) * 10;
+      droplet.style.opacity = '0.8';
+      dropletVapor.classList.remove('active');
+      phaseName.textContent = 'Nucleate Boiling';
+      phaseCards.forEach((c, i) => c.classList.toggle('active', i === 1));
+    } else if (temperature < 260) {
+      // Leidenfrost - hovering, dancing
+      droplet.style.width = '35px';
+      droplet.style.height = '35px';
+      
+      // Gentle floating motion
+      wobble += 0.05;
+      velocityX += (Math.random() - 0.5) * 0.3;
+      velocityY += (Math.random() - 0.5) * 0.2;
+      
+      // Damping
+      velocityX *= 0.98;
+      velocityY *= 0.98;
+      
+      // Keep in bounds
+      if (dropletX < 30 || dropletX > chamberWidth - 30) velocityX *= -0.8;
+      if (dropletY < 40 || dropletY > chamberHeight - 100) velocityY *= -0.8;
+      
+      dropletX += velocityX;
+      dropletY = chamberHeight - 120 + Math.sin(wobble) * 10;
+      
+      droplet.style.opacity = '0.9';
+      dropletVapor.classList.add('active');
+      phaseName.textContent = 'Leidenfrost Hover';
+      phaseCards.forEach((c, i) => c.classList.toggle('active', i === 2));
+    } else {
+      // Film boiling - large, floating high
+      droplet.style.width = '45px';
+      droplet.style.height = '45px';
+      
+      velocityX += (Math.random() - 0.5) * 0.5;
+      velocityX *= 0.96;
+      
+      if (dropletX < 35 || dropletX > chamberWidth - 35) velocityX *= -0.7;
+      dropletX += velocityX;
+      
+      wobble += 0.03;
+      dropletY = chamberHeight - 140 + Math.sin(wobble) * 15;
+      
+      droplet.style.opacity = '0.7';
+      dropletVapor.classList.add('active');
+      phaseName.textContent = 'Film Boiling';
+      phaseCards.forEach((c, i) => c.classList.toggle('active', i === 3));
+    }
+
+    droplet.style.left = dropletX + 'px';
+    droplet.style.top = dropletY + 'px';
+    dropletVapor.style.left = dropletX + 'px';
+
+    bounceTime += 0.016;
+    requestAnimationFrame(updateDroplet);
+  }
+
+  function updateTemperature() {
+    temperature = parseInt(tempDial.value);
+    tempValue.textContent = temperature;
+    heatIndicator.textContent = temperature + '°C';
+    
+    // Update heat source appearance
+    const heatOpacity = 0.2 + (temperature / 300) * 0.6;
+    heatSource.style.opacity = heatOpacity;
+    
+    // Update indicator color
+    if (temperature < 100) {
+      heatIndicator.style.color = '#f59e0b';
+      heatIndicator.style.textShadow = '0 0 20px #f59e0b';
+    } else if (temperature < 200) {
+      heatIndicator.style.color = '#ef4444';
+      heatIndicator.style.textShadow = '0 0 20px #ef4444';
+    } else {
+      heatIndicator.style.color = '#dc2626';
+      heatIndicator.style.textShadow = '0 0 25px #dc2626, 0 0 50px #dc2626';
+    }
+  }
+
+  tempDial.addEventListener('input', updateTemperature);
+
+  // Initialize
+  dropletX = chamber.getBoundingClientRect().width / 2;
+  updateTemperature();
+  updateDroplet();
+</script>
+
+</body>
+</html>

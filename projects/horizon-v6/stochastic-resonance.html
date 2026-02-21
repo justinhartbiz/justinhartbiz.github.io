@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stochastic Resonance — Horizon v6</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #0d1117;
+    --text: #c9d1d9;
+    --accent: #00d4aa;
+    --accent-dim: rgba(0,212,170,0.15);
+    --signal: #f97583;
+    --muted: #6e7681;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 300;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    padding: 2rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .back {
+    font-size: 0.75: var(--mutrem;
+    colored);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .domain {
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem;
+  }
+
+  h1 {
+    font-size: 2.8rem;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 3rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin: 2.5rem 0 1rem;
+    font-weight: 400;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .highlight {
+    background: var(--accent-dim);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+
+  .demo-container {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .demo-title {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .visualization {
+    position: relative;
+    height: 200px;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .signal-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.7rem;
+    color: var(--signal);
+    opacity: 0.8;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .slider-group {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--accent);
+  }
+
+  .noise-slider::-webkit-slider-thumb {
+    background: #a855f7;
+    box-shadow: 0 0 10px #a855f7;
+  }
+
+  .signal-slider::-webkit-slider-thumb {
+    background: var(--signal);
+    box-shadow: 0 0 10px var(--signal);
+  }
+
+  .status-panel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .resonance-indicator {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+  }
+
+  .resonance-low {
+    background: rgba(255,255,255,0.03);
+    color: var(--muted);
+  }
+
+  .resonance-gold {
+    background: rgba(212, 175, 55, 0.15);
+    color: #d4af37;
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.1);
+  }
+
+  .resonance-high {
+    background: rgba(168, 85, 24715);
+    color: #a855, 0.f7;
+  }
+
+  .explanation {
+    background: rgba(0,212,170,0.05);
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.5rem;
+    margin: 2rem 0;
+    font-size: 0.95rem;
+  }
+
+  .explanation strong {
+    color: var(--accent);
+  }
+
+  .experiment-steps {
+    counter-reset: step;
+    list-style: none;
+    margin: 2rem 0;
+  }
+
+  .experiment-steps li {
+    counter-increment: step;
+    padding: 1rem 0;
+    padding-left: 3rem;
+    position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .experiment-steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 1rem;
+    width: 24px;
+    height: 24px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 50%;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .key-concept {
+    background: linear-gradient(135deg, rgba(0,212,170,0.08), rgba(168,85,247,0.08));
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .key-concept h3 {
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 700px) {
+    header { padding: 1.5rem; flex-direction: column; gap: 1rem; align-items: flex-start; }
+    main { padding: 2rem 1.5rem; }
+    h1 { font-size: 2rem; }
+    .status-panel { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back">← Horizon v6</a>
+  <span class="domain">Signal Processing / Neuroscience</span>
+</header>
+
+<main>
+  <h1>Stochastic Resonance</h1>
+  <p class="tagline">The universe's static is not always static.</p>
+
+  <p>Imagine trying to hear a whisper in a noisy room. Your instinct says to make it quieter—to reduce the noise so the signal can emerge. But what if the opposite were true? What if adding <span class="mono">more</span> noise actually made the whisper <em>easier</em> to hear?</p>
+
+  <p>This is stochastic resonance, and it's not a bug in the universe—it's a feature.</p>
+
+  <h2>The Counterintuitive Discovery</h2>
+
+  <p>In 1981, physicists studying nonlinear systems made a startling discovery: in certain systems, adding noise could <em>enhance</em> the detection of weak signals. Not marginally—dramatically. A moderate amount of noise could push a signal that was completely undetectable above a threshold where it became clear.</p>
+
+  <p>The phenomenon was initially dismissed as an artifact. But then researchers found it everywhere. In <span class="highlight">neuroscience</span>, where sensory neurons use thermal noise to detect impossibly faint signals. In <span class="highlight">climate science</span>, where ice age transitions are triggered by Earth's orbital noise. In <span class="highlight">electronics</span>, where certain detectors work better with background radiation.</p>
+
+  <div class="key-concept">
+    <h3>The Core Mechanism</h3>
+    <p>Stochastic resonance occurs when a weak periodic signal sits below a detection threshold, but adding noise pushes some signal peaks above that threshold. The noise "lifts" the signal into detectability—not by amplifying it, but by occasionally adding to it at the right moments.</p>
+  </div>
+
+  <h2>Your Brain Uses This</h2>
+
+  <p>Here's the part that will make you rethink everything: <strong>your own nervous system exploits stochastic resonance</strong>.</p>
+
+  <p>When you're in a dark room, your visual system doesn't just passively receive light. It actively adds "noise" to amplify weak signals. This is why you sometimes "see" things that aren't there in complete darkness—the noise is being amplified by your brain's thresholding mechanisms.</p>
+
+  <p>Your auditory system does the same thing. The hair cells in your inner ear actively amplify weak sounds. Without this amplification (and the noise that comes with it), you'd be functionally deaf to whispers. The very "static" you hear when it's too quiet is your nervous system running hot, searching for signals too faint to detect otherwise.</p>
+
+  <h2>Try It Yourself</h2>
+
+  <p>Below is a simulated signal detector. The <span style="color: var(--signal);">red sine wave</span> is a weak periodic signal buried in noise. Use the sliders to adjust the signal strength and noise level. Watch what happens when you add just the right amount of noise—the signal becomes visible!</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Signal Detection Simulator</div>
+    
+    <div class="visualization">
+      <canvas id="signalCanvas"></canvas>
+      <div class="signal-indicator">● Signal + Noise</div>
+    </div>
+
+    <div class="controls">
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Signal Strength</span>
+          <span class="mono" id="signalValue">0.30</span>
+        </div>
+        <input type="range" class="signal-slider" id="signalSlider" min="0" max="100" value="30">
+      </div>
+      
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Noise Level</span>
+          <span class="mono" id="noiseValue">0.50</span>
+        </div>
+        <input type="range" class="noise-slider" id="noiseSlider" min="0" max="100" value="50">
+      </div>
+    </div>
+
+    <div class="resonance-indicator resonance-low" id="resonanceIndicator">
+      <span class="mono">Add noise to detect the hidden signal</span>
+    </div>
+
+    <div class="status-panel">
+      <div class="stat">
+        <div class="stat-value mono" id="snrValue">-12.4</div>
+        <div class="stat-label">Signal-to-Noise (dB)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value mono" id="detectionValue">0%</div>
+        <div class="stat-label">Detection Rate</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value mono" id="peakValue">0.31</div>
+        <div class="stat-label">Peak Amplitude</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>How to Find the Sweet Spot</h2>
+
+  <ol class="experiment-steps">
+    <li>Start with <strong>low signal</strong> and <strong>zero noise</strong>. You won't see the sine wave—it's buried.</li>
+    <li>Slowly <strong>increase noise</strong>. Watch the visualization. Around 40-60% noise, you should start seeing the signal "pop" through.</li>
+    <li>At the <strong>optimal noise level</strong>, the sine wave pattern becomes clearly visible even though its amplitude is still below the original threshold.</li>
+    <li>If you <strong>add too much noise</strong>, the signal gets drowned out again. There's a peak of detectability, not just more noise.</li>
+  </ol>
+
+  <div class="explanation">
+    <strong>The Goldilocks Zone:</strong> There's a specific amount of noise—not too little, not too much—that maximizes signal detection. This is the "resonance" in stochastic resonance. Too little noise and the signal never crosses the threshold. Too much noise and the signal is overwhelmed. Just right, and noise becomes signal's ally.
+  </div>
+
+  <h2>Why This Matters</h2>
+
+  <p>Stochastic resonance has practical applications everywhere:</p>
+
+  <p><strong>Medical imaging:</strong> Adding controlled noise to weak signals in MRI and ultrasound can improve image clarity.</p>
+
+  <p><strong>Climate science:</strong> The theory explains how small orbital variations (the Milankovitch cycles) can trigger ice ages—the Earth's climate system uses noise to amplify weak solar forcing signals.</p>
+
+  <p><strong>Communications:</strong> Some communication systems deliberately add noise to weak signals to improve detection in noisy channels.</p>
+
+  <p><strong>Your daily life:</strong> Ever wonder why you can hear someone whisper in a quiet room better than in a moderately noisy one? Your nervous system needs some noise to amplify the signal. Complete silence isn't always optimal for hearing.</p>
+
+  <p>The next time you hear static, remember: it might not be interference. It might be the universe's way of making the invisible, visible.</p>
+
+</main>
+
+<script>
+  const canvas = document.getElementById('signalCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  const signalSlider = document.getElementById('signalSlider');
+  const noiseSlider = document.getElementById('noiseSlider');
+  const signalValue = document.getElementById('signalValue');
+  const noiseValue = document.getElementById('noiseValue');
+  const resonanceIndicator = document.getElementById('resonanceIndicator');
+  const snrValue = document.getElementById('snrValue');
+  const detectionValue = document.getElementById('detectionValue');
+  const peakValue = document.getElementById('peakValue');
+
+  let signalStrength = 0.3;
+  let noiseLevel = 0.5;
+  let time = 0;
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+    const midY = height / 2;
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw threshold line
+    const threshold = 0.3;
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(0, midY - threshold * height * 0.35);
+    ctx.lineTo(width, midY - threshold * height * 0.35);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw signal + noise
+    ctx.beginPath();
+    ctx.strokeStyle = '#f97583';
+    ctx.lineWidth = 2;
+
+    let maxAmp = 0;
+    let peaksAboveThreshold = 0;
+    let totalPeaks = 0;
+
+    for (let x = 0; x < width; x++) {
+      const t = (x / width) * 4 * Math.PI + time;
+      
+      // Signal: weak sine wave
+      const signal = signalStrength * Math.sin(t);
+      
+      // Noise: random
+      const noise = (Math.random() - 0.5) * 2 * noiseLevel;
+      
+      const combined = signal + noise;
+      const y = midY - combined * height * 0.35;
+      
+      if (x === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+
+      maxAmp = Math.max(maxAmp, Math.abs(combined));
+      
+      // Count peaks above threshold
+      if (t > Math.PI && t < 2 * Math.PI) {
+        totalPeaks++;
+        if (Math.abs(combined) > threshold) {
+          peaksAboveThreshold++;
+        }
+      }
+    }
+    ctx.stroke();
+
+    // Draw pure signal (ghost) for reference
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(249, 117, 131, 0.2)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < width; x++) {
+      const t = (x / width) * 4 * Math.PI + time;
+      const signal = signalStrength * Math.sin(t);
+      const y = midY - signal * height * 0.35;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Update stats
+    const snr = 20 * Math.log10(signalStrength / (noiseLevel + 0.01));
+    snrValue.textContent = snr.toFixed(1);
+    
+    const detection = totalPeaks > 0 ? (peaksAboveThreshold / totalPeaks * 100) : 0;
+    detectionValue.textContent = Math.round(detection) + '%';
+    
+    peakValue.textContent = maxAmp.toFixed(2);
+
+    // Update resonance indicator
+    const optimalNoise = signalStrength * 0.8;
+    const noiseDiff = Math.abs(noiseLevel - optimalNoise);
+    
+    if (noiseDiff < 0.15 && detection > 30) {
+      resonanceIndicator.className = 'resonance-indicator resonance-gold';
+      resonanceIndicator.innerHTML = '<span class="mono">★ RESONANCE! Signal detected</span>';
+    } else if (noiseLevel < 0.1) {
+      resonanceIndicator.className = 'resonance-indicator resonance-low';
+      resonanceIndicator.innerHTML = '<span class="mono">Signal too weak — add noise to detect</span>';
+    } else if (noiseLevel > 0.7) {
+      resonanceIndicator.className = 'resonance-indicator resonance-high';
+      resonanceIndicator.innerHTML = '<span class="mono">Too much noise — signal overwhelmed</span>';
+    } else {
+      resonanceIndicator.className = 'resonance-indicator resonance-low';
+      resonanceIndicator.innerHTML = '<span class="mono">Adjust noise to find the sweet spot</span>';
+    }
+
+    time += 0.05;
+    requestAnimationFrame(draw);
+  }
+
+  signalSlider.addEventListener('input', (e) => {
+    signalStrength = e.target.value / 100;
+    signalValue.textContent = signalStrength.toFixed(2);
+  });
+
+  noiseSlider.addEventListener('input', (e) => {
+    noiseLevel = e.target.value / 100;
+    noiseValue.textContent = noiseLevel.toFixed(2);
+  });
+
+  draw();
+</script>
+
+</body>
+</html>

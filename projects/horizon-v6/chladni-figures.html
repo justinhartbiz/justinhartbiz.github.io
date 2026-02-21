@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chladni Figures — Sound Made Visible</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f0e8;color:#1a1208;font-family:'Georgia',serif;min-height:100vh}
+.hero{padding:60px 40px 40px;max-width:900px;margin:0 auto;text-align:center}
+.kicker{font-family:monospace;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:#8a7a5a;margin-bottom:16px}
+h1{font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;color:#1a1208;margin-bottom:20px;font-weight:normal}
+.subtitle{font-size:1.1rem;color:#5a4a2a;line-height:1.7;max-width:620px;margin:0 auto 40px}
+.lab{background:#fff;border:1px solid #d5c8a8;border-radius:4px;padding:28px;margin:0 auto 40px;max-width:820px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.lab-header{text-align:center;margin-bottom:20px}
+.lab-header h3{font-family:monospace;font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;color:#8a7a5a}
+canvas{display:block;margin:0 auto;border:1px solid #d5c8a8;background:#fafaf8}
+.freq-panel{margin-top:20px}
+.freq-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
+.freq-row label{font-family:monospace;font-size:.78rem;color:#8a7a5a;text-transform:uppercase;letter-spacing:.1em;min-width:60px}
+input[type=range]{width:200px;accent-color:#2a1a08}
+.freq-display{font-family:monospace;font-size:1.3rem;color:#1a1208;min-width:80px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.preset-btn{padding:7px 14px;border:1px solid #c5b898;background:#f5f0e8;color:#3a2a18;font-family:monospace;font-size:.75rem;cursor:pointer;border-radius:2px;transition:.15s}
+.preset-btn:hover,.preset-btn.active{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
+.anim-ctrl{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.abtn{padding:8px 20px;border:1px solid #c5b898;background:transparent;color:#3a2a18;font-family:monospace;font-size:.78rem;cursor:pointer;border-radius:2px}
+.abtn:hover{background:#2a1a08;color:#f5f0e8}
+.content{max-width:720px;margin:0 auto;padding:0 40px 80px}
+h2{font-size:1.5rem;color:#1a1208;font-weight:normal;margin:40px 0 16px;border-bottom:1px solid #d5c8a8;padding-bottom:8px}
+p{line-height:1.85;color:#3a2a18;margin-bottom:18px;font-size:1rem}
+.pullquote{border-left:3px solid #8a7a5a;padding:16px 24px;margin:32px 0;font-size:1.05rem;font-style:italic;color:#2a1a08;background:#f0ebe0}
+.figure-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:24px 0}
+.fig{border:1px solid #d5c8a8;padding:12px;text-align:center;background:#fafaf8}
+.fig canvas{border:none;background:#fafaf8}
+.fig p{font-size:.72rem;color:#8a7a5a;margin:6px 0 0;font-family:monospace}
+.back{display:inline-block;margin:40px 40px 0;font-family:monospace;font-size:.8rem;color:#8a7a5a;text-decoration:none;border-bottom:1px solid #d5c8a8}
+.back:hover{color:#1a1208}
+</style>
+</head>
+<body>
+
+<a class="back" href="/projects/horizon-v6/">← Horizon v6</a>
+
+<div class="hero">
+  <div class="kicker">Horizon v6 · Acoustics &amp; Physics</div>
+  <h1>Chladni Figures</h1>
+  <p class="subtitle">In 1787, Ernst Chladni drew a violin bow across a metal plate dusted with sand — and the sand leapt into perfect geometric patterns. Different frequencies. Different sacred geometries. Sound, made visible.</p>
+</div>
+
+<div class="lab">
+  <div class="lab-header">
+    <h3>Chladni Pattern Generator — Adjust Frequency to Reveal Hidden Geometry</h3>
+  </div>
+  <canvas id="main-c" width="700" height="420"></canvas>
+  <div class="freq-panel">
+    <div class="freq-row">
+      <label>Freq (m,n)</label>
+      <input type="range" id="m-slider" min="1" max="7" value="2" step="1">
+      <span class="freq-display" id="m-val">m=2</span>
+      <input type="range" id="n-slider" min="1" max="7" value="3" step="1">
+      <span class="freq-display" id="n-val">n=3</span>
+    </div>
+    <div class="presets">
+      <button class="preset-btn active" data-m="2" data-n="3">Basic Cross (2,3)</button>
+      <button class="preset-btn" data-m="1" data-n="2">Diagonal (1,2)</button>
+      <button class="preset-btn" data-m="3" data-n="4">Star (3,4)</button>
+      <button class="preset-btn" data-m="2" data-n="5">Starburst (2,5)</button>
+      <button class="preset-btn" data-m="4" data-n="5">Complex (4,5)</button>
+      <button class="preset-btn" data-m="3" data-n="6">Flower (3,6)</button>
+      <button class="preset-btn" data-m="5" data-n="7">Sacred (5,7)</button>
+    </div>
+    <div class="anim-ctrl">
+      <button class="abtn" id="animate-btn">▶ Animate Sand Settling</button>
+      <button class="abtn" id="nodal-btn">Toggle Nodal Lines</button>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <h2>The Discovery</h2>
+  <p>Ernst Chladni was a German physicist obsessed with the science of sound at a time when sound was almost entirely unmeasured. In 1787, he developed a simple but staggering experiment: take a thin metal plate, fix it at the center, sprinkle sand across its surface, and draw a violin bow along its edge. The sand vibrates — but not everywhere equally. At certain points on the plate, called nodal lines, the plate doesn't move at all. Sand migrates away from the vibrating regions and accumulates on the nodal lines. The result is a perfect geometric pattern, unique to each frequency.</p>
+  <p>Chladni toured Europe demonstrating his figures to astonished audiences. Napoleon Bonaparte attended a demonstration in Paris and was so impressed that he funded a prize for the mathematical explanation of the patterns — a prize ultimately won by Sophie Germain in 1816, though her work required significant revision.</p>
+
+  <div class="pullquote">"The figures of Chladni are among the most beautiful phenomena in natural philosophy. They reveal a hidden order in vibration — geometry encoded in oscillation." — Thomas Young, 1807</div>
+
+  <h2>The Physics</h2>
+  <p>The patterns are determined by the mode of vibration of the plate. A vibrating plate can oscillate in many different modes, each characterized by two integers (m, n) — the number of nodal lines in each direction. The mathematical description of these modes involves solutions to the biharmonic wave equation, which produces the Bessel functions and trigonometric combinations you see in the generator above.</p>
+  <p>Nodal lines are locations where the two overlapping wave patterns cancel exactly — destructive interference makes them still. Sand, responding to vibration, migrates away from energetic regions and settles on the still nodal lines. What you see in the generator above is the mathematical prediction of exactly where sand would settle for each (m, n) mode — computed in real time using the actual physics equations.</p>
+
+  <h2>The Luthier Connection</h2>
+  <p>Violin makers have used Chladni figures for over two centuries to evaluate the quality of their plates before assembly. A master luthier will bow the top and back plates of a violin separately, dusting them with sand, and examine the resulting patterns. The specific shape of the Chladni figure at a given frequency reveals the stiffness, density, and vibrational quality of the wood. Stradivari-quality instruments produce symmetric, clean figures. A defective plate produces distorted, asymmetric patterns.</p>
+  <p>Modern acoustic engineers use laser scanning (ESPI — electronic speckle pattern interferometry) to visualize the same nodal patterns without sand — effectively digitizing a 250-year-old technique. The patterns Chladni drew by hand in 1787 are indistinguishable from the laser-scanned modes of a modern Stradivarius.</p>
+
+  <h2>Why the Geometry Is Sacred</h2>
+  <p>Many of the Chladni patterns produced at specific frequency ratios bear an uncanny resemblance to mandalas, Celtic knotwork, Islamic geometric art, and other sacred geometries from cultures that had no knowledge of standing wave physics. This has fueled speculation — some credible, some mystical — that ancient geometric art was derived from intuitive observation of natural vibration patterns.</p>
+  <p>The more rigorous explanation is simpler and stranger: the geometric patterns that appear beautiful to humans are the same patterns that appear when energy distributes itself optimally through a constrained system. The "sacred" quality of these geometries may be less about divine intervention and more about the fact that human visual systems evolved to find optimally-organized patterns beautiful — and Chladni figures are, by physical necessity, optimally organized.</p>
+
+  <h2>Modern Applications</h2>
+  <p>Chladni's technique, or its modern equivalents, is used in seismology (mapping nodal patterns of the Earth itself during earthquakes), in automotive engineering (optimizing hood vibration to reduce noise), in aerospace (testing structural resonance in aircraft panels), and in the design of concert hall acoustics. Every time engineers need to understand how a surface vibrates, they're solving the same equation Chladni was solving with sand and a violin bow in 1787.</p>
+  <p>The generator above uses the exact mathematical solution — a superposition of two orthogonal standing wave modes — to compute and display the nodal patterns in real time. The presets are named for what they visually resemble, but every pattern is determined entirely by two integers. Change the integers, change the universe of geometry available. All of them were always there, waiting inside the mathematics of vibration.</p>
+</div>
+
+<script>
+const canvas = document.getElementById('main-c');
+const ctx = canvas.getContext('2d');
+let currentM = 2, currentN = 3;
+let showNodal = false;
+let animating = false;
+let animFrame2 = null;
+let particles = [];
+
+function chladniVal(x, y, m, n) {
+  const nx = (x / canvas.width) * Math.PI;
+  const ny = (y / canvas.height) * Math.PI;
+  return Math.sin(m * nx) * Math.cos(n * ny) - Math.cos(m * nx) * Math.sin(n * ny);
+}
+
+function drawPattern(m, n, alpha) {
+  const W = canvas.width, H = canvas.height;
+  const imgData = ctx.createImageData(W, H);
+  const data = imgData.data;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const v = chladniVal(x, y, m, n);
+      const abs = Math.abs(v);
+      const idx = (y * W + x) * 4;
+      // Nodal lines: near zero = dark (sand)
+      const t = Math.max(0, 1 - abs * 8);
+      const intensity = Math.floor(t * 255 * alpha);
+      data[idx] = Math.max(0, 26 - intensity);   // R
+      data[idx+1] = Math.max(0, 18 - intensity); // G
+      data[idx+2] = Math.max(0, 8 - intensity);  // B
+      data[idx+3] = 255;
+      // background
+      if (t < 0.1) {
+        data[idx] = 250; data[idx+1] = 250; data[idx+2] = 248; data[idx+3] = 255;
+      }
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  if (showNodal) {
+    ctx.strokeStyle = 'rgba(100,80,40,0.3)';
+    ctx.lineWidth = 0.5;
+    for (let y = 0; y < H; y += 20) {
+      ctx.beginPath();
+      for (let x = 0; x < W; x++) {
+        const v = chladniVal(x, y, m, n);
+        if (Math.abs(v) < 0.05) { ctx.moveTo(x, y); ctx.lineTo(x+1, y); }
+      }
+      ctx.stroke();
+    }
+  }
+}
+
+function initParticles() {
+  particles = [];
+  const W = canvas.width, H = canvas.height;
+  for (let i = 0; i < 2000; i++) {
+    particles.push({x: Math.random()*W, y: Math.random()*H, vx:0, vy:0});
+  }
+}
+
+function stepParticles(m, n) {
+  const W = canvas.width, H = canvas.height;
+  for (let p of particles) {
+    const v = chladniVal(p.x, p.y, m, n);
+    const dx = (chladniVal(p.x+1, p.y, m, n) - v);
+    const dy = (chladniVal(p.x, p.y+1, m, n) - v);
+    // Move toward nodes (zero crossings)
+    const force = -v * 0.8;
+    p.vx = p.vx * 0.85 + force * dx * 20 + (Math.random()-0.5)*0.3;
+    p.vy = p.vy * 0.85 + force * dy * 20 + (Math.random()-0.5)*0.3;
+    p.x = Math.max(0, Math.min(W-1, p.x + p.vx));
+    p.y = Math.max(0, Math.min(H-1, p.y + p.vy));
+  }
+}
+
+function drawParticles() {
+  ctx.fillStyle = '#fafaf8';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#1a1208';
+  for (let p of particles) {
+    ctx.fillRect(p.x, p.y, 1.5, 1.5);
+  }
+}
+
+function animate() {
+  stepParticles(currentM, currentN);
+  drawParticles();
+  animFrame2 = requestAnimationFrame(animate);
+}
+
+function render() {
+  cancelAnimationFrame(animFrame2);
+  animating = false;
+  document.getElementById('animate-btn').textContent = '▶ Animate Sand Settling';
+  drawPattern(currentM, currentN, 1);
+}
+
+function updateSliders() {
+  document.getElementById('m-val').textContent = `m=${currentM}`;
+  document.getElementById('n-val').textContent = `n=${currentN}`;
+  document.getElementById('m-slider').value = currentM;
+  document.getElementById('n-slider').value = currentN;
+  // Update preset active state
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.m)===currentM && parseInt(b.dataset.n)===currentN);
+  });
+  render();
+}
+
+document.getElementById('m-slider').addEventListener('input', function() {
+  currentM = parseInt(this.value);
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  render();
+  document.getElementById('m-val').textContent = `m=${currentM}`;
+});
+
+document.getElementById('n-slider').addEventListener('input', function() {
+  currentN = parseInt(this.value);
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  render();
+  document.getElementById('n-val').textContent = `n=${currentN}`;
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    currentM = parseInt(this.dataset.m);
+    currentN = parseInt(this.dataset.n);
+    updateSliders();
+  });
+});
+
+document.getElementById('animate-btn').addEventListener('click', function() {
+  if (animating) {
+    cancelAnimationFrame(animFrame2);
+    animating = false;
+    this.textContent = '▶ Animate Sand Settling';
+    render();
+  } else {
+    animating = true;
+    this.textContent = '⏹ Stop Animation';
+    initParticles();
+    animate();
+  }
+});
+
+document.getElementById('nodal-btn').addEventListener('click', function() {
+  showNodal = !showNodal;
+  if (!animating) render();
+});
+
+// Initial render
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Constructal Law — The Shape of Flow</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1208;color:#e8d5a3;font-family:'Georgia',serif;min-height:100vh}
+.hero{padding:60px 40px 40px;max-width:900px;margin:0 auto;text-align:center}
+.kicker{font-family:monospace;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:#8a6e3a;margin-bottom:16px}
+h1{font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;color:#f0c060;margin-bottom:20px;font-weight:normal}
+.subtitle{font-size:1.1rem;color:#b89a6a;line-height:1.7;max-width:620px;margin:0 auto 40px}
+.canvas-wrap{background:#0f0c06;border:1px solid #3a2e1a;border-radius:8px;padding:20px;margin:0 auto 40px;max-width:820px}
+canvas{display:block;margin:0 auto;border-radius:4px}
+.controls{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:16px}
+.ctrl{display:flex;flex-direction:column;align-items:center;gap:6px}
+.ctrl label{font-family:monospace;font-size:.72rem;color:#8a6e3a;text-transform:uppercase;letter-spacing:.1em}
+input[type=range]{width:160px;accent-color:#c8922a}
+.ctrl span{font-family:monospace;font-size:.85rem;color:#f0c060}
+.btn{padding:10px 24px;background:#c8922a;color:#0f0c06;border:none;border-radius:4px;font-family:monospace;font-size:.85rem;font-weight:bold;cursor:pointer;letter-spacing:.05em}
+.btn:hover{background:#f0c060}
+.btn-clear{background:transparent;color:#8a6e3a;border:1px solid #3a2e1a}
+.btn-clear:hover{border-color:#8a6e3a;color:#e8d5a3}
+.content{max-width:720px;margin:0 auto;padding:0 40px 80px}
+h2{font-size:1.5rem;color:#f0c060;font-weight:normal;margin:40px 0 16px}
+p{line-height:1.85;color:#c8b090;margin-bottom:18px;font-size:1rem}
+.pullquote{border-left:3px solid #c8922a;padding:16px 24px;margin:32px 0;font-size:1.1rem;font-style:italic;color:#e8d5a3;background:#1f1608}
+.examples{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin:24px 0}
+.ex{background:#1f1608;border:1px solid #3a2e1a;border-radius:6px;padding:16px;text-align:center}
+.ex .icon{font-size:2rem;margin-bottom:8px}
+.ex h4{font-size:.85rem;color:#f0c060;font-family:monospace;margin-bottom:4px}
+.ex p{font-size:.78rem;color:#8a6e3a;margin:0;line-height:1.5}
+.back{display:inline-block;margin:40px 40px 0;font-family:monospace;font-size:.8rem;color:#8a6e3a;text-decoration:none;border-bottom:1px solid #3a2e1a}
+.back:hover{color:#f0c060}
+</style>
+</head>
+<body>
+
+<a class="back" href="/projects/horizon-v6/">← Horizon v6</a>
+
+<div class="hero">
+  <div class="kicker">Horizon v6 · Physics &amp; Design</div>
+  <h1>Constructal Law</h1>
+  <p class="subtitle">Every river, every lung, every lightning bolt, every city — they all evolve toward the same shape. One thermodynamic law governs all of them. Adrian Bejan called it the most universal law in physics.</p>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="c" width="760" height="420"></canvas>
+  <div class="controls">
+    <div class="ctrl">
+      <label>Flow Mode</label>
+      <select id="mode" style="background:#1f1608;color:#e8d5a3;border:1px solid #3a2e1a;padding:6px 10px;font-family:monospace;font-size:.85rem;border-radius:4px">
+        <option value="tree">Tree / River</option>
+        <option value="lung">Lung / Bronchi</option>
+        <option value="lightning">Lightning</option>
+        <option value="city">City Streets</option>
+      </select>
+      <span id="mode-label" style="font-size:.7rem;color:#8a6e3a">branching flow network</span>
+    </div>
+    <div class="ctrl">
+      <label>Generations</label>
+      <input type="range" id="gen" min="3" max="9" value="6">
+      <span id="gen-val">6</span>
+    </div>
+    <div class="ctrl">
+      <label>Branch Ratio</label>
+      <input type="range" id="ratio" min="50" max="85" value="70">
+      <span id="ratio-val">0.70</span>
+    </div>
+    <div class="ctrl">
+      <label>Spread Angle</label>
+      <input type="range" id="angle" min="15" max="60" value="30">
+      <span id="angle-val">30°</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <button class="btn" id="grow">Grow</button>
+      <button class="btn btn-clear" id="reset">Reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="examples">
+    <div class="ex"><div class="icon">🌊</div><h4>Rivers</h4><p>Tributaries branch at the same ratio as bronchial tubes</p></div>
+    <div class="ex"><div class="icon">🫁</div><h4>Lungs</h4><p>23 generations of branching, each at ~37% of parent width</p></div>
+    <div class="ex"><div class="icon">⚡</div><h4>Lightning</h4><p>Discharge paths minimize total resistance to ground</p></div>
+    <div class="ex"><div class="icon">🌳</div><h4>Trees</h4><p>Da Vinci noticed: all branch cross-sections sum to the trunk</p></div>
+    <div class="ex"><div class="icon">🏙️</div><h4>Cities</h4><p>Road networks self-organize toward Constructal optimum</p></div>
+    <div class="ex"><div class="icon">🩸</div><h4>Blood</h4><p>Capillary networks obey Murray's Law — a subset of Constructal</p></div>
+  </div>
+
+  <h2>The Law</h2>
+  <p>In 1996, Duke University engineer Adrian Bejan was staring at a map of river deltas when he noticed something impossible to unsee: the branching pattern looked exactly like the bronchial tree in a medical textbook. And like the road network of a medieval city. And like the cracks in drying mud. And like the veins of a leaf.</p>
+  <p>He published a paper proposing what he called the Constructal Law: <em>"For a finite-size flow system to persist in time, its configuration must evolve such that it provides easier access to its currents."</em> In plain language: anything that flows — water, electricity, blood, traffic, heat, information — will naturally evolve toward a branching structure that minimizes resistance. Always. Everywhere. At every scale.</p>
+
+  <div class="pullquote">"The Constructal Law is not a model. It is a law of physics like Newton's laws — it predicts the future configuration of any flow system without knowing the details of the system." — Adrian Bejan</div>
+
+  <h2>Why It's Controversial</h2>
+  <p>Bejan's claim is enormous: he's asserting that evolution, river formation, urban planning, and atmospheric circulation all obey a single thermodynamic principle. The physics establishment pushed back hard. Critics argued he was overfitting — finding patterns after the fact, not making predictions. Bejan responded by making verifiable predictions: the exact branching ratios in human airways, the optimal structure of heat exchangers, the reason athletic performance follows Constructal scaling laws over time.</p>
+  <p>The controversy is still live. But the predictions keep working. Murray's Law — derived from minimizing energy cost in vascular networks — is a special case of Constructal Law. The golden ratio shows up in Constructal-optimal branching. Da Vinci's observation that the total cross-section of all branches equals the trunk cross-section? Constructal optimum.</p>
+
+  <h2>The Philosophical Shock</h2>
+  <p>If Constructal Law is correct, then what we call "design" in nature is not random and not magical — it's thermodynamically inevitable. The lung didn't "evolve" its branching structure through millions of random mutations. It was *pulled* toward the optimal configuration by physics. The river didn't "choose" its path. Evolution didn't "figure out" the cardiovascular system. They all converged on the same answer because it's the only thermodynamically stable answer.</p>
+  <p>This is either deeply reassuring or deeply unsettling, depending on your priors. It suggests that intelligence, in a sense, is redundant — that complex optimal structures emerge from simple physical pressure. But it also suggests that the universe has preferences. That there are better and worse configurations. That beauty in nature is not accidental but inevitable.</p>
+
+  <h2>What It Predicts</h2>
+  <p>Bejan used Constructal Law to predict that human athletic performance would improve over time in a specific mathematical pattern — and it did. He predicted the optimal shape of urban street networks. He predicted that the heart beats a specific number of times per lifetime across all mammals (about 1.5 billion) — and it does. He predicted the structure of snowflakes from first principles. His 2012 book <em>Design in Nature</em> lays out the full case. Whether you find it convincing or not, the patterns are real.</p>
+  <p>The slider above lets you explore how changing the branching ratio and spread angle produces the structures you recognize from nature. Notice that as you approach the Constructal optimum (ratio ≈ 0.70, angle ≈ 30°), the generated structure becomes eerily familiar — because you've seen it before. In your own lungs. Every day.</p>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const genSlider = document.getElementById('gen');
+const ratioSlider = document.getElementById('ratio');
+const angleSlider = document.getElementById('angle');
+const modeSelect = document.getElementById('mode');
+let animFrame = null;
+let branches = [];
+let growing = false;
+let growIdx = 0;
+
+function getParams() {
+  return {
+    gen: parseInt(genSlider.value),
+    ratio: parseInt(ratioSlider.value) / 100,
+    angle: parseInt(angleSlider.value) * Math.PI / 180,
+    mode: modeSelect.value
+  };
+}
+
+function modeColors(mode) {
+  const m = {
+    tree: {trunk:'#5a8a3a', branch:'#4a7a2a', leaf:'#8ac050', bg:'#0a1205'},
+    lung: {trunk:'#c04060', branch:'#a03050', leaf:'#e07090', bg:'#12050a'},
+    lightning: {trunk:'#e0e8ff', branch:'#a0b8ff', leaf:'#6080ff', bg:'#050510'},
+    city: {trunk:'#b0a080', branch:'#907860', leaf:'#d0c0a0', bg:'#0a0905'}
+  };
+  return m[mode] || m.tree;
+}
+
+function buildBranches(x, y, angle, len, depth, maxDepth, ratio, spread, result) {
+  if (depth > maxDepth || len < 2) return;
+  const x2 = x + Math.cos(angle) * len;
+  const y2 = y + Math.sin(angle) * len;
+  result.push({x1:x, y1:y, x2, y2, depth, maxDepth, len});
+  buildBranches(x2, y2, angle - spread, len * ratio, depth+1, maxDepth, ratio, spread, result);
+  buildBranches(x2, y2, angle + spread, len * ratio, depth+1, maxDepth, ratio, spread, result);
+}
+
+function draw() {
+  const p = getParams();
+  const colors = modeColors(p.mode);
+  ctx.fillStyle = colors.bg;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  const startX = canvas.width / 2;
+  const startY = canvas.height - 20;
+  const startLen = canvas.height * 0.28;
+
+  branches = [];
+  buildBranches(startX, startY, -Math.PI/2, startLen, 0, p.gen, p.ratio, p.angle, branches);
+
+  const total = branches.length;
+  const toDraw = growing ? Math.min(growIdx, total) : total;
+
+  for (let i = 0; i < toDraw; i++) {
+    const b = branches[i];
+    const t = b.depth / b.maxDepth;
+    const w = Math.max(0.5, (1-t) * 6 + 0.5);
+    ctx.beginPath();
+    ctx.moveTo(b.x1, b.y1);
+    ctx.lineTo(b.x2, b.y2);
+    ctx.strokeStyle = t < 0.3 ? colors.trunk : t < 0.7 ? colors.branch : colors.leaf;
+    ctx.lineWidth = w;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
+  if (growing && growIdx < total) {
+    growIdx += Math.ceil(total / 60);
+    animFrame = requestAnimationFrame(draw);
+  } else {
+    growing = false;
+  }
+}
+
+document.getElementById('grow').addEventListener('click', () => {
+  cancelAnimationFrame(animFrame);
+  growing = true;
+  growIdx = 0;
+  draw();
+});
+
+document.getElementById('reset').addEventListener('click', () => {
+  cancelAnimationFrame(animFrame);
+  growing = false;
+  const p = getParams();
+  ctx.fillStyle = modeColors(p.mode).bg;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+});
+
+['gen','ratio','angle'].forEach(id => {
+  document.getElementById(id).addEventListener('input', function() {
+    const v = this.value;
+    if (id === 'gen') document.getElementById('gen-val').textContent = v;
+    if (id === 'ratio') document.getElementById('ratio-val').textContent = (parseInt(v)/100).toFixed(2);
+    if (id === 'angle') document.getElementById('angle-val').textContent = v + '°';
+  });
+});
+
+modeSelect.addEventListener('change', function() {
+  const labels = {tree:'branching flow network', lung:'bronchial airway tree', lightning:'electrical discharge path', city:'urban street network'};
+  document.getElementById('mode-label').textContent = labels[this.value] || '';
+});
+
+// Draw initial
+draw();
+</script>
+</body>
+</html>

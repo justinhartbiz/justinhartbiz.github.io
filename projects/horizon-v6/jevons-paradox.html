@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jevons Paradox — Horizon v6</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #0f0c08;
+    --text: #f0e6d3;
+    --accent: #f59e0b;
+    --accent-dim: rgba(245,158,11,0.15);
+    --muted: #7c6f5a;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 300;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    padding: 2rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .back {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .domain {
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  main {
+    max-width: 950px;
+    margin: 0 auto;
+    padding: 3rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 3rem;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--accent);
+    margin: 2.5rem 0 1rem;
+    font-weight: 400;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .highlight {
+    background: var(--accent-dim);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+
+  .demo-container {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(245,158,11,0.15);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .demo-title {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .timeline-container {
+    position: relative;
+    height: 350px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+
+  .timeline-canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .timeline-labels {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .timeline-events {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .event {
+    text-align: center;
+    max-width: 120px;
+  }
+
+  .event-year {
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: bold;
+  }
+
+  .event-text {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  .control-group {
+    background: rgba(0,0,0,0.3);
+    padding: 1.5rem;
+    border-radius: 8px;
+  }
+
+  .control-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+
+  .control-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--accent);
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .metric {
+    text-align: center;
+  }
+
+  .metric-value {
+    font-size: 1.3rem;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .metric-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 0.25rem;
+  }
+
+  .metric.negative { color: #ef4444; }
+  .metric.positive { color: #10b981; }
+
+  .paradox-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+    padding: 2rem;
+    margin: 2rem 0;
+    background: linear-gradient(135deg, rgba(245,158,11,0.05), rgba(239,68,68,0.05));
+    border-radius: 12px;
+  }
+
+  .paradox-box {
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  .paradox-box h4 {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+  }
+
+  .paradox-arrow {
+    font-size: 2rem;
+    color: var(--accent);
+  }
+
+  .quote-box {
+    border-left: 3px solid var(--accent);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  .quote-box cite {
+    display: block;
+    margin-top: 0.5rem;
+    font-style: normal;
+    font-size: 0.85rem;
+    color: var(--text);
+  }
+
+  .era-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .era-card {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border-top: 3px solid var(--accent);
+  }
+
+  .era-year {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .era-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .era-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 800px) {
+    header { padding: 1.5rem; flex-direction: column; gap: 1rem; }
+    main { padding: 2rem 1.5rem; }
+    h1 { font-size: 2.2rem; }
+    .controls { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .era-cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back">← Horizon v6</a>
+  <span class="domain">Economics / Energy Policy</span>
+</header>
+
+<main>
+  <h1>Jevons Paradox</h1>
+  <p class="tagline">Green technology doesn't always mean less use.</p>
+
+  <p>In 1865, a British economist named William Stanley Jevons made a prediction that would take 150 years to fully unfold. He noticed something paradoxical about the newly invented steam engine: as it became more efficient at converting coal into motion, <em>coal consumption didn't drop—it skyrocketed</em>.</p>
+
+  <div class="quote-box">
+    "It is a confusion of ideas to suppose that the economical use of fuel is equivalent to a diminished consumption. The very contrary is the truth."
+    <cite>— William Stanley Jevons, The Coal Question (1865)</cite>
+  </div>
+
+  <h2>The Paradox Explained</h2>
+
+  <p>Jevons noticed that making engines more efficient didn't conserve resources—it <em>expanded</em> their use. Here's why:</p>
+
+  <p>When steam engines became more efficient, using coal became <em>cheaper</em> in relative terms. This made coal-powered industry more competitive. New industries that would have been too expensive to automate suddenly became viable. The cost savings enabled expansion that more than compensated for the efficiency gains.</p>
+
+  <div class="paradox-visual">
+    <div class="paradox-box">
+      <h4>Efficiency Increases</h4>
+      <div style="font-size: 2rem;">⚙️</div>
+      <p style="font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem;">Coal per unit ↓</p>
+    </div>
+    <div class="paradox-arrow">→</div>
+    <div class="paradox-box">
+      <h4>Cost Decreases</h4>
+      <div style="font-size: 2rem;">💰</div>
+      <p style="font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem;">More uses become viable</p>
+    </div>
+    <div class="paradox-arrow">→</div>
+    <div class="paradox-box">
+      <h4>Total Use Explodes</h4>
+      <div style="font-size: 2rem;">📈</div>
+      <p style="font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem;">Coal consumption ↑↑</p>
+    </div>
+  </div>
+
+  <h2>Explore Two Centuries of Rebound</h2>
+
+  <p>Adjust the efficiency improvement and see how total energy consumption changes over time. Watch how the "rebound effect" can completely offset—甚至 reverse—the expected savings from efficiency gains.</p>
+
+  <div class="demo-container">
+    <div class="demo-title">The Rebound Effect Simulator (1850–2050)</div>
+
+    <div class="timeline-container">
+      <canvas id="timelineCanvas" class="timeline-canvas"></canvas>
+      <div class="timeline-events">
+        <div class="event">
+          <div class="event-year">1865</div>
+          <div class="event-text">Jevons warns about coal</div>
+        </div>
+        <div class="event">
+          <div class="event-year">1913</div>
+          <div class="event-text">Ford assembly line</div>
+        </div>
+        <div class="event">
+          <div class="event-year">1970s</div>
+          <div class="event-text">Oil crisis</div>
+        </div>
+        <div class="event">
+          <div class="event-year">2020s</div>
+          <div class="event-text">Electric vehicles</div>
+        </div>
+      </div>
+      <div class="timeline-labels">
+        <span>1850</span>
+        <span>1900</span>
+        <span>1950</span>
+        <span>2000</span>
+        <span>2050</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <div class="control-label">Efficiency Improvement Rate</div>
+        <div class="control-value" id="efficiencyValue">1.5%</div>
+        <input type="range" id="efficiencySlider" min="0" max="50" value="15">
+        <p style="font-size: 0.75rem; color: var(--muted); margin-top: 0.75rem;">Annual improvement in energy efficiency</p>
+      </div>
+      <div class="control-group">
+        <div class="control-label">Rebound Effect Strength</div>
+        <div class="control-value" id="reboundValue">60%</div>
+        <input type="range" id="reboundSlider" min="0" max="100" value="60">
+        <p style="font-size: 0.75rem; color: var(--muted); margin-top: 0.75rem;">% of savings consumed by increased demand</p>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-value" id="baseConsumption">100</div>
+        <div class="metric-label">Base (1850)</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="predictedConsumption">850</div>
+        <div class="metric-label">Predicted (2050)</div>
+      </div>
+      <div class="metric negative">
+        <div class="metric-value" id="actualIncrease">+750%</div>
+        <div class="metric-label">Total Increase</div>
+      </div>
+      <div class="metric negative">
+        <div class="metric-value" id="savedVsNaive">-85%</div>
+        <div class="metric-label">Vs. No Efficiency</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>The Modern Ghost</h2>
+
+  <p>Jevons' paradox haunts every "green" technology today. Consider:</p>
+
+  <div class="era-cards">
+    <div class="era-card">
+      <div class="era-year">🚗</div>
+      <div class="era-title">Fuel Efficiency</div>
+      <div class="era-desc">Cars went from 15 mpg to 35 mpg. Did we use less fuel? No—the mileage savings enabled more driving, bigger vehicles, and more cars on the road. Per-capita fuel use stayed flat.</div>
+    </div>
+    <div class="era-card">
+      <div class="era-year">💡</div>
+      <div class="era-title">LED Lighting</div>
+      <div class="era-desc">LEDs use 75% less energy than incandescent bulbs. But now buildings have 10x more lights, cities glow brighter, and we've illuminated the night sky to death.</div>
+    </div>
+    <div class="era-card">
+      <div class="era-year">🌍</div>
+      <div class="era-title">Renewable Energy</div>
+      <div class="era-desc">Solar and wind are now the cheapest energy in history. But instead of replacing fossil fuels, they're enabling new industries: crypto mining, AI data centers, electric vehicles.</div>
+    </div>
+  </div>
+
+  <h2>The Rebound Effect Spectrum</h2>
+
+  <p>Not all rebound effects are equal:</p>
+
+  <p><strong>Direct Rebound:</strong> You buy a more efficient car, then drive more because it's cheaper. This is the most obvious effect.</p>
+
+  <p><strong>Indirect Rebound:</strong> You save money on energy, then spend that money on other goods that also require energy to produce. The savings "rebound" into other consumption.</p>
+
+  <p><strong>Economy-Wide Rebound:</strong> When an entire economy becomes more efficient, productivity increases, GDP grows, and total resource use can actually increase even as efficiency improves.</p>
+
+  <h2>The Uncomfortable Truth</h2>
+
+  <p>Jevons paradox doesn't mean we should stop improving efficiency. It means that efficiency alone is <em>not sufficient</em> for sustainability. You cannot engineer your way out of finite resources by making each unit more efficient—you also need to address absolute consumption.</p>
+
+  <p>The solution isn't less efficient technology—it's understanding that technology changes the <em>cost structure</em> of the world, and lower costs enable new behaviors, new industries, and new demands that couldn't exist before.</p>
+
+  <p>Jevons saw this 160 years ago. We're still learning it.</p>
+
+</main>
+
+<script>
+  const canvas = document.getElementById('timelineCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const efficiencySlider = document.getElementById('efficiencySlider');
+  const reboundSlider = document.getElementById('reboundSlider');
+  const efficiencyValue = document.getElementById('efficiencyValue');
+  const reboundValue = document.getElementById('reboundValue');
+
+  let efficiency = 1.5;
+  let rebound = 0.6;
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height - 60;
+    draw();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = 40;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = padding + (height - 2 * padding) * i / 4;
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(width - padding, y);
+      ctx.stroke();
+    }
+
+    // Data points (1850 = index 0, 2050 = index 200)
+    const dataPoints = [];
+    const baseline = 100;
+    
+    // Efficiency multiplier (grows exponentially)
+    const efficiencyMultiplier = Math.pow(1 + efficiency / 100, 200);
+    
+    // Without rebound, consumption would decrease
+    const withoutEfficiency = baseline;
+    const withEfficiency = baseline / efficiencyMultiplier;
+    const savings = withoutEfficiency - withEfficiency;
+    
+    // With rebound, we consume some of those savings
+    const netSavings = savings * (1 - rebound);
+    const finalConsumption = baseline - netSavings;
+
+    // Draw baseline (no efficiency) - dashed
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(padding, height - padding);
+    ctx.lineTo(width - padding, height - padding);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw actual consumption curve
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    
+    for (let i = 0; i <= 200; i++) {
+      const x = padding + (width - 2 * padding) * i / 200;
+      const year = 1850 + i;
+      
+      // Exponential growth base
+      const growthRate = 0.015 + efficiency / 500;
+      const growthFactor = Math.pow(1 + growthRate, i);
+      
+      // Efficiency factor
+      const effFactor = Math.pow(1 + efficiency / 100, i * (1 - rebound));
+      
+      let consumption = baseline * growthFactor / effFactor;
+      
+      // Historical events
+      if (year < 1914) consumption *= 1 + (year - 1850) * 0.003;
+      if (year > 1929 && year < 1939) consumption *= 0.85;
+      if (year > 1973 && year < 1985) consumption *= 0.9;
+      if (year > 2008) consumption *= 1.1;
+      
+      const y = height - padding - (consumption / 1000) * (height - 2 * padding);
+      
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Draw with glow
+    ctx.strokeStyle = 'rgba(245,158,11,0.3)';
+    ctx.lineWidth = 8;
+    ctx.stroke();
+
+    // Update metrics
+    document.getElementById('baseConsumption').textContent = Math.round(baseline);
+    document.getElementById('predictedConsumption').textContent = Math.round(finalConsumption);
+    document.getElementById('actualIncrease').textContent = '+' + Math.round((finalConsumption / baseline - 1) * 100) + '%';
+    
+    // Vs naive prediction (what we'd have without efficiency improvements)
+    const naiveIncrease = 750; // approximate historical
+    const actualIncrease = (finalConsumption / baseline - 1) * 100;
+    const vsNaive = Math.round(100 - (actualIncrease / naiveIncrease * 100));
+    document.getElementById('savedVsNaive').textContent = (vsNaive > 0 ? '+' : '') + vsNaive + '%';
+  }
+
+  efficiencySlider.addEventListener('input', (e) => {
+    efficiency = parseFloat(e.target.value);
+    efficiencyValue.textContent = efficiency.toFixed(1) + '%';
+    draw();
+  });
+
+  reboundSlider.addEventListener('input', (e) => {
+    rebound = parseFloat(e.target.value) / 100;
+    reboundValue.textContent = Math.round(rebound * 100) + '%';
+    draw();
+  });
+
+  draw();
+</script>
+
+</body>
+</html>

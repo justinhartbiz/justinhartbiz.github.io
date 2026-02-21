@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phantom Limb Cartography — Horizon v6</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #120910;
+    --text: #f5e6ea;
+    --accent: #ec4899;
+    --accent-dim: rgba(236,72,153,0.15);
+    --muted: #8a6b78;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 300;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    padding: 2rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .back {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .domain {
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  main {
+    max-width: 950px;
+    margin: 0 auto;
+    padding: 3rem;
+  }
+
+  h1 {
+    font-size: 2.6rem;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 3rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin: 2.5rem 0 1rem;
+    font-weight: 400;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .highlight {
+    background: var(--accent-dim);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+
+  .demo-container {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(236,72,153,0.15);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .demo-title {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .homunculus-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .brain-view {
+    position: relative;
+    aspect-ratio: 1;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  .brain-canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .body-view {
+    background: rgba(0,0,0,0.5);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    min-height: 300px;
+  }
+
+  .body-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+
+  .body-parts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .body-part {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+
+  .body-part:hover {
+    background: rgba(236,72,153,0.1);
+    border-color: var(--accent);
+  }
+
+  .body-part.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+
+  .part-name {
+    font-size: 0.9rem;
+  }
+
+  .part-size {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+  }
+
+  .sensation-panel {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    min-height: 100px;
+  }
+
+  .sensation-title {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+  }
+
+  .sensation-text {
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .fact-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .fact-card {
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border-left: 3px solid var(--accent);
+  }
+
+  .fact-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .fact-title {
+    font-size: 1rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+  }
+
+  .fact-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .mirror-box {
+    background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(168,85,247,0.08));
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    text-align: center;
+  }
+
+  .mirror-box h3 {
+    color: var(--accent);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    font-weight: 400;
+  }
+
+  .mirror-steps {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+
+  .mirror-step {
+    text-align: center;
+  }
+
+  .mirror-step-num {
+    width: 30px;
+    height: 30px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+  }
+
+  .mirror-step-text {
+    font-size: 0.75rem;
+    color: var(--muted);
+    max-width: 100px;
+  }
+
+  .region-info {
+    padding: 1rem;
+    background: rgba(236,72,153,0.05);
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 800px) {
+    header { padding: 1.5rem; flex-direction: column; gap: 1rem; }
+    main { padding: 2rem 1.5rem; }
+    h1 { font-size: 2rem; }
+    .homunculus-container { grid-template-columns: 1fr; }
+    .fact-cards { grid-template-columns: 1fr; }
+    .mirror-steps { flex-direction: column; gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back">← Horizon v6</a>
+  <span class="domain">Neuroscience / Somatosensory</span>
+</header>
+
+<main>
+  <h1>Phantom Limb Cartography</h1>
+  <p class="tagline">Your body image is a construction, not a measurement.</p>
+
+  <p>Reach out and touch your nose. Feel that? That's not your nose—it's your brain's <em>representation</em> of your nose. The sensation of touch isn't happening in your nose; it's happening in a topographical map inside your brain. And here's the unsettling part: that map is wildly inaccurate, surprisingly plastic, and occasionally hilarious.</p>
+
+  <h2>The Homunculus in Your Head</h2>
+
+  <p>Deep inside your brain, in the somatosensory cortex, exists a map of your body. Neurosurgeons discovered it decades ago by stimulating different brain regions while patients were awake. Poke here, they feel their hand. Poke there, they feel their face.</p>
+
+  <p>But here's what's strange: the map doesn't match your body. Your lips take up as much brain territory as your entire torso. Your fingers are huge. Your back is tiny. If you drew this body proportionally, you'd get a grotesque creature with distended lips and fingers, a tiny torso, and a shriveled back—a <span class="highlight">homunculus</span>, Latin for "little man."</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive Somatosensory Map</div>
+    
+    <div class="homunculus-container">
+      <div class="brain-view">
+        <canvas id="brainCanvas" class="brain-canvas"></canvas>
+      </div>
+      
+      <div>
+        <div class="body-view">
+          <div class="body-label">Click a body part to explore</div>
+          <div class="body-parts">
+            <div class="body-part" data-part="lip">
+              <span class="part-name">Lips</span>
+              <span class="part-size">~40%</span>
+            </div>
+            <div class="body-part" data-part="hand">
+              <span class="part-name">Hand</span>
+              <span class="part-size">~25%</span>
+            </div>
+            <div class="body-part" data-part="finger">
+              <span class="part-name">Fingers</span>
+              <span class="part-size">~20%</span>
+            </div>
+            <div class="body-part" data-part="face">
+              <span class="part-name">Face</span>
+              <span class="part-size">~15%</span>
+            </div>
+            <div class="body-part" data-part="arm">
+              <span class="part-name">Arm</span>
+              <span class="part-size">~8%</span>
+            </div>
+            <div class="body-part" data-part="torso">
+              <span class="part-name">Torso</span>
+              <span class="part-size">~5%</span>
+            </div>
+            <div class="body-part" data-part="leg">
+              <span class="part-name">Leg</span>
+              <span class="part-size">~3%</span>
+            </div>
+            <div class="body-part" data-part="foot">
+              <span class="part-name">Foot</span>
+              <span class="part-size">~2%</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="sensation-panel">
+          <div class="sensation-title">Neural Representation</div>
+          <div class="sensation-text" id="sensationText">
+            Click on the brain or a body part to explore how much cortex is devoted to each area.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Phantom Sensations</h2>
+
+  <p>Now here's where it gets really weird. About 80% of amputees experience sensations in their missing limbs. They feel itching, pain, temperature, even the urge to move fingers that aren't there. Some can even reach with their phantom arm and feel objects with phantom fingers.</p>
+
+  <p>But the most fascinating cases are the <em>unpleasant</em> ones:</p>
+
+  <div class="fact-cards">
+    <div class="fact-card">
+      <div class="fact-icon">😩</div>
+      <div class="fact-title">The Cramped Claw</div>
+      <div class="fact-desc">Many amputees feel their phantom hand frozen in a painful grip, fingers bent into the palm for years. The brain's "resting state" for that hand is apparently a tight fist.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-icon">👻</div>
+      <div class="fact-title">Telescoping</div>
+      <div class="fact-desc">Some amputees feel their phantom limb slowly shrinking and pulling closer to the stump. The hand seems to drift toward—sometimes <em>into</em>—the residual limb.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-icon">🧊</div>
+      <div class="fact-title">The Floating Limb</div>
+      <div class="fact-desc">Some feel their phantom arm floating in the air, disconnected from their body. They've lost the map coordinate for where their arm "should" be.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-icon">😂</div>
+      <div class="fact-title">The Comedy of Errors</div>
+      <div class="fact-desc">One amputee's phantom leg felt so real he tried to stand up from his wheelchair—repeatedly. Another felt an itch on his phantom foot and spent hours scratching his stump.</div>
+    </div>
+  </div>
+
+  <h2>Mirror Therapy: Fighting Illusion with Illusion</h2>
+
+  <div class="mirror-box">
+    <h3>The Bizarre Treatment That Works</h3>
+    <p>Place a mirror so you see your intact hand where your missing hand should be. Move your real hand, watch the mirror—and your phantom hand moves too. The brain rewires itself.</p>
+    
+    <div class="mirror-steps">
+      <div class="mirror-step">
+        <div class="mirror-step-num">1</div>
+        <div class="mirror-step-text">Hide amputated side behind mirror</div>
+      </div>
+      <div class="mirror-step">
+        <div class="mirror-step-num">2</div>
+        <div class="mirror-step-text">Position intact hand in view</div>
+      </div>
+      <div class="mirror-step">
+        <div class="mirror-step-num">3</div>
+        <div class="mirror-step-text">Move intact hand</div>
+      </div>
+      <div class="mirror-step">
+        <div class="mirror-step-num">4</div>
+        <div class="mirror-step-text">Brain sees phantom move</div>
+      </div>
+    </div>
+  </div>
+
+  <p>The mirror tricks the brain into receiving feedback from the "phantom" limb. Over time, this can reduce pain, improve control, and even make the phantom limb feel more "manageable." It's not pseudoscience—it's neuroplasticity in action.</p>
+
+  <h2>The Map Is Not the Territory</h2>
+
+  <p>What phantom limbs teach us is profound: your sense of your body is a <em>construction</em>, not a measurement. The brain builds a model of the body from sensory input, and that model can persist after input stops, shift when input changes, and be fundamentally wrong in predictable ways.</p>
+
+  <p>The body you feel isn't the body you have. It's a story your brain tells itself, updated continuously, but always imperfect. And sometimes—in the case of phantom limbs—that story continues long after the body part is gone.</p>
+
+</main>
+
+<script>
+  const canvas = document.getElementById('brainCanvas');
+  const ctx = canvas.getContext('2d');
+
+  let activePart = null;
+  let hoverPos = null;
+
+  const bodyParts = {
+    lip: { color: '#ec4899', label: 'Lips', cortex: 0.4, desc: 'The lips have enormous cortical representation - more than the entire torso combined. This is why losing sensation in lips is devastating and why lip sensations are so vivid in phantom limbs.' },
+    hand: { color: '#f472b6', label: 'Hand', cortex: 0.25, desc: 'The hand occupies about 25% of the somatosensory cortex. That\'s more than the entire leg. Fine motor control and tactile discrimination require massive neural real estate.' },
+    finger: { color: '#f9a8d4', label: 'Fingers', cortex: 0.2, desc: 'Each fingertip has its own dedicated patch of cortex. This is why Braille readers can "see" with their fingers - the neural infrastructure is there.' },
+    face: { color: '#c084fc', label: 'Face', cortex: 0.15, desc: 'The face representation sits right next to the hand in the cortex, which explains why some facial sensations can "spill over" and affect phantom hand sensations.' },
+    arm: { color: '#a78bfa', label: 'Arm', cortex: 0.08, desc: 'The arm has less representation than you might expect - we don\'t need as much precision in the arm as in the hands.' },
+    torso: { color: '#818cf8', label: 'Torso', cortex: 0.05, desc: 'The torso has surprisingly little cortical territory. This is why you can\'t precisely locate touch on your back without looking.' },
+    leg: { color: '#6366f1', label: 'Leg', cortex: 0.03, desc: 'The leg\'s representation is on the medial (inner) surface of the brain, tucked away from the more important hands and face.' },
+    foot: { color: '#4f46e5', label: 'Foot', cortex: 0.02, desc: 'The foot has the smallest representation of all - which explains why foot sensations are relatively coarse compared to fingertips.' }
+  };
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    draw();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+    const cx = width / 2;
+    const cy = height / 2;
+
+    ctx.fillStyle = '#0a0608';
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw brain outline
+    ctx.strokeStyle = 'rgba(236,72,153,0.2)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, width * 0.35, height * 0.4, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Draw somatosensory cortex (the strip)
+    const cortexY = cy + height * 0.15;
+    const cortexHeight = height * 0.25;
+
+    // Draw body parts on the homunculus strip
+    const parts = [
+      { key: 'leg', start: 0.05, end: 0.2 },
+      { key: 'torso', start: 0.2, end: 0.45 },
+      { key: 'arm', start: 0.45, end: 0.55 },
+      { key: 'finger', start: 0.55, end: 0.65 },
+      { key: 'hand', start: 0.65, end: 0.75 },
+      { key: 'face', start: 0.75, end: 0.88 },
+      { key: 'lip', start: 0.88, end: 1.0 }
+    ];
+
+    parts.forEach(part => {
+      const p = bodyParts[part.key];
+      const startX = cx - width * 0.3 + width * 0.6 * part.start;
+      const endX = cx - width * 0.3 + width * 0.6 * part.end;
+      
+      const gradient = ctx.createLinearGradient(startX, cortexY, endX, cortexY);
+      gradient.addColorStop(0, 'rgba(0,0,0,0)');
+      gradient.addColorStop(0.1, p.color + '80');
+      gradient.addColorStop(0.5, p.color);
+      gradient.addColorStop(0.9, p.color + '80');
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(startX, cortexY - cortexHeight/2, endX - startX, cortexHeight);
+
+      // Label
+      if (activePart === part.key || !activePart) {
+        ctx.fillStyle = p.color;
+        ctx.font = '9px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.label, (startX + endX) / 2, cortexY + cortexHeight/2 + 15);
+      }
+    });
+
+    // Highlight active part
+    if (activePart) {
+      const part = bodyParts[activePart];
+      const partData = parts.find(p => p.key === activePart);
+      if (partData) {
+        const startX = cx - width * 0.3 + width * 0.6 * partData.start;
+        const endX = cx - width * 0.3 + width * 0.6 * partData.end;
+        
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(startX, cortexY - cortexHeight/2, endX - startX, cortexHeight);
+      }
+    }
+
+    // Title
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = '10px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText('SOMATOSENSORY CORTEX', cx, 20);
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    hoverPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    draw();
+  });
+
+  // Body part clicks
+  document.querySelectorAll('.body-part').forEach(part => {
+    part.addEventListener('click', () => {
+      const key = part.dataset.part;
+      
+      document.querySelectorAll('.body-part').forEach(p => p.classList.remove('active'));
+      part.classList.add('active');
+      
+      activePart = key;
+      const data = bodyParts[key];
+      
+      document.getElementById('sensationText').textContent = data.desc;
+      
+      draw();
+    });
+  });
+
+  draw();
+</script>
+
+</body>
+</html>

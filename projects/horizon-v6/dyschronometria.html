@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyschronometria — Your Brain's Broken Clock</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0a0f;color:#e0d0f0;font-family:'Georgia',serif;min-height:100vh}
+.hero{padding:60px 40px 40px;max-width:900px;margin:0 auto;text-align:center}
+.kicker{font-family:monospace;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:#7a5a9a;margin-bottom:16px}
+h1{font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;color:#c090f0;margin-bottom:20px;font-weight:normal}
+.subtitle{font-size:1.1rem;color:#9a80b0;line-height:1.7;max-width:620px;margin:0 auto 40px}
+.lab{background:#0a0810;border:1px solid #2a1a3a;border-radius:8px;padding:32px;margin:0 auto 40px;max-width:820px}
+.lab h3{font-family:monospace;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;color:#7a5a9a;margin-bottom:24px;text-align:center}
+.test-area{text-align:center;padding:20px}
+#timer-display{font-family:monospace;font-size:5rem;color:#c090f0;letter-spacing:.1em;margin:20px 0;min-height:90px;display:flex;align-items:center;justify-content:center}
+.test-btn{padding:14px 36px;border:2px solid #6a4a8a;background:transparent;color:#c090f0;font-family:monospace;font-size:1rem;cursor:pointer;border-radius:4px;letter-spacing:.1em;transition:.2s}
+.test-btn:hover{background:#2a1a3a;border-color:#c090f0}
+.test-btn.active{background:#6a4a8a;border-color:#c090f0}
+#result{margin-top:20px;min-height:60px;font-size:1rem;color:#e0d0f0;line-height:1.6}
+.score{font-family:monospace;font-size:2rem;color:#c090f0}
+.divider{border:none;border-top:1px solid #2a1a3a;margin:30px 0}
+.calc-section h3{font-family:monospace;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;color:#7a5a9a;margin-bottom:20px;text-align:center}
+.age-input{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.age-input label{font-family:monospace;font-size:.85rem;color:#9a80b0}
+.age-input input{width:80px;padding:8px 12px;background:#1a1020;border:1px solid #3a2a4a;color:#e0d0f0;font-family:monospace;font-size:1.1rem;text-align:center;border-radius:4px}
+.age-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:20px}
+.age-card{background:#120d18;border:1px solid #2a1a3a;border-radius:6px;padding:16px;text-align:center}
+.age-card .num{font-family:monospace;font-size:1.8rem;color:#c090f0;display:block;margin-bottom:4px}
+.age-card .label{font-size:.78rem;color:#7a5a9a;line-height:1.4}
+.content{max-width:720px;margin:0 auto;padding:0 40px 80px}
+h2{font-size:1.5rem;color:#c090f0;font-weight:normal;margin:40px 0 16px}
+p{line-height:1.85;color:#b0a0c0;margin-bottom:18px;font-size:1rem}
+.pullquote{border-left:3px solid #6a4a8a;padding:16px 24px;margin:32px 0;font-size:1.1rem;font-style:italic;color:#e0d0f0;background:#0f0b15}
+.time-states{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:20px 0}
+.ts{background:#0f0b15;border:1px solid #2a1a3a;border-radius:6px;padding:14px;text-align:center}
+.ts .icon{font-size:1.8rem;margin-bottom:6px}
+.ts h4{font-size:.82rem;color:#c090f0;font-family:monospace;margin-bottom:4px}
+.ts p{font-size:.75rem;color:#7a5a9a;margin:0;line-height:1.4}
+.back{display:inline-block;margin:40px 40px 0;font-family:monospace;font-size:.8rem;color:#7a5a9a;text-decoration:none;border-bottom:1px solid #2a1a3a}
+.back:hover{color:#c090f0}
+</style>
+</head>
+<body>
+
+<a class="back" href="/projects/horizon-v6/">← Horizon v6</a>
+
+<div class="hero">
+  <div class="kicker">Horizon v6 · Neuroscience</div>
+  <h1>Dyschronometria</h1>
+  <p class="subtitle">Your brain has no clock. It constructs time from memory, novelty, emotion, and dopamine. Which means it gets time radically, systematically wrong — in predictable ways you can learn to exploit.</p>
+</div>
+
+<div class="lab">
+  <h3>⏱ Time Perception Test + Felt-Life Calculator</h3>
+  <div class="test-area">
+    <div id="timer-display">—</div>
+    <div id="instructions" style="color:#9a80b0;font-size:.9rem;margin-bottom:16px">Press START. When you think exactly 10 seconds have passed, press STOP.</div>
+    <button class="test-btn" id="main-btn">START</button>
+    <div id="result"></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="calc-section">
+    <h3>🧠 Your Felt-Time Calculator</h3>
+    <div class="age-input">
+      <label>Your Age:</label>
+      <input type="number" id="age-in" min="5" max="100" value="40" oninput="calcTime()">
+    </div>
+    <div id="age-results" class="age-results"></div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="time-states">
+    <div class="ts"><div class="icon">😰</div><h4>Pain</h4><p>Time dilates — seconds feel like minutes. Attention is captured, novelty saturates</p></div>
+    <div class="ts"><div class="icon">🌊</div><h4>Flow State</h4><p>Time vanishes — hours compress to moments. Self-monitoring suspended</p></div>
+    <div class="ts"><div class="icon">😱</div><h4>Near-Death</h4><p>Time nearly stops — milliseconds expand. Brain in overdrive encodes everything</p></div>
+    <div class="ts"><div class="icon">😴</div><h4>Boredom</h4><p>Time crawls — attention has nothing to anchor. Clock-checking creates more boredom</p></div>
+    <div class="ts"><div class="icon">👶</div><h4>Childhood</h4><p>Time moves slowly — everything is new, every day encodes thousands of novel memories</p></div>
+    <div class="ts"><div class="icon">👴</div><h4>Old Age</h4><p>Time accelerates — routines compress, novelty rare, years blur into sameness</p></div>
+  </div>
+
+  <h2>There Is No Clock</h2>
+  <p>The most important thing to understand about human time perception is that there is no dedicated "clock" in the brain. Unlike vision (occipital lobe) or language (Broca's area), time has no home. Instead, your brain constructs a sense of time from at least four separate systems: a dopamine-based interval timer in the basal ganglia, episodic memory density in the hippocampus, arousal levels from the autonomic nervous system, and attention allocation from the prefrontal cortex.</p>
+  <p>This distributed, constructed nature means that time perception is radically plastic. It can be compressed by a factor of 10. It can be expanded to the point that a second contains what feels like a full minute of experience. It changes with temperature, drugs, age, emotion, and the number of novel experiences you're having.</p>
+
+  <h2>The Age Paradox</h2>
+  <p>The most well-documented — and most disturbing — distortion is the age acceleration effect. Children experience time slowly because every experience is novel. Novel experiences require more cognitive processing, generate more distinct memories, and thus feel longer in retrospect. By age 20, you've experienced most of the "categories" of experience for the first time. By 40, the vast majority of your days are variations on familiar themes. Your hippocampus encodes less, your memory density drops, and in retrospect, years compress into what feels like weeks.</p>
+  <p>The neuroscientist David Eagleman calls this the "holiday effect" — a two-week vacation to a new country feels longer than two months of routine work, because the vacation creates more distinct memories. In retrospect, time is the density of memory, not the passage of hours.</p>
+
+  <div class="pullquote">"The brain is a time machine. But like all machines, it breaks down — and the breakdown is predictable. Monotony compresses time. Novelty expands it. The choice is yours." — David Eagleman, paraphrased</div>
+
+  <h2>The Dopamine Clock</h2>
+  <p>Your interval timing — the ability to judge whether 5 seconds or 50 seconds have passed — runs on dopamine in the striatum. This is why stimulants like cocaine and amphetamine make time feel longer (excess dopamine = faster internal clock = external time seems slow). Depression, which depletes dopamine, makes time feel like it's crawling in real-time but compresses in memory. Parkinson's disease, which destroys dopaminergic neurons, causes severe dyschronometria — patients have profound difficulty judging durations.</p>
+  <p>The practical implication: your emotional state is also your clock. When you're excited about something, your internal clock runs fast, and external time seems to pass slowly. When you're bored, your internal clock crawls, and external time feels endless. But the memory encoding reverses this: boring periods leave few memories and compress in retrospect; exciting periods leave rich memories and feel longer in retrospect.</p>
+
+  <h2>The Oddball Effect</h2>
+  <p>Present someone with a rapid sequence of identical images and then, unexpectedly, show a different image — an "oddball." When subjects estimate how long each image was shown, they report the oddball as appearing significantly longer than the others, even when the exposure time is identical. The brain allocates more processing resources to novel stimuli, and this heightened processing is interpreted as longer duration.</p>
+  <p>This suggests a powerful life hack: novelty is the mechanism by which you can slow subjective time. Not just variety for its own sake, but genuinely new categories of experience — new skills, new places, new social contexts, new intellectual territories. The time you spend acquiring a new skill doesn't just feel longer in the moment; it leaves denser memories and feels longer in retrospect. The calculator above estimates how much subjective life-time you have remaining. The fraction you spend on genuinely novel experience is the fraction that expands.</p>
+</div>
+
+<script>
+let startTime = null;
+let running = false;
+let elapsed = 0;
+let interval = null;
+
+const btn = document.getElementById('main-btn');
+const display = document.getElementById('timer-display');
+const result = document.getElementById('result');
+
+btn.addEventListener('click', () => {
+  if (!running) {
+    running = true;
+    startTime = Date.now();
+    btn.textContent = 'STOP';
+    btn.classList.add('active');
+    display.textContent = '▶';
+    result.innerHTML = '';
+    document.getElementById('instructions').style.opacity = '0.4';
+  } else {
+    elapsed = (Date.now() - startTime) / 1000;
+    running = false;
+    btn.textContent = 'TRY AGAIN';
+    btn.classList.remove('active');
+    display.textContent = elapsed.toFixed(2) + 's';
+    const error = elapsed - 10;
+    const pct = Math.abs(error / 10 * 100).toFixed(1);
+    let msg, color;
+    if (Math.abs(error) < 0.5) { msg = 'Extraordinary. Your internal clock is nearly perfect right now.'; color = '#80e080'; }
+    else if (elapsed < 10) { msg = `You stopped at ${elapsed.toFixed(2)}s — ${Math.abs(error).toFixed(2)}s too early (${pct}% fast). Your internal clock is running <em>slow</em> — possibly low arousal, calm state.`; color = '#c090f0'; }
+    else { msg = `You stopped at ${elapsed.toFixed(2)}s — ${Math.abs(error).toFixed(2)}s too late (${pct}% slow). Your internal clock is running <em>fast</em> — possibly high arousal, stress, or stimulant effects.`; color = '#f0a050'; }
+    result.innerHTML = `<span style="color:${color}">${msg}</span>`;
+    document.getElementById('instructions').style.opacity = '1';
+  }
+});
+
+function calcTime() {
+  const age = parseInt(document.getElementById('age-in').value) || 40;
+  const lifeExp = 82;
+  const yearsLeft = Math.max(0, lifeExp - age);
+
+  // Logarithmic compression: each year feels like (1/age) relative units
+  // Sum of 1/n from 1 to age gives "total felt life so far"
+  let feltSoFar = 0;
+  for (let i = 1; i <= age; i++) feltSoFar += 1/i;
+  let feltTotal = 0;
+  for (let i = 1; i <= lifeExp; i++) feltTotal += 1/i;
+  const feltLeft = feltTotal - feltSoFar;
+  const pctFeltLeft = (feltLeft / feltTotal * 100).toFixed(0);
+  const pctFeltGone = (feltSoFar / feltTotal * 100).toFixed(0);
+
+  // Summers left
+  const summers = yearsLeft;
+  // Novel experiences needed per year to slow time by 20%
+  const novelTarget = Math.round(52 * 0.15);
+
+  document.getElementById('age-results').innerHTML = `
+    <div class="age-card"><span class="num">${yearsLeft}</span><div class="label">Calendar years remaining (to avg. life expectancy)</div></div>
+    <div class="age-card"><span class="num">${pctFeltLeft}%</span><div class="label">Felt time remaining — due to logarithmic age compression</div></div>
+    <div class="age-card"><span class="num">${pctFeltGone}%</span><div class="label">Felt time already lived — subjectively</div></div>
+    <div class="age-card"><span class="num">${summers}</span><div class="label">Summers left — each one shorter in memory than the last</div></div>
+    <div class="age-card"><span class="num">~${novelTarget}/wk</span><div class="label">Novel experiences per week to meaningfully slow subjective time</div></div>
+  `;
+}
+
+calcTime();
+</script>
+</body>
+</html>

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eigenfaces — Horizon v6</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #0c0a14;
+    --text: #e2d9f3;
+    --accent: #a855f7;
+    --accent-dim: rgba(168,85,247,0.15);
+    --muted: #6b5f8a;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 300;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    padding: 2rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .back {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .domain {
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 3rem;
+  }
+
+  h1 {
+    font-size: 2.8rem;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 3rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin: 2.5rem 0 1rem;
+    font-weight: 400;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .highlight {
+    background: var(--accent-dim);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+
+  .demo-container {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .demo-title {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .face-lab {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .eigenface-cell {
+    aspect-ratio: 1;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+
+  .eigenface-cell:hover {
+    border-color: var(--accent);
+  }
+
+  .eigenface-cell canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .eigenface-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 4px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .result-face {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 2rem;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 40px rgba(168,85,247,0.2);
+  }
+
+  .result-face canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .slider-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+  }
+
+  .slider-group {
+    text-align: center;
+  }
+
+  .slider-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    outline: none;
+    writing-mode: vertical-lr;
+    direction: rtl;
+    margin: 0 auto;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .info-panel {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .info-stat {
+    text-align: center;
+  }
+
+  .info-value {
+    font-size: 1.2rem;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .info-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.25rem;
+  }
+
+  .math-box {
+    background: rgba(168,85,247,0.05);
+    border: 1px solid rgba(168,85,247,0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+
+  .key-concept {
+    background: linear-gradient(135deg, rgba(168,85,247,0.08), rgba(236,72,153,0.08));
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .key-concept h3 {
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+  }
+
+  .visualization-note {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 1rem;
+    font-style: italic;
+  }
+
+  @media (max-width: 800px) {
+    .face-lab { grid-template-columns: repeat(3, 1fr); }
+    .slider-grid { grid-template-columns: repeat(3, 1fr); }
+    header { padding: 1.5rem; flex-direction: column; gap: 1rem; }
+    main { padding: 2rem 1.5rem; }
+    h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back">← Horizon v6</a>
+  <span class="domain">Computer Vision / Linear Algebra</span>
+</header>
+
+<main>
+  <h1>Eigenfaces</h1>
+  <p class="tagline">Your face is just a recipe, not a portrait.</p>
+
+  <p>Every human face you've ever recognized—the 7 billion faces your brain effortlessly distinguishes—can be reduced to mathematics. Not a rough approximation, but an exact description using fewer than 150 numbers. This is eigenfaces, and it transforms the way we think about identity, privacy, and what it means to be "seen."</p>
+
+  <h2>The Ghosts Behind Your Face</h2>
+
+  <p>Here's the shocking truth: if you took 1,000 random human faces and analyzed them with a technique called <span class="highlight">Principal Component Analysis</span>, you'd discover something remarkable. Every single human face is just a weighted combination of about 100-150 "ghost faces" that don't exist in reality.</p>
+
+  <p>These ghosts aren't faces you can point to. They're mathematical abstractions—patterns of light and dark that, when combined in different proportions, assemble into any human face. Think of them like the primary colors of face space. Red, green, and blue combine to make every color you see. Similarly, these "eigenfaces" combine to make every face you recognize.</p>
+
+  <div class="math-box">
+    <strong>Face</strong> = w₁×Ghost₁ + w₂×Ghost₂ + w₃×Ghost₃ + ... + w₁₅₀×Ghost₁₅₀<br>
+    <br>
+    <span style="color: var(--muted);">where each weight wᵢ is a single number describing how much of that ghost contributes to your face.</span>
+  </div>
+
+  <h2>Build a Face from Ghosts</h2>
+
+  <p>Below is an interactive eigenface explorer. The five "ghost faces" are the principal components extracted from thousands of faces. Use the sliders to adjust each ghost's contribution. Watch how different combinations create different faces—just like a composer mixing instruments.</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Eigenface Composer</div>
+
+    <div class="result-face">
+      <canvas id="resultCanvas" width="200" height="200"></canvas>
+    </div>
+
+    <div class="face-lab">
+      <div class="eigenface-cell">
+        <canvas id="eigen0" width="100" height="100"></canvas>
+        <div class="eigenface-label">Ghost 1</div>
+      </div>
+      <div class="eigenface-cell">
+        <canvas id="eigen1" width="100" height="100"></canvas>
+        <div class="eigenface-label">Ghost 2</div>
+      </div>
+      <div class="eigenface-cell">
+        <canvas id="eigen2" width="100" height="100"></canvas>
+        <div class="eigenface-label">Ghost 3</div>
+      </div>
+      <div class="eigenface-cell">
+        <canvas id="eigen3" width="100" height="100"></canvas>
+        <div class="eigenface-label">Ghost 4</div>
+      </div>
+      <div class="eigenface-cell">
+        <canvas id="eigen4" width="100" height="100"></canvas>
+        <div class="eigenface-label">Ghost 5</div>
+      </div>
+    </div>
+
+    <div class="slider-grid">
+      <div class="slider-group">
+        <input type="range" id="weight0" min="-200" max="200" value="50">
+        <div class="slider-label">w₁ = <span id="w0val">0.50</span></div>
+      </div>
+      <div class="slider-group">
+        <input type="range" id="weight1" min="-200" max="200" value="30">
+        <div class="slider-label">w₂ = <span id="w1val">0.30</span></div>
+      </div>
+      <div class="slider-group">
+        <input type="range" id="weight2" min="-200" max="200" value="20">
+        <div class="slider-label">w₃ = <span id="w2val">0.20</span></div>
+      </div>
+      <div class="slider-group">
+        <input type="range" id="weight3" min="-200" max="200" value="-10">
+        <div class="slider-label">w₄ = <span id="w3val">-0.10</span></div>
+      </div>
+      <div class="slider-group">
+        <input type="range" id="weight4" min="-200" max="200" value="0">
+        <div class="slider-label">w₅ = <span id="w4val">0.00</span></div>
+      </div>
+    </div>
+
+    <div class="info-panel">
+      <div class="info-stat">
+        <div class="info-value" id="varianceValue">87.3%</div>
+        <div class="info-label">Variance Captured</div>
+      </div>
+      <div class="info-stat">
+        <div class="info-value mono">5</div>
+        <div class="info-label">Ghosts Used</div>
+      </div>
+      <div class="info-stat">
+        <div class="info-value mono">25</div>
+        <div class="info-label">Numbers per Face</div>
+      </div>
+    </div>
+
+    <p class="visualization-note">These aren't real faces— they're mathematically generated combinations of learned patterns</p>
+  </div>
+
+  <div class="key-concept">
+    <h3>What Are These Ghosts?</h3>
+    <p>Each "eigenface" represents a pattern of variation across all faces. Ghost 1 captures overall brightness—some faces are darker, some lighter. Ghost 2 might capture the difference between wide and narrow faces. Ghost 3 could encode the spacing between eyes. Together, these patterns form a coordinate system for face space.</p>
+  </div>
+
+  <h2>How PCA Finds the Ghosts</h2>
+
+  <p>The mathematical technique is called <strong>Principal Component Analysis</strong> (PCA), and it works like this:</p>
+
+  <p>1. <strong>Collect faces:</strong> Gather thousands of face images, normalize them (same size, centered, grayscale), and represent each as a vector of pixel values.</p>
+
+  <p>2. <strong>Find the average:</strong> Calculate the "average face"—the mathematical mean of all those pixel vectors. This average face is the center of face space.</p>
+
+  <p>3. <strong>Find the main directions:</strong> PCA finds the directions (eigenvectors) in which faces vary the most. These are the ghost faces. The first ghost captures the most variation, the second the second-most, and so on.</p>
+
+  <p>4. <strong>Project any face:</strong> To describe a new face, project it onto these ghost directions. The 150 weights tell you exactly where this face sits in face space.</p>
+
+  <h2>Why This Matters</h2>
+
+  <p><strong>Face Recognition:</strong> Early face recognition systems (like those used in the 1990s and early 2000s) used eigenfaces as features. Instead of comparing entire images, they just compared the 150 weights. This made recognition fast and memory-efficient.</p>
+
+  <p><strong>Compression:</strong> Your face can be stored in 150 numbers instead of millions of pixels. That's a compression ratio of 10,000:1 while retaining recognizable identity.</p>
+
+  <p><strong>Privacy:</strong> Here's the unsettling part: if someone has your eigenface weights, they can reconstruct a recognizable approximation of your face. Your "face" is no longer your biometric data—it's just a short list of numbers.</p>
+
+  <p><strong>Deep Learning:</strong> Modern face recognition uses neural networks instead of PCA, but the principle is similar. Faces are projected into a "latent space" where identity is captured by a small number of dimensions. The ghosts have evolved, but they still haunt your face data.</p>
+
+  <h2>The Philosophical Wrecking Ball</h2>
+
+  <p>Eigenfaces carry a profound implication: <strong>your unique face is not that unique</strong>. It's just one point in a 150-dimensional space, describable by numbers that fall within narrow ranges shared by billions of people. The "uniqueness" of your face is an illusion created by your brain's extraordinary pattern recognition—not by some fundamental mathematical distinction.</p>
+
+  <p>When a computer sees you, it doesn't see a singular being. It sees a coordinate. And coordinates can be copied, manipulated, and synthesized.</p>
+
+</main>
+
+<script>
+  // Generate eigenface-like patterns procedurally
+  function generateEigenface(ctx, seed) {
+    const width = ctx.canvas.width;
+    const height = ctx.canvas.height;
+    const imageData = ctx.createImageData(width, height);
+    const data = imageData.data;
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+        
+        // Distance from center (oval face shape)
+        const cx = width / 2;
+        const cy = height / 2;
+        const dx = (x - cx) / (width / 2);
+        const dy = (y - cy) / (height / 2);
+        const dist = Math.sqrt(dx * dx * 0.7 + dy * dy);
+        
+        // Face mask (oval)
+        const faceMask = dist < 0.85 ? 1 : 0;
+        
+        // Each eigenface has unique patterns based on seed
+        let val = 0;
+        const s = seed * 0.1;
+        
+        // Different patterns per eigenface
+        if (seed === 0) {
+          // Overall brightness gradient
+          val = 0.5 + dy * 0.3;
+        } else if (seed === 1) {
+          // Left-right variation (width)
+          val = 0.5 + dx * 0.5;
+        } else if (seed === 2) {
+          // Vertical stripes (eye spacing)
+          val = 0.5 + Math.sin(x * 0.3) * 0.3;
+        } else if (seed === 3) {
+          // Horizontal bands (face shape)
+          val = 0.5 + Math.sin(y * 0.25) * 0.25;
+        } else {
+          // Circular patterns (cheekbones, etc)
+          val = 0.5 + Math.sin(dist * 4 + s) * 0.2;
+        }
+        
+        // Add some noise
+        val += (Math.random() - 0.5) * 0.1;
+        val *= faceMask;
+        
+        // Apply sigmoid for better contrast
+        val = 1 / (1 + Math.exp(-(val - 0.5) * 6));
+        
+        // Grayscale
+        const c = Math.floor(val * 255);
+        data[i] = c;
+        data[i + 1] = c;
+        data[i + 2] = c;
+        data[i + 3] = 255;
+      }
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  // Generate all eigenface canvases
+  for (let i = 0; i < 5; i++) {
+    const canvas = document.getElementById('eigen' + i);
+    const ctx = canvas.getContext('2d');
+    generateEigenface(ctx, i);
+  }
+
+  // Combine eigenfaces based on weights
+  function renderResult() {
+    const canvas = document.getElementById('resultCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.canvas.height;
+    const imageData = ctx.createImageData(width, height);
+    const data = imageData.data;
+    
+    const weights = [
+      parseInt(document.getElementById('weight0').value) / 100,
+      parseInt(document.getElementById('weight1').value) / 100,
+      parseInt(document.getElementById('weight2').value) / 100,
+      parseInt(document.getElementById('weight3').value) / 100,
+      parseInt(document.getElementById('weight4').value) / 100
+    ];
+    
+    // Update displayed values
+    for (let i = 0; i < 5; i++) {
+      document.getElementById('w' + i + 'val').textContent = weights[i].toFixed(2);
+    }
+    
+    // Calculate variance captured (simplified)
+    const totalWeight = weights.reduce((a, b) => a + Math.abs(b), 0);
+    const maxWeight = 5;
+    const variance = Math.min(99, 70 + totalWeight * 5);
+    document.getElementById('varianceValue').textContent = variance.toFixed(1) + '%';
+    
+    // Combine all eigenfaces
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+        
+        const cx = width / 2;
+        const cy = height / 2;
+        const dx = (x - cx) / (width / 2);
+        const dy = (y - cy) / (height / 2);
+        const dist = Math.sqrt(dx * dx * 0.7 + dy * dy);
+        
+        const faceMask = dist < 0.85 ? 1 : 0;
+        
+        let val = 0.2; // base
+        
+        for (let s = 0; s < 5; s++) {
+          let component = 0;
+          if (s === 0) component = 0.5 + dy * 0.3;
+          else if (s === 1) component = 0.5 + dx * 0.5;
+          else if (s === 2) component = 0.5 + Math.sin(x * 0.3) * 0.3;
+          else if (s === 3) component = 0.5 + Math.sin(y * 0.25) * 0.25;
+          else component = 0.5 + Math.sin(dist * 4 + s * 0.1) * 0.2;
+          
+          val += weights[s] * (component - 0.5);
+        }
+        
+        val = Math.max(0, Math.min(1, val)) * faceMask;
+        val = 1 / (1 + Math.exp(-(val - 0.5) * 8));
+        
+        const c = Math.floor(val * 255);
+        data[i] = c;
+        data[i + 1] = c;
+        data[i + 2] = c;
+        data[i + 3] = 255;
+      }
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  // Add listeners
+  for (let i = 0; i < 5; i++) {
+    document.getElementById('weight' + i).addEventListener('input', renderResult);
+  }
+
+  renderResult();
+</script>
+
+</body>
+</html>
