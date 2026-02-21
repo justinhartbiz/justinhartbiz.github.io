@@ -1,0 +1,136 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TLH Emergency Call Signal Engine — SD</title>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Lato,sans-serif;background:#F8F9FA;color:#333}
+header{background:#0D3B66;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:1.1rem;font-weight:900}
+header a{color:#aee6e4;font-size:.8rem;text-decoration:none}
+main{max-width:1120px;margin:0 auto;padding:20px}
+.kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.box{background:#fff;border:1px solid #E5E5E5;border-radius:10px;padding:14px;text-align:center}
+.box .n{font-size:2rem;font-weight:900;margin-top:4px}
+.box .l{font-size:.72rem;color:#6B6B78;text-transform:uppercase;letter-spacing:.4px}
+.green{color:#16a34a}.amber{color:#b45309}.blue{color:#0D3B66}.purple{color:#7c3aed}.red{color:#b91c1c}
+section{background:#fff;border:1px solid #E5E5E5;border-radius:10px;margin-bottom:20px;overflow:hidden}
+section h2{padding:14px 18px;font-size:.95rem;font-weight:900;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f6f6f6;color:#475569;font-size:.65rem;text-transform:uppercase;letter-spacing:.4px;padding:9px 14px;text-align:left;border-bottom:1px solid #eee}
+td{padding:9px 14px;border-bottom:1px solid #f5f5f5;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fbff}
+.badge{display:inline-block;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700}
+.badge-ready{background:#dcfce7;color:#15803d}
+.badge-wait{background:#fef3c7;color:#b45309}
+.badge-suppress{background:#fee2e2;color:#991b1b}
+.badge-gray{background:#f3f4f6;color:#6b7280}
+.score{font-weight:900;color:#0D3B66}
+.meta{font-size:.75rem;color:#64748b;padding:0 2px 12px 2px}
+.list{padding:14px 18px 16px 28px;color:#475569;line-height:1.45;font-size:13px}
+.list code{background:#f1f5f9;padding:1px 6px;border-radius:4px}
+.small{font-size:12px;color:#6b7280}
+@media(max-width:800px){.kpi{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🚨 TLH Emergency Call Signal Engine — SD</h1>
+  <a href="/tlh/agents/">← Agent OS</a>
+</header>
+<main>
+  <div class="meta" id="meta">Public-signal model only • no live emergency interception • loading…</div>
+
+  <div class="kpi" id="kpis"></div>
+
+  <section>
+    <h2>📏 Model + Safeguards</h2>
+    <ul class="list">
+      <li><strong>Signal Score (0-100):</strong> Emergency Severity (45) + Incident Confirmation (25) + Property Ownership Match (20) + Recency Fit (10).</li>
+      <li><strong>Decision gates:</strong> <code>ready_now</code> requires score ≥ 70 and cooldown clear.</li>
+      <li><strong>Cooldown:</strong> minimum 7 days from qualifying incident before any outreach.</li>
+      <li><strong>Suppress:</strong> if medical-only/no property signal, DNC/sensitivity flags, or recent outreach within 30 days.</li>
+      <li><strong>Every row requires reason code</strong> for auditability.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>📊 Decision Queue</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Record</th><th>Signals</th><th>Score</th><th>Cooldown</th><th>Decision</th><th>Reason Code</th><th>Next Action</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+
+  <div style="text-align:center;color:#94a3b8;font-size:.72rem;padding:16px 0">
+    Emergency Call Signal Engine · SD First · Standalone App
+  </div>
+</main>
+
+<script>
+const demoRows = [
+  {name:'Incident A', daysSinceSignal:12, severity:1, confirmed:1, propertyMatch:1, medicalOnly:0, lastContactDays:99, dnc:0, sensitive:0},
+  {name:'Incident B', daysSinceSignal:3,  severity:1, confirmed:1, propertyMatch:0, medicalOnly:1, lastContactDays:99, dnc:0, sensitive:0},
+  {name:'Incident C', daysSinceSignal:22, severity:1, confirmed:0, propertyMatch:1, medicalOnly:0, lastContactDays:8,  dnc:0, sensitive:0},
+  {name:'Incident D', daysSinceSignal:17, severity:0, confirmed:1, propertyMatch:1, medicalOnly:0, lastContactDays:99, dnc:1, sensitive:0},
+  {name:'Incident E', daysSinceSignal:15, severity:1, confirmed:1, propertyMatch:0, medicalOnly:0, lastContactDays:99, dnc:0, sensitive:1}
+];
+
+function recencyPts(d){ if(d<7) return 0; if(d<=21) return 10; if(d<=45) return 6; return 2; }
+function score(r){ return (r.severity?45:0) + (r.confirmed?25:0) + (r.propertyMatch?20:0) + recencyPts(r.daysSinceSignal); }
+function cooldownClear(r){ return r.daysSinceSignal >= 7; }
+function decide(r){
+  if(r.dnc) return ['suppress','DNC_FLAG'];
+  if(r.sensitive) return ['suppress','SENSITIVITY_FLAG'];
+  if(r.medicalOnly) return ['suppress','MEDICAL_ONLY_NO_PROPERTY'];
+  if(r.lastContactDays < 30) return ['wait','RECENT_OUTREACH_30D'];
+  const s=score(r);
+  if(!cooldownClear(r)) return ['wait','COOLDOWN_LT_7D'];
+  if(s>=70) return ['ready_now','SCORE_GTE_70'];
+  if(s>=55) return ['wait','SCORE_55_69'];
+  return ['wait','LOW_SIGNAL_SCORE'];
+}
+
+const rowsHTML = demoRows.map(r=>{
+  const s=score(r);
+  const [decision, reason]=decide(r);
+  const badge = decision==='ready_now'
+    ? '<span class="badge badge-ready">ready_now</span>'
+    : decision==='suppress'
+      ? '<span class="badge badge-suppress">suppress</span>'
+      : '<span class="badge badge-wait">wait</span>';
+  const nextAction = decision==='ready_now' ? 'queue_care_first_postcard' : (decision==='suppress' ? 'none' : 'recheck_next_cycle');
+  return `<tr>
+    <td><strong>${r.name}</strong></td>
+    <td>severity:${r.severity} • confirmed:${r.confirmed} • property:${r.propertyMatch}</td>
+    <td class="score">${s}</td>
+    <td>${cooldownClear(r)?'clear':'active'}</td>
+    <td>${badge}</td>
+    <td><span class="badge badge-gray">${reason}</span></td>
+    <td>${nextAction}</td>
+  </tr>`;
+}).join('');
+
+document.getElementById('rows').innerHTML = rowsHTML;
+
+const decisions = demoRows.map(decide);
+const ready = decisions.filter(d=>d[0]==='ready_now').length;
+const wait = decisions.filter(d=>d[0]==='wait').length;
+const suppress = decisions.filter(d=>d[0]==='suppress').length;
+
+document.getElementById('kpis').innerHTML = `
+  <div class="box"><div class="l">Records</div><div class="n blue">${demoRows.length}</div></div>
+  <div class="box"><div class="l">Ready Now</div><div class="n green">${ready}</div></div>
+  <div class="box"><div class="l">Wait</div><div class="n amber">${wait}</div></div>
+  <div class="box"><div class="l">Suppress</div><div class="n red">${suppress}</div></div>
+  <div class="box"><div class="l">Mode</div><div class="n purple">SD v1</div></div>`;
+
+document.getElementById('meta').textContent = `Public-signal model only • no live emergency interception • updated ${new Date().toLocaleString()}`;
+</script>
+</body>
+</html>
