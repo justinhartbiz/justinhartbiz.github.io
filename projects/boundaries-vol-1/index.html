@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boundaries vol 1</title>
+  <style>
+    :root { --bg:#09090b; --surface:#18181b; --surface-hover:#27272a; --primary:#14b8a6; --text:#f4f4f5; --text-muted:#a1a1aa; --border:#3f3f46; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+    body { background:var(--bg); color:var(--text); display:flex; height:100vh; overflow:hidden; }
+    #sidebar { width:340px; min-width:340px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; z-index:10; }
+    .sidebar-header { padding:24px; border-bottom:1px solid var(--border); }
+    .sidebar-header h1 { font-size:1.1rem; color:var(--primary); text-transform:uppercase; letter-spacing:2px; }
+    .sidebar-header p { font-size:.8rem; color:var(--text-muted); margin-top:6px; }
+    #nav-list { flex:1; overflow-y:auto; padding:12px 0; }
+    .nav-item { padding:14px 24px; cursor:pointer; border-left:3px solid transparent; transition:.2s; }
+    .nav-item:hover { background:var(--surface-hover); }
+    .nav-item.active { background:#134e4a33; border-left-color:var(--primary); }
+    .nav-item h3 { font-size:.95rem; margin-bottom:4px; color:var(--text); }
+    .nav-item p { font-size:.75rem; color:var(--text-muted); line-height:1.3; }
+    #main { flex:1; display:flex; flex-direction:column; position:relative; min-width:0; }
+    #header { padding:40px 40px 20px 40px; }
+    #header h2 { font-size:2.5rem; margin-bottom:12px; font-weight:300; letter-spacing:-.5px; }
+    #header p { font-size:1.05rem; line-height:1.6; color:var(--text-muted); max-width:900px; }
+    #interactive-area { flex:1; margin:0 40px 40px 40px; position:relative; display:flex; flex-direction:column; border-radius:12px; border:1px solid var(--border); background:#000; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.5); }
+    canvas { flex:1; width:100%; height:100%; display:block; cursor:crosshair; }
+    #controls-bar { position:absolute; bottom:0; left:0; right:0; background:rgba(24,24,27,.85); backdrop-filter:blur(10px); padding:20px 30px; border-top:1px solid var(--border); display:flex; gap:40px; align-items:center; min-height:80px; }
+    .control-group { display:flex; flex-direction:column; gap:8px; flex:1; max-width:300px; }
+    .control-group label { font-size:.75rem; text-transform:uppercase; letter-spacing:1px; color:var(--primary); font-weight:600; display:flex; justify-content:space-between; }
+    input[type="range"] { -webkit-appearance:none; width:100%; background:transparent; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; height:16px; width:16px; border-radius:50%; background:var(--primary); cursor:pointer; margin-top:-6px; }
+    input[type="range"]::-webkit-slider-runnable-track { width:100%; height:4px; background:var(--border); border-radius:2px; }
+    .action-btn { background:var(--primary); color:#000; border:none; padding:10px 20px; border-radius:6px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:.8rem; letter-spacing:1px; transition:.2s; white-space:nowrap; }
+    .action-btn:hover { background:#fff; }
+    .metric { font-family:monospace; font-size:1.5rem; color:#fff; display:flex; flex-direction:column; gap:4px; }
+    .metric-label { font-size:.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-family:sans-serif; }
+    @media (max-width:980px){ #sidebar{display:none} #header{padding:20px} #interactive-area{margin:0 20px 20px} }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <h1>Boundaries vol 1</h1>
+      <p>10 Interactive Paradigms</p>
+    </div>
+    <div id="nav-list"></div>
+  </div>
+  <div id="main">
+    <div id="header">
+      <h2 id="topic-title">Loading...</h2>
+      <p id="topic-desc"></p>
+    </div>
+    <div id="interactive-area">
+      <canvas id="sim-canvas"></canvas>
+      <div id="controls-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('sim-canvas');
+    const ctx = canvas.getContext('2d');
+    const controlsBar = document.getElementById('controls-bar');
+    let cw, ch, animFrame, state = {}, currentTopic = null;
+
+    function resize() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      cw = canvas.width = rect.width;
+      ch = canvas.height = rect.height;
+    }
+    window.addEventListener('resize', resize);
+
+    const topics = [
+      { title:"1. The Banach-Tarski Paradox", subtitle:"The Mathematics of Creation", desc:"A theorem in set theory proving that a solid 3D sphere can be shattered into finite pieces and reassembled into TWO identical spheres of the same size.", controls:[{id:"btn",type:"btn",label:"Deconstruct & Clone"}],
+        setup:()=>{ state.pts=[]; for(let i=0;i<1500;i++){ let a=Math.random()*Math.PI*2,r=Math.sqrt(Math.random())*80; state.pts.push({r,a,split:i%2===0}); } state.progress=0; state.animating=false; state.dir=1; document.getElementById('c-btn').onclick=()=>{ state.animating=true; state.dir=state.progress<=0?1:-1; }; },
+        draw:()=>{ if(state.animating){ state.progress+=0.015*state.dir; if(state.progress>=1||state.progress<=0){ state.progress=Math.max(0,Math.min(1,state.progress)); state.animating=false; } }
+          ctx.fillStyle="#09090b"; ctx.fillRect(0,0,cw,ch); let ease=(1-Math.cos(state.progress*Math.PI))/2;
+          state.pts.forEach(p=>{ let offset=p.split?-150*ease:150*ease; let x=cw/2+Math.cos(p.a)*p.r+offset,y=ch/2+Math.sin(p.a)*p.r; ctx.fillStyle=`hsl(${(p.a/(Math.PI*2))*360},70%,60%)`; ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2); ctx.fill();
+            if(state.progress>0.5){ let ghostOpacity=(state.progress-0.5)*2; let gx=cw/2+Math.cos(p.a)*p.r+(p.split?150*ease:-150*ease); ctx.fillStyle=`hsla(${(p.a/(Math.PI*2))*360},70%,60%,${ghostOpacity})`; ctx.beginPath(); ctx.arc(gx,y,2.5,0,Math.PI*2); ctx.fill(); }
+          });
+          ctx.fillStyle="#fff"; ctx.font="20px monospace"; ctx.fillText(state.progress>0.8?"2 Identical Spheres (Density: 100%)":"1 Sphere (Density: 100%)",30,40);
+        }
+      },
+      { title:"2. Kessler Syndrome", subtitle:"The Orbital Cage", desc:"One collision in dense low Earth orbit can trigger cascading debris collisions that trap access to space.", controls:[{id:"launch",type:"btn",label:"Launch Satellites"},{id:"metric",type:"metric",label:"Tracked Objects",val:"0"}],
+        setup:()=>{ state.sats=[]; state.addSat=(isDebris,x,y)=>{ let a=Math.random()*Math.PI*2,r=isDebris?Math.random()*150+60:Math.random()*100+80; state.sats.push({x:x||cw/2+Math.cos(a)*r,y:y||ch/2+Math.sin(a)*r,vx:isDebris?(Math.random()-0.5)*6:-Math.sin(a)*(150/r),vy:isDebris?(Math.random()-0.5)*6:Math.cos(a)*(150/r),debris:isDebris}); }; for(let i=0;i<40;i++)state.addSat(false); document.getElementById('c-launch').onclick=()=>{ for(let i=0;i<8;i++)state.addSat(false); }; },
+        draw:(inputs)=>{ ctx.fillStyle="rgba(9,9,11,0.3)"; ctx.fillRect(0,0,cw,ch); ctx.beginPath(); ctx.arc(cw/2,ch/2,40,0,Math.PI*2); ctx.fillStyle="#0284c7"; ctx.fill(); let newDebris=[];
+          for(let i=state.sats.length-1;i>=0;i--){ let s=state.sats[i]; s.x+=s.vx; s.y+=s.vy;
+            if(!s.debris){ let dx=cw/2-s.x,dy=ch/2-s.y,dist=Math.hypot(dx,dy)||1; s.vx+=(dx/dist)*0.1; s.vy+=(dy/dist)*0.1; }
+            else { if(s.x<0||s.x>cw)s.vx*=-1; if(s.y<0||s.y>ch)s.vy*=-1; }
+            for(let j=i-1;j>=0;j--){ let s2=state.sats[j]; if(Math.hypot(s.x-s2.x,s.y-s2.y)<6){ state.sats.splice(i,1); state.sats.splice(j,1); if(state.sats.length<800)for(let k=0;k<4;k++)newDebris.push({x:s.x,y:s.y}); break; } }
+            ctx.beginPath(); ctx.arc(s.x,s.y,s.debris?1.5:3,0,Math.PI*2); ctx.fillStyle=s.debris?"#ef4444":"#e2e8f0"; ctx.fill();
+          }
+          newDebris.forEach(d=>state.addSat(true,d.x,d.y)); inputs.metric.innerHTML=state.sats.length;
+          if(state.sats.length>200){ ctx.fillStyle="#ef4444"; ctx.font="20px monospace"; ctx.fillText("CASCADE FAILURE DETECTED",30,40); }
+        }
+      },
+      { title:"3. Physarum Computation", subtitle:"The Brainless Engineer", desc:"Slime mold computes efficient transport networks without neurons.", controls:[{id:"clear",type:"btn",label:"Clear Food"}],
+        setup:()=>{ state.nodes=[{x:cw/2,y:ch/2}]; state.click=(e)=>{ let r=canvas.getBoundingClientRect(); state.nodes.push({x:e.clientX-r.left,y:e.clientY-r.top}); }; canvas.addEventListener('mousedown',state.click); document.getElementById('c-clear').onclick=()=>state.nodes=[{x:cw/2,y:ch/2}]; },
+        cleanup:()=>canvas.removeEventListener('mousedown',state.click),
+        draw:()=>{ ctx.fillStyle="#09090b"; ctx.fillRect(0,0,cw,ch); if(state.nodes.length>1){ let reached=[state.nodes[0]],unreached=state.nodes.slice(1); ctx.beginPath();
+            while(unreached.length>0){ let record=Infinity,rI=0,uI=0; for(let i=0;i<reached.length;i++)for(let j=0;j<unreached.length;j++){ let d=Math.hypot(reached[i].x-unreached[j].x,reached[i].y-unreached[j].y); if(d<record){record=d;rI=i;uI=j;} }
+              ctx.moveTo(reached[rI].x,reached[rI].y); ctx.lineTo(unreached[uI].x,unreached[uI].y); reached.push(unreached[uI]); unreached.splice(uI,1);
+            }
+            ctx.strokeStyle="rgba(234,179,8,0.9)"; ctx.lineWidth=4; ctx.lineCap="round"; ctx.shadowColor="rgba(234,179,8,0.5)"; ctx.shadowBlur=15; ctx.stroke(); ctx.shadowBlur=0;
+          }
+          state.nodes.forEach((n,i)=>{ ctx.beginPath(); ctx.arc(n.x,n.y,i===0?10:6,0,Math.PI*2); ctx.fillStyle=i===0?"#f97316":"#fff"; ctx.fill(); });
+        }
+      },
+      { title:"4. Crown Shyness", subtitle:"The Emergent Canopy", desc:"Neighboring tree crowns avoid touching, forming river-like canopy gaps.", controls:[{id:"reset",type:"btn",label:"Regrow Forest"}],
+        setup:()=>{ state.grow=()=>{ state.trees=Array.from({length:12},()=>({x:Math.random()*(cw-100)+50,y:Math.random()*(ch-100)+50,r:0,maxR:60+Math.random()*50})); }; state.grow(); document.getElementById('c-reset').onclick=state.grow; },
+        draw:()=>{ ctx.fillStyle="#e0f2fe"; ctx.fillRect(0,0,cw,ch); state.trees.forEach(t=>{if(t.r<t.maxR)t.r+=0.5;}); ctx.fillStyle="#16a34a";
+          for(let x=0;x<cw;x+=5)for(let y=0;y<ch;y+=5){ let d1=Infinity,d2=Infinity,t1=null; for(let t of state.trees){ let d=Math.hypot(x-t.x,y-t.y); if(d<d1){d2=d1;d1=d;t1=t;} else if(d<d2){d2=d;} }
+            if(t1&&d1<t1.r&&(d2-d1)>12) ctx.fillRect(x+Math.sin(y*.1)*3,y+Math.cos(x*.1)*3,6,6);
+          }
+        }
+      },
+      { title:"5. Sonoluminescence", subtitle:"The Star in a Jar", desc:"Sound-driven bubble collapse can produce flashes at extreme temperatures.", controls:[{id:"pres",type:"range",label:"Acoustic Pressure",min:1,max:100,val:10},{id:"metric",type:"metric",label:"Internal Temp (K)",val:"293"}],
+        setup:()=>{state.time=0;state.flash=0;},
+        draw:(inputs)=>{ let pressure=parseInt(inputs.pres.value,10); state.time+=0.05+(pressure*0.001); let r=80+Math.sin(state.time)*pressure*0.8;
+          if(pressure>85&&Math.sin(state.time)<-0.9){ r=2; state.flash=1; inputs.metric.innerHTML="20,000+ K"; } else inputs.metric.innerHTML="293 K";
+          ctx.fillStyle="#020617"; ctx.fillRect(0,0,cw,ch); if(state.flash>0){ let grad=ctx.createRadialGradient(cw/2,ch/2,0,cw/2,ch/2,cw); grad.addColorStop(0,`rgba(34,211,238,${state.flash})`); grad.addColorStop(1,"rgba(0,0,0,0)"); ctx.fillStyle=grad; ctx.fillRect(0,0,cw,ch); state.flash-=0.05; }
+          ctx.beginPath(); ctx.arc(cw/2,ch/2,Math.max(2,r),0,Math.PI*2); ctx.fillStyle="rgba(14,165,233,0.2)"; ctx.fill(); ctx.strokeStyle="rgba(255,255,255,0.8)"; ctx.lineWidth=2; ctx.stroke();
+        }
+      },
+      { title:"6. Time Crystals", subtitle:"Matter Repeating in Time", desc:"A phase where structure repeats in time even at minimal energy.", controls:[{id:"heat",type:"range",label:"Thermal Noise (Entropy)",min:0,max:100,val:0}],
+        setup:()=>{state.tick=0;},
+        draw:(inputs)=>{ state.tick++; let heat=parseInt(inputs.heat.value,10)/100; ctx.fillStyle="#09090b"; ctx.fillRect(0,0,cw,ch);
+          let drawRing=(cx,cy,isTimeCrystal)=>{ ctx.beginPath(); ctx.arc(cx,cy,120,0,Math.PI*2); ctx.strokeStyle="rgba(255,255,255,0.1)"; ctx.stroke();
+            for(let i=0;i<16;i++){ let a=(i/16)*Math.PI*2; let phase=isTimeCrystal?(Math.floor(state.tick/30)%2===0?1:-1):Math.sin(state.tick*0.1+i)+(Math.random()-0.5)*heat*12; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*(120+phase*15),cy+Math.sin(a)*(120+phase*15),8,0,Math.PI*2); ctx.fillStyle=isTimeCrystal?"#14b8a6":"#94a3b8"; ctx.fill(); }
+          };
+          ctx.fillStyle="#fff"; ctx.font="16px sans-serif"; ctx.textAlign="center"; ctx.fillText("Standard Matter", cw*0.3, ch/2-160); drawRing(cw*0.3,ch/2,false); ctx.fillText("Time Crystal", cw*0.7, ch/2-160); drawRing(cw*0.7,ch/2,true); ctx.textAlign="left";
+        }
+      },
+      { title:"7. Quantum Magnetoreception", subtitle:"How Birds See True North", desc:"Bird retinas may convert magnetic field direction into visual chemistry via spin dynamics.", controls:[{id:"angle",type:"range",label:"Bird Head Rotation vs Earth's Field",min:0,max:360,val:0}],
+        setup:()=>{},
+        draw:(inputs)=>{ let angle=parseInt(inputs.angle.value,10)*(Math.PI/180); let grad=ctx.createLinearGradient(0,0,0,ch); grad.addColorStop(0,"#3b82f6"); grad.addColorStop(.5,"#166534"); grad.addColorStop(1,"#14532d"); ctx.fillStyle=grad; ctx.fillRect(0,0,cw,ch);
+          ctx.fillStyle="#064e3b"; for(let i=0;i<10;i++){ ctx.beginPath(); ctx.moveTo(i*cw/9-40,ch/2+20); ctx.lineTo(i*cw/9,ch/2-100+Math.sin(i)*50); ctx.lineTo(i*cw/9+40,ch/2+20); ctx.fill(); }
+          let cx=cw/2+Math.cos(angle)*300, cy=ch/2+Math.sin(angle)*200; let qGrad=ctx.createRadialGradient(cx,cy,0,cx,cy,500); qGrad.addColorStop(0,"rgba(0,0,0,0.9)"); qGrad.addColorStop(1,"rgba(0,0,0,0)"); ctx.fillStyle=qGrad; ctx.fillRect(0,0,cw,ch);
+          ctx.fillStyle="#fff"; ctx.font="18px monospace"; ctx.fillText("Dark band = high cryptochrome radical-pair yield",30,40);
+        }
+      },
+      { title:"8. Tardigrade Cryptobiosis", subtitle:"The Glass State", desc:"Tardigrades survive desiccation by vitrifying cell interiors into a protective matrix.", controls:[{id:"water",type:"range",label:"Environmental Water Level",min:0,max:100,val:100}],
+        setup:()=>{ state.mols=Array.from({length:80},()=>({x:Math.random()*cw,y:Math.random()*ch,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.5)*6})); },
+        draw:(inputs)=>{ let water=parseInt(inputs.water.value,10)/100; ctx.fillStyle="#09090b"; ctx.fillRect(0,0,cw,ch); let cx=cw/2,cy=ch/2,shrink=1-(water*0.5);
+          ctx.save(); ctx.translate(cx,cy); ctx.scale(shrink,shrink); ctx.beginPath(); ctx.ellipse(0,0,300,180,0,0,Math.PI*2); ctx.strokeStyle=water<0.2?"#22c55e":"rgba(255,255,255,0.2)"; ctx.lineWidth=4; ctx.stroke(); ctx.restore();
+          let isGlass=water<0.2; state.mols.forEach(m=>{ m.x+=m.vx*water; m.y+=m.vy*water; if(m.x<0||m.x>cw)m.vx*=-1; if(m.y<0||m.y>ch)m.vy*=-1; ctx.beginPath(); ctx.arc(m.x,m.y,4,0,Math.PI*2); ctx.fillStyle=isGlass?"#22c55e":"#0ea5e9"; ctx.fill(); });
+          if(isGlass){ ctx.strokeStyle="rgba(34,197,94,0.3)"; ctx.lineWidth=1; for(let i=0;i<state.mols.length;i++)for(let j=i+1;j<state.mols.length;j++) if(Math.hypot(state.mols[i].x-state.mols[j].x,state.mols[i].y-state.mols[j].y)<80){ ctx.beginPath(); ctx.moveTo(state.mols[i].x,state.mols[i].y); ctx.lineTo(state.mols[j].x,state.mols[j].y); ctx.stroke(); } }
+          ctx.fillStyle="#fff"; ctx.font="20px monospace"; ctx.fillText(isGlass?"TUN STATE: Bioglass matrix formed":"ACTIVE STATE: Water-based metabolism",30,40);
+        }
+      },
+      { title:"9. Biotensegrity", subtitle:"Your Bones Are Floating", desc:"Body mechanics as tension/compression network: bones as struts in fascial tension webs.", controls:[],
+        setup:()=>{ state.nodes=[{x:cw/2-150,y:ch/2-100,ox:cw/2-150,oy:ch/2-100,locked:true},{x:cw/2+150,y:ch/2-100,ox:cw/2+150,oy:ch/2-100,locked:true},{x:cw/2-50,y:ch/2+50,ox:cw/2-50,oy:ch/2+50,locked:false},{x:cw/2+50,y:ch/2+50,ox:cw/2+50,oy:ch/2+50,locked:false},{x:cw/2,y:ch/2+180,ox:cw/2,oy:ch/2+180,locked:false}];
+          state.links=[{n1:2,n2:3,len:100,type:'strut'},{n1:3,n2:4,len:130,type:'strut'},{n1:0,n2:2,len:180,type:'cable'},{n1:1,n2:3,len:180,type:'cable'},{n1:0,n2:4,len:300,type:'cable'},{n1:1,n2:4,len:300,type:'cable'},{n1:2,n2:4,len:150,type:'cable'}];
+          state.drag=null; state.md=(e)=>{ let r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top; state.nodes.forEach(n=>{ if(!n.locked&&Math.hypot(n.x-mx,n.y-my)<20)state.drag=n; }); }; state.mm=(e)=>{ if(state.drag){ let r=canvas.getBoundingClientRect(); state.drag.x=e.clientX-r.left; state.drag.y=e.clientY-r.top; } }; state.mu=()=>state.drag=null;
+          canvas.addEventListener('mousedown',state.md); window.addEventListener('mousemove',state.mm); window.addEventListener('mouseup',state.mu);
+        },
+        cleanup:()=>{ canvas.removeEventListener('mousedown',state.md); window.removeEventListener('mousemove',state.mm); window.removeEventListener('mouseup',state.mu); },
+        draw:()=>{ ctx.fillStyle="#09090b"; ctx.fillRect(0,0,cw,ch); state.nodes.forEach(n=>{ if(!n.locked&&n!==state.drag){ let vx=(n.x-n.ox)*0.95,vy=(n.y-n.oy)*0.95; n.ox=n.x; n.oy=n.y; n.x+=vx; n.y+=vy+0.3; } });
+          for(let iter=0;iter<5;iter++) state.links.forEach(l=>{ let n1=state.nodes[l.n1],n2=state.nodes[l.n2],dx=n2.x-n1.x,dy=n2.y-n1.y,dist=Math.hypot(dx,dy)||1,diff=dist-l.len; if(l.type==='strut'||(l.type==='cable'&&diff>0)){ let off=diff/dist/2,ox=dx*off,oy=dy*off; if(!n1.locked&&n1!==state.drag){n1.x+=ox;n1.y+=oy;} if(!n2.locked&&n2!==state.drag){n2.x-=ox;n2.y-=oy;} } });
+          state.links.forEach(l=>{ let n1=state.nodes[l.n1],n2=state.nodes[l.n2]; ctx.beginPath(); ctx.moveTo(n1.x,n1.y); ctx.lineTo(n2.x,n2.y); ctx.strokeStyle=l.type==='strut'?"#ef4444":"rgba(255,255,255,0.3)"; ctx.lineWidth=l.type==='strut'?8:2; ctx.stroke(); });
+          state.nodes.forEach(n=>{ ctx.beginPath(); ctx.arc(n.x,n.y,8,0,Math.PI*2); ctx.fillStyle=n.locked?"#555":"#14b8a6"; ctx.fill(); }); ctx.fillStyle="#fff"; ctx.font="18px monospace"; ctx.fillText("Drag bright nodes. Red struts stay non-intersecting.",30,40);
+        }
+      },
+      { title:"10. The Coastline Paradox", subtitle:"The Fractal Perimeter", desc:"Measured coastline length increases as ruler size shrinks toward finer detail.", controls:[{id:"ruler",type:"range",label:"Ruler Size (Shrink to increase detail)",min:5,max:200,val:200},{id:"metric",type:"metric",label:"Measured Length",val:"0"}],
+        setup:()=>{ state.pts=[]; let cx=cw/2,cy=ch/2,r=Math.min(cw,ch)*0.3; for(let a=0;a<Math.PI*2;a+=0.02){ let noise=Math.sin(a*15)*25+Math.cos(a*31)*10; state.pts.push({x:cx+Math.cos(a)*(r+noise),y:cy+Math.sin(a)*(r+noise)}); } },
+        draw:(inputs)=>{ ctx.fillStyle="#09090b"; ctx.fillRect(0,0,cw,ch); ctx.beginPath(); ctx.moveTo(state.pts[0].x,state.pts[0].y); state.pts.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath(); ctx.fillStyle="#064e3b"; ctx.fill();
+          let ruler=parseInt(inputs.ruler.value,10), measured=[state.pts[0]], curr=state.pts[0], len=0; for(let i=1;i<state.pts.length;i++){ let dist=Math.hypot(state.pts[i].x-curr.x,state.pts[i].y-curr.y); if(dist>=ruler){ measured.push(state.pts[i]); len+=dist; curr=state.pts[i]; } }
+          len+=Math.hypot(measured[0].x-curr.x,measured[0].y-curr.y); measured.push(measured[0]); ctx.beginPath(); ctx.moveTo(measured[0].x,measured[0].y); measured.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.strokeStyle="#14b8a6"; ctx.lineWidth=3; ctx.stroke();
+          measured.forEach(p=>{ ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fillStyle="#fff"; ctx.fill(); }); inputs.metric.innerHTML=Math.floor(len)+" km";
+        }
+      }
+    ];
+
+    const navList = document.getElementById('nav-list');
+
+    function loadTopic(index) {
+      if (currentTopic && currentTopic.cleanup) currentTopic.cleanup();
+      cancelAnimationFrame(animFrame);
+      currentTopic = topics[index];
+      document.querySelectorAll('.nav-item').forEach((el, i) => el.classList.toggle('active', i === index));
+      document.getElementById('topic-title').innerText = currentTopic.title;
+      document.getElementById('topic-desc').innerText = currentTopic.desc;
+      controlsBar.innerHTML = '';
+
+      let inputs = {};
+      if (currentTopic.controls) {
+        currentTopic.controls.forEach(c => {
+          if (c.type === 'range') {
+            controlsBar.innerHTML += `<div class="control-group"><label><span>${c.label}</span> <span id="val-${c.id}">${c.val}</span></label><input type="range" id="c-${c.id}" min="${c.min}" max="${c.max}" value="${c.val}" oninput="document.getElementById('val-${c.id}').innerText=this.value"></div>`;
+          } else if (c.type === 'btn') {
+            controlsBar.innerHTML += `<button id="c-${c.id}" class="action-btn">${c.label}</button>`;
+          } else if (c.type === 'metric') {
+            controlsBar.innerHTML += `<div class="metric"><span class="metric-label">${c.label}</span><span id="c-${c.id}">${c.val}</span></div>`;
+          }
+        });
+        currentTopic.controls.forEach(c => inputs[c.id] = document.getElementById(`c-${c.id}`));
+      }
+
+      if (currentTopic.setup) currentTopic.setup(inputs);
+
+      function loop() {
+        if (currentTopic.draw) currentTopic.draw(inputs);
+        animFrame = requestAnimationFrame(loop);
+      }
+      loop();
+    }
+
+    topics.forEach((t, i) => {
+      let div = document.createElement('div');
+      div.className = 'nav-item';
+      div.innerHTML = `<h3>${t.title}</h3><p>${t.subtitle}</p>`;
+      div.onclick = () => loadTopic(i);
+      navList.appendChild(div);
+    });
+
+    resize();
+    loadTopic(0);
+  </script>
+</body>
+</html>
