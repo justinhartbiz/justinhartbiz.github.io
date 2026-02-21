@@ -1,1 +1,135 @@
-<!doctype html><html><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width,initial-scale=1'/><title>Transition Signal Engine — SD</title><style>:root{--bg:#0b1020;--card:#11192f;--line:#243456;--txt:#e8efff;--mut:#9ab0d8;--ok:#2dd4bf;--wait:#f59e0b;--sup:#ef4444}*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 500px at 80% -20%,#1a2b57,transparent),var(--bg);color:var(--txt);font-family:ui-sans-serif,system-ui} .wrap{max-width:1200px;margin:auto;padding:24px}h1{margin:0 0 8px}.mut{color:var(--mut);font-size:13px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}.k{font-size:30px;font-weight:800}.tag{padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700}.ready{background:#083d36;color:#8ff0dc}.wait{background:#4b3408;color:#ffd48a}.sup{background:#4a1111;color:#ffb0b0}table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}th,td{padding:10px;border-bottom:1px solid #223456;text-align:left;font-size:13px;vertical-align:top}th{font-size:11px;color:#a9bddf;text-transform:uppercase;letter-spacing:.06em}.rule{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pill{display:inline-block;border:1px solid #36507f;border-radius:8px;padding:3px 8px;font-size:11px;color:#b9cef2}@media(max-width:980px){.grid{grid-template-columns:1fr 1fr}.rule{grid-template-columns:1fr}}</style></head><body><div class='wrap'><h1>Transition Signal Engine <span class='mut'>San Diego v1 (Compliant)</span></h1><div class='mut'>Public-signal model only. No real-time emergency interception. Outputs: <b>ready_now</b>, <b>wait</b>, <b>suppress</b> with reason codes.</div><div class='grid' id='kpis'></div><div class='rule'><div class='card'><h3 style='margin:4px 0 8px'>Scoring Model</h3><div class='mut'>Max 100</div><ul><li>Obituary signal: <b>40</b></li><li>Probate/trustee/public filing: <b>30</b></li><li>Property distress/vacancy signal: <b>15</b></li><li>Recency fit window: <b>15</b></li></ul><div class='pill'>Threshold: ready_now >= 70 + cooldown clear</div></div><div class='card'><h3 style='margin:4px 0 8px'>Safety Rules</h3><ul><li>Cooldown by signal type (7/14/21 days)</li><li>Suppress if duplicate outreach in 30d</li><li>Suppress if DNC/sensitivity flags present</li><li>Every decision includes reason code</li></ul><div class='pill'>Audit-first decisioning</div></div></div><div style='height:12px'></div><table><thead><tr><th>Name</th><th>Signals</th><th>Score</th><th>Cooldown</th><th>Decision</th><th>Reason Code</th><th>Next Action</th></tr></thead><tbody id='rows'></tbody></table></div><script>const rows=[{name:'Lead A',daysSinceObit:12,obit:1,probate:1,distress:0,lastContactDays:99,dnc:0,sensitive:0},{name:'Lead B',daysSinceObit:3,obit:1,probate:0,distress:1,lastContactDays:99,dnc:0,sensitive:0},{name:'Lead C',daysSinceObit:22,obit:1,probate:1,distress:1,lastContactDays:8,dnc:0,sensitive:0},{name:'Lead D',daysSinceObit:17,obit:1,probate:0,distress:0,lastContactDays:99,dnc:1,sensitive:0},{name:'Lead E',daysSinceObit:15,obit:1,probate:1,distress:0,lastContactDays:99,dnc:0,sensitive:1}];function recencyPts(d){if(d<7)return 0; if(d<=21)return 15; if(d<=45)return 10; return 4}function score(r){return (r.obit?40:0)+(r.probate?30:0)+(r.distress?15:0)+recencyPts(r.daysSinceObit)}function cooldownClear(r){return r.daysSinceObit>=7}function decide(r){if(r.dnc) return ['suppress','DNC_FLAG']; if(r.sensitive) return ['suppress','SENSITIVITY_FLAG']; if(r.lastContactDays<30) return ['wait','RECENT_OUTREACH_30D']; const s=score(r); if(!cooldownClear(r)) return ['wait','COOLDOWN_LT_7D']; if(s>=70) return ['ready_now','SCORE_GTE_70']; if(s>=55) return ['wait','SCORE_55_69']; return ['wait','LOW_SIGNAL_SCORE']}const rendered=rows.map(r=>{const s=score(r);const[d,reason]=decide(r);const tag=d==='ready_now'?`<span class='tag ready'>ready_now</span>`:d==='suppress'?`<span class='tag sup'>suppress</span>`:`<span class='tag wait'>wait</span>`;const nxt=d==='ready_now'?'queue_care_first_postcard':d==='suppress'?'none':'recheck_next_cycle';return `<tr><td>${r.name}</td><td>obit:${r.obit} • probate:${r.probate} • distress:${r.distress}</td><td><b>${s}</b></td><td>${cooldownClear(r)?'clear':'active'}</td><td>${tag}</td><td>${reason}</td><td>${nxt}</td></tr>`}).join('');document.getElementById('rows').innerHTML=rendered;const d=rows.map(decide);const ready=d.filter(x=>x[0]==='ready_now').length,wait=d.filter(x=>x[0]==='wait').length,sup=d.filter(x=>x[0]==='suppress').length;document.getElementById('kpis').innerHTML=`<div class='card'><div class='mut'>Records</div><div class='k'>${rows.length}</div></div><div class='card'><div class='mut'>Ready Now</div><div class='k' style='color:var(--ok)'>${ready}</div></div><div class='card'><div class='mut'>Wait</div><div class='k' style='color:var(--wait)'>${wait}</div></div><div class='card'><div class='mut'>Suppress</div><div class='k' style='color:var(--sup)'>${sup}</div></div>`;</script></body></html>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TLH Transition Signal Engine — SD</title>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Lato,sans-serif;background:#F8F9FA;color:#333}
+header{background:#0D3B66;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:1.1rem;font-weight:900}
+header a{color:#aee6e4;font-size:.8rem;text-decoration:none}
+main{max-width:1120px;margin:0 auto;padding:20px}
+.kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.box{background:#fff;border:1px solid #E5E5E5;border-radius:10px;padding:14px;text-align:center}
+.box .n{font-size:2rem;font-weight:900;margin-top:4px}
+.box .l{font-size:.72rem;color:#6B6B78;text-transform:uppercase;letter-spacing:.4px}
+.green{color:#16a34a}.amber{color:#b45309}.blue{color:#0D3B66}.purple{color:#7c3aed}.red{color:#b91c1c}
+section{background:#fff;border:1px solid #E5E5E5;border-radius:10px;margin-bottom:20px;overflow:hidden}
+section h2{padding:14px 18px;font-size:.95rem;font-weight:900;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f6f6f6;color:#475569;font-size:.65rem;text-transform:uppercase;letter-spacing:.4px;padding:9px 14px;text-align:left;border-bottom:1px solid #eee}
+td{padding:9px 14px;border-bottom:1px solid #f5f5f5;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fbff}
+.badge{display:inline-block;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700}
+.badge-ready{background:#dcfce7;color:#15803d}
+.badge-wait{background:#fef3c7;color:#b45309}
+.badge-suppress{background:#fee2e2;color:#991b1b}
+.badge-gray{background:#f3f4f6;color:#6b7280}
+.score{font-weight:900;color:#0D3B66}
+.meta{font-size:.75rem;color:#64748b;padding:0 2px 12px 2px}
+.list{padding:14px 18px 16px 28px;color:#475569;line-height:1.45;font-size:13px}
+.list code{background:#f1f5f9;padding:1px 6px;border-radius:4px}
+.small{font-size:12px;color:#6b7280}
+@media(max-width:800px){.kpi{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧭 TLH Transition Signal Engine — SD (Compliant)</h1>
+  <a href="/tlh/agents/">← Agent OS</a>
+</header>
+<main>
+  <div class="meta" id="meta">Public-signal model only • no live emergency interception • loading…</div>
+
+  <div class="kpi" id="kpis"></div>
+
+  <section>
+    <h2>📏 Model + Safeguards</h2>
+    <ul class="list">
+      <li><strong>Signal Score (0-100):</strong> Obituary (40) + Probate/Trust (30) + Property Distress/Vacancy (15) + Recency Fit (15).</li>
+      <li><strong>Decision gates:</strong> <code>ready_now</code> requires score ≥ 70 and cooldown clear.</li>
+      <li><strong>Cooldown:</strong> minimum 7 days from qualifying signal before outreach.</li>
+      <li><strong>Suppress:</strong> if DNC/sensitivity flags or recent outreach within 30 days.</li>
+      <li><strong>Every row requires reason code</strong> for auditability.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>📊 Decision Queue</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Record</th><th>Signals</th><th>Score</th><th>Cooldown</th><th>Decision</th><th>Reason Code</th><th>Next Action</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+
+  <div style="text-align:center;color:#94a3b8;font-size:.72rem;padding:16px 0">
+    Transition Signal Engine · SD First · Compliant Care-First Routing
+  </div>
+</main>
+
+<script>
+const demoRows = [
+  {name:'Lead A', daysSinceSignal:12, obit:1, probate:1, distress:0, lastContactDays:99, dnc:0, sensitive:0},
+  {name:'Lead B', daysSinceSignal:3,  obit:1, probate:0, distress:1, lastContactDays:99, dnc:0, sensitive:0},
+  {name:'Lead C', daysSinceSignal:22, obit:1, probate:1, distress:1, lastContactDays:8,  dnc:0, sensitive:0},
+  {name:'Lead D', daysSinceSignal:17, obit:1, probate:0, distress:0, lastContactDays:99, dnc:1, sensitive:0},
+  {name:'Lead E', daysSinceSignal:15, obit:1, probate:1, distress:0, lastContactDays:99, dnc:0, sensitive:1}
+];
+
+function recencyPts(d){ if(d<7) return 0; if(d<=21) return 15; if(d<=45) return 10; return 4; }
+function score(r){ return (r.obit?40:0) + (r.probate?30:0) + (r.distress?15:0) + recencyPts(r.daysSinceSignal); }
+function cooldownClear(r){ return r.daysSinceSignal >= 7; }
+function decide(r){
+  if(r.dnc) return ['suppress','DNC_FLAG'];
+  if(r.sensitive) return ['suppress','SENSITIVITY_FLAG'];
+  if(r.lastContactDays < 30) return ['wait','RECENT_OUTREACH_30D'];
+  const s=score(r);
+  if(!cooldownClear(r)) return ['wait','COOLDOWN_LT_7D'];
+  if(s>=70) return ['ready_now','SCORE_GTE_70'];
+  if(s>=55) return ['wait','SCORE_55_69'];
+  return ['wait','LOW_SIGNAL_SCORE'];
+}
+
+const rowsHTML = demoRows.map(r=>{
+  const s=score(r);
+  const [decision, reason]=decide(r);
+  const badge = decision==='ready_now'
+    ? '<span class="badge badge-ready">ready_now</span>'
+    : decision==='suppress'
+      ? '<span class="badge badge-suppress">suppress</span>'
+      : '<span class="badge badge-wait">wait</span>';
+  const nextAction = decision==='ready_now' ? 'queue_care_first_postcard' : (decision==='suppress' ? 'none' : 'recheck_next_cycle');
+  return `<tr>
+    <td><strong>${r.name}</strong></td>
+    <td>obit:${r.obit} • probate:${r.probate} • distress:${r.distress}</td>
+    <td class="score">${s}</td>
+    <td>${cooldownClear(r)?'clear':'active'}</td>
+    <td>${badge}</td>
+    <td><span class="badge badge-gray">${reason}</span></td>
+    <td>${nextAction}</td>
+  </tr>`;
+}).join('');
+
+document.getElementById('rows').innerHTML = rowsHTML;
+
+const decisions = demoRows.map(decide);
+const ready = decisions.filter(d=>d[0]==='ready_now').length;
+const wait = decisions.filter(d=>d[0]==='wait').length;
+const suppress = decisions.filter(d=>d[0]==='suppress').length;
+
+document.getElementById('kpis').innerHTML = `
+  <div class="box"><div class="l">Records</div><div class="n blue">${demoRows.length}</div></div>
+  <div class="box"><div class="l">Ready Now</div><div class="n green">${ready}</div></div>
+  <div class="box"><div class="l">Wait</div><div class="n amber">${wait}</div></div>
+  <div class="box"><div class="l">Suppress</div><div class="n red">${suppress}</div></div>
+  <div class="box"><div class="l">Mode</div><div class="n purple">SD v1</div></div>`;
+
+document.getElementById('meta').textContent = `Public-signal model only • no live emergency interception • updated ${new Date().toLocaleString()}`;
+</script>
+</body>
+</html>
