@@ -1,69 +1,95 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>TLH Obituary Pipeline (Live)</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLH Obituary Lead Dashboard (Live)</title>
   <style>
-    body{margin:0;background:#070b14;color:#e6eeff;font-family:Inter,system-ui}
-    .wrap{max-width:1280px;margin:auto;padding:20px}
-    .top{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    input,button,select{background:#0f1930;color:#e6eeff;border:1px solid #2a3f66;border-radius:8px;padding:8px}
-    .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:14px 0}
-    .card{background:#111a30;border:1px solid #243a60;border-radius:12px;padding:12px}
-    .k{font-size:28px;font-weight:700}
-    .mut{font-size:12px;color:#a7bde1}
-    table{width:100%;border-collapse:collapse;background:#0d1629;border:1px solid #23385d}
-    th,td{padding:8px;border-bottom:1px solid #22385c;text-align:left;font-size:12px}
-    tr:hover{background:#10203b}
+    :root{--void:#030305;--starlight:#E2E2E8;--muted:#6B6B78;--gold:#FFD28E;--blue:#7F9CBB;--glass:rgba(255,255,255,.03);--border:rgba(255,255,255,.08)}
+    *{box-sizing:border-box}body{margin:0;background:var(--void);color:var(--starlight);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;padding:24px}
+    h1{font-size:2rem;margin:0 0 8px;border-bottom:1px solid var(--border);padding-bottom:12px}
+    .mut{color:var(--muted);font-size:12px}.panel{background:var(--glass);border:1px solid var(--border);border-radius:8px;padding:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+    input,select,button{background:#0a0a0f;color:var(--starlight);border:1px solid var(--border);border-radius:6px;padding:8px;font:inherit}
+    button{cursor:pointer}.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+    .k{font-size:30px;color:var(--gold);font-weight:700}.kl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left;font-size:12px}
+    tr:hover{background:rgba(255,255,255,.02)}
+    .badge{padding:2px 6px;border-radius:4px;border:1px solid var(--border);font-size:11px}
+    .missing{color:#ff9c9c}.found{color:var(--blue)}.sent{color:var(--gold)}
   </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>TLH Obituary Pipeline — Live</h1>
-  <div class="top">
-    <input id="csv" style="min-width:520px" placeholder="Paste published Google Sheet CSV URL (or set ?csv=)"/>
-    <button id="load">Load</button>
-    <select id="fStatus"><option value="">All address_status</option><option>missing</option><option>found</option><option>sent</option></select>
-    <select id="fMail"><option value="">All mail_status</option><option>pending</option><option>sent</option></select>
+  <h1>TLH Obituary Lead Dashboard — Live</h1>
+  <div class="mut" id="meta">Loading data…</div>
+
+  <div class="panel">
+    <div class="row">
+      <label class="mut">Address status</label>
+      <select id="fAddr"><option value="">All</option><option>missing</option><option>found</option><option>sent</option></select>
+      <label class="mut">Mail status</label>
+      <select id="fMail"><option value="">All</option><option>pending</option><option>sent</option></select>
+      <button id="reload">Refresh</button>
+      <a class="mut" href="https://docs.google.com/spreadsheets/d/1MU4fLfLEkMAiMJTeuldEBoPCGvLcMjDo9QbhlKJvIgk" target="_blank">Open Sheet ↗</a>
+      <a class="mut" href="./obituary-dashboard-classic.html" target="_blank">Classic Design ↗</a>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <table>
+      <thead>
+      <tr><th>Name</th><th>Location</th><th>Priority</th><th>Address Status</th><th>Mail</th><th>Address</th><th>Attempts</th><th>Next</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
   </div>
-  <div class="mut" id="meta">No data loaded</div>
-  <div class="grid" id="kpis"></div>
-  <table>
-    <thead><tr><th>Name</th><th>Location</th><th>Address Status</th><th>Mail</th><th>Address</th><th>Attempts</th><th>Last Attempt</th><th>Next Action</th></tr></thead>
-    <tbody id="rows"></tbody>
-  </table>
-</div>
+
 <script>
-const byId=id=>document.getElementById(id);
+const SHEET_ID='1MU4fLfLEkMAiMJTeuldEBoPCGvLcMjDo9QbhlKJvIgk';
+const CSV_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
 let all=[];
+const $=id=>document.getElementById(id);
 function parseCSV(text){
-  const lines=[]; let cur='',row=[],q=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i],n=text[i+1];
+  const out=[]; let row=[],cur='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];
     if(c==='"'){ if(q&&n==='"'){cur+='"';i++;} else q=!q; }
-    else if(c===','&&!q){ row.push(cur); cur=''; }
-    else if((c==='\n'||c==='\r')&&!q){ if(c==='\r'&&n==='\n')i++; row.push(cur); lines.push(row); row=[]; cur=''; }
+    else if(c===','&&!q){row.push(cur);cur='';}
+    else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cur);out.push(row);row=[];cur='';}
     else cur+=c;
   }
-  if(cur.length||row.length){row.push(cur);lines.push(row)}
-  const h=lines[0]||[]; return lines.slice(1).filter(r=>r.some(v=>String(v).trim())).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]||''])));
+  if(cur.length||row.length){row.push(cur);out.push(row)}
+  const h=out[0]||[]; return out.slice(1).filter(r=>r.some(v=>String(v).trim())).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]||''])));
 }
+function cls(s){s=(s||'').toLowerCase();return s==='missing'?'missing':s==='sent'?'sent':'found'}
 function render(){
-  const fs=byId('fStatus').value, fm=byId('fMail').value;
-  const rows=all.filter(r=>(!fs||String(r.address_status).toLowerCase()===fs)&&(!fm||String(r.mail_status).toLowerCase()===fm));
-  const n=rows.length, missing=rows.filter(r=>(r.address_status||'').toLowerCase()==='missing').length, found=rows.filter(r=>(r.address_status||'').toLowerCase()==='found').length, sent=rows.filter(r=>(r.mail_status||'').toLowerCase()==='sent').length, ready=rows.filter(r=>(r.address_status||'').toLowerCase()==='found'&&(r.mail_status||'').toLowerCase()!=='sent').length;
-  byId('kpis').innerHTML=`<div class='card'><div class='mut'>Visible Leads</div><div class='k'>${n}</div></div><div class='card'><div class='mut'>Missing Address</div><div class='k'>${missing}</div></div><div class='card'><div class='mut'>Found Address</div><div class='k'>${found}</div></div><div class='card'><div class='mut'>Ready to Mail</div><div class='k'>${ready}</div></div><div class='card'><div class='mut'>Sent</div><div class='k'>${sent}</div></div>`;
-  byId('rows').innerHTML=rows.map(r=>`<tr><td>${r.name||''}</td><td>${r.location||''}</td><td>${r.address_status||''}</td><td>${r.mail_status||''}</td><td>${r.raw_address||r.match_address||''}</td><td>${r.attempt_count||0}</td><td>${r.last_attempt_at||''}</td><td>${r.next_action||''}</td></tr>`).join('');
+  const fa=$('fAddr').value, fm=$('fMail').value;
+  const rows=all.filter(r=>(!fa||(r.address_status||'').toLowerCase()===fa)&&(!fm||(r.mail_status||'').toLowerCase()===fm));
+  const cnt=(fn)=>rows.filter(fn).length;
+  $('kpis').innerHTML=`
+  <div class='panel'><div class='kl'>Visible</div><div class='k'>${rows.length}</div></div>
+  <div class='panel'><div class='kl'>Missing Address</div><div class='k'>${cnt(r=>(r.address_status||'').toLowerCase()==='missing')}</div></div>
+  <div class='panel'><div class='kl'>Found Address</div><div class='k'>${cnt(r=>(r.address_status||'').toLowerCase()==='found')}</div></div>
+  <div class='panel'><div class='kl'>Ready to Mail</div><div class='k'>${cnt(r=>(r.address_status||'').toLowerCase()==='found'&&(r.mail_status||'').toLowerCase()!=='sent')}</div></div>
+  <div class='panel'><div class='kl'>Sent</div><div class='k'>${cnt(r=>(r.mail_status||'').toLowerCase()==='sent')}</div></div>`;
+  $('rows').innerHTML=rows.map(r=>`<tr>
+    <td>${r.name||''}</td>
+    <td>${r.location||''}</td>
+    <td>${r.priority||''}</td>
+    <td><span class='badge ${cls(r.address_status)}'>${r.address_status||''}</span></td>
+    <td>${r.mail_status||''}</td>
+    <td>${r.raw_address||r.match_address||''}</td>
+    <td>${r.attempt_count||0}</td>
+    <td>${r.next_action||''}</td>
+  </tr>`).join('');
 }
 async function load(){
-  const url=byId('csv').value.trim(); if(!url) return;
-  localStorage.setItem('tlh_obit_csv',url);
-  const t=await (await fetch(url,{cache:'no-store'})).text();
-  all=parseCSV(t); byId('meta').textContent=`Loaded ${all.length} rows • ${new Date().toLocaleString()}`; render();
+  $('meta').textContent='Loading data from Google Sheet…';
+  const txt=await (await fetch(CSV_URL,{cache:'no-store'})).text();
+  all=parseCSV(txt);
+  $('meta').textContent=`Live data loaded: ${all.length} rows • ${new Date().toLocaleString()}`;
+  render();
 }
-byId('load').onclick=load; byId('fStatus').onchange=render; byId('fMail').onchange=render;
-const q=new URLSearchParams(location.search).get('csv')||localStorage.getItem('tlh_obit_csv')||''; if(q){byId('csv').value=q; load();}
+$('fAddr').onchange=render;$('fMail').onchange=render;$('reload').onclick=load;load();
 </script>
 </body>
 </html>

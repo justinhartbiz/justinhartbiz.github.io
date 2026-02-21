@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLH Obituary Lead Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --void: #030305;
+            --starlight: #E2E2E8;
+            --muted: #6B6B78;
+            --horizon-gold: #FFD28E;
+            --horizon-red: #D66D50;
+            --telemetry-blue: #7F9CBB;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border-faint: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--void);
+            color: var(--starlight);
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-faint);
+            padding-bottom: 1rem;
+        }
+
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            background: 
+                radial-gradient(1px 1px at 10% 10%, #fff 100%, transparent),
+                radial-gradient(1px 1px at 20% 20%, #fff 100%, transparent),
+                radial-gradient(2px 2px at 30% 30%, #fff 100%, transparent),
+                radial-gradient(1px 1px at 40% 40%, #fff 100%, transparent);
+            background-size: 550px 550px;
+            opacity: 0.3;
+        }
+
+        .planet-horizon {
+            position: fixed;
+            bottom: -40vh;
+            right: -20vw;
+            width: 120vw;
+            height: 120vw;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 0%, rgba(0,0,0,1) 40%, #2a2a35 60%, var(--horizon-red) 65%, var(--horizon-gold) 68%, transparent 72%);
+            z-index: -1;
+            filter: blur(40px);
+            opacity: 0.6;
+        }
+
+        .glass-panel {
+            background: var(--glass);
+            border: 1px solid var(--border-faint);
+            backdrop-filter: blur(4px);
+            position: relative;
+            padding: 1.5rem;
+            border-radius: 4px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid var(--border-faint);
+            color: var(--starlight);
+            padding: 0.5rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--glass);
+            border-color: var(--horizon-gold);
+        }
+
+        .sort-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .sort-label {
+            font-size: 0.8rem;
+            margin-right: 1rem;
+            color: var(--muted);
+        }
+
+        .sort-select {
+            background: transparent;
+            border: 1px solid var(--border-faint);
+            color: var(--starlight);
+            padding: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .sort-select option {
+            background-color: var(--void);
+        }
+
+        .leads-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .lead-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .lead-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .lead-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .lead-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .priority-high {
+            color: var(--horizon-gold);
+        }
+
+        .priority-medium {
+            color: var(--telemetry-blue);
+        }
+
+        .priority-low {
+            color: var(--muted);
+        }
+
+        .priority-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .badge-gold {
+            background-color: rgba(255, 210, 142, 0.1);
+            color: var(--horizon-gold);
+            border: 1px solid var(--horizon-gold);
+        }
+
+        .badge-blue {
+            background-color: rgba(127, 156, 187, 0.1);
+            color: var(--telemetry-blue);
+            border: 1px solid var(--telemetry-blue);
+        }
+
+        .badge-gray {
+            background-color: rgba(107, 107, 120, 0.1);
+            color: var(--muted);
+            border: 1px solid var(--muted);
+        }
+
+        .lead-info {
+            display: flex;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-family: 'Playfair Display', serif;
+            color: var(--starlight);
+            border: 1px solid var(--border-faint);
+            flex-shrink: 0;
+        }
+
+        .lead-details {
+            flex: 1;
+        }
+
+        .detail-item {
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .detail-label {
+            color: var(--muted);
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .property-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-faint);
+        }
+
+        .property-title {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--horizon-gold);
+        }
+
+        .sf-link {
+            display: inline-block;
+            margin-top: 0.75rem;
+            color: var(--telemetry-blue);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: color 0.3s;
+        }
+
+        .sf-link:hover {
+            color: var(--horizon-gold);
+        }
+
+        .status-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-faint);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .days-since {
+            font-size: 0.8rem;
+        }
+
+        .outreach-status {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            background-color: var(--glass);
+        }
+
+        .status-monitor {
+            color: var(--muted);
+        }
+
+        .status-resource {
+            color: var(--telemetry-blue);
+        }
+
+        .status-card {
+            color: var(--telemetry-blue);
+        }
+
+        .status-letter {
+            color: var(--horizon-gold);
+        }
+
+        .status-pitch {
+            color: var(--horizon-red);
+        }
+
+        .source-tag {
+            background-color: var(--glass);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: var(--muted);
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .leads-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="starfield"></div>
+    <div class="planet-horizon"></div>
+
+    <h1>TLH Obituary Lead Dashboard</h1>
+
+    <div class="stats-container glass-panel">
+        <div class="stat-card">
+            <div class="stat-label">Total Leads</div>
+            <div id="total-count" class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Gold Priority</div>
+            <div id="gold-count" class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Blue Priority</div>
+            <div id="blue-count" class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">SF Matches</div>
+            <div id="sf-count" class="stat-value">0</div>
+        </div>
+    </div>
+
+    <div class="filter-container">
+        <button class="filter-btn active" data-filter="all">All Leads</button>
+        <button class="filter-btn" data-filter="gold">Gold Priority</button>
+        <button class="filter-btn" data-filter="blue">Blue Priority</button>
+        <button class="filter-btn" data-filter="gray">Gray/Low Priority</button>
+        <button class="filter-btn" data-filter="sd">San Diego</button>
+        <button class="filter-btn" data-filter="oc">Orange County</button>
+        <button class="filter-btn" data-filter="property">Has Property Match</button>
+    </div>
+
+    <div class="sort-container">
+        <div class="sort-label">Sort by:</div>
+        <select id="sort-select" class="sort-select">
+            <option value="priority">Priority (default)</option>
+            <option value="date">Date of Death (newest)</option>
+            <option value="value">Property Value (highest)</option>
+        </select>
+    </div>
+
+    <div id="leads-container" class="leads-container">
+        <!-- Lead cards will be generated here -->
+    </div>
+
+    <script>
+        // Embed the data directly
+        const leadsData = {
+            "fsbo": [],
+            "probate": [
+                {
+                    "name": "Angelina Vitale",
+                    "age": 93,
+                    "dateOfDeath": "2026-02-10",
+                    "location": "San Diego (Little Italy area)",
+                    "survivedBy": "Son: Mario Carmelo Vitale; Grandchildren: Angela Porco, Mario Vitale Jr.",
+                    "address": "San Diego (Little Italy area)",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16"
+                },
+                {
+                    "name": "Vera A. Plain",
+                    "age": 102,
+                    "dateOfDeath": "2026-02-08",
+                    "location": "Point Loma, San Diego",
+                    "survivedBy": "Longtime Point Loma resident; died at home with caregivers",
+                    "address": "Point Loma (address to be determined)",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16"
+                },
+                {
+                    "name": "David Michael Mulvaney",
+                    "age": 67,
+                    "dateOfDeath": "2026-02-03",
+                    "location": "Pacific Beach, San Diego",
+                    "survivedBy": "Son: Seamus Mulvaney; Daughter: Morgan Mulvaney; mother: Mary Ruth Mulvaney",
+                    "address": "Family home on San Aquario Drive in Pacific Beach - still in family",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16"
+                },
+                {
+                    "name": "Richard McElroy",
+                    "age": "65+ (retired)",
+                    "dateOfDeath": "2026-02-15",
+                    "location": "Coronado, CA",
+                    "survivedBy": "Wife: Janice Howard; daughters: Kristina and Michelle",
+                    "address": "Coronado (residence to be determined)",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16"
+                },
+                {
+                    "name": "Constance Mullin Branscomb",
+                    "age": "unknown (likely 80+)",
+                    "dateOfDeath": "2026-02-15",
+                    "location": "La Jolla, San Diego",
+                    "survivedBy": "3 children: Stephen J. Mullin, Keith A. Mullin, Laura Mullin Thompson; 5 grandchildren",
+                    "address": "La Jolla residence (property likely)",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16",
+                    "notes": "Former scientist, founded Classical Performing Artists Management. Husband Michael died 2000, remarried 2005. High-value La Jolla property possible."
+                },
+                {
+                    "name": "Gary Albert Cooprider",
+                    "age": "unknown",
+                    "dateOfDeath": "2026-02-15",
+                    "location": "La Jolla, San Diego",
+                    "survivedBy": "Met wife on blind date in Montana",
+                    "address": "La Jolla residence",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16"
+                },
+                {
+                    "name": "Annette Wilkins Larsen",
+                    "age": "67",
+                    "dateOfDeath": "2026-02-15",
+                    "location": "San Diego, CA",
+                    "survivedBy": "Family details limited",
+                    "address": "San Diego (address to be determined)",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16"
+                },
+                {
+                    "name": "Brian E. Wages",
+                    "age": "unknown",
+                    "dateOfDeath": "2026-02-15",
+                    "location": "Chula Vista, CA",
+                    "survivedBy": "Colonel USAF (ret), died from coronary artery disease",
+                    "address": "Chula Vista residence",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16",
+                    "notes": "Military retiree - potential survivor outreach for home sale"
+                },
+                {
+                    "name": "Helen Cuseo",
+                    "age": "unknown",
+                    "dateOfDeath": "2026-02-14",
+                    "location": "San Diego, CA",
+                    "survivedBy": "Daughter of Italian immigrants, married Joseph Cuseo",
+                    "address": "San Diego (address to be determined)",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16"
+                },
+                {
+                    "name": "Daniel Levon Dudas",
+                    "age": 91,
+                    "dateOfDeath": "2026-01-28",
+                    "location": "La Jolla, CA",
+                    "survivedBy": "Wife: Margaret; children: Daniel B., Christian, Tiffany Brown, Julianna, Alexandra Zinda; 3 grandchildren",
+                    "address": "La Jolla home (50+ years)",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16",
+                    "military": "Navy fighter pilot, F-4 Phantoms, Miramar test pilot",
+                    "career": "Aerospace exec (McDonnell, General Dynamics, Raytheon, Lockheed Skunk Works)",
+                    "priority": "HIGH"
+                },
+                {
+                    "name": "Dr. Robert Matthew Thomas Jr.",
+                    "age": 86,
+                    "dateOfDeath": "2025-12-23",
+                    "location": "La Jolla, CA",
+                    "survivedBy": "Family members (ophthalmologist, 50+ years SD practice)",
+                    "address": "La Jolla residence",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16",
+                    "military": "Navy Lt. Commander, Medical Corps",
+                    "career": "Ophthalmologist, co-founded San Diego Eye Institute",
+                    "priority": "HIGH"
+                },
+                {
+                    "name": "Dona C. Whitaker",
+                    "age": 85,
+                    "dateOfDeath": "2025-11-11",
+                    "location": "La Jolla, CA",
+                    "survivedBy": "Husband Dan, son, daughter",
+                    "address": "Home in La Jolla (decades-long resident)",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16",
+                    "military": "Husband was Air Force officer",
+                    "career": "American Airlines stewardess, SD Padres team plane",
+                    "priority": "HIGH"
+                },
+                {
+                    "name": "Clifton Cooke Jr.",
+                    "age": 78,
+                    "dateOfDeath": "2026-01-26",
+                    "location": "Rancho Santa Fe, CA",
+                    "survivedBy": "Wife: Janet (56 years married); daughters: Denise Pryor (SD), Lisa Wray (Australia); 5 grandchildren",
+                    "address": "Home in Rancho Santa Fe",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16",
+                    "career": "Tech CEO (Advanced Digital Systems, VisiCom, SYS, Wavestream)",
+                    "priority": "HIGH"
+                },
+                {
+                    "name": "Terry Vaughn Caldwell",
+                    "age": 78,
+                    "dateOfDeath": "2026-01-29",
+                    "location": "Ramona, CA",
+                    "survivedBy": "Daughter Toni Ann, other family",
+                    "address": "Home in Ramona",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16",
+                    "military": "US Air Force (Vietnam era), George AFB",
+                    "career": "DEA forensic chemist (36 years)",
+                    "priority": "MEDIUM"
+                },
+                {
+                    "name": "Marian Curtis",
+                    "age": 93,
+                    "dateOfDeath": "2026-01-21",
+                    "location": "Vista, CA",
+                    "survivedBy": "Children, grandchildren",
+                    "address": "Vista residence",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16",
+                    "priority": "MEDIUM"
+                },
+                {
+                    "name": "Barry Crane",
+                    "age": "unknown",
+                    "dateOfDeath": "2026-02-08",
+                    "location": "San Diego, CA",
+                    "survivedBy": "Family",
+                    "address": "San Diego",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16",
+                    "priority": "LOW"
+                },
+                {
+                    "name": "Margie Hubbard",
+                    "age": "unknown (likely 80+)",
+                    "dateOfDeath": "2026-02-15",
+                    "location": "Corona del Mar, CA",
+                    "survivedBy": "Children: Eleanor and Martin III; grandchildren: Victoria, Tripp, Noelle, Mack; great-grandchildren",
+                    "address": "Corona del Mar residence (40+ years at same address)",
+                    "source": "OC Register",
+                    "dateAdded": "2026-02-16",
+                    "notes": "Lived in CdM 40+ years, active in community (tennis, golf, church). Survived by adult children. HIGH-value Corona del Mar property likely. Target ZIP 92625."
+                },
+                {
+                    "name": "Helmut Gabel",
+                    "age": 96,
+                    "dateOfDeath": "2026-02-15",
+                    "location": "Placentia, CA",
+                    "survivedBy": "4 children: Bernie, Kathy, Tara, Shelley; 9 grandchildren, 1 great-grandchild; second wife Patricia King",
+                    "address": "Placentia residence",
+                    "source": "OC Register",
+                    "dateAdded": "2026-02-16",
+                    "career": "Founded Calinco Corporation - woodworking/construction company. Worked on Norton Simon Museum, MGM Grand, high-rise hotels.",
+                    "notes": "Longtime homeowner, carpenter by trade turned business owner. Estate potential."
+                },
+                {
+                    "name": "Mona Morgan",
+                    "age": 90,
+                    "dateOfDeath": "2026-02-06",
+                    "location": "Costa Mesa, CA",
+                    "survivedBy": "8 children; 15 grandchildren; 9 great-grandchildren",
+                    "address": "Costa Mesa residence",
+                    "source": "OC Register",
+                    "dateAdded": "2026-02-16",
+                    "notes": "Marine Corps veteran (met husband in service). Died at home. Large family = likely estate sale scenario. Target ZIP 92626."
+                },
+                {
+                    "name": "Marilyn Littrell",
+                    "age": 93,
+                    "dateOfDeath": "2026-02-06",
+                    "location": "Garden Grove, CA",
+                    "survivedBy": "Family details limited",
+                    "address": "Garden Grove residence",
+                    "source": "OC Register",
+                    "dateAdded": "2026-02-16",
+                    "notes": "93 years old - likely longtime homeowner"
+                },
+                {
+                    "name": "Sandra Kay Flournoy",
+                    "age": 94,
+                    "dateOfDeath": "2026-02-09",
+                    "location": "Fullerton, CA",
+                    "survivedBy": "Details limited",
+                    "address": "Fullerton residence",
+                    "source": "OC Register",
+                    "dateAdded": "2026-02-16",
+                    "notes": "94 years old - likely longtime homeowner. Fullerton is secondary OC target."
+                },
+                {
+                    "name": "Cathy Driscoll",
+                    "age": "unknown (likely 60s-70s)",
+                    "dateOfDeath": "2026-02-16",
+                    "location": "Santa Ana, CA",
+                    "survivedBy": "Husband: Tim; sons: Cameron, Garrett; grandchildren: Avery, Carson",
+                    "address": "Santa Ana (family home built by Cathy and Tim)",
+                    "source": "OC Register",
+                    "dateAdded": "2026-02-16",
+                    "notes": "Died in the home she and Tim built - homeownership confirmed. Near target ZIPs 92804/92805. Memorial service Feb 21 at Fairhaven Memorial Mortuary."
+                },
+                {
+                    "name": "Arthur Charles Kuehn",
+                    "age": 85,
+                    "dateOfDeath": "2026-02-03",
+                    "location": "Spring Valley, CA (San Diego County)",
+                    "survivedBy": "Wife: Rita (Shipley); daughters: Dawn, Diane; 8 grandchildren",
+                    "address": "Spring Valley residence",
+                    "source": "San Diego Union-Tribune",
+                    "dateAdded": "2026-02-16",
+                    "career": "Architect (Scholtz-Kuehn and Associates, Davenport IA; designed buildings in SD)",
+                    "notes": "Born in Illinois, moved to San Diego 1986. Architect by trade. Longtime homeowner in Spring Valley (SD County secondary area).",
+                    "priority": "MEDIUM"
+                },
+                {
+                    "name": "Wyatt Tipton Hart",
+                    "age": "~90",
+                    "dateOfDeath": "2026-02-03",
+                    "location": "San Juan Capistrano, CA",
+                    "survivedBy": "Wife: Sue; sons: Todd (Polita), Ryan (Erika), Greg (Donda); grandchildren: Christina, Mitchell",
+                    "address": "San Juan Capistrano residence",
+                    "source": "OC Register",
+                    "dateAdded": "2026-02-16",
+                    "military": "US Marine Corps (wounded in Korea, 1953)",
+                    "career": "Former Mayor of San Juan Capistrano (3 terms); Captain, Orange County Sheriff's Dept (retired 1988); District Director for Congressman Ron Packard; Security Consultant at John Wayne Airport; Assistant football coach at St. Margaret's, Santa Margarita and San Juan Hills",
+                    "notes": "FORMER MAYOR - HIGH VALUE. Very prominent OC community figure. Served 12 years on City Council, 3 terms as Mayor. Instrumental in securing federal funding for Boys & Girls Club. Longtime OC resident. Died at home. Near target ZIP 92673 (San Clemente).",
+                    "priority": "HIGH"
+                },
+                {
+                    "name": "Maddalena 'Nini' Sciacca",
+                    "age": 89,
+                    "dateOfDeath": "2026-02-10",
+                    "location": "La Jolla, CA",
+                    "survivedBy": "Details limited",
+                    "address": "La Jolla residence",
+                    "source": "Dignity Memorial",
+                    "dateAdded": "2026-02-17",
+                    "notes": "Elderly La Jolla resident, priority ZIP 92037.",
+                    "priority": "BLUE",
+                    "sfProperty": {
+                        "Left_Main__Street__c": "1253 Coast Blvd",
+                        "Left_Main__City__c": "La Jolla",
+                        "Left_Main__Zip__c": "92037",
+                        "Left_Main__County__c": "San Diego",
+                        "Left_Main__Sale_Price__c": 1650000,
+                        "Left_Main__Tax_Assessed_Value__c": 1720000,
+                        "Left_Main__Owner_Occupant__c": "Yes",
+                        "Left_Main__Recording_Date__c": "1995-10-15"
+                    }
+                },
+                {
+                    "name": "Mingli Deng",
+                    "age": 85,
+                    "dateOfDeath": "2026-02-12",
+                    "location": "San Diego, CA",
+                    "survivedBy": "Details limited",
+                    "address": "San Diego residence",
+                    "source": "Dignity Memorial",
+                    "dateAdded": "2026-02-17",
+                    "notes": "Insufficient information about homeownership or specific location",
+                    "priority": "GRAY",
+                    "sfProperty": null
+                },
+                {
+                    "name": "Fred Smith",
+                    "age": 77,
+                    "dateOfDeath": "2026-02-05",
+                    "location": "Newport Beach, CA",
+                    "survivedBy": "Details limited",
+                    "address": "Newport Beach residence (likely)",
+                    "source": "Legacy.com",
+                    "dateAdded": "2026-02-17",
+                    "notes": "Bassist for the early punk band Television and a former member of Blondie. Newport Beach is a priority ZIP (92660).",
+                    "priority": "BLUE",
+                    "sfProperty": {
+                        "Left_Main__Street__c": "437 Avocado Avenue",
+                        "Left_Main__City__c": "Newport Beach",
+                        "Left_Main__Zip__c": "92660",
+                        "Left_Main__County__c": "Orange",
+                        "Left_Main__Sale_Price__c": 1950000,
+                        "Left_Main__Tax_Assessed_Value__c": 2100000,
+                        "Left_Main__Owner_Occupant__c": "Yes",
+                        "Left_Main__Recording_Date__c": "2002-03-22"
+                    }
+                }
+            ],
+            "distressed": [],
+            "lastRun": "2026-02-17"
+        };
+
+        // Function to get initials from a name
+        function getInitials(name) {
+            return name.split(/\s+/).map(word => word[0]).join('').toUpperCase();
+        }
+
+        // Function to format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', { 
+                style: 'currency', 
+                currency: 'USD',
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        // Function to calculate days since death
+        function daysSinceDeath(dateString) {
+            const today = new Date();
+            const deathDate = new Date(dateString);
+            const diffTime = Math.abs(today - deathDate);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        // Function to determine outreach status based on days since death
+        function getOutreachStatus(days) {
+            if (days <= 14) {
+                return {
+                    text: "Monitor Only",
+                    class: "status-monitor"
+                };
+            } else if (days >= 10 && days <= 14) {
+                return {
+                    text: "Resource Guide Window",
+                    class: "status-resource"
+                };
+            } else if (days >= 21 && days <= 28) {
+                return {
+                    text: "Handwritten Card Window",
+                    class: "status-card"
+                };
+            } else if (days >= 30 && days <= 45) {
+                return {
+                    text: "Ready for Letter",
+                    class: "status-letter"
+                };
+            } else if (days >= 60) {
+                return {
+                    text: "Ready for Pitch",
+                    class: "status-pitch"
+                };
+            } else {
+                return {
+                    text: "Monitor",
+                    class: "status-monitor"
+                };
+            }
+        }
+
+        // Function to determine if a lead is from San Diego
+        function isFromSD(location) {
+            return location.toLowerCase().includes("san diego") || 
+                   location.toLowerCase().includes("la jolla") || 
+                   location.toLowerCase().includes("pacific beach") || 
+                   location.toLowerCase().includes("coronado") || 
+                   location.toLowerCase().includes("point loma") ||
+                   location.toLowerCase().includes("chula vista") ||
+                   location.toLowerCase().includes("vista") ||
+                   location.toLowerCase().includes("spring valley") ||
+                   location.toLowerCase().includes("ramona");
+        }
+
+        // Function to determine if a lead is from Orange County
+        function isFromOC(location) {
+            return location.toLowerCase().includes("orange county") || 
+                   location.toLowerCase().includes("corona del mar") || 
+                   location.toLowerCase().includes("placentia") || 
+                   location.toLowerCase().includes("costa mesa") || 
+                   location.toLowerCase().includes("garden grove") ||
+                   location.toLowerCase().includes("fullerton") ||
+                   location.toLowerCase().includes("santa ana") ||
+                   location.toLowerCase().includes("newport beach") ||
+                   location.toLowerCase().includes("san juan capistrano");
+        }
+
+        // Function to render all leads
+        function renderLeads(leads, filter = 'all', sortBy = 'priority') {
+            const container = document.getElementById('leads-container');
+            container.innerHTML = '';
+
+            // Filter and sort leads
+            let filteredLeads = leads.filter(lead => {
+                if (filter === 'all') return true;
+                if (filter === 'gold') return lead.priority === 'HIGH';
+                if (filter === 'blue') return lead.priority === 'BLUE';
+                if (filter === 'gray') return lead.priority === 'GRAY' || lead.priority === 'LOW' || !lead.priority;
+                if (filter === 'sd') return isFromSD(lead.location);
+                if (filter === 'oc') return isFromOC(lead.location);
+                if (filter === 'property') return lead.sfProperty;
+                return true;
+            });
+
+            // Sort leads
+            filteredLeads.sort((a, b) => {
+                if (sortBy === 'priority') {
+                    // Priority order: HIGH, BLUE, MEDIUM, LOW/GRAY/null
+                    const priorityOrder = { 
+                        'HIGH': 1, 
+                        'BLUE': 2, 
+                        'MEDIUM': 3, 
+                        'LOW': 4, 
+                        'GRAY': 4 
+                    };
+                    const priorityA = priorityOrder[a.priority] || 4;
+                    const priorityB = priorityOrder[b.priority] || 4;
+                    return priorityA - priorityB;
+                } else if (sortBy === 'date') {
+                    // Sort by date (newest first)
+                    return new Date(b.dateOfDeath) - new Date(a.dateOfDeath);
+                } else if (sortBy === 'value') {
+                    // Sort by property value
+                    const valueA = a.sfProperty ? a.sfProperty.Left_Main__Tax_Assessed_Value__c || 0 : 0;
+                    const valueB = b.sfProperty ? b.sfProperty.Left_Main__Tax_Assessed_Value__c || 0 : 0;
+                    return valueB - valueA;
+                }
+            });
+
+            // Render each lead
+            filteredLeads.forEach(lead => {
+                // Determine priority class and badge
+                let priorityClass = 'priority-low';
+                let badgeClass = 'badge-gray';
+                let badgeText = 'LOW';
+
+                if (lead.priority === 'HIGH') {
+                    priorityClass = 'priority-high';
+                    badgeClass = 'badge-gold';
+                    badgeText = 'GOLD 🥇';
+                } else if (lead.priority === 'BLUE') {
+                    priorityClass = 'priority-medium';
+                    badgeClass = 'badge-blue';
+                    badgeText = 'BLUE 🥈';
+                } else if (lead.priority === 'MEDIUM') {
+                    priorityClass = 'priority-medium';
+                    badgeClass = 'badge-blue';
+                    badgeText = 'MEDIUM';
+                } else if (lead.priority === 'GRAY') {
+                    badgeText = 'GRAY';
+                }
+
+                // Calculate days since death and outreach status
+                const days = daysSinceDeath(lead.dateOfDeath);
+                const outreachStatus = getOutreachStatus(days);
+
+                // Create lead card
+                const card = document.createElement('div');
+                card.className = 'lead-card glass-panel';
+
+                // Create card HTML
+                card.innerHTML = `
+                    <div class="lead-header">
+                        <h3 class="lead-name ${priorityClass}">${lead.name}</h3>
+                        <span class="priority-badge ${badgeClass}">${badgeText}</span>
+                    </div>
+                    <div class="lead-info">
+                        <div class="avatar">${getInitials(lead.name)}</div>
+                        <div class="lead-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Age:</span> ${lead.age}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Date of Death:</span> ${new Date(lead.dateOfDeath).toLocaleDateString()}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Location:</span> ${lead.location}
+                            </div>
+                            ${lead.source ? `<div class="source-tag">${lead.source}</div>` : ''}
+                        </div>
+                    </div>
+                    ${lead.career || lead.military ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Career/Military:</span> 
+                        ${lead.career ? lead.career : ''}
+                        ${lead.career && lead.military ? ' | ' : ''}
+                        ${lead.military ? lead.military : ''}
+                    </div>
+                    ` : ''}
+                    ${lead.survivedBy ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Survived by:</span> ${lead.survivedBy}
+                    </div>
+                    ` : ''}
+                `;
+
+                // Add property section if available
+                if (lead.sfProperty) {
+                    const property = lead.sfProperty;
+                    const propertySection = document.createElement('div');
+                    propertySection.className = 'property-section';
+                    propertySection.innerHTML = `
+                        <h4 class="property-title">Property Information</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">Address:</span> ${property.Left_Main__Street__c}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">City/ZIP:</span> ${property.Left_Main__City__c}, ${property.Left_Main__Zip__c}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Sale Price:</span> ${formatCurrency(property.Left_Main__Sale_Price__c)}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Tax Assessed Value:</span> ${formatCurrency(property.Left_Main__Tax_Assessed_Value__c)}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Owner Occupant:</span> ${property.Left_Main__Owner_Occupant__c}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recording Date:</span> ${new Date(property.Left_Main__Recording_Date__c).toLocaleDateString()}
+                        </div>
+                        <a href="https://truelegacyhomes2.my.salesforce.com/" target="_blank" class="sf-link">View in Salesforce →</a>
+                    `;
+                    card.appendChild(propertySection);
+                }
+
+                // Add status section
+                const statusSection = document.createElement('div');
+                statusSection.className = 'status-section';
+                statusSection.innerHTML = `
+                    <div class="days-since">${days} days since death</div>
+                    <div class="outreach-status ${outreachStatus.class}">${outreachStatus.text}</div>
+                `;
+                card.appendChild(statusSection);
+
+                // Add card to container
+                container.appendChild(card);
+            });
+
+            // Update stats
+            updateStats(leads);
+        }
+
+        // Function to update stats
+        function updateStats(leads) {
+            const totalCount = leads.length;
+            const goldCount = leads.filter(lead => lead.priority === 'HIGH').length;
+            const blueCount = leads.filter(lead => lead.priority === 'BLUE').length;
+            const sfCount = leads.filter(lead => lead.sfProperty).length;
+
+            document.getElementById('total-count').textContent = totalCount;
+            document.getElementById('gold-count').textContent = goldCount;
+            document.getElementById('blue-count').textContent = blueCount;
+            document.getElementById('sf-count').textContent = sfCount;
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all probate leads
+            const probateLeads = leadsData.probate;
+
+            // Render leads initially
+            renderLeads(probateLeads);
+
+            // Set up filter buttons
+            document.querySelectorAll('.filter-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    button.classList.add('active');
+                    
+                    // Get filter and sort values
+                    const filter = button.dataset.filter;
+                    const sortBy = document.getElementById('sort-select').value;
+                    
+                    // Render leads with filter
+                    renderLeads(probateLeads, filter, sortBy);
+                });
+            });
+
+            // Set up sort select
+            document.getElementById('sort-select').addEventListener('change', (e) => {
+                // Get active filter
+                const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+                
+                // Render leads with sort
+                renderLeads(probateLeads, activeFilter, e.target.value);
+            });
+        });
+    </script>
+</body>
+</html>
