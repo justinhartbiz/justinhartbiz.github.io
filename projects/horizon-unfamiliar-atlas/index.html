@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horizon Expansion — The Unfamiliar Atlas</title>
+  <style>
+    :root{--bg:#020617;--panel:#0f172a;--muted:#94a3b8;--line:#1e293b;--text:#e2e8f0;--blue:#3b82f6;--purple:#a855f7;--green:#10b981}
+    *{box-sizing:border-box} body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text)}
+    .top{position:sticky;top:0;z-index:10;backdrop-filter:blur(8px);background:#020617cc;border-bottom:1px solid var(--line);padding:14px 22px;display:flex;justify-content:space-between;align-items:center}
+    .brand{font-weight:700}.wrap{max-width:1200px;margin:0 auto;padding:22px;display:grid;grid-template-columns:320px 1fr;gap:20px}
+    .nav{background:linear-gradient(180deg,#0b1221,#0b1325);border:1px solid var(--line);border-radius:14px;padding:12px}
+    .tab{width:100%;text-align:left;background:#0000;border:1px solid transparent;color:#94a3b8;padding:11px 12px;border-radius:10px;cursor:pointer;margin-bottom:8px}
+    .tab.active{border-color:#1d4ed8;background:#0b1a38;color:#bfdbfe}
+    .panel{min-height:560px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
+    .btn{background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:9px;padding:8px 12px;cursor:pointer}
+    .btn.on{background:#2563eb;color:#fff;border-color:#2563eb}.muted{color:var(--muted)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    input[type=text],input[type=range]{width:100%} input[type=text]{background:#0b1220;border:1px solid #334155;color:#e2e8f0;border-radius:10px;padding:10px}
+    .card{border:1px solid var(--line);background:#020817;border-radius:12px;padding:14px}.small{font-size:12px}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    canvas{background:#000;border:1px solid #334155;border-radius:12px;width:100%;height:360px}
+    .noise{height:260px;border:1px solid #334155;border-radius:12px;position:relative;overflow:hidden;background:#0b1020}
+    .dot{position:absolute;width:11px;height:11px;border-radius:50%}
+    @media (max-width:960px){.wrap{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="brand">🧭 Horizon Expansion <span class="muted">| The Unfamiliar Atlas</span></div><div class="muted small">Explore → Understand → Expand</div></header>
+  <div class="wrap">
+    <aside class="nav" id="nav"></aside>
+    <main class="panel" id="panel"></main>
+  </div>
+
+<script>
+const exhibits=[
+{id:'bouba',title:'The Bouba/Kiki Effect',render:bouba},
+{id:'benford',title:"Benford's Law",render:benford},
+{id:'lsys',title:'L-Systems',render:lsystems},
+{id:'babel',title:'Library of Babel',render:babel},
+{id:'quorum',title:'Quorum Sensing',render:quorum},
+{id:'filter',title:'The Great Filter',render:greatfilter},
+{id:'pareidolia',title:'Pareidolia',render:pareidolia},
+{id:'zeno',title:"Zeno's Paradox",render:zeno},
+{id:'lindy',title:'The Lindy Effect',render:lindy},
+{id:'troxler',title:"Troxler's Fading",render:troxler},
+];
+let active='bouba';
+function paintNav(){const nav=document.getElementById('nav'); nav.innerHTML=`<div class='small muted' style='padding:8px'>Atlas Exhibits</div>`+exhibits.map(e=>`<button class='tab ${e.id===active?'active':''}' data-id='${e.id}'>${e.title}</button>`).join('')+`<div class='card small muted'>Knowledge is a map. Most of us live in the center. This atlas tours the edges.</div>`; nav.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{active=b.dataset.id; paint()});}
+function paint(){paintNav(); const ex=exhibits.find(e=>e.id===active); document.getElementById('panel').innerHTML=ex.render(); bind();}
+
+function bouba(){return `<h2>The Bouba/Kiki Effect</h2><p class='muted'>Which shape feels like "Bouba"?</p><div class='grid2'><div class='card' style='text-align:center'><svg viewBox='0 0 200 200' width='150'><path fill='#3b82f6' d='M100,20 Q120,50 150,40 Q130,80 170,100 Q130,120 150,160 Q120,150 100,180 Q80,150 50,160 Q70,120 30,100 Q70,80 50,40 Q80,50 100,20'/></svg><br><button class='btn' id='ba'>Shape A</button></div><div class='card' style='text-align:center'><svg viewBox='0 0 200 200' width='150'><path fill='#a855f7' d='M100,30 C140,30 170,60 170,100 C170,140 140,170 100,170 C60,170 30,140 30,100 C30,60 60,30 100,30 Z'/></svg><br><button class='btn' id='bb'>Shape B</button></div></div><div id='bout' class='card small muted' style='margin-top:12px'>Vote above.</div>`}
+
+function benford(){return `<h2>Benford's Law</h2><p class='muted small'>Natural-growth datasets skew toward low first digits.</p><div class='row'><button class='btn on' id='bn'>Natural Growth</button><button class='btn' id='br'>Pure Random</button></div><canvas id='bchart' width='900' height='320'></canvas><p class='small muted'>IRS and auditors use Benford deviations as a fraud signal.</p>`}
+
+function lsystems(){return `<div class='row' style='justify-content:space-between'><h2>L-Systems</h2><div class='row'><button class='btn' id='lm'>-</button><span id='lgen' class='muted'>Gen: 3</span><button class='btn' id='lp'>+</button></div></div><canvas id='ltree' width='900' height='360'></canvas><p class='small muted'>Plant-like complexity from recursive grammar.</p>`}
+
+function babel(){return `<h2>Library of Babel</h2><p class='muted'>Type a phrase. We’ll “find” it in an arbitrary page.</p><div class='row'><input id='bq' type='text' placeholder='Type a phrase...'><button class='btn on' id='bs'>Find Page</button></div><div id='bo' class='card mono small' style='height:250px;overflow:auto;margin-top:12px'></div>`}
+
+function quorum(){return `<div class='row' style='justify-content:space-between'><h2>Quorum Sensing</h2><div class='small muted'>Count: <span id='qc'>0</span>/15</div></div><div id='qbox' class='noise'></div><div class='row'><button class='btn' id='qr'>Reset</button></div><p class='small muted'>Below threshold: noise. Above threshold: synchronized behavior.</p>`}
+
+function greatfilter(){const stages=['Habitable Planets','Abiogenesis','Single Cell','Complex Cells','Intelligence','Technology','Colonization'];return `<h2>The Great Filter</h2><div class='row'>${stages.map((s,i)=>`<button class='btn ${i===0?'on':''}' data-i='${i}' style='padding:6px 9px'>${i+1}</button>`).join('')}</div><div id='gf' class='card' style='margin-top:10px'>${stages[0]}</div><p class='small muted'>Is the bottleneck behind us, or still ahead?</p>`}
+
+function pareidolia(){return `<h2>Pareidolia</h2><p class='muted'>Noise + expectation = “meaning.”</p><div class='noise' id='pn'></div><div class='row'><input id='pi' type='range' min='10' max='100' value='50'><button id='pr' class='btn'>Reveal Shape</button></div>`}
+
+function zeno(){return `<h2>Zeno's Dichotomy</h2><div class='card'><div class='small muted'>Progress</div><div style='height:16px;background:#0b1322;border-radius:999px;overflow:hidden'><div id='zb' style='height:100%;width:0;background:#2563eb'></div></div></div><div class='row' style='margin-top:10px'><button class='btn on' id='zm'>Take Half-Step</button><span id='zp' class='muted'>0%</span></div><div id='zl' class='card mono small' style='margin-top:10px;height:170px;overflow:auto'></div>`}
+
+function lindy(){return `<h2>The Lindy Effect</h2><div class='row'><span class='muted'>Age: <b id='la'>50</b></span><input id='lr' type='range' min='1' max='1000' value='50'></div><div class='grid2'><div class='card'><h3>Perishable (Human)</h3><p class='small muted' id='lh'></p></div><div class='card'><h3>Non-Perishable (Idea)</h3><p class='small muted' id='li'></p></div></div>`}
+
+function troxler(){return `<h2>Troxler's Fading</h2><p class='muted small'>Stare at center cross 15 seconds.</p><div class='noise' style='background:#cbd5e1;display:flex;align-items:center;justify-content:center'><div style='font-size:36px;color:#111'>+</div><div style='position:absolute;top:25%;left:25%;width:60px;height:60px;background:#60a5fa66;border-radius:999px;filter:blur(12px)'></div><div style='position:absolute;top:25%;right:25%;width:60px;height:60px;background:#a855f766;border-radius:999px;filter:blur(12px)'></div><div style='position:absolute;bottom:25%;left:25%;width:60px;height:60px;background:#22c55e66;border-radius:999px;filter:blur(12px)'></div><div style='position:absolute;bottom:25%;right:25%;width:60px;height:60px;background:#facc1566;border-radius:999px;filter:blur(12px)'></div></div><p class='small muted'>Peripheral static fades under fixed gaze due to neural adaptation.</p>`}
+
+function bind(){
+  if(active==='bouba'){ba.onclick=()=>bout.innerHTML='<b>Most people map jagged → “Kiki” and rounded → “Bouba”.</b> Sound symbolism seems cross-cultural.'; bb.onclick=()=>bout.innerHTML='<b>Most people map jagged → “Kiki” and rounded → “Bouba”.</b> Sound symbolism seems cross-cultural.'}
+  if(active==='benford'){
+    let mode='natural'; const c=bchart.getContext('2d');
+    const gen=(m)=>{const arr=[];for(let i=0;i<1000;i++)arr.push(m==='natural'?Math.pow(10,Math.random()*7):Math.random()*1e6); const ct=Array(10).fill(0);arr.forEach(n=>{const d=(n+'').replace(/[^1-9]/g,'')[0];if(d)ct[+d]++}); const t=ct.reduce((a,b)=>a+b,0); return Array.from({length:9},(_,i)=>({d:i+1,a:ct[i+1]/t*100,e:Math.log10(1+1/(i+1))*100}))}
+    const draw=()=>{const data=gen(mode); c.clearRect(0,0,900,320); c.fillStyle='#0b1220'; c.fillRect(0,0,900,320); data.forEach((r,i)=>{const x=60+i*90; c.fillStyle='#3b82f6'; c.fillRect(x,300-r.e*6,30,r.e*6); c.fillStyle='#a855f7'; c.fillRect(x+35,300-r.a*6,30,r.a*6); c.fillStyle='#94a3b8'; c.fillText(r.d,x+20,314)});};
+    bn.onclick=()=>{mode='natural';bn.classList.add('on');br.classList.remove('on');draw()}; br.onclick=()=>{mode='random';br.classList.add('on');bn.classList.remove('on');draw()}; draw();
+  }
+  if(active==='lsys'){let g=3; const draw=()=>{lgen.textContent='Gen: '+g; const cv=ltree,ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height); let s='X',R={X:'F-[[X]+X]+F[+FX]-X',F:'FF'}; for(let i=0;i<g;i++){let n=''; for(const ch of s)n+=R[ch]||ch; s=n;} let x=cv.width/2,y=cv.height,a=-Math.PI/2,len=380/Math.pow(2.2,g),st=[]; ctx.strokeStyle='#10b981';ctx.beginPath();ctx.moveTo(x,y); for(const ch of s){if(ch==='F'){x+=Math.cos(a)*len;y+=Math.sin(a)*len;ctx.lineTo(x,y)} else if(ch==='+')a+=25*Math.PI/180; else if(ch==='-')a-=25*Math.PI/180; else if(ch==='[')st.push([x,y,a]); else if(ch===']'){const k=st.pop(); if(k){[x,y,a]=k;ctx.moveTo(x,y)}}} ctx.stroke();}; lm.onclick=()=>{g=Math.max(1,g-1);draw()}; lp.onclick=()=>{g=Math.min(6,g+1);draw()}; draw();}
+  if(active==='babel'){bs.onclick=()=>{const q=bq.value.trim(); if(!q) return; const alpha='abcdefghijklmnopqrstuvwxyz,. '; let t=''; for(let i=0;i<3200;i++) t+=alpha[Math.floor(Math.random()*alpha.length)]; const p=Math.floor(Math.random()*(3200-q.length)); const s=t.slice(0,p)+q+t.slice(p+q.length); bo.innerHTML=s.replaceAll(q,`<mark style="background:#1d4ed8;color:#dbeafe">${q}</mark>`)+`<div style='margin-top:8px;color:#64748b'>Hex ${Math.random().toString(16).slice(2,10).toUpperCase()}</div>`};}
+  if(active==='quorum'){let dots=[]; const draw=()=>{qbox.innerHTML=''; qc.textContent=dots.length; const glow=dots.length>=15; qbox.style.background=glow?'#0b1f45':'#090f1f'; qbox.style.boxShadow=glow?'0 0 28px #3b82f655':'none'; dots.forEach(d=>{const el=document.createElement('div'); el.className='dot'; el.style.left=(d.x-5)+'px'; el.style.top=(d.y-5)+'px'; el.style.background=glow?'#fff':'#3b82f688'; qbox.appendChild(el)});}; qbox.onclick=e=>{const r=qbox.getBoundingClientRect(); dots.push({x:e.clientX-r.left,y:e.clientY-r.top}); draw()}; qr.onclick=()=>{dots=[];draw()}; draw();}
+  if(active==='filter'){const labels=['Habitable Planets','Abiogenesis','Single Cell','Complex Cells','Intelligence','Technology','Colonization']; document.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-i]').forEach(x=>x.classList.remove('on')); b.classList.add('on'); gf.textContent=labels[+b.dataset.i];});}
+  if(active==='pareidolia'){const draw=()=>{pn.innerHTML=''; const intensity=+pi.value; for(let i=0;i<180;i++){const d=document.createElement('div'); d.style.position='absolute'; d.style.left=(Math.random()*100)+'%'; d.style.top=(Math.random()*100)+'%'; d.style.width='8px'; d.style.height='8px'; d.style.background='#334155'; d.style.opacity=Math.random()*(intensity/100); pn.appendChild(d);} }; let shown=false; pr.onclick=()=>{shown=!shown; pr.textContent=shown?'Hide Shape':'Reveal Shape'; const face=pn.querySelector('.face'); if(face)face.remove(); if(shown){const f=document.createElement('div'); f.className='face'; f.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.25'; f.innerHTML='<div style="width:130px;height:130px;border:4px solid #fff;border-radius:999px;display:flex;flex-direction:column;align-items:center;padding-top:30px;gap:20px"><div style="display:flex;gap:30px"><span style="width:10px;height:10px;background:#fff;border-radius:999px"></span><span style="width:10px;height:10px;background:#fff;border-radius:999px"></span></div><span style="display:block;width:46px;height:2px;background:#fff"></span></div>'; pn.appendChild(f)} }; pi.oninput=draw; draw();}
+  if(active==='zeno'){let p=0,s=0; zm.onclick=()=>{let r=100-p,step=r/2;if(step<.01)return; const from=p; p+=step; s++; zb.style.width=p+'%'; zp.textContent=p.toFixed(2)+'%'; zl.innerHTML+=`Step ${s}: ${from.toFixed(4)} → ${p.toFixed(4)} (remain ${(100-p).toFixed(4)})<br>`; zl.scrollTop=zl.scrollHeight;}}
+  if(active==='lindy'){const upd=()=>{const a=+lr.value; la.textContent=a; lh.textContent=`A ${a}-year-old human likely has ~${Math.max(0,80-a)} years remaining.`; li.textContent=`A ${a}-year-old non-perishable idea often has ~${a} years expected runway.`}; lr.oninput=upd; upd();}
+}
+paint();
+</script>
+</body>
+</html>
