@@ -55,10 +55,10 @@ p{line-height:1.85;color:#3a2a18;margin-bottom:18px;font-size:1rem}
   <canvas id="main-c" width="700" height="420"></canvas>
   <div class="freq-panel">
     <div class="freq-row">
-      <label>Freq (m,n)</label>
-      <input type="range" id="m-slider" min="1" max="7" value="2" step="1">
+      <label>Frequency</label>
+      <input type="range" id="freq-slider" min="50" max="2000" value="440" step="1">
+      <span class="freq-display" id="freq-val">440 Hz</span>
       <span class="freq-display" id="m-val">m=2</span>
-      <input type="range" id="n-slider" min="1" max="7" value="3" step="1">
       <span class="freq-display" id="n-val">n=3</span>
     </div>
     <div class="presets">
@@ -105,6 +105,7 @@ p{line-height:1.85;color:#3a2a18;margin-bottom:18px;font-size:1rem}
 const canvas = document.getElementById('main-c');
 const ctx = canvas.getContext('2d');
 let currentM = 2, currentN = 3;
+let currentFreq = 440;
 let showNodal = false;
 let animating = false;
 let animFrame2 = null;
@@ -202,8 +203,8 @@ function render() {
 function updateSliders() {
   document.getElementById('m-val').textContent = `m=${currentM}`;
   document.getElementById('n-val').textContent = `n=${currentN}`;
-  document.getElementById('m-slider').value = currentM;
-  document.getElementById('n-slider').value = currentN;
+  document.getElementById('freq-slider').value = currentFreq;
+  document.getElementById('freq-val').textContent = `${currentFreq} Hz`;
   // Update preset active state
   document.querySelectorAll('.preset-btn').forEach(b => {
     b.classList.toggle('active', parseInt(b.dataset.m)===currentM && parseInt(b.dataset.n)===currentN);
@@ -211,24 +212,24 @@ function updateSliders() {
   render();
 }
 
-document.getElementById('m-slider').addEventListener('input', function() {
-  currentM = parseInt(this.value);
+document.getElementById('freq-slider').addEventListener('input', function() {
+  currentFreq = parseInt(this.value);
+  // Map 50-2000 Hz into modal integers 1..7 for figure generation
+  currentM = Math.max(1, Math.min(7, Math.floor(((currentFreq-50)/1950)*6)+1));
+  currentN = Math.max(1, Math.min(7, Math.floor(((currentFreq-50)/1950)*6)+2));
+  if (currentN > 7) currentN = 7;
   document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
-  render();
+  document.getElementById('freq-val').textContent = `${currentFreq} Hz`;
   document.getElementById('m-val').textContent = `m=${currentM}`;
-});
-
-document.getElementById('n-slider').addEventListener('input', function() {
-  currentN = parseInt(this.value);
-  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
-  render();
   document.getElementById('n-val').textContent = `n=${currentN}`;
+  render();
 });
 
 document.querySelectorAll('.preset-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     currentM = parseInt(this.dataset.m);
     currentN = parseInt(this.dataset.n);
+    currentFreq = Math.round(50 + (((currentM + currentN) / 14) * 1950));
     updateSliders();
   });
 });
@@ -253,7 +254,7 @@ document.getElementById('nodal-btn').addEventListener('click', function() {
 });
 
 // Initial render
-render();
+updateSliders();
 </script>
 </body>
 </html>
