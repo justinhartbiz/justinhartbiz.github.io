@@ -11,7 +11,7 @@ body{font-family:Lato,sans-serif;background:#F8F9FA;color:#333}
 header{background:#0D3B66;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
 header h1{font-size:1.1rem;font-weight:900}
 header a{color:#aee6e4;font-size:.8rem;text-decoration:none}
-main{max-width:1100px;margin:0 auto;padding:20px}
+main{max-width:1120px;margin:0 auto;padding:20px}
 .kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
 .box{background:#fff;border:1px solid #E5E5E5;border-radius:10px;padding:14px;text-align:center}
 .box .n{font-size:2rem;font-weight:900;margin-top:4px}
@@ -19,6 +19,7 @@ main{max-width:1100px;margin:0 auto;padding:20px}
 .green{color:#16a34a}.amber{color:#b45309}.blue{color:#0D3B66}.purple{color:#7c3aed}
 section{background:#fff;border:1px solid #E5E5E5;border-radius:10px;margin-bottom:20px;overflow:hidden}
 section h2{padding:14px 18px;font-size:.95rem;font-weight:900;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px}
+.table-wrap{overflow:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{background:#f6f6f6;color:#475569;font-size:.65rem;text-transform:uppercase;letter-spacing:.4px;padding:9px 14px;text-align:left;border-bottom:1px solid #eee}
 td{padding:9px 14px;border-bottom:1px solid #f5f5f5;vertical-align:top}
@@ -28,10 +29,18 @@ tr:hover td{background:#f8fbff}
 .badge-sent{background:#dcfce7;color:#15803d}
 .badge-research{background:#fef3c7;color:#b45309}
 .badge-new{background:#eff6ff;color:#1d4ed8}
+.badge-gold{background:#fef9c3;color:#854d0e}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-gray{background:#f3f4f6;color:#6b7280}
+.score{font-weight:900;color:#0D3B66}
 .psc{font-family:monospace;font-size:.72rem;color:#6B6B78}
+a{color:#0D3B66;text-decoration:none}
+a:hover{color:#38B6B2;text-decoration:underline}
 .eta{font-size:.72rem;color:#6B6B78}
 .hint{font-size:.72rem;color:#94a3b8;font-style:italic}
 .meta{font-size:.75rem;color:#64748b;padding:0 2px 12px 2px}
+.list{padding:14px 18px 16px 28px;color:#475569;line-height:1.45;font-size:13px}
+.list code{background:#f1f5f9;padding:1px 6px;border-radius:4px}
 @media(max-width:800px){.kpi{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -46,27 +55,38 @@ tr:hover td{background:#f8fbff}
   <div class="kpi" id="kpis"></div>
 
   <section>
+    <h2>🧭 Process + Scoring (locked spec)</h2>
+    <ul class="list">
+      <li><strong>Step 1:</strong> Ingest leads into master sheet every 6 hours.</li>
+      <li><strong>Step 2:</strong> Attempt address resolution for rows where <code>address_status=missing</code> and <code>mail_status!=sent</code>.</li>
+      <li><strong>Step 3:</strong> Promote to queue-ready when address is found, then send via Lob.</li>
+      <li><strong>Lead Score (0-100):</strong> Priority (40) + Address readiness (30) + Recency (20) + Family/notes signal (10).</li>
+      <li><strong>Required links on every row:</strong> obituary search, map, and fallback web search.</li>
+    </ul>
+  </section>
+
+  <section>
     <h2>✅ Sent Postcards</h2>
-    <table>
-      <thead><tr><th>Name</th><th>Source</th><th>Address</th><th>Status</th><th>Updated</th></tr></thead>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>Score</th><th>Source</th><th>Address</th><th>Status</th><th>Updated</th><th>Links</th></tr></thead>
       <tbody id="sentRows"></tbody>
-    </table>
+    </table></div>
   </section>
 
   <section>
     <h2>🔍 Needs Address Research</h2>
-    <table>
-      <thead><tr><th>Name</th><th>Location</th><th>What We Know</th><th>Attempts</th><th>Next Action</th></tr></thead>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>Score</th><th>Location</th><th>What We Know</th><th>Attempts</th><th>Next Action</th><th>Links</th></tr></thead>
       <tbody id="researchRows"></tbody>
-    </table>
+    </table></div>
   </section>
 
   <section>
     <h2>🆕 Active Queue (Found/Ready)</h2>
-    <table>
-      <thead><tr><th>Name</th><th>Priority</th><th>Location</th><th>Address</th><th>Mail Status</th><th>Next Action</th></tr></thead>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>Score</th><th>Priority</th><th>Location</th><th>Address</th><th>Mail Status</th><th>Next Action</th><th>Links</th></tr></thead>
       <tbody id="activeRows"></tbody>
-    </table>
+    </table></div>
   </section>
 
   <div style="text-align:center;color:#94a3b8;font-size:.72rem;padding:16px 0">
@@ -92,8 +112,17 @@ function parseCSV(text){
   return out.slice(1).filter(r=>r.some(v=>String(v).trim())).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]||''])));
 }
 
-function td(v){return `<td>${v||''}</td>`}
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
 function stamp(v){return v?new Date(v).toLocaleString():''}
+function priorityPts(p){p=(p||'').toLowerCase(); if(p.includes('gold')) return 40; if(p.includes('blue')) return 30; return 20;}
+function addressPts(s,m){const a=(s||'').toLowerCase(), mail=(m||'').toLowerCase(); if(mail==='sent') return 30; if(a==='found') return 25; return 5;}
+function recencyPts(d){if(!d) return 6; const t=new Date(d), days=(Date.now()-t.getTime())/86400000; if(days<=7) return 20; if(days<=21) return 14; if(days<=45) return 8; return 4;}
+function signalPts(r){let n=0; if((r.last_attempt_note||'').length>20) n+=5; if((r.source||'').length>0) n+=5; return n;}
+function score(r){return Math.min(100, priorityPts(r.priority)+addressPts(r.address_status,r.mail_status)+recencyPts(r.date_of_death)+signalPts(r));}
+function mapLink(r){const q=encodeURIComponent((r.raw_address||r.match_address||`${r.name} ${r.location} CA`).trim()); return `https://www.google.com/maps/search/?api=1&query=${q}`;}
+function obitSearch(r){const q=encodeURIComponent(`"${r.name}" obituary ${r.location||''}`); return `https://www.google.com/search?q=${q}`;}
+function webSearch(r){const q=encodeURIComponent(`${r.name} ${r.source||''} obituary`); return `https://www.google.com/search?q=${q}`;}
+function links(r){return `<a href="${obitSearch(r)}" target="_blank">Obit</a> · <a href="${mapLink(r)}" target="_blank">Map</a> · <a href="${webSearch(r)}" target="_blank">Search</a>`}
 
 async function load(){
   const t=await (await fetch(CSV_URL,{cache:'no-store'})).text();
@@ -102,7 +131,7 @@ async function load(){
   const research=rows.filter(r=>(r.address_status||'').toLowerCase()==='missing' && (r.mail_status||'').toLowerCase()!=='sent');
   const active=rows.filter(r=>(r.address_status||'').toLowerCase()==='found' && (r.mail_status||'').toLowerCase()!=='sent');
 
-  document.getElementById('meta').textContent=`Live rows: ${rows.length} • updated ${new Date().toLocaleString()}`;
+  document.getElementById('meta').textContent=`Live rows: ${rows.length} • updated ${new Date().toLocaleString()} • Source: Google Sheet`;
   document.getElementById('kpis').innerHTML=`
     <div class="box"><div class="l">Total Queue</div><div class="n blue">${rows.length}</div></div>
     <div class="box"><div class="l">Sent ✅</div><div class="n green">${sent.length}</div></div>
@@ -110,13 +139,12 @@ async function load(){
     <div class="box"><div class="l">Ready/Found</div><div class="n purple">${active.length}</div></div>
     <div class="box"><div class="l">Updated Rows</div><div class="n blue">${rows.filter(r=>r.updated_at).length}</div></div>`;
 
-  document.getElementById('sentRows').innerHTML = sent.length ? sent.map(r=>`<tr>${td('<strong>'+r.name+'</strong>')}${td(r.source)}${td(r.raw_address||r.match_address)}${td('<span class="badge badge-sent">sent</span>')}${td(stamp(r.updated_at))}</tr>`).join('') : '<tr><td colspan="5" class="hint">No sent rows yet.</td></tr>';
+  document.getElementById('sentRows').innerHTML = sent.length ? sent.map(r=>`<tr><td><strong>${esc(r.name)}</strong></td><td class="score">${score(r)}</td><td>${esc(r.source)}</td><td>${esc(r.raw_address||r.match_address)}</td><td><span class="badge badge-sent">sent</span></td><td>${stamp(r.updated_at)}</td><td>${links(r)}</td></tr>`).join('') : '<tr><td colspan="7" class="hint">No sent rows yet.</td></tr>';
 
-  document.getElementById('researchRows').innerHTML = research.length ? research.map(r=>`<tr>${td('<strong>'+r.name+'</strong>')}${td(r.location)}${td(r.last_attempt_note||'No candidate found yet')}${td(r.attempt_count||'0')}${td(r.next_action||'research_address')}</tr>`).join('') : '<tr><td colspan="5" class="hint">No research-needed rows right now.</td></tr>';
+  document.getElementById('researchRows').innerHTML = research.length ? research.map(r=>`<tr><td><strong>${esc(r.name)}</strong></td><td class="score">${score(r)}</td><td>${esc(r.location)}</td><td>${esc(r.last_attempt_note||'No candidate found yet')}</td><td>${esc(r.attempt_count||'0')}</td><td><span class="badge badge-research">${esc(r.next_action||'research_address')}</span></td><td>${links(r)}</td></tr>`).join('') : '<tr><td colspan="7" class="hint">No research-needed rows right now.</td></tr>';
 
-  document.getElementById('activeRows').innerHTML = active.length ? active.map(r=>`<tr>${td('<strong>'+r.name+'</strong>')}${td(r.priority)}${td(r.location)}${td(r.raw_address||r.match_address)}${td('<span class="badge badge-new">'+(r.mail_status||'pending')+'</span>')}${td(r.next_action||'verify_and_queue')}</tr>`).join('') : '<tr><td colspan="6" class="hint">No active found rows right now.</td></tr>';
+  document.getElementById('activeRows').innerHTML = active.length ? active.map(r=>`<tr><td><strong>${esc(r.name)}</strong></td><td class="score">${score(r)}</td><td><span class="badge badge-blue">${esc(r.priority||'Blue')}</span></td><td>${esc(r.location)}</td><td>${esc(r.raw_address||r.match_address)}</td><td><span class="badge badge-new">${esc(r.mail_status||'pending')}</span></td><td>${esc(r.next_action||'verify_and_queue')}</td><td>${links(r)}</td></tr>`).join('') : '<tr><td colspan="8" class="hint">No active found rows right now.</td></tr>';
 }
-
 load();
 </script>
 </body>
