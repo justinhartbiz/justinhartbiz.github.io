@@ -213,6 +213,33 @@
 
   /* Row visibility for filters */
   tr.hidden-by-filter{display:none !important}
+
+  /* Sent Log Tab */
+  .sent-log-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:12px}
+  .sent-log-count{background:var(--navy);color:#fff;border-radius:20px;padding:6px 14px;font-size:.8rem;font-weight:700}
+  .sent-log-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn-export{background:var(--teal);color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:Lato}
+  .btn-export:hover{background:#2fa8a3}
+  .btn-clear{background:#fff;color:var(--status-pass);border:1px solid var(--status-pass);border-radius:6px;padding:8px 14px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:Lato}
+  .btn-clear:hover{background:#f3f4f6}
+  .sent-log-hint{font-size:.7rem;color:var(--muted);padding:8px 18px;background:#f8f9fa;border-bottom:1px solid var(--line)}
+  .sent-log-table{width:100%;border-collapse:collapse}
+  .sent-log-table th{background:#f1f5f9;color:#475569;font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;text-align:left;font-family:Lato,sans-serif;font-weight:700;white-space:nowrap}
+  .sent-log-table td{padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:.78rem;vertical-align:middle}
+  .sent-log-table tr:hover td{background:#f8fbff}
+  .action-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.68rem;font-weight:700}
+  .action-badge.email{background:rgba(56,182,178,.15);color:#0d7370}
+  .action-badge.postcard{background:rgba(13,59,102,.15);color:var(--navy)}
+  .action-badge.status{background:#f3f4f6;color:#4b5563}
+  .touch-pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700}
+  .touch-pill.t1{background:#fef3c7;color:#b45309}
+  .touch-pill.t2{background:#ffedd5;color:#c2410c}
+  .touch-pill.t3{background:#ede9fe;color:#6d28d9}
+  .sent-log-empty{text-align:center;padding:60px 20px;color:var(--muted)}
+  .sent-log-empty-icon{font-size:3rem;margin-bottom:12px}
+  .sent-log-empty-text{font-size:.9rem;line-height:1.6}
+  .log-notes-input{border:1px solid var(--line);border-radius:4px;padding:4px 8px;font-size:.72rem;width:100%;font-family:Lato}
+  .log-notes-input:focus{outline:2px solid var(--teal);border-color:var(--teal)}
 </style>
 </head>
 <body>
@@ -298,6 +325,7 @@
       <button class="tab" onclick="showTab('sd','assisted',this)">🏠 Assisted Living</button>
       <button class="tab" onclick="showTab('sd','queue',this)">📋 Queue</button>
       <button class="tab" onclick="showTab('sd','archive',this)">🗂 Archive</button>
+      <button class="tab" onclick="showTab('sd','sentlog',this)">📋 Sent Log</button>
     </div>
 
     <!-- SD Estate Attorneys -->
@@ -417,6 +445,23 @@
         </table>
       </div>
     </div>
+
+    <!-- SD Sent Log Panel -->
+    <div class="panel" id="sd-panel-sentlog">
+      <div class="sent-log-header">
+        <span class="sent-log-count" id="sdSentLogCount">📋 0 actions logged</span>
+        <div class="sent-log-actions">
+          <button class="btn-export" onclick="exportSentLogCSV()">📥 Export to CSV</button>
+          <button class="btn-clear" onclick="clearSentLog()">🗑 Clear Log</button>
+        </div>
+      </div>
+      <div class="sent-log-hint">💡 Export before clearing · SF import coming soon</div>
+      <table class="sent-log-table">
+        <thead><tr><th>Date</th><th>Firm</th><th>City</th><th>Type</th><th>Action</th><th>Template</th><th>Touch #</th><th>Notes</th></tr></thead>
+        <tbody id="sdSentLogBody">
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Orange County View -->
@@ -428,6 +473,7 @@
       <button class="tab" onclick="showTab('oc','assisted',this)">🏠 Assisted Living</button>
       <button class="tab" onclick="showTab('oc','queue',this)">📋 Queue</button>
       <button class="tab" onclick="showTab('oc','archive',this)">🗂 Archive</button>
+      <button class="tab" onclick="showTab('oc','sentlog',this)">📋 Sent Log</button>
     </div>
 
     <!-- OC Estate Attorneys -->
@@ -536,6 +582,23 @@
         </table>
       </div>
     </div>
+
+    <!-- OC Sent Log Panel -->
+    <div class="panel" id="oc-panel-sentlog">
+      <div class="sent-log-header">
+        <span class="sent-log-count" id="ocSentLogCount">📋 0 actions logged</span>
+        <div class="sent-log-actions">
+          <button class="btn-export" onclick="exportSentLogCSV()">📥 Export to CSV</button>
+          <button class="btn-clear" onclick="clearSentLog()">🗑 Clear Log</button>
+        </div>
+      </div>
+      <div class="sent-log-hint">💡 Export before clearing · SF import coming soon</div>
+      <table class="sent-log-table">
+        <thead><tr><th>Date</th><th>Firm</th><th>City</th><th>Type</th><th>Action</th><th>Template</th><th>Touch #</th><th>Notes</th></tr></thead>
+        <tbody id="ocSentLogBody">
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <div style="text-align:center;margin-top:20px;color:var(--muted);font-size:.72rem;padding-bottom:20px">
@@ -605,6 +668,8 @@ const TOUCHES_KEY = 'tlh_scout_touches';
 const NOTES_KEY = 'tlh_scout_notes';
 const REASONS_KEY = 'tlh_scout_reasons';
 const SHEET_URL_KEY = 'tlh_scout_sheet_url';
+const SENT_LOG_KEY = 'tlh_scout_sent_log';
+const LOG_SEEDED_KEY = 'tlh_scout_log_seeded';
 
 // ===== STATUS CONFIG =====
 const STATUS_CONFIG = {
@@ -630,6 +695,13 @@ const TYPE_ICONS = {
   elder: '👴 Elder Law',
   fiduciary: '🏦 Fiduciary',
   assisted: '🏠 Assisted'
+};
+
+const TYPE_LABELS = {
+  estate: 'Estate Attorney',
+  elder: 'Elder Law',
+  fiduciary: 'Fiduciary',
+  assisted: 'Assisted Living'
 };
 
 const CITY_NAMES = {
@@ -692,6 +764,8 @@ document.addEventListener('DOMContentLoaded', function() {
   renderQueue();
   renderArchive();
   setupStatusDropdown();
+  seedSentLogIfNeeded();
+  renderSentLog();
 });
 
 // ===== LOCALSTORAGE HELPERS =====
@@ -810,6 +884,15 @@ function changeStatus(firmName, newStatus) {
   const oldStatus = statuses[firmName] || 'new';
   statuses[firmName] = newStatus;
   saveStatuses(statuses);
+
+  if (oldStatus !== newStatus) {
+    const firmInfo = getFirmDetails(firmName);
+    addToSentLog([{
+      name: firmName,
+      city: firmInfo.city,
+      type: firmInfo.type
+    }], 'status', `Status: ${STATUS_LABELS[oldStatus]} → ${STATUS_LABELS[newStatus]}`, null, 'Justin Hart');
+  }
   
   // Update pill in all rows with this firm
   document.querySelectorAll(`.status-pill[data-firm="${firmName}"]`).forEach(pill => {
@@ -853,6 +936,11 @@ function getAllFirms() {
     });
   });
   return firms;
+}
+
+function getFirmDetails(firmName) {
+  const firm = getAllFirms().find(f => f.name === firmName);
+  return firm || { city: '', type: '' };
 }
 
 function getLastTouchDate(firmName) {
@@ -1081,10 +1169,13 @@ function updateSelection() {
   selectedFirms = [];
   checkboxes.forEach(cb => {
     const row = cb.closest('tr');
+    const tbody = row.closest('tbody');
     selectedFirms.push({
       name: row.dataset.firm,
       email: row.dataset.email,
-      contact: row.dataset.contact || row.dataset.firm.split(' ')[0]
+      contact: row.dataset.contact || row.dataset.firm.split(' ')[0],
+      city: tbody?.dataset.city || '',
+      type: tbody?.dataset.type || ''
     });
     row.classList.add('selected');
   });
@@ -1228,6 +1319,7 @@ function exportCSV() {
 
 function logSends() {
   const template = document.getElementById('templateSelect').value;
+  const templateName = emailTemplates[template]?.name || template;
   const today = new Date().toISOString().split('T')[0];
   const touchNumber = template === 'touch1' ? 1 : template === 'touch2' ? 2 : 3;
   const touchType = template === 'touch1' ? 'Intro Email' : template === 'touch2' ? 'Follow-up Email' : 'Partner Invite';
@@ -1265,6 +1357,9 @@ function logSends() {
   renderQueue();
   renderArchive();
   
+  // Add entries to Sent Log (one per selected firm)
+  addToSentLog(selectedFirms, 'email', templateName, touchNumber, 'Justin Hart');
+
   // Try to sync to Google Sheet
   const sheetUrl = localStorage.getItem(SHEET_URL_KEY);
   if (sheetUrl) {
@@ -1301,7 +1396,9 @@ function openQueueEmailModal() {
   selectedFirms = firms.map(f => ({
     name: f.name,
     email: f.email,
-    contact: f.contact
+    contact: f.contact,
+    city: f.city,
+    type: f.type
   }));
   
   updateTemplatePreview();
@@ -1321,6 +1418,241 @@ function openQueueEmailModal() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeEmailModal();
 });
+
+// ===== SENT LOG FUNCTIONS =====
+
+function getSentLog() {
+  try {
+    return JSON.parse(localStorage.getItem(SENT_LOG_KEY)) || [];
+  } catch { return []; }
+}
+
+function saveSentLog(log) {
+  localStorage.setItem(SENT_LOG_KEY, JSON.stringify(log));
+}
+
+function seedSentLogIfNeeded() {
+  const alreadySeeded = localStorage.getItem(LOG_SEEDED_KEY);
+  if (alreadySeeded) return;
+  
+  const existingLog = getSentLog();
+  if (existingLog.length > 0) return;
+  
+  // Seed 5 example entries for the 5 already-sent postcards
+  const seedEntries = [
+    {
+      id: crypto.randomUUID(),
+      timestamp: '2026-02-19T10:30:00',
+      firmName: 'Angelina Vitale',
+      city: 'San Diego',
+      type: 'Estate Attorney',
+      action: 'postcard',
+      template: 'Follow-up Postcard — Touch 2',
+      touchNumber: 1,
+      sentBy: 'Justin Hart',
+      notes: ''
+    },
+    {
+      id: crypto.randomUUID(),
+      timestamp: '2026-02-19T11:15:00',
+      firmName: 'Cathy Driscoll',
+      city: 'Orange County',
+      type: 'Elder Law',
+      action: 'postcard',
+      template: 'Follow-up Postcard — Touch 2',
+      touchNumber: 1,
+      sentBy: 'Justin Hart',
+      notes: ''
+    },
+    {
+      id: crypto.randomUUID(),
+      timestamp: '2026-02-19T14:00:00',
+      firmName: 'Dick Edward Mosher',
+      city: 'Los Angeles area',
+      type: 'Estate Attorney',
+      action: 'postcard',
+      template: 'Follow-up Postcard — Touch 2',
+      touchNumber: 1,
+      sentBy: 'Justin Hart',
+      notes: ''
+    },
+    {
+      id: crypto.randomUUID(),
+      timestamp: '2026-02-19T15:30:00',
+      firmName: 'Margie Hubbard',
+      city: 'Orange County',
+      type: 'Fiduciary',
+      action: 'postcard',
+      template: 'Follow-up Postcard — Touch 2',
+      touchNumber: 1,
+      sentBy: 'Justin Hart',
+      notes: ''
+    },
+    {
+      id: crypto.randomUUID(),
+      timestamp: '2026-02-19T16:45:00',
+      firmName: "Roberta 'Bobbi' Adler",
+      city: 'San Diego',
+      type: 'Assisted Living',
+      action: 'postcard',
+      template: 'Follow-up Postcard — Touch 2',
+      touchNumber: 1,
+      sentBy: 'Justin Hart',
+      notes: ''
+    }
+  ];
+  
+  saveSentLog(seedEntries);
+  localStorage.setItem(LOG_SEEDED_KEY, 'true');
+}
+
+function renderSentLog() {
+  const log = getSentLog();
+  
+  // Sort by timestamp descending (newest first)
+  const sortedLog = [...log].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  
+  // Update count badges
+  const countText = `📋 ${sortedLog.length} action${sortedLog.length !== 1 ? 's' : ''} logged`;
+  document.getElementById('sdSentLogCount').textContent = countText;
+  document.getElementById('ocSentLogCount').textContent = countText;
+  
+  // Render empty state or table
+  const sdBody = document.getElementById('sdSentLogBody');
+  const ocBody = document.getElementById('ocSentLogBody');
+  
+  if (sortedLog.length === 0) {
+    const emptyState = `
+      <tr>
+        <td colspan="8">
+          <div class="sent-log-empty">
+            <div class="sent-log-empty-icon">📭</div>
+            <div class="sent-log-empty-text">No actions logged yet.<br>Actions logged via the Campaign Console will appear here.</div>
+          </div>
+        </td>
+      </tr>
+    `;
+    sdBody.innerHTML = emptyState;
+    ocBody.innerHTML = emptyState;
+    return;
+  }
+  
+  // Render rows for each log entry
+  const renderRow = (entry) => {
+    const date = new Date(entry.timestamp);
+    const formattedDate = date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    }) + ' ' + date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    
+    let actionBadge = '';
+    if (entry.action === 'email') {
+      actionBadge = '<span class="action-badge email">📧 Email</span>';
+    } else if (entry.action === 'postcard') {
+      actionBadge = '<span class="action-badge postcard">📬 Postcard</span>';
+    } else {
+      actionBadge = '<span class="action-badge status">📝 Status Change</span>';
+    }
+    
+    const touchPill = entry.touchNumber ? `<span class="touch-pill t${entry.touchNumber}">T${entry.touchNumber}</span>` : '—';
+    
+    return `
+      <tr data-id="${entry.id}">
+        <td>${formattedDate}</td>
+        <td><strong>${entry.firmName}</strong></td>
+        <td>${entry.city}</td>
+        <td>${entry.type}</td>
+        <td>${actionBadge}</td>
+        <td>${entry.template}</td>
+        <td>${touchPill}</td>
+        <td><input type="text" class="log-notes-input" value="${entry.notes || ''}" placeholder="Add notes..." onchange="updateLogNote('${entry.id}', this.value)"></td>
+      </tr>
+    `;
+  };
+  
+  sdBody.innerHTML = sortedLog.map(renderRow).join('');
+  ocBody.innerHTML = sortedLog.map(renderRow).join('');
+}
+
+function updateLogNote(entryId, note) {
+  const log = getSentLog();
+  const entry = log.find(e => e.id === entryId);
+  if (entry) {
+    entry.notes = note;
+    saveSentLog(log);
+  }
+}
+
+function exportSentLogCSV() {
+  const log = getSentLog();
+  
+  if (log.length === 0) {
+    alert('No log entries to export.');
+    return;
+  }
+  
+  // Sort by timestamp descending
+  const sortedLog = [...log].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  
+  // SF-ready export format
+  let csv = 'Date,Firm Name,City,Type,Action,Template,Touch Number,Notes,Logged At\n';
+  
+  sortedLog.forEach(entry => {
+    const date = new Date(entry.timestamp);
+    const formattedDate = date.toLocaleDateString('en-US', { 
+      month: 'short', day: 'numeric', year: 'numeric' 
+    }) + ' ' + date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', minute: '2-digit', hour12: true 
+    });
+    
+    csv += `"${formattedDate}","${entry.firmName}","${entry.city}","${entry.type}","${entry.action}","${entry.template}","${entry.touchNumber || ''}","${(entry.notes || '').replace(/"/g, '""')}","${entry.timestamp}"\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `tlh-scout-sent-log-${today}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearSentLog() {
+  if (!confirm('Are you sure? This cannot be undone.')) return;
+  
+  localStorage.removeItem(SENT_LOG_KEY);
+  renderSentLog();
+}
+
+function addToSentLog(firms, actionType, template, touchNumber, sentBy) {
+  const log = getSentLog();
+  const now = new Date();
+  
+  firms.forEach(firm => {
+    const entry = {
+      id: crypto.randomUUID(),
+      timestamp: now.toISOString(),
+      firmName: firm.name,
+      city: CITY_NAMES[firm.city] || firm.city || '',
+      type: TYPE_LABELS[firm.type] || firm.type || '',
+      action: actionType,
+      template: template,
+      touchNumber: touchNumber,
+      sentBy: sentBy || 'Justin Hart',
+      notes: ''
+    };
+    log.push(entry);
+  });
+  
+  saveSentLog(log);
+  renderSentLog();
+}
 </script>
 </body>
 </html>
