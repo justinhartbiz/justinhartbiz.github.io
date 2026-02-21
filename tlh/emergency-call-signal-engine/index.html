@@ -35,7 +35,12 @@ tr:hover td{background:#f8fbff}
 .list{padding:14px 18px 16px 28px;color:#475569;line-height:1.45;font-size:13px}
 .list code{background:#f1f5f9;padding:1px 6px;border-radius:4px}
 .small{font-size:12px;color:#6b7280}
-@media(max-width:800px){.kpi{grid-template-columns:repeat(2,1fr)}}
+.filters{background:#fff;border:1px solid #E5E5E5;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.filters label{font-size:.72rem;color:#6B6B78;text-transform:uppercase;letter-spacing:.4px;font-weight:700;white-space:nowrap}
+.filters select{border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:13px;font-family:Lato,sans-serif;color:#333;background:#fff;cursor:pointer}
+.filters select:focus{outline:none;border-color:#0D3B66}
+.filter-count{margin-left:auto;font-size:.75rem;color:#94a3b8}
+@media(max-width:800px){.kpi{grid-template-columns:repeat(2,1fr)}.filters{gap:8px}}
 </style>
 </head>
 <body>
@@ -47,6 +52,21 @@ tr:hover td{background:#f8fbff}
   <div class="meta" id="meta">Public-signal model only • no live emergency interception • loading…</div>
 
   <div class="kpi" id="kpis"></div>
+
+  <div class="filters">
+    <label>Event Type</label>
+    <select id="filterType"><option value="">All Types</option></select>
+    <label>Decision</label>
+    <select id="filterDecision">
+      <option value="">All</option>
+      <option value="ready_now">Ready Now</option>
+      <option value="wait">Wait</option>
+      <option value="suppress">Suppress</option>
+    </select>
+    <label>Source</label>
+    <select id="filterSource"><option value="">All Sources</option></select>
+    <span class="filter-count" id="filterCount"></span>
+  </div>
 
   <section>
     <h2>📏 Model + Safeguards</h2>
@@ -73,12 +93,21 @@ tr:hover td{background:#f8fbff}
 </main>
 
 <script>
-async function load(){
-  const res = await fetch('./data/incidents.json', {cache:'no-store'});
-  const payload = await res.json();
-  const rows = payload.records || [];
+let allRows = [];
 
-  const rowsHTML = rows.map(r=>{
+function renderRows(){
+  const typeVal = document.getElementById('filterType').value;
+  const decisionVal = document.getElementById('filterDecision').value;
+  const sourceVal = document.getElementById('filterSource').value;
+
+  const filtered = allRows.filter(r=>{
+    if(typeVal && r.eventType !== typeVal) return false;
+    if(decisionVal && r.decision !== decisionVal) return false;
+    if(sourceVal && r.source !== sourceVal) return false;
+    return true;
+  });
+
+  const rowsHTML = filtered.map(r=>{
     const badge = r.decision==='ready_now'
       ? '<span class="badge badge-ready">ready_now</span>'
       : r.decision==='suppress'
@@ -95,14 +124,46 @@ async function load(){
     </tr>`;
   }).join('');
 
-  document.getElementById('rows').innerHTML = rowsHTML || '<tr><td colspan="7" class="small">No incidents loaded.</td></tr>';
+  document.getElementById('rows').innerHTML = rowsHTML || '<tr><td colspan="7" class="small">No incidents match filters.</td></tr>';
+  document.getElementById('filterCount').textContent = `${filtered.length} of ${allRows.length} records`;
+}
 
-  const ready = rows.filter(r=>r.decision==='ready_now').length;
-  const wait = rows.filter(r=>r.decision==='wait').length;
-  const suppress = rows.filter(r=>r.decision==='suppress').length;
+async function load(){
+  const res = await fetch('./data/incidents.json', {cache:'no-store'});
+  const payload = await res.json();
+  allRows = payload.records || [];
+
+  // Populate event type filter (unique, sorted)
+  const types = [...new Set(allRows.map(r=>r.eventType).filter(Boolean))].sort();
+  const typeSelect = document.getElementById('filterType');
+  types.forEach(t=>{
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    typeSelect.appendChild(opt);
+  });
+
+  // Populate source filter
+  const sources = [...new Set(allRows.map(r=>r.source).filter(Boolean))].sort();
+  const sourceSelect = document.getElementById('filterSource');
+  sources.forEach(s=>{
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    sourceSelect.appendChild(opt);
+  });
+
+  // Wire filters
+  typeSelect.addEventListener('change', renderRows);
+  document.getElementById('filterDecision').addEventListener('change', renderRows);
+  sourceSelect.addEventListener('change', renderRows);
+
+  renderRows();
+
+  const ready = allRows.filter(r=>r.decision==='ready_now').length;
+  const wait = allRows.filter(r=>r.decision==='wait').length;
+  const suppress = allRows.filter(r=>r.decision==='suppress').length;
 
   document.getElementById('kpis').innerHTML = `
-    <div class="box"><div class="l">Records</div><div class="n blue">${rows.length}</div></div>
+    <div class="box"><div class="l">Records</div><div class="n blue">${allRows.length}</div></div>
     <div class="box"><div class="l">Ready Now</div><div class="n green">${ready}</div></div>
     <div class="box"><div class="l">Wait</div><div class="n amber">${wait}</div></div>
     <div class="box"><div class="l">Suppress</div><div class="n red">${suppress}</div></div>
