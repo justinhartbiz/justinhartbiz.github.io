@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Byzantine Generals Problem — Trust in a Trustless World</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@300;400&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-deep: #0a0a0f;
+            --bg-card: #111118;
+            --accent-green: #00ff88;
+            --accent-red: #ff3366;
+            --accent-amber: #ffaa00;
+            --accent-blue: #0088ff;
+            --text-primary: #e8e8f0;
+            --text-muted: #707088;
+        }
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+        
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 10% 90%, rgba(0,255,136,0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 10%, rgba(255,51,102,0.05) 0%, transparent 40%),
+                var(--bg-deep);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 60px;
+        }
+        
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover { color: var(--accent-green); }
+        
+        h1 {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+        
+        h1 span {
+            color: var(--accent-green);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 50px;
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+            margin: 50px 0 25px;
+            color: var(--accent-amber);
+            font-weight: 400;
+        }
+        
+        p {
+            font-size: 1.05rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+        
+        .highlight {
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+        
+        .highlight-red {
+            color: var(--accent-red);
+        }
+        
+        /* Network Simulator */
+        .network-sim {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 40px 0;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .network-sim h3 {
+            color: var(--accent-blue);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        .network-canvas {
+            width: 100%;
+            height: 300px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .node {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px currentColor;
+        }
+        
+        .node.honest {
+            background: var(--accent-green);
+            color: #000;
+        }
+        
+        .node.byzantine {
+            background: var(--accent-red);
+            color: #fff;
+        }
+        
+        .node.selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 30px currentColor;
+        }
+        
+        .connection {
+            position: absolute;
+            height: 2px;
+            background: rgba(255,255,255,0.2);
+            transform-origin: left center;
+        }
+        
+        .message {
+            position: absolute;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            animation: messageMove 2s linear forwards;
+            z-index: 10;
+        }
+        
+        @keyframes messageMove {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translate(var(--tx), var(--ty)); }
+        }
+        
+        .sim-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 18px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: transparent;
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            border-color: var(--accent-green);
+            background: rgba(0,255,136,0.1);
+        }
+        
+        .btn.active {
+            background: var(--accent-green);
+            color: #000;
+            border-color: var(--accent-green);
+        }
+        
+        .sim-status {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+            min-height: 60px;
+        }
+        
+        .sim-status .status-good {
+            color: var(--accent-green);
+        }
+        
+        .sim-status .status-bad {
+            color: var(--accent-red);
+        }
+        
+        /* Problem explanation */
+        .problem-box {
+            background: var(--bg-card);
+            border-left: 4px solid var(--accent-red);
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .problem-box h3 {
+            color: var(--accent-red);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        /* Solution box */
+        .solution-box {
+            background: linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,136,255,0.1));
+            border: 1px solid var(--accent-green);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 50px 0;
+        }
+        
+        .solution-box h3 {
+            color: var(--accent-green);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+        
+        .solution-box ul {
+            margin-left: 20px;
+            color: var(--text-muted);
+        }
+        
+        .solution-box li {
+            margin-bottom: 10px;
+        }
+        
+        /* Timeline */
+        .timeline {
+            margin: 40px 0;
+            padding: 20px 0;
+            border-left: 2px solid rgba(255,255,255,0.1);
+            margin-left: 20px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+        }
+        
+        .timeline-item .year {
+            font-size: 13px;
+            color: var(--accent-blue);
+        }
+        
+        /* Info cards */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .info-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .info-card h3 {
+            color: var(--accent-amber);
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+        
+        .info-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        
+        /* Quote */
+        .quote {
+            font-style: italic;
+            padding: 25px 30px;
+            border-left: 3px solid var(--accent-green);
+            background: rgba(0,255,136,0.05);
+            margin: 30px 0;
+            color: var(--text-muted);
+        }
+        
+        footer {
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        
+        footer a {
+            color: var(--accent-green);
+            text-decoration: none;
+        }
+        
+        @media (max-width: 600px) {
+            .container { padding: 20px 16px; }
+            .network-sim { padding: 20px; }
+            .node { width: 32px; height: 32px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="container">
+        <nav>
+            <a href="/projects/horizon-v7/">← Horizon v7</a>
+            <a href="#top">Top</a>
+        </nav>
+        
+        <h1>The <span>Byzantine Generals Problem</span></h1>
+        <p class="subtitle">The mathematical problem that made cryptocurrency possible</p>
+        
+        <p>Imagine several army divisions surrounding an enemy city. The generals must coordinate a unified attack. They can only communicate through messengers. But here's the catch: some generals might be <span class="highlight-red">traitors</span>, sending conflicting messages to different divisions.</p>
+        
+        <p>How can the loyal generals guarantee they all agree on the same plan, even if some participants are lying?</p>
+        
+        <div class="problem-box">
+            <h3>The Problem</h3>
+            <p>This is the Byzantine Generals Problem — a thought experiment posed by Leslie Lamport, Robert Shostak, and Marshall Pease in 1982. It formalizes a question that sounds simple but is actually incredibly hard:</p>
+            <p><strong>How do you achieve consensus in a system where you can't trust everyone?</strong></p>
+        </div>
+        
+        <h2>Try It Yourself</h2>
+        
+        <div class="network-sim">
+            <h3>Interactive Consensus Simulator</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">
+                Click generals to toggle honest (green) or Byzantine (red). Then try to reach consensus.
+            </p>
+            
+            <div class="network-canvas" id="networkCanvas"></div>
+            
+            <div class="sim-controls">
+                <button class="btn active" onclick="setMode('attack')">💥 Attack</button>
+                <button class="btn" onclick="setMode('retreat')">🏃 Retreat</button>
+                <button class="btn" onclick="runConsensus()">▶ Run Consensus</button>
+                <button class="btn" onclick="resetNetwork()">↺ Reset</button>
+            </div>
+            
+            <div class="sim-status" id="simStatus">
+                Click generals to mark them as honest (green) or Byzantine (traitors). Then send your command and see if consensus is reached. Byzantine generals will lie to different nodes.
+            </div>
+        </div>
+        
+        <h2>Why It's So Hard</h2>
+        
+        <p>The problem gets insidious when you realize you can't even trust the <em>messengers</em>. A traitor general could tell one division "attack" and another "retreat" — and then tell each that the <em>other</em> said something different.</p>
+        
+        <p>With just 3 generals and 1 traitor, consensus becomes impossible. If General A tells B and C to attack, and A is the traitor, B receives "attack" from A but C receives "retreat" from A. B and C can't know who to trust.</p>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>The Threshold</h3>
+                <p>The theorem states you can achieve consensus if and only if more than 2/3 of the participants are honest. With n nodes, you can tolerate up to f = (n-1)/3 Byzantine failures.</p>
+            </div>
+            <div class="info-card">
+                <h3>No Trusted Third Party</h3>
+                <p>Traditional solutions require a central authority. But what if the central authority itself is compromised? The solution must work without any single point of trust.</p>
+            </div>
+            <div class="info-card">
+                <h3>Byzantine Fault Tolerance</h3>
+                <p>A system is BFT if it continues to function correctly even when some nodes behave arbitrarily — including maliciously. This is what makes blockchain possible.</p>
+            </div>
+        </div>
+        
+        <div class="solution-box">
+            <h3>The Solution: Bitcoin's Proof of Work</h3>
+            <p>Satoshi Nakamoto's genius wasn't just cryptocurrency — it was solving the Byzantine Generals Problem through game theory and economics:</p>
+            <ul>
+                <li><strong>Economic incentive:</strong> Honesty is more profitable than cheating. Attacking the network costs more than the value you'd steal.</li>
+                <li><strong>Proof of work:</strong> Creating blocks requires real energy expenditure. It's costly to produce fake blocks.</li>
+                <li><strong>Longest chain wins:</strong> The canonical version of history is simply the longest valid chain. To rewrite history, you'd need more than 50% of network hash power.</li>
+                <li><strong>Decentralization:</strong> No single point of failure. Even if some nodes are compromised, the network continues.</li>
+            </ul>
+        </div>
+        
+        <h2>A Brief History</h2>
+        
+        <div class="timeline">
+            <div class="timeline-item">
+                <span class="year">1982</span>
+                <p>Lamport, Shostak, and Pease formalize the Byzantine Generals Problem in a research paper.</p>
+            </div>
+            <div class="timeline-item">
+                <span class="year">1999</span>
+                <p>Miguel Castro and Barbara Liskov introduce PBFT (Practical Byzantine Fault Tolerance), an efficient algorithm for private networks.</p>
+            </div>
+            <div class="timeline-item">
+                <span class="year">2008</span>
+                <p>Satoshi Nakamoto publishes the Bitcoin whitepaper, solving the problem for public networks through proof of work.</p>
+            </div>
+            <div class="timeline-item">
+                <span class="year">2015</span>
+                <p>Ethereum launches, bringing smart contracts to the blockchain ecosystem.</p>
+            </div>
+            <div class="timeline-item">
+                <span class="year">Today</span>
+                <p>Proof of Stake, sharding, and layer-2 solutions continue to evolve the solutions to this 40-year-old problem.</p>
+            </div>
+        </div>
+        
+        <div class="quote">
+            "The Byzantine Generals Problem is to distributed computing what the Prisoner's Dilemma is to game theory — a foundational problem that reveals the deep difficulty of coordination when participants can't trust each other."
+        </div>
+        
+        <h2>Why It Matters</h2>
+        
+        <p>The Byzantine Generals Problem isn't just an academic curiosity. It's the foundation for everything that makes the modern internet function:</p>
+        
+        <p>• <strong>Blockchain:</strong> Every cryptocurrency relies on consensus without trust. That's the whole point.</p>
+        <p>• <strong>Distributed databases:</strong> When you use Google Docs or iCloud, the system must handle simultaneous edits without a central coordinator.</p>
+        <p>• <strong>DNS:</strong> The domain name system that maps "google.com" to an IP address is distributed across thousands of servers.</p>
+        <p>• <strong>GPS satellites:</strong> They must agree on time and position even though they're physically separated and can be compromised.</p>
+        
+        <p>Every time you trust that your bank balance is accurate, that your email was delivered, or that your vote was counted — you're relying on solutions to some variant of the Byzantine Generals Problem.</p>
+        
+        <footer>
+            <p>← <a href="/projects/horizon-v7/">Back to Horizon v7</a></p>
+        </footer>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('networkCanvas');
+        const statusEl = document.getElementById('simStatus');
+        
+        let nodes = [];
+        let mode = 'attack';
+        let selectedNode = null;
+        
+        // Initialize nodes
+        function initNetwork() {
+            canvas.innerHTML = '';
+            nodes = [
+                { id: 0, x: 0.2, y: 0.3, honest: true, value: null },
+                { id: 1, x: 0.8, y: 0.3, honest: true, value: null },
+                { id: 2, x: 0.5, y: 0.7, honest: true, value: null },
+                { id: 3, x: 0.5, y: 0.5, honest: false, value: null } // Byzantine
+            ];
+            
+            // Draw connections
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const line = document.createElement('div');
+                    line.className = 'connection';
+                    
+                    const x1 = nodes[i].x * canvas.offsetWidth;
+                    const y1 = nodes[i].y * canvas.offsetHeight;
+                    const x2 = nodes[j].x * canvas.offsetWidth;
+                    const y2 = nodes[j].y * canvas.offsetHeight;
+                    
+                    const length = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+                    const angle = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
+                    
+                    line.style.left = x1 + 20 + 'px';
+                    line.style.top = y1 + 20 + 'px';
+                    line.style.width = length + 'px';
+                    line.style.transform = `rotate(${angle}deg)`;
+                    
+                    canvas.appendChild(line);
+                }
+            }
+            
+            // Draw nodes
+            nodes.forEach((node, idx) => {
+                const el = document.createElement('div');
+                el.className = 'node ' + (node.honest ? 'honest' : 'byzantine');
+                el.textContent = node.honest ? 'H' : 'B';
+                el.style.left = (node.x * canvas.offsetWidth - 20) + 'px';
+                el.style.top = (node.y * canvas.offsetHeight - 20) + 'px';
+                el.onclick = () => toggleNode(idx);
+                canvas.appendChild(el);
+                node.element = el;
+            });
+            
+            statusEl.innerHTML = 'Click on a node to toggle honest (green) or Byzantine (red). Then send your command and watch the consensus process.';
+        }
+        
+        function toggleNode(idx) {
+            nodes[idx].honest = !nodes[idx].honest;
+            nodes[idx].element.className = 'node ' + (nodes[idx].honest ? 'honest' : 'byzantine');
+            nodes[idx].element.textContent = nodes[idx].honest ? 'H' : 'B';
+            nodes[idx].value = null;
+        }
+        
+        function setMode(newMode) {
+            mode = newMode;
+            document.querySelectorAll('.sim-controls .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        function sendMessage(fromIdx, toIdx, value) {
+            const from = nodes[fromIdx];
+            const to = nodes[toIdx];
+            
+            const msg = document.createElement('div');
+            msg.className = 'message';
+            msg.textContent = value === 'attack' ? '⚔️' : '🏃';
+            msg.style.left = (from.x * canvas.offsetWidth + 10) + 'px';
+            msg.style.top = (from.y * canvas.offsetHeight + 10) + 'px';
+            
+            // If sender is Byzantine, they might lie
+            let finalValue = value;
+            if (!from.honest) {
+                finalValue = value === 'attack' ? 'retreat' : 'attack';
+            }
+            
+            const tx = (to.x - from.x) * canvas.offsetWidth;
+            const ty = (to.y - from.y) * canvas.offsetHeight;
+            msg.style.setProperty('--tx', tx + 'px');
+            msg.style.setProperty('--ty', ty + 'px');
+            
+            canvas.appendChild(msg);
+            
+            setTimeout(() => {
+                to.value = finalValue;
+                to.element.textContent = from.honest ? (finalValue === 'attack' ? '⚔️' : '🏃') : (finalValue === 'attack' ? '⚔️' : '🏃');
+                to.element.style.background = finalValue === 'attack' ? 'var(--accent-green)' : 'var(--accent-red)';
+            }, 1500);
+            
+            setTimeout(() => msg.remove(), 2000);
+        }
+        
+        function runConsensus() {
+            // Reset values
+            nodes.forEach(n => {
+                n.value = null;
+                n.element.textContent = n.honest ? 'H' : 'B';
+                n.element.style.background = n.honest ? 'var(--accent-green)' : 'var(--accent-red)';
+            });
+            
+            // Source is node 0
+            const sourceValue = mode;
+            
+            statusEl.innerHTML = 'Sending messages...';
+            
+            // Each honest node sends to all others
+            setTimeout(() => {
+                nodes.forEach((from, fromIdx) => {
+                    if (from.honest) {
+                        nodes.forEach((to, toIdx) => {
+                            if (fromIdx !== toIdx) {
+                                sendMessage(fromIdx, toIdx, sourceValue);
+                            }
+                        });
+                    }
+                });
+            }, 100);
+            
+            // Check result after messages arrive
+            setTimeout(() => {
+                const values = nodes.map(n => n.value);
+                const unique = [...new Set(values.filter(v => v !== null))];
+                
+                if (unique.length === 1) {
+                    statusEl.innerHTML = `<span class="status-good">✓ CONSENSUS REACHED!</span> All honest nodes agreed on: ${unique[0].toUpperCase()}. The Byzantine nodes either agreed with the majority or were ignored.`;
+                } else {
+                    statusEl.innerHTML = `<span class="status-bad">✗ CONSENSUS FAILED!</span> Nodes have conflicting values: ${values.map(v => v || '?').join(', ')}. This is the Byzantine Generals Problem in action — liars broke the consensus.`;
+                }
+            }, 2000);
+        }
+        
+        function resetNetwork() {
+            initNetwork();
+        }
+        
+        initNetwork();
+    </script>
+</body>
+</html>
